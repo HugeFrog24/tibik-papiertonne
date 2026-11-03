@@ -40,6 +40,7 @@ export type GaitPlan = {
   readonly style: GaitStyle;
   readonly plants: Readonly<Record<LegName, readonly Plant[]>>;
   readonly ground: Ground;
+  readonly level: boolean;
   readonly touchdowns: readonly { readonly time: number; readonly side: Side }[];
   readonly bob: { readonly from: number; readonly step: number; readonly values: readonly number[] };
 };
@@ -56,6 +57,7 @@ const X_AXIS = new Vector3(1, 0, 0);
 const SAMPLE = 1 / 240;
 const STEP_DOWN = 0.05;
 const BALL_FIRST = 0.6;
+const BOB_SMOOTHING = { level: 0.1, uneven: 0.12 };
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 const smooth = (u: number) => u * u * (3 - 2 * u);
@@ -134,9 +136,30 @@ const groundNeed = (plan: GaitPlan, from: Plant, to: Plant, u: number) => {
   return need;
 };
 
+const isLevel = (plan: GaitPlan) => {
+  const all = [...plan.plants.leftLeg, ...plan.plants.rightLeg];
+  const height = plan.ground(all[0].ankle.x, all[0].ankle.z);
+  const flatAt = (x: number, z: number) => Math.abs(plan.ground(x, z) - height) < 1e-6;
+  const { heel, toe } = footCapsule(plan.skeleton, 1);
+  return [plan.plants.leftLeg, plan.plants.rightLeg].every((own) =>
+    own.every((plant, i) => {
+      if (!flatAt(plant.ankle.x, plant.ankle.z)) return false;
+      const next = own[i + 1];
+      if (!next) return true;
+      for (let k = 0; k <= 8; k++) {
+        const along = plant.ankle.clone().lerp(next.ankle, k / 8);
+        for (const reach of [heel[2] - 0.1, 0, toe[2] + 0.1]) {
+          if (!flatAt(along.x + Math.sin(plant.yaw) * reach, along.z + Math.cos(plant.yaw) * reach)) return false;
+        }
+      }
+      return true;
+    }),
+  );
+};
+
 const SWING_SAMPLES = 32;
 const obstacleLift = (plan: GaitPlan, from: Plant, to: Plant, u: number) => {
-  if (plan.ground === FLAT_GROUND) {
+  if (plan.level) {
     return 0;
   }
   const needs = Array.from({ length: SWING_SAMPLES + 1 }, (_, j) => groundNeed(plan, from, to, j / SWING_SAMPLES));
@@ -288,12 +311,31 @@ export const planGait = (
     style,
     plants: { leftLeg: plantsOf(1), rightLeg: plantsOf(-1) },
     ground,
+    level: true,
     touchdowns: steps.map((s) => ({ time: s.land, side: s.side })).sort((a, b) => a.time - b.time),
     bob: { from: span[0], step: SAMPLE, values: [] },
   };
+  const level = isLevel(plan);
+  const levelled = { ...plan, level };
+  if (!level) {
+    for (const leg of ["leftLeg", "rightLeg"] as const) {
+      const own = plan.plants[leg];
+      for (let i = 1; i < own.length; i++) {
+        for (const [u, moment] of [
+          [0, own[i - 1].off],
+          [1, own[i].on],
+        ] as const) {
+          if (groundNeed(plan, own[i - 1], own[i], u) > 0.001) {
+            throw new Error(`The ${leg === "leftLeg" ? "left" : "right"} foot would stand inside the ground at ${moment.toFixed(2)} s`);
+          }
+        }
+      }
+    }
+  }
   const count = Math.ceil((span[1] - span[0]) / SAMPLE) + 1;
-  const limits = Array.from({ length: count }, (_, i) => reachLimit(plan, root, span[0] + i * SAMPLE));
-  return { ...plan, bob: { from: span[0], step: SAMPLE, values: smoothBelow(limits, Math.round(0.04 / SAMPLE)) } };
+  const limits = Array.from({ length: count }, (_, i) => reachLimit(levelled, root, span[0] + i * SAMPLE));
+  const smoothing = level ? BOB_SMOOTHING.level : BOB_SMOOTHING.uneven;
+  return { ...levelled, bob: { from: span[0], step: SAMPLE, values: smoothBelow(limits, Math.round(smoothing / SAMPLE)) } };
 };
 
 export const bobLimit = (plan: GaitPlan, t: number) => {

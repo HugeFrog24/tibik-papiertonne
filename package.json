@@ -37,7 +37,7 @@
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc",
-    "test": "vitest run --no-file-parallelism",
+    "test": "node scripts/test.mjs",
     "dupes": "jscpd src --min-tokens 30 --reporters console"
   },
   "allowScripts": {

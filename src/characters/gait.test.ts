@@ -13,7 +13,7 @@ import {
 } from "../scenes/hausmuell/choreography";
 import { solveHausmuell } from "../scenes/hausmuell/solve";
 import { RIG, TIBIK_REST } from "../Tibik/rig";
-import { FLAT_GROUND, footAt, legOf, planGait, plantFeet, rhythmicSteps, type GaitPlan, type Ground, type RootAt, type Step } from "./gait";
+import { FLAT_GROUND, ankleOnTread, footAt, legOf, planGait, plantFeet, rhythmicSteps, type GaitPlan, type Ground, type RootAt, type Step } from "./gait";
 import { MAX_KNEE, legLength, restAnkle, solveLeg } from "./legs";
 import { bodyColliders, footCapsule, footColliders, legFrames, legFramesOf, type Placement, type Side, type Skeleton } from "./skeleton";
 
@@ -397,4 +397,16 @@ describe("on stairs", () => {
     const into = STAIRS.steps.map((step, i) => (i === 2 && step.at ? { ...step, at: { x: step.at.x, z: step.at.z - 0.04 } } : step));
     expect(() => planGait(RIG, tibikGait().style, STAIRS.root, into, [-1, END + 1], stairs)).toThrow(/inside/);
   });
+});
+
+test("a foot placed on a tread has its heel exactly the gap in front of the riser", () => {
+  for (const yaw of [0, Math.PI / 2, 2.4]) {
+    for (const side of SIDES) {
+      const ankle = ankleOnTread(RIG, side, yaw, { x: 1, z: -2 }, 0.01);
+      const { heel, radius } = footCapsule(RIG, side);
+      const forward = new Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+      const heelEnd = new Vector3(ankle.x, 0, ankle.z).addScaledVector(forward, heel[2] - radius);
+      expect(heelEnd.clone().sub(new Vector3(1, 0, -2)).dot(forward)).toBeCloseTo(0.01, 9);
+    }
+  }
 });

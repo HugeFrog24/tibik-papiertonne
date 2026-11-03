@@ -172,10 +172,11 @@ export const footColliders = (skeleton: Skeleton, placement: Placement, side: Si
 
 const torsoSpheres = (skeleton: Skeleton, torso: Matrix4): Sphere[] => {
   const points = torsoProfile(skeleton);
+  const bottom = Math.min(...points.map((p) => p.y));
   const spheres: Sphere[] = [];
   for (let i = 4; i < points.length - 2; i += 5) {
     const { x: r, y } = points[i];
-    const depth = r * skeleton.torso.depthScale;
+    const depth = Math.min(r * skeleton.torso.depthScale, y - bottom);
     const offset = Math.max(0, r - depth);
     spheres.push(sphere("body", pointIn(torso, [offset, y, 0]), depth));
     spheres.push(sphere("body", pointIn(torso, [-offset, y, 0]), depth));

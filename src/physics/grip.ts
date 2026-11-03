@@ -28,12 +28,15 @@ const withArm = <C extends Character>(c: C, which: ArmName, arm: ArmPose): C => 
   pose: { ...c.pose, [which]: arm },
 });
 
+export type Touch = { readonly touch: Obb; readonly near: Vector3 };
+
 export const reachArm = <C extends Character>(
   c: C,
   which: ArmName,
-  target: Vector3,
+  target: Vector3 | Touch,
   solids: readonly Solid[],
   held: Obb | null,
+  extraStarts: readonly ArmPose[] = [],
 ): C => {
   const { upperArm, forearm, hand } = c.skeleton;
   const shoulder = armColliders(c.skeleton, c, which)[0].center;
@@ -51,7 +54,12 @@ export const reachArm = <C extends Character>(
       armIntoTorso(c.skeleton, placed.pose, which),
     );
     const drift = keys.reduce((sum, key) => sum + Math.abs(arm[key] - authored[key]), 0);
-    return spheres[spheres.length - 1].center.distanceTo(target) + 40 * hit + 0.002 * drift;
+    const hand = spheres[spheres.length - 1];
+    const miss =
+      target instanceof Vector3
+        ? hand.center.distanceTo(target)
+        : Math.abs(sphereObbGap(hand, target.touch)) + 0.1 * hand.center.distanceTo(target.near);
+    return miss + 40 * hit + 0.002 * drift;
   };
 
   const descend = (start: ArmPose) => {
@@ -82,7 +90,7 @@ export const reachArm = <C extends Character>(
   if (fromAuthored.best < 0.004) {
     return withArm(c, which, fromAuthored.arm);
   }
-  const results = [fromAuthored, ...REACH_STARTS.map(descend)];
+  const results = [fromAuthored, ...[...REACH_STARTS, ...extraStarts].map(descend)];
   results.sort((a, b) => a.best - b.best);
   return withArm(c, which, results[0].arm);
 };

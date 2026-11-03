@@ -99,7 +99,8 @@ const treadOf = (f: Flight, k: number): Tread => {
   );
 };
 
-const flightEnd = (f: Flight) => f.firstRiser + f.direction * (f.risers - 1) * f.going;
+export const riserZ = (f: Flight, k: number) => f.firstRiser + f.direction * k * f.going;
+export const flightEnd = (f: Flight) => riserZ(f, f.risers - 1);
 const SLAB_THICKNESS = 0.16;
 const slabTop = (f: Flight, z: number) => f.from + ((z - f.firstRiser) * f.direction * f.rise) / f.going;
 const slabDepth = (f: Flight) => SLAB_THICKNESS / Math.cos(Math.atan2(f.rise, f.going));

@@ -65,6 +65,18 @@ const angleBetween = (from: number, to: number) => Math.atan2(Math.sin(to - from
 
 export const legOf = (side: Side): LegName => (side === 1 ? "leftLeg" : "rightLeg");
 
+export const ankleOnTread = (
+  skeleton: Skeleton,
+  side: Side,
+  yaw: number,
+  riser: { readonly x: number; readonly z: number },
+  gap = 0.01,
+): { x: number; z: number } => {
+  const { heel, radius } = footCapsule(skeleton, side);
+  const reach = gap - (heel[2] - radius);
+  return { x: riser.x + Math.sin(yaw) * reach, z: riser.z + Math.cos(yaw) * reach };
+};
+
 const footRotation = (yaw: number, pitch: number) =>
   new Quaternion().setFromAxisAngle(Y_AXIS, yaw).multiply(new Quaternion().setFromAxisAngle(X_AXIS, pitch));
 

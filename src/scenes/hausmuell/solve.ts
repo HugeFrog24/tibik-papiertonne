@@ -1,0 +1,98 @@
+import { Vector3 } from "three";
+import {
+  armColliders,
+  bodyColliders,
+  boxIntoTorso,
+  carriedBox,
+  type Placement,
+} from "../../characters/skeleton";
+import { KAREN_SKELETON } from "../../Karen/rig";
+import { contacts, type Contact, type Solid } from "../../physics/collision";
+import { armLimb, gripGaps } from "../../physics/grip";
+import {
+  characterViolations,
+  guardArm,
+  guardBody,
+  guardGround,
+  guardLean,
+  type Character,
+} from "../../physics/guards";
+import { type KartonState, type TibikFrame } from "../papiertonnen/choreography";
+import { asCharacter, holdKarton, kartonBoundsOf, kartonFlapsOf, papiertonnenEnd, sceneSolids, solveTibik } from "../papiertonnen/solve";
+import { GROUND } from "../../street/layout";
+import { memoByFrame } from "../../physics/memoSolve";
+import { RIG } from "../../Tibik/rig";
+import { karenAt, kartonAt, tibikAt, type KarenFrame } from "./choreography";
+
+export type HausmuellState = {
+  readonly lids: readonly number[];
+  readonly tibik: TibikFrame;
+  readonly karton: KartonState;
+  readonly karen: KarenFrame;
+};
+
+const allSpheres = (c: Character) => {
+  const body = bodyColliders(c.skeleton, c);
+  return [...body.torso, ...body.head, ...body.legs, ...body.leftArm, ...body.rightArm];
+};
+
+const asKaren = (k: KarenFrame): KarenFrame & Character => ({ ...k, skeleton: KAREN_SKELETON });
+
+const tibikBox = (tibik: TibikFrame, karton: KartonState) => {
+  const b = kartonBoundsOf(karton);
+  return carriedBox(RIG, tibik as Placement, karton.position, karton.rotation, b.size, b.center);
+};
+
+const solveKaren = (authored: KarenFrame, solids: readonly Solid[]): KarenFrame => {
+  let karen = asKaren(authored);
+  karen = guardGround(karen, GROUND);
+  karen = guardBody(karen, solids.filter((s) => s !== GROUND));
+  karen = guardLean(karen, solids);
+  karen = guardArm(karen, solids, "leftArm");
+  karen = guardArm(karen, solids, "rightArm");
+  return { ...authored, position: karen.position, rotationY: karen.rotationY, pose: karen.pose };
+};
+
+const LIDS = () => papiertonnenEnd().lids;
+
+const solve = (t: number): HausmuellState => {
+  const lids = LIDS();
+  const world = sceneSolids(lids, true);
+  const karenAuthored = karenAt(t);
+  const forTibik = [...world, ...allSpheres(asKaren(karenAuthored))];
+  const tibikSolved = holdKarton(solveTibik(tibikAt(t), forTibik), kartonAt(t), forTibik);
+  const karen = solveKaren(karenAuthored, [
+    ...world,
+    ...allSpheres(asCharacter(tibikSolved.tibik)),
+    tibikBox(tibikSolved.tibik, tibikSolved.karton),
+    ...kartonFlapsOf(tibikSolved.tibik, tibikSolved.karton),
+  ]);
+  return { lids, tibik: tibikSolved.tibik, karton: tibikSolved.karton, karen };
+};
+
+export const solveHausmuell = memoByFrame(solve);
+
+export const hausmuellViolations = (state: HausmuellState): Contact[] => {
+  const world = sceneSolids(state.lids, true);
+  const tibik = asCharacter(state.tibik);
+  const karen = asKaren(state.karen);
+  const box = tibikBox(state.tibik, state.karton);
+  const flaps = kartonFlapsOf(state.tibik, state.karton);
+  const found = [
+    ...characterViolations(tibik, [...world, ...allSpheres(karen)]),
+    ...characterViolations(karen, [...world, box, ...flaps]),
+    ...contacts([box, ...flaps], world),
+    ...contacts(bodyColliders(RIG, tibik).head, [box, ...flaps]),
+    ...contacts([...armLimb(armColliders(RIG, tibik, "leftArm")), ...armLimb(armColliders(RIG, tibik, "rightArm"))], [box]),
+  ];
+  const intoBelly = boxIntoTorso(RIG, tibik, box);
+  if (intoBelly > 0) {
+    found.push({ a: "carried box", b: "Tibik's body", depth: intoBelly, normal: new Vector3() });
+  }
+  for (const { which, gap } of gripGaps(tibik, state.karton, kartonBoundsOf(state.karton))) {
+    if (gap > 0) {
+      found.push({ a: "carried box", b: `${which === "leftArm" ? "left" : "right"} hand (not touching it)`, depth: gap, normal: new Vector3() });
+    }
+  }
+  return found;
+};

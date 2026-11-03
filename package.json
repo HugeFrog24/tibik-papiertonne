@@ -9,26 +9,36 @@
   },
   "private": true,
   "dependencies": {
+    "@react-three/fiber": "9.8.2",
     "@remotion/cli": "4.0.540",
+    "@remotion/google-fonts": "4.0.540",
+    "@remotion/media": "4.0.540",
+    "@remotion/three": "4.0.540",
     "@remotion/zod-types": "4.0.540",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "remotion": "4.0.540",
+    "three": "0.187.0",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@remotion/eslint-config-flat": "4.0.540",
     "@types/react": "19.3.0",
+    "@types/three": "0.187.0",
     "@types/web": "0.0.166",
     "eslint": "10.12.0",
+    "jscpd": "^5.4.2",
     "prettier": "3.8.1",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
   },
   "scripts": {
     "dev": "remotion studio",
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "lint": "eslint src && tsc",
+    "test": "vitest run --no-file-parallelism",
+    "dupes": "jscpd src --min-tokens 30 --reporters console"
   },
   "allowScripts": {
     "esbuild": false

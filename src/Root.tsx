@@ -1,56 +1,52 @@
-import { Composition, Folder } from "remotion";
-import { HelloWorld } from "./HelloWorld";
-import { Logo } from "./HelloWorld/Logo";
-import { Title } from "./HelloWorld/Title";
-
-// Each <Composition> is an entry in the sidebar!
+import { Composition, Folder, Still } from "remotion";
+import { FPS, Film, PAPIERTONNEN_FRAMES, HAUSMUELL_FRAMES } from "./Film";
+import { KarenModelSheet } from "./Karen/KarenModelSheet";
+import { StairwellSheet } from "./building/StairwellSheet";
+import { Papiertonnen } from "./scenes/papiertonnen/Papiertonnen";
+import { Hausmuell } from "./scenes/hausmuell/Hausmuell";
+import { TibikModelSheet } from "./Tibik/TibikModelSheet";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
-      <Folder name="Elements">
-        <Composition
-          id="Logo"
-          component={Logo}
-          durationInFrames={150}
-          fps={30}
-          width={1920}
-          height={1080}
-          defaultProps={{
-            logoColor1: "#91EAE4",
-            logoColor2: "#86A8E7",
-          }}
-        />
-        <Composition
-          id="Title"
-          component={Title}
-          durationInFrames={115}
-          fps={30}
-          width={1920}
-          height={1080}
-          defaultProps={{
-            titleText: "Welcome to Remotion",
-            titleColor: "#000000",
-          }}
-        />
-      </Folder>
       <Composition
-        // You can take the "id" to render a video:
-        // bunx remotion render HelloWorld
-        id="HelloWorld"
-        component={HelloWorld}
-        durationInFrames={150}
-        fps={30}
+        id="Film"
+        component={Film}
+        durationInFrames={PAPIERTONNEN_FRAMES + HAUSMUELL_FRAMES}
+        fps={FPS}
         width={1920}
         height={1080}
-        // You can override these props for each render:
-        // https://www.remotion.dev/docs/parametrized-rendering
-        defaultProps={{
-          titleText: "Welcome to Remotion",
-          titleColor: "#000000",
-        }}
       />
-
+      <Folder name="Scenes">
+        <Composition
+          id="Papiertonnen"
+          component={Papiertonnen}
+          durationInFrames={PAPIERTONNEN_FRAMES}
+          fps={FPS}
+          width={1920}
+          height={1080}
+        />
+        <Composition
+          id="Hausmuell"
+          component={Hausmuell}
+          durationInFrames={HAUSMUELL_FRAMES}
+          fps={FPS}
+          width={1920}
+          height={1080}
+        />
+      </Folder>
+      <Folder name="Characters">
+        <Still
+          id="Tibik-ModelSheet"
+          component={TibikModelSheet}
+          width={1920}
+          height={1080}
+        />
+        <Still id="Karen-ModelSheet" component={KarenModelSheet} width={1920} height={1080} />
+      </Folder>
+      <Folder name="Sets">
+        <Still id="Treppenhaus-Set" component={StairwellSheet} defaultProps={{ view: "flight" as const }} width={1920} height={1080} />
+      </Folder>
     </>
   );
 };

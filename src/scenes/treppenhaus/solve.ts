@@ -1,36 +1,61 @@
+import { indoorSolids } from "../../building/flurShape";
 import { Vector3 } from "three";
-import { HANDRAIL, STAIRWELL_RAILINGS, stairwellSolids } from "../../building/stairwell";
+import { HANDRAIL, STAIRWELL_RAILINGS } from "../../building/stairwell";
 import { armColliders, type ArmPose } from "../../characters/skeleton";
-import { sphereObbGap, type Contact, type Solid } from "../../physics/collision";
+import {
+  sphereObbGap,
+  type Contact,
+  type Solid,
+} from "../../physics/collision";
 import { reachArm } from "../../physics/grip";
-import { characterViolations, guardArm, guardLean } from "../../physics/guards";
+import { characterViolations, guardLean } from "../../physics/guards";
 import { memoByFrame } from "../../physics/memoSolve";
 import { worldSolids } from "../../street/layout";
 import { RIG } from "../../Tibik/rig";
-import type { TibikFrame } from "../papiertonnen/choreography";
-import { asCharacter, solvePapiertonnen } from "../papiertonnen/solve";
-import { RAIL_SPAN, STORY_END, haustuerAt, lightsAt, tibikAt, tibikDoorAt } from "./choreography";
+import { workArm, type Hold } from "../../physics/holds";
+import { restingLids } from "../../street/restingLids";
+import { asCharacter, type TibikFrame } from "../../Tibik/character";
+import {
+  HOLDS,
+  RAIL_SPAN,
+  STORY_END,
+  haustuerAt,
+  haustuerLeverAt,
+  lightsAt,
+  tibikAt,
+  tibikDoorAt,
+  tibikLeverAt,
+} from "./choreography";
 
 export type TreppenhausState = {
   readonly tibik: TibikFrame;
   readonly tibikDoor: number;
   readonly haustuer: number;
+  readonly tibikLever: number;
+  readonly haustuerLever: number;
   readonly lights: number;
 };
 
 const EG_RAIL = STAIRWELL_RAILINGS.filter((r) => r.name === "handrail")[0];
 const EG_RAIL_LINE = HANDRAIL[0];
 
-const solidsFor = (tibikDoor: number, haustuer: number): Solid[] => [
-  ...worldSolids(solvePapiertonnen(0).lids, haustuer),
-  ...stairwellSolids({ tibik: tibikDoor }),
+const solidsFor = (
+  tibikDoor: number,
+  haustuer: number,
+  tibikLever: number,
+  haustuerLever: number,
+): Solid[] => [
+  ...worldSolids(restingLids(), haustuer, haustuerLever),
+  ...indoorSolids({ tibik: tibikDoor, tibikLever }),
 ];
 
-const RAIL_GRIPS: ArmPose[] = [
-  { raise: 2.8, out: 0.9, elbow: 1.5, inward: 0.1 },
-  { raise: 2.4, out: 1.0, elbow: 1.6, inward: 0.0 },
-  { raise: 2.6, out: 0.7, elbow: 1.3, inward: 0.2 },
-];
+export const RAIL_GRIP: ArmPose = {
+  raise: -0.4,
+  out: 0.5,
+  elbow: 1.8,
+  inward: 0,
+};
+const GRIP_BELOW_SHOULDER = 0.2;
 const OFF_WALL = new Vector3(0.008, 0, 0);
 const RAIL_END = 0.03;
 
@@ -41,36 +66,74 @@ const railTarget = (tibik: TibikFrame) => {
   const from = new Vector3(...EG_RAIL_LINE.from);
   const to = new Vector3(...EG_RAIL_LINE.to);
   const along = to.clone().sub(from);
-  const u = Math.min(1 - RAIL_END, Math.max(RAIL_END, shoulder.clone().sub(from).dot(along) / along.lengthSq()));
+  const level =
+    Math.abs(along.y) > 1e-6
+      ? (shoulder.y - GRIP_BELOW_SHOULDER - from.y) / along.y
+      : shoulder.clone().sub(from).dot(along) / along.lengthSq();
+  const u = Math.min(1 - RAIL_END, Math.max(RAIL_END, level));
   const handRadius = Math.max(...RIG.hand.size);
   const direction = along.clone().normalize();
   const up = new Vector3(0, 1, 0);
-  const normal = up.clone().addScaledVector(direction, -up.dot(direction)).normalize();
-  return from.addScaledVector(along, u).addScaledVector(normal, 0.025 + handRadius).add(OFF_WALL);
+  const normal = up
+    .clone()
+    .addScaledVector(direction, -up.dot(direction))
+    .normalize();
+  return from
+    .addScaledVector(along, u)
+    .addScaledVector(normal, 0.025 + handRadius)
+    .add(OFF_WALL);
 };
 
 const solve = (t: number): TreppenhausState => {
   const tibikDoor = tibikDoorAt(t);
   const haustuer = haustuerAt(t);
-  const solids = solidsFor(tibikDoor, haustuer);
+  const tibikLever = tibikLeverAt(t);
+  const haustuerLever = haustuerLeverAt(t);
+  const solids = solidsFor(tibikDoor, haustuer, tibikLever, haustuerLever);
   let tibik = asCharacter(tibikAt(t));
   tibik = guardLean(tibik, solids);
-  tibik = guardArm(tibik, solids, "leftArm");
+  tibik = workArm(tibik, "leftArm", t, solids, HOLDS);
   tibik = onRail(t)
-    ? reachArm(tibik, "rightArm", { touch: EG_RAIL, near: railTarget(tibik) }, solids, null, RAIL_GRIPS)
-    : guardArm(tibik, solids, "rightArm");
+    ? reachArm(
+        { ...tibik, pose: { ...tibik.pose, rightArm: RAIL_GRIP } },
+        "rightArm",
+        { touch: EG_RAIL, near: railTarget(tibik) },
+        solids,
+        null,
+        [],
+        true,
+      )
+    : workArm(tibik, "rightArm", t, solids, HOLDS);
   const { position, rotationY, pose, holdingBox } = tibik;
-  return { tibik: { position, rotationY, pose, holdingBox }, tibikDoor, haustuer, lights: lightsAt(t) };
+  return {
+    tibik: { position, rotationY, pose, holdingBox },
+    tibikDoor,
+    haustuer,
+    tibikLever,
+    haustuerLever,
+    lights: lightsAt(t),
+  };
 };
 
 export const solveTreppenhaus = memoByFrame(solve);
 
 export const treppenhausEnd = () => solveTreppenhaus(STORY_END);
 
-export const treppenhausSolids = (state: TreppenhausState): Solid[] => solidsFor(state.tibikDoor, state.haustuer);
+export const treppenhausSolids = (state: TreppenhausState): Solid[] =>
+  solidsFor(
+    state.tibikDoor,
+    state.haustuer,
+    state.tibikLever,
+    state.haustuerLever,
+  );
 
 export const treppenhausViolations = (state: TreppenhausState): Contact[] =>
   characterViolations(asCharacter(state.tibik), treppenhausSolids(state));
+
+export const holdGap = (state: TreppenhausState, hold: Hold, t: number) => {
+  const spheres = armColliders(RIG, asCharacter(state.tibik), hold.arm);
+  return sphereObbGap(spheres[spheres.length - 1], hold.target(t));
+};
 
 export const railGap = (state: TreppenhausState) => {
   const spheres = armColliders(RIG, asCharacter(state.tibik), "rightArm");

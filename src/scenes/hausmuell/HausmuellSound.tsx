@@ -1,41 +1,41 @@
-import { Audio } from "@remotion/media";
-import { staticFile, useVideoConfig } from "remotion";
-import { KarenStomp } from "../../Karen/KarenStomp";
+import { useVideoConfig } from "remotion";
+import { HAUSMUELL_FROM } from "../../timeline";
+import { KarenStomps } from "../../Karen/KarenStomp";
+import { bubbleCues } from "../../sound/bubbleCues";
+import { FootstepSounds } from "../../sound/FootstepSounds";
+import { SoundCues } from "../../sound/SoundCues";
 import { StreetAmbience } from "../../street/StreetAmbience";
 import { LINES, karenFootsteps, tibikFootsteps } from "./choreography";
 
-export const HausmuellSound: React.FC<{ readonly ambience: boolean }> = ({ ambience }) => {
+export const HausmuellSound: React.FC<{ readonly ambience: boolean }> = ({
+  ambience,
+}) => {
   const { fps } = useVideoConfig();
 
   return (
     <>
-      {ambience ? <StreetAmbience /> : null}
+      {ambience ? <StreetAmbience windFrom={HAUSMUELL_FROM} /> : null}
 
-      {karenFootsteps(fps).map((t, i) => (
-        <KarenStomp key={t} frame={Math.round(t * fps)} index={i} />
-      ))}
+      <KarenStomps times={karenFootsteps(fps)} />
 
-      {tibikFootsteps(fps).map((t, i) => (
-        <Audio
-          key={t}
-          name={`Tibik footstep ${i + 1}`}
-          src={staticFile(`sfx/footstep_concrete_00${(i + 2) % 4}.ogg`)}
-          from={Math.round(t * fps)}
-          volume={0.25}
-        />
-      ))}
+      <FootstepSounds
+        times={tibikFootsteps(fps)}
+        who="Tibik"
+        volume={0.25}
+        variant={2}
+      />
 
-      <Audio name="Record scratch" src="https://remotion.media/record-scratch.wav" from={Math.round(2.0 * fps)} volume={0.45} />
-
-      {LINES.map((line) => (
-        <Audio
-          key={line.from}
-          name={`Bubble: ${line.text.slice(0, 24)}`}
-          src={staticFile("sfx/pluck_001.ogg")}
-          from={Math.round(line.from * fps)}
-          volume={0.35}
-        />
-      ))}
+      <SoundCues
+        cues={[
+          {
+            name: "Record scratch",
+            at: 2.0,
+            src: "https://remotion.media/record-scratch.wav",
+            volume: 0.45,
+          },
+          ...bubbleCues(LINES),
+        ]}
+      />
     </>
   );
 };

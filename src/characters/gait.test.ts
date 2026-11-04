@@ -1,9 +1,17 @@
 import { describe, expect, test } from "vitest";
+import { FPS } from "../timeline";
 import { Euler, Matrix4, Quaternion, Vector3 } from "three";
 import { KAREN_REST, KAREN_SKELETON } from "../Karen/rig";
 import { collide, obb, origin } from "../physics/collision";
-import { PAPIERTONNEN_DURATION, footstepTimes, tibikGait } from "../scenes/papiertonnen/choreography";
-import { papiertonnenEnd, solvePapiertonnen } from "../scenes/papiertonnen/solve";
+import {
+  PAPIERTONNEN_DURATION,
+  footstepTimes,
+  tibikGait,
+} from "../scenes/papiertonnen/choreography";
+import {
+  papiertonnenEnd,
+  solvePapiertonnen,
+} from "../scenes/papiertonnen/solve";
 import {
   HAUSMUELL_DURATION,
   karenFootsteps,
@@ -13,11 +21,47 @@ import {
 } from "../scenes/hausmuell/choreography";
 import { solveHausmuell } from "../scenes/hausmuell/solve";
 import { RIG, TIBIK_REST } from "../Tibik/rig";
-import { FLAT_GROUND, ankleOnTread, footAt, legOf, planGait, plantFeet, rhythmicSteps, type GaitPlan, type Ground, type RootAt, type Step } from "./gait";
+import { stairwellGround } from "../building/stairwell";
+import { groundWithMats } from "../building/ground";
+import {
+  STORY_END as TREPPENHAUS_STORY_END,
+  treppenhausTibikGait,
+} from "../scenes/treppenhaus/choreography";
+import { solveTreppenhaus } from "../scenes/treppenhaus/solve";
+import { tibikGait as klingelsturmTibikGait } from "../scenes/klingelsturm/door";
+import { EXIT } from "../scenes/klingelsturm/exit";
+import {
+  KLINGELSTURM_DURATION,
+  karenStandGait,
+} from "../scenes/klingelsturm/choreography";
+import { solveKlingelsturm } from "../scenes/klingelsturm/solve";
+import {
+  FLAT_GROUND,
+  ankleOnTread,
+  bobLimit,
+  footAt,
+  legOf,
+  planGait,
+  plantFeet,
+  rhythmicSteps,
+  type GaitPlan,
+  type Ground,
+  type RootAt,
+  type Step,
+} from "./gait";
 import { MAX_KNEE, legLength, restAnkle, solveLeg } from "./legs";
-import { bodyColliders, footCapsule, footColliders, legFrames, legFramesOf, type Placement, type Side, type Skeleton } from "./skeleton";
+import {
+  bodyColliders,
+  footCapsule,
+  footColliders,
+  legFrames,
+  legFramesOf,
+  type Placement,
+  type Side,
+  type Skeleton,
+} from "./skeleton";
+import { mm } from "../scenes/sceneChecks";
 
-const FPS = 30;
 const SIDES = [1, -1] as const;
 const sideName = (side: Side) => (side === 1 ? "left" : "right");
 
@@ -44,50 +88,169 @@ const STAIRS = (() => {
     const z0 = i === 0 ? -2 : (i - 1) * GOING;
     const z1 = i === 0 ? 0 : i === TREADS + 1 ? 4 : i * GOING;
     const top = i === 0 ? TOP : stairs(0, (z0 + z1) / 2);
-    return obb(`tread ${i}`, new Matrix4().makeTranslation(0, (top - 1) / 2, (z0 + z1) / 2), [3, top + 1, z1 - z0]);
+    return obb(
+      `tread ${i}`,
+      new Matrix4().makeTranslation(0, (top - 1) / 2, (z0 + z1) / 2),
+      [3, top + 1, z1 - z0],
+    );
   });
   const capsule = footCapsule(RIG, 1);
   const heelReach = -(capsule.heel[2] - capsule.radius);
   const plantZ = (k: number) => (k - 1) * GOING + 0.01 + heelReach;
   const STEP = 0.55;
   const steps: Step[] = [
-    ...Array.from({ length: TREADS + 1 }, (_, i): Step => ({
-      side: i % 2 === 0 ? -1 : 1,
-      lift: STEP * i,
-      land: STEP * i + 0.4,
-      at: { x: (i % 2 === 0 ? -1 : 1) * restAnkle(RIG, 1).x, z: plantZ(i + 1) },
-    })),
-    { side: 1, lift: STEP * (TREADS + 1), land: STEP * (TREADS + 1) + 0.4, at: { x: restAnkle(RIG, 1).x, z: plantZ(TREADS + 1) } },
+    ...Array.from(
+      { length: TREADS + 1 },
+      (_, i): Step => ({
+        side: i % 2 === 0 ? -1 : 1,
+        lift: STEP * i,
+        land: STEP * i + 0.4,
+        at: {
+          x: (i % 2 === 0 ? -1 : 1) * restAnkle(RIG, 1).x,
+          z: plantZ(i + 1),
+        },
+      }),
+    ),
+    {
+      side: 1,
+      lift: STEP * (TREADS + 1),
+      land: STEP * (TREADS + 1) + 0.4,
+      at: { x: restAnkle(RIG, 1).x, z: plantZ(TREADS + 1) },
+    },
   ];
   const END = STEP * (TREADS + 2);
   const startZ = -0.25;
   const endZ = plantZ(TREADS + 1);
-  const bodyZ = (t: number) => startZ + (endZ - startZ) * Math.min(1, Math.max(0, (t + 0.2) / (END - 0.2)));
-  const slope = (z: number) => Math.min(TOP, Math.max(0, TOP - ((z + 0.1) * RISE) / GOING));
-  const root: RootAt = (t) => ({ x: 0, z: bodyZ(t), yaw: 0, y: slope(bodyZ(t)) });
-  const plan = planGait(RIG, tibikGait().style, root, steps, [-1, END + 1], stairs);
+  const bodyZ = (t: number) =>
+    startZ +
+    (endZ - startZ) * Math.min(1, Math.max(0, (t + 0.2) / (END - 0.2)));
+  const slope = (z: number) =>
+    Math.min(TOP, Math.max(0, TOP - ((z + 0.1) * RISE) / GOING));
+  const root: RootAt = (t) => ({
+    x: 0,
+    z: bodyZ(t),
+    yaw: 0,
+    y: slope(bodyZ(t)),
+  });
+  const plan = planGait(
+    RIG,
+    tibikGait().style,
+    root,
+    steps,
+    [-1, END + 1],
+    stairs,
+  );
   const placementAt = (t: number): Placement => {
     const r = root(t);
     const position: [number, number, number] = [r.x, r.y ?? 0, r.z];
-    const pose = plantFeet(plan, t, { position, rotationY: r.yaw, pose: { ...TIBIK_REST, bob: 0 } });
+    const pose = plantFeet(plan, t, {
+      position,
+      rotationY: r.yaw,
+      pose: { ...TIBIK_REST, bob: 0 },
+    });
     return { position, rotationY: r.yaw, pose };
   };
   const plants = (side: Side) => plan.plants[legOf(side)];
-  return { stairs, treadBoxes, steps, root, plan, placementAt, plants, END, capsule, plantZ };
+  return {
+    stairs,
+    treadBoxes,
+    steps,
+    root,
+    plan,
+    placementAt,
+    plants,
+    END,
+    capsule,
+    plantZ,
+  };
 })();
 
-const PAPIERTONNEN_FRAMES = Array.from({ length: PAPIERTONNEN_DURATION * FPS }, (_, f) => f);
-const HAUSMUELL_FRAMES = Array.from({ length: HAUSMUELL_DURATION * FPS }, (_, f) => f).filter((f) => f < 2.5 * FPS || f % 4 === 0);
+const PAPIERTONNEN_FRAMES = Array.from(
+  { length: PAPIERTONNEN_DURATION * FPS },
+  (_, f) => f,
+);
+const HAUSMUELL_STEP_WINDOWS: readonly (readonly [number, number])[] = [
+  [0, 2.5],
+  [24.5, HAUSMUELL_DURATION],
+];
+const inStepWindow = (t: number) =>
+  HAUSMUELL_STEP_WINDOWS.some(([a, b]) => t >= a && t <= b);
+const HAUSMUELL_FRAMES = Array.from(
+  { length: Math.round(HAUSMUELL_DURATION * FPS) },
+  (_, f) => f,
+).filter((f) => inStepWindow(f / FPS) || f % 4 === 0);
+
+const TREPPENHAUS_FRAMES = Array.from(
+  { length: Math.floor(TREPPENHAUS_STORY_END * FPS) + 1 },
+  (_, f) => f,
+);
+const KLINGELSTURM_KAREN_FRAMES = Array.from(
+  { length: Math.round(KLINGELSTURM_DURATION * FPS) },
+  (_, f) => f,
+);
+const KLINGELSTURM_EXIT_FRAMES = Array.from(
+  { length: Math.round((EXIT.end - EXIT.walk) * FPS) },
+  (_, f) => f + Math.round(EXIT.walk * FPS),
+);
 
 const WALKERS: Walker[] = [
-  { name: "Tibik (Papiertonnen)", skeleton: RIG, plan: tibikGait, frames: PAPIERTONNEN_FRAMES, at: (f) => solvePapiertonnen(f / FPS).tibik },
-  { name: "Tibik (Hausmuell)", skeleton: RIG, plan: hausmuellTibikGait, frames: HAUSMUELL_FRAMES, at: (f) => solveHausmuell(f / FPS).tibik },
-  { name: "Karen", skeleton: KAREN_SKELETON, plan: karenGait, frames: HAUSMUELL_FRAMES, at: (f) => solveHausmuell(f / FPS).karen },
+  {
+    name: "Tibik (Treppenhaus)",
+    skeleton: RIG,
+    plan: treppenhausTibikGait,
+    frames: TREPPENHAUS_FRAMES,
+    at: (f) => solveTreppenhaus(f / FPS).tibik,
+    ground: groundWithMats,
+  },
+  {
+    name: "Tibik (Klingelsturm, leaving)",
+    skeleton: RIG,
+    plan: klingelsturmTibikGait,
+    frames: KLINGELSTURM_EXIT_FRAMES,
+    at: (f) => solveKlingelsturm(f / FPS).tibik,
+    ground: groundWithMats,
+  },
+  {
+    name: "Karen (Klingelsturm)",
+    skeleton: KAREN_SKELETON,
+    plan: karenStandGait,
+    frames: KLINGELSTURM_KAREN_FRAMES,
+    at: (f) => ({
+      ...solveKlingelsturm(f / FPS).karen,
+      skeleton: KAREN_SKELETON,
+    }),
+    ground: groundWithMats,
+  },
+  {
+    name: "Tibik (Papiertonnen)",
+    skeleton: RIG,
+    plan: tibikGait,
+    frames: PAPIERTONNEN_FRAMES,
+    at: (f) => solvePapiertonnen(f / FPS).tibik,
+    ground: stairwellGround,
+  },
+  {
+    name: "Tibik (Hausmuell)",
+    skeleton: RIG,
+    plan: hausmuellTibikGait,
+    frames: HAUSMUELL_FRAMES,
+    at: (f) => solveHausmuell(f / FPS).tibik,
+  },
+  {
+    name: "Karen",
+    skeleton: KAREN_SKELETON,
+    plan: karenGait,
+    frames: HAUSMUELL_FRAMES,
+    at: (f) => solveHausmuell(f / FPS).karen,
+  },
   {
     name: "Tibik (stairs)",
     skeleton: RIG,
     plan: () => STAIRS.plan,
-    frames: Array.from({ length: Math.round((STAIRS.END + 1) * FPS) }, (_, f) => f - Math.round(0.5 * FPS)),
+    frames: Array.from(
+      { length: Math.round((STAIRS.END + 1) * FPS) },
+      (_, f) => f - Math.round(0.5 * FPS),
+    ),
     at: (f) => STAIRS.placementAt(f / FPS),
     ground: STAIRS.stairs,
   },
@@ -95,142 +258,226 @@ const WALKERS: Walker[] = [
 
 test("in Hausmuell, all steps happen while it is checked frame by frame", () => {
   for (const plan of [hausmuellTibikGait(), karenGait()]) {
-    const landings = plan.touchdowns.map((s) => s.time).filter((t) => t >= 0);
-    expect(Math.max(...landings)).toBeLessThan(2.5);
+    const landings = plan.touchdowns
+      .map((s) => s.time)
+      .filter((t) => t >= 0 && t <= HAUSMUELL_DURATION);
+    expect(landings.filter((t) => !inStepWindow(t))).toEqual([]);
   }
 });
 
-const soleCentre = (skeleton: Skeleton) => restAnkle(skeleton, 1).y + footCapsule(skeleton, 1).heel[1];
-const soleRest = (skeleton: Skeleton) => soleCentre(skeleton) - footCapsule(skeleton, 1).radius;
-const bottom = (s: { center: Vector3; radius: number }) => s.center.y - s.radius;
+const soleCentre = (skeleton: Skeleton) =>
+  restAnkle(skeleton, 1).y + footCapsule(skeleton, 1).heel[1];
+const soleRest = (skeleton: Skeleton) =>
+  soleCentre(skeleton) - footCapsule(skeleton, 1).radius;
+const bottom = (s: { center: Vector3; radius: number }) =>
+  s.center.y - s.radius;
 
-describe.each(WALKERS)("$name", ({ skeleton, plan, frames, at, ground: under = FLAT_GROUND }) => {
-  const standing = (plant: { ankle: Vector3 }) => under(plant.ankle.x, plant.ankle.z) + soleRest(skeleton);
+describe.each(WALKERS)(
+  "$name",
+  ({ skeleton, plan, frames, at, ground: under = FLAT_GROUND }) => {
+    const standing = (plant: { support: number }) =>
+      plant.support + soleRest(skeleton);
 
-  test("planted feet don't slide: the part of the sole on the ground stays put until the foot lifts off", { timeout: 300_000 }, () => {
-    const problems: string[] = [];
-    let before = SIDES.map((side) => footColliders(skeleton, at(frames[0]), side));
-    for (let k = 1; k < frames.length; k++) {
-      const frame = frames[k];
-      const now = SIDES.map((side) => footColliders(skeleton, at(frame), side));
-      SIDES.forEach((side, i) => {
-        const was = footAt(plan(), side, frames[k - 1] / FPS).plant;
-        const is = footAt(plan(), side, frame / FPS).plant;
-        if (!is) {
-          return;
+    test(
+      "planted feet don't slide: the part of the sole on the ground stays put until the foot lifts off",
+      { timeout: 300_000 },
+      () => {
+        const problems: string[] = [];
+        let before = SIDES.map((side) =>
+          footColliders(skeleton, at(frames[0]), side),
+        );
+        for (let k = 1; k < frames.length; k++) {
+          const frame = frames[k];
+          const now = SIDES.map((side) =>
+            footColliders(skeleton, at(frame), side),
+          );
+          SIDES.forEach((side, i) => {
+            const was = footAt(plan(), side, frames[k - 1] / FPS).plant;
+            const is = footAt(plan(), side, frame / FPS).plant;
+            if (!is) {
+              return;
+            }
+            const ground = standing(is);
+            const lowest = Math.min(...now[i].map(bottom));
+            if (Math.abs(lowest - ground) > 0.001) {
+              problems.push(
+                `frame ${frame}: ${sideName(side)} foot planted ${mm(lowest - ground)} off the ground`,
+              );
+            }
+            if (was !== is) {
+              return;
+            }
+            now[i].forEach((sphere, j) => {
+              const touching =
+                bottom(sphere) - ground < 0.001 &&
+                bottom(before[i][j]) - ground < 0.001;
+              const slid = Math.hypot(
+                sphere.center.x - before[i][j].center.x,
+                sphere.center.z - before[i][j].center.z,
+              );
+              if (touching && slid > 0.003) {
+                problems.push(
+                  `frame ${frame}: ${sideName(side)} sole slid ${mm(slid)}`,
+                );
+              }
+            });
+            const flat = [...now[i], ...before[i]].every(
+              (s) => bottom(s) - ground < 0.001,
+            );
+            const moved = Math.max(
+              ...now[i].map((s, j) =>
+                Math.hypot(
+                  s.center.x - before[i][j].center.x,
+                  s.center.z - before[i][j].center.z,
+                ),
+              ),
+            );
+            if (flat && moved > 0.003) {
+              problems.push(
+                `frame ${frame}: ${sideName(side)} foot moved ${mm(moved)} while flat on the ground`,
+              );
+            }
+          });
+          before = now;
         }
-        const ground = standing(is);
-        const lowest = Math.min(...now[i].map(bottom));
-        if (Math.abs(lowest - ground) > 0.001) {
-          problems.push(`frame ${frame}: ${sideName(side)} foot planted ${((lowest - ground) * 1000).toFixed(1)} mm off the ground`);
-        }
-        if (was !== is) {
-          return;
-        }
-        now[i].forEach((sphere, j) => {
-          const touching = bottom(sphere) - ground < 0.001 && bottom(before[i][j]) - ground < 0.001;
-          const slid = Math.hypot(sphere.center.x - before[i][j].center.x, sphere.center.z - before[i][j].center.z);
-          if (touching && slid > 0.003) {
-            problems.push(`frame ${frame}: ${sideName(side)} sole slid ${(slid * 1000).toFixed(1)} mm`);
+        expect(problems).toEqual([]);
+      },
+    );
+
+    test(
+      "knees bend like a human's: within 0-150°, always pointing forwards",
+      { timeout: 300_000 },
+      () => {
+        const problems: string[] = [];
+        for (const frame of frames) {
+          const placement = at(frame);
+          const forward = new Vector3(
+            Math.sin(placement.rotationY),
+            0,
+            Math.cos(placement.rotationY),
+          );
+          for (const side of SIDES) {
+            const leg = placement.pose[legOf(side)];
+            if (leg.knee < 0 || leg.knee > MAX_KNEE + 1e-9) {
+              problems.push(
+                `frame ${frame}: ${sideName(side)} knee at ${((leg.knee * 180) / Math.PI).toFixed(0)}°`,
+              );
+            }
+            const { hip, knee, ankle } = legFramesOf(skeleton, placement, side);
+            const line = origin(ankle).sub(origin(hip)).normalize();
+            const out = origin(knee).sub(origin(hip));
+            out.addScaledVector(line, -out.dot(line));
+            const ahead = out.dot(forward);
+            if (leg.knee > 0.02 ? ahead <= 0 : ahead < -1e-6) {
+              problems.push(
+                `frame ${frame}: ${sideName(side)} knee ${mm(ahead)} behind the leg`,
+              );
+            }
           }
-        });
-        const flat = [...now[i], ...before[i]].every((s) => bottom(s) - ground < 0.001);
-        const moved = Math.max(...now[i].map((s, j) => Math.hypot(s.center.x - before[i][j].center.x, s.center.z - before[i][j].center.z)));
-        if (flat && moved > 0.003) {
-          problems.push(`frame ${frame}: ${sideName(side)} foot moved ${(moved * 1000).toFixed(1)} mm while flat on the ground`);
         }
-      });
-      before = now;
-    }
-    expect(problems).toEqual([]);
-  });
+        expect(problems).toEqual([]);
+      },
+    );
 
-  test("knees bend like a human's: within 0-150°, always pointing forwards", { timeout: 300_000 }, () => {
-    const problems: string[] = [];
-    for (const frame of frames) {
-      const placement = at(frame);
-      const forward = new Vector3(Math.sin(placement.rotationY), 0, Math.cos(placement.rotationY));
-      for (const side of SIDES) {
-        const leg = placement.pose[legOf(side)];
-        if (leg.knee < 0 || leg.knee > MAX_KNEE + 1e-9) {
-          problems.push(`frame ${frame}: ${sideName(side)} knee at ${((leg.knee * 180) / Math.PI).toFixed(0)}°`);
-        }
-        const { hip, knee, ankle } = legFramesOf(skeleton, placement, side);
-        const line = origin(ankle).sub(origin(hip)).normalize();
-        const out = origin(knee).sub(origin(hip));
-        out.addScaledVector(line, -out.dot(line));
-        const ahead = out.dot(forward);
-        if (leg.knee > 0.02 ? ahead <= 0 : ahead < -1e-6) {
-          problems.push(`frame ${frame}: ${sideName(side)} knee ${(ahead * 1000).toFixed(1)} mm behind the leg`);
-        }
-      }
-    }
-    expect(problems).toEqual([]);
-  });
-
-  test("feet never sink into the ground, and swinging feet clear it", { timeout: 300_000 }, () => {
-    const problems: string[] = [];
-    const swings = new Map<number, number>();
-    const aboveGround = (s: { center: Vector3; radius: number }) => bottom(s) - under(s.center.x, s.center.z);
-    for (const frame of frames) {
-      const placement = at(frame);
-      const legs = bodyColliders(skeleton, placement).legs;
-      const deepest = Math.min(...legs.map(aboveGround));
-      if (deepest < -0.001) {
-        problems.push(`frame ${frame}: ${legs.find((s) => aboveGround(s) === deepest)?.name} ${(-deepest * 1000).toFixed(1)} mm into the ground`);
-      }
-      for (const side of SIDES) {
-        const foot = footColliders(skeleton, placement, side);
-        const planted = footAt(plan(), side, frame / FPS).plant;
-        if (planted) {
-          const lowest = Math.min(...foot.map(bottom));
-          if (lowest < standing(planted) - 0.001) {
-            problems.push(`frame ${frame}: ${sideName(side)} foot ${((standing(planted) - lowest) * 1000).toFixed(1)} mm below where it stands`);
+    test(
+      "feet never sink into the ground, and swinging feet clear it",
+      { timeout: 300_000 },
+      () => {
+        const problems: string[] = [];
+        const swings = new Map<number, number>();
+        const aboveGround = (s: { center: Vector3; radius: number }) =>
+          bottom(s) - under(s.center.x, s.center.z);
+        for (const frame of frames) {
+          const placement = at(frame);
+          const legs = bodyColliders(skeleton, placement).legs;
+          const deepest = Math.min(...legs.map(aboveGround));
+          if (deepest < -0.001) {
+            problems.push(
+              `frame ${frame}: ${legs.find((s) => aboveGround(s) === deepest)?.name} ${mm(-deepest)} into the ground`,
+            );
           }
-          continue;
+          for (const side of SIDES) {
+            const foot = footColliders(skeleton, placement, side);
+            const planted = footAt(plan(), side, frame / FPS).plant;
+            if (planted) {
+              const lowest = Math.min(...foot.map(bottom));
+              if (lowest < standing(planted) - 0.001) {
+                problems.push(
+                  `frame ${frame}: ${sideName(side)} foot ${mm(standing(planted) - lowest)} below where it stands`,
+                );
+              }
+              continue;
+            }
+            const plants = plan().plants[legOf(side)];
+            const landing = plants.findIndex((p) => frame / FPS < p.on);
+            if (landing > 0 && frame / FPS > plants[landing - 1].off) {
+              const key = side * plants[landing].on;
+              const clearance =
+                Math.min(...foot.map(aboveGround)) - soleRest(skeleton);
+              swings.set(key, Math.max(swings.get(key) ?? 0, clearance));
+            }
+          }
         }
-        const plants = plan().plants[legOf(side)];
-        const landing = plants.findIndex((p) => frame / FPS < p.on);
-        if (landing > 0 && frame / FPS > plants[landing - 1].off) {
-          const key = side * plants[landing].on;
-          const clearance = Math.min(...foot.map(aboveGround)) - soleRest(skeleton);
-          swings.set(key, Math.max(swings.get(key) ?? 0, clearance));
+        for (const [key, height] of swings) {
+          if (height < 0.015) {
+            problems.push(
+              `the ${sideName(Math.sign(key) as Side)} foot landing at ${Math.abs(key).toFixed(2)} s only lifted ${mm(height)}`,
+            );
+          }
         }
-      }
-    }
-    for (const [key, height] of swings) {
-      if (height < 0.015) {
-        problems.push(`the ${sideName(Math.sign(key) as Side)} foot landing at ${Math.abs(key).toFixed(2)} s only lifted ${(height * 1000).toFixed(1)} mm`);
-      }
-    }
-    expect(problems).toEqual([]);
-  });
+        expect(problems).toEqual([]);
+      },
+    );
 
-  test("the body never jumps: the hips move smoothly from frame to frame", { timeout: 300_000 }, () => {
-    const problems: string[] = [];
-    const hipHeight = (frame: number) => {
-      const placement = at(frame);
-      return placement.position[1] + placement.pose.bob;
-    };
-    for (let k = 1; k < frames.length; k++) {
-      if (frames[k] - frames[k - 1] !== 1) continue;
-      const jump = Math.abs(hipHeight(frames[k]) - hipHeight(frames[k - 1]));
-      if (jump > 0.03) problems.push(`frame ${frames[k]}: hips moved ${(jump * 100).toFixed(1)} cm`);
-    }
-    expect(problems).toEqual([]);
-  });
+    test(
+      "the body never jumps: the hips move smoothly from frame to frame",
+      { timeout: 300_000 },
+      () => {
+        const problems: string[] = [];
+        const hipHeight = (frame: number) => {
+          const placement = at(frame);
+          return placement.position[1] + placement.pose.bob;
+        };
+        for (let k = 1; k < frames.length; k++) {
+          if (frames[k] - frames[k - 1] !== 1) continue;
+          const jump = Math.abs(
+            hipHeight(frames[k]) - hipHeight(frames[k - 1]),
+          );
+          if (jump > 0.03)
+            problems.push(
+              `frame ${frames[k]}: hips moved ${(jump * 100).toFixed(1)} cm`,
+            );
+        }
+        expect(problems).toEqual([]);
+      },
+    );
 
-  test("always at least one foot on the ground (walking, not hopping)", () => {
-    for (const frame of frames) {
-      expect(SIDES.some((side) => footAt(plan(), side, frame / FPS).plant !== null)).toBe(true);
-    }
-  });
-});
+    test("always at least one foot on the ground (walking, not hopping)", () => {
+      for (const frame of frames) {
+        expect(
+          SIDES.some(
+            (side) => footAt(plan(), side, frame / FPS).plant !== null,
+          ),
+        ).toBe(true);
+      }
+    });
+  },
+);
 
 describe("footstep sounds land on the actual foot plants", () => {
   const sounds: [string, () => number[], () => GaitPlan, number][] = [
-    ["Tibik, Papiertonnen", () => footstepTimes(FPS), tibikGait, PAPIERTONNEN_DURATION],
-    ["Tibik, Hausmuell", () => tibikFootsteps(FPS), hausmuellTibikGait, HAUSMUELL_DURATION],
+    [
+      "Tibik, Papiertonnen",
+      () => footstepTimes(FPS),
+      tibikGait,
+      PAPIERTONNEN_DURATION,
+    ],
+    [
+      "Tibik, Hausmuell",
+      () => tibikFootsteps(FPS),
+      hausmuellTibikGait,
+      HAUSMUELL_DURATION,
+    ],
     ["Karen", () => karenFootsteps(FPS), karenGait, HAUSMUELL_DURATION],
   ];
   test.each(sounds)("%s", (_, times, plan, duration) => {
@@ -239,21 +486,29 @@ describe("footstep sounds land on the actual foot plants", () => {
       .filter((t) => t >= 0 && t < duration);
     expect(plants.length).toBeGreaterThan(0);
     expect(times()).toHaveLength(plants.length);
-    times().forEach((t, i) => expect(Math.abs(t - plants[i])).toBeLessThanOrEqual(1 / FPS));
+    times().forEach((t, i) =>
+      expect(Math.abs(t - plants[i])).toBeLessThanOrEqual(1 / FPS),
+    );
   });
 });
 
-test("Hausmuell starts with Tibik's legs exactly as Papiertonnen ends", { timeout: 120_000 }, () => {
-  const end = papiertonnenEnd().tibik;
-  const start = solveHausmuell(0).tibik;
-  for (const side of SIDES) {
-    const a = legFramesOf(RIG, end, side);
-    const b = legFramesOf(RIG, start, side);
-    for (const joint of ["hip", "knee", "ankle"] as const) {
-      expect(origin(b[joint]).distanceTo(origin(a[joint]))).toBeLessThan(1e-6);
+test(
+  "Hausmuell starts with Tibik's legs exactly as Papiertonnen ends",
+  { timeout: 120_000 },
+  () => {
+    const end = papiertonnenEnd().tibik;
+    const start = solveHausmuell(0).tibik;
+    for (const side of SIDES) {
+      const a = legFramesOf(RIG, end, side);
+      const b = legFramesOf(RIG, start, side);
+      for (const joint of ["hip", "knee", "ankle"] as const) {
+        expect(origin(b[joint]).distanceTo(origin(a[joint]))).toBeLessThan(
+          1e-6,
+        );
+      }
     }
-  }
-});
+  },
+);
 
 describe("leg inverse kinematics", () => {
   const characters: [string, Skeleton][] = [
@@ -261,33 +516,46 @@ describe("leg inverse kinematics", () => {
     ["Karen", KAREN_SKELETON],
   ];
 
-  test.each(characters)("%s: the leg reaches any ankle position in range, with the foot turned as asked", (_, skeleton) => {
-    for (const side of SIDES) {
-      for (const [dx, dy, dz, yaw, pitch] of [
-        [0, 0, 0, 0, 0],
-        [0, 0.05, 0.12, 0.3, -0.3],
-        [0.02, 0.08, -0.15, -0.4, 0.6],
-        [-0.05, 0.12, 0.05, 1.2, 0.2],
-      ]) {
-        const target = restAnkle(skeleton, side).add(new Vector3(dx, dy, dz));
-        const rotation = new Quaternion().setFromEuler(new Euler(pitch, yaw, 0, "YXZ"));
-        const leg = solveLeg(skeleton, side, target, rotation);
-        const { ankle } = legFrames(skeleton, new Matrix4(), leg, side);
-        expect(origin(ankle).distanceTo(target)).toBeLessThan(1e-6);
-        expect(new Quaternion().setFromRotationMatrix(ankle).angleTo(rotation)).toBeLessThan(1e-6);
-        expect(leg.knee).toBeGreaterThanOrEqual(0);
+  test.each(characters)(
+    "%s: the leg reaches any ankle position in range, with the foot turned as asked",
+    (_, skeleton) => {
+      for (const side of SIDES) {
+        for (const [dx, dy, dz, yaw, pitch] of [
+          [0, 0, 0, 0, 0],
+          [0, 0.05, 0.12, 0.3, -0.3],
+          [0.02, 0.08, -0.15, -0.4, 0.6],
+          [-0.05, 0.12, 0.05, 1.2, 0.2],
+        ]) {
+          const target = restAnkle(skeleton, side).add(new Vector3(dx, dy, dz));
+          const rotation = new Quaternion().setFromEuler(
+            new Euler(pitch, yaw, 0, "YXZ"),
+          );
+          const leg = solveLeg(skeleton, side, target, rotation);
+          const { ankle } = legFrames(skeleton, new Matrix4(), leg, side);
+          expect(origin(ankle).distanceTo(target)).toBeLessThan(1e-6);
+          expect(
+            new Quaternion().setFromRotationMatrix(ankle).angleTo(rotation),
+          ).toBeLessThan(1e-6);
+          expect(leg.knee).toBeGreaterThanOrEqual(0);
+        }
       }
-    }
-  });
+    },
+  );
 
-  test.each(characters)("%s: out of reach, the leg straightens towards the target instead of stretching", (_, skeleton) => {
-    const side = 1;
-    const target = restAnkle(skeleton, side).add(new Vector3(0, -0.2, 0.3));
-    const leg = solveLeg(skeleton, side, target, new Quaternion());
-    const { hip, ankle } = legFrames(skeleton, new Matrix4(), leg, side);
-    expect(leg.knee).toBeCloseTo(0, 6);
-    expect(origin(ankle).distanceTo(origin(hip))).toBeCloseTo(legLength(skeleton), 6);
-  });
+  test.each(characters)(
+    "%s: out of reach, the leg straightens towards the target instead of stretching",
+    (_, skeleton) => {
+      const side = 1;
+      const target = restAnkle(skeleton, side).add(new Vector3(0, -0.2, 0.3));
+      const leg = solveLeg(skeleton, side, target, new Quaternion());
+      const { hip, ankle } = legFrames(skeleton, new Matrix4(), leg, side);
+      expect(leg.knee).toBeCloseTo(0, 6);
+      expect(origin(ankle).distanceTo(origin(hip))).toBeCloseTo(
+        legLength(skeleton),
+        6,
+      );
+    },
+  );
 
   test("standing at rest the legs are straight and the feet level", () => {
     for (const [skeleton, pose] of [
@@ -298,36 +566,61 @@ describe("leg inverse kinematics", () => {
         const leg = pose[side === 1 ? "leftLeg" : "rightLeg"];
         expect(leg.knee).toBeCloseTo(0, 6);
         const { ankle } = legFrames(skeleton, new Matrix4(), leg, side);
-        expect(origin(ankle).distanceTo(restAnkle(skeleton, side))).toBeLessThan(1e-9);
-        expect(new Vector3(0, 0, 1).transformDirection(ankle).y).toBeCloseTo(0, 9);
-        expect(new Vector3(1, 0, 0).transformDirection(ankle).y).toBeCloseTo(0, 9);
+        expect(
+          origin(ankle).distanceTo(restAnkle(skeleton, side)),
+        ).toBeLessThan(1e-9);
+        expect(new Vector3(0, 0, 1).transformDirection(ankle).y).toBeCloseTo(
+          0,
+          9,
+        );
+        expect(new Vector3(1, 0, 0).transformDirection(ankle).y).toBeCloseTo(
+          0,
+          9,
+        );
       }
     }
   });
 });
 
 describe("on stairs", () => {
-  const { stairs, treadBoxes, plan, placementAt, plants, END, capsule } = STAIRS;
+  const { stairs, treadBoxes, plan, placementAt, plants, END, capsule } =
+    STAIRS;
 
   test("every planted sole rests on its tread, mostly on it, never against the riser behind", () => {
     const gap = soleCentre(RIG) - capsule.radius;
     const problems: string[] = [];
     for (const side of SIDES) {
       for (const plant of plants(side)) {
-        const t = Number.isFinite(plant.off) ? (Math.max(plant.on, -0.5) + plant.off) / 2 : plant.on + 0.4;
+        const t = Number.isFinite(plant.off)
+          ? (Math.max(plant.on, -0.5) + plant.off) / 2
+          : plant.on + 0.4;
         const placement = placementAt(t);
         const tread = stairs(plant.ankle.x, plant.ankle.z);
-        const lowest = Math.min(...footColliders(RIG, placement, side).map(bottom));
+        const lowest = Math.min(
+          ...footColliders(RIG, placement, side).map(bottom),
+        );
         if (Math.abs(lowest - tread - gap) > 0.003) {
-          problems.push(`${sideName(side)} foot at ${t.toFixed(2)} s: sole ${((lowest - tread) * 1000).toFixed(1)} mm above its tread`);
+          problems.push(
+            `${sideName(side)} foot at ${t.toFixed(2)} s: sole ${mm(lowest - tread)} above its tread`,
+          );
         }
         const own = footCapsule(RIG, side);
         const from = own.heel[2] - own.radius;
         const to = own.toe[2] + own.radius;
-        const heights = Array.from({ length: 21 }, (_, i) => stairs(plant.ankle.x, plant.ankle.z + from + ((to - from) * i) / 20));
-        const supported = heights.filter((y) => Math.abs(y - tread) < 1e-9).length / heights.length;
-        if (supported < 0.7) problems.push(`${sideName(side)} foot at ${t.toFixed(2)} s: only ${(supported * 100).toFixed(0)}% on its tread`);
-        if (heights.some((y) => y > tread + 1e-9)) problems.push(`${sideName(side)} foot at ${t.toFixed(2)} s: heel against the riser`);
+        const heights = Array.from({ length: 21 }, (_, i) =>
+          stairs(plant.ankle.x, plant.ankle.z + from + ((to - from) * i) / 20),
+        );
+        const supported =
+          heights.filter((y) => Math.abs(y - tread) < 1e-9).length /
+          heights.length;
+        if (supported < 0.7)
+          problems.push(
+            `${sideName(side)} foot at ${t.toFixed(2)} s: only ${(supported * 100).toFixed(0)}% on its tread`,
+          );
+        if (heights.some((y) => y > tread + 1e-9))
+          problems.push(
+            `${sideName(side)} foot at ${t.toFixed(2)} s: heel against the riser`,
+          );
       }
     }
     expect(problems).toEqual([]);
@@ -340,7 +633,10 @@ describe("on stairs", () => {
         for (const s of footColliders(RIG, placementAt(t), side)) {
           for (const box of treadBoxes) {
             const hit = collide(s, box);
-            if (hit && hit.depth > 0.001) problems.push(`${t.toFixed(3)} s: ${sideName(side)} ${s.name} ${(hit.depth * 1000).toFixed(1)} mm into ${box.name}`);
+            if (hit && hit.depth > 0.001)
+              problems.push(
+                `${t.toFixed(3)} s: ${sideName(side)} ${s.name} ${mm(hit.depth)} into ${box.name}`,
+              );
           }
         }
       }
@@ -352,12 +648,22 @@ describe("on stairs", () => {
     const problems: string[] = [];
     for (const side of SIDES) {
       for (let t = -0.5; t <= END + 0.5; t += 1 / FPS) {
-        const moved = footAt(plan, side, t + 1 / FPS).ankle.distanceTo(footAt(plan, side, t).ankle);
-        if (moved > 0.1) problems.push(`${sideName(side)} ankle moved ${(moved * 100).toFixed(1)} cm at ${t.toFixed(2)} s`);
+        const moved = footAt(plan, side, t + 1 / FPS).ankle.distanceTo(
+          footAt(plan, side, t).ankle,
+        );
+        if (moved > 0.1)
+          problems.push(
+            `${sideName(side)} ankle moved ${(moved * 100).toFixed(1)} cm at ${t.toFixed(2)} s`,
+          );
       }
       for (const plant of plants(side).filter((p) => Number.isFinite(p.on))) {
-        const jump = footAt(plan, side, plant.on - 1e-4).ankle.distanceTo(footAt(plan, side, plant.on + 1e-4).ankle);
-        if (jump > 0.003) problems.push(`${sideName(side)} foot jumps ${(jump * 1000).toFixed(1)} mm landing at ${plant.on.toFixed(2)} s`);
+        const jump = footAt(plan, side, plant.on - 1e-4).ankle.distanceTo(
+          footAt(plan, side, plant.on + 1e-4).ankle,
+        );
+        if (jump > 0.003)
+          problems.push(
+            `${sideName(side)} foot jumps ${mm(jump)} landing at ${plant.on.toFixed(2)} s`,
+          );
       }
     }
     expect(problems).toEqual([]);
@@ -370,9 +676,19 @@ describe("on stairs", () => {
       own.forEach((plant, i) => {
         if (i === 0 || own[i - 1].ankle.y - plant.ankle.y < 0.1) return;
         const landing = footAt(plan, side, plant.on).pitch;
-        const settled = footAt(plan, side, plant.on + plan.style.heelRoll + 0.03).pitch;
-        if (landing < 0.05) problems.push(`${sideName(side)} foot lands at ${plant.on.toFixed(2)} s with pitch ${landing.toFixed(2)}: heel not up`);
-        if (Math.abs(settled) > 0.01) problems.push(`${sideName(side)} foot at ${plant.on.toFixed(2)} s is not flat yet: pitch ${settled.toFixed(2)}`);
+        const settled = footAt(
+          plan,
+          side,
+          plant.on + plan.style.heelRoll + 0.03,
+        ).pitch;
+        if (landing < 0.05)
+          problems.push(
+            `${sideName(side)} foot lands at ${plant.on.toFixed(2)} s with pitch ${landing.toFixed(2)}: heel not up`,
+          );
+        if (Math.abs(settled) > 0.01)
+          problems.push(
+            `${sideName(side)} foot at ${plant.on.toFixed(2)} s is not flat yet: pitch ${settled.toFixed(2)}`,
+          );
       });
     }
     expect(problems).toEqual([]);
@@ -380,7 +696,13 @@ describe("on stairs", () => {
 
   test("on flat ground, a ground that is flat everywhere plans exactly the same walk", () => {
     const walk: RootAt = (t) => ({ x: 0.8 * t, z: 0, yaw: Math.PI / 2 });
-    const walkSteps = rhythmicSteps({ from: 0, to: 2, first: -1, cadence: () => 4, overlap: 0.1 });
+    const walkSteps = rhythmicSteps({
+      from: 0,
+      to: 2,
+      first: -1,
+      cadence: () => 4,
+      overlap: 0.1,
+    });
     const style = tibikGait().style;
     const flat = planGait(RIG, style, walk, walkSteps, [-1, 3]);
     const level = planGait(RIG, style, walk, walkSteps, [-1, 3], () => 0);
@@ -388,14 +710,48 @@ describe("on stairs", () => {
     expect(level.bob).toEqual(flat.bob);
     for (let t = -0.5; t < 2.5; t += 0.01) {
       for (const side of SIDES) {
-        expect(footAt(level, side, t).ankle.distanceTo(footAt(flat, side, t).ankle)).toBeLessThan(1e-9);
+        expect(
+          footAt(level, side, t).ankle.distanceTo(footAt(flat, side, t).ankle),
+        ).toBeLessThan(1e-9);
       }
     }
   });
 
+  test("a single step in a walk only changes the hip smoothing around it, not the flat stretch after it", () => {
+    const walk: RootAt = (t) => ({ x: 0.8 * t, z: 0, yaw: Math.PI / 2 });
+    const walkSteps = rhythmicSteps({
+      from: 0,
+      to: 4,
+      first: -1,
+      cadence: () => 4,
+      overlap: 0.1,
+    });
+    const style = tibikGait().style;
+    const flat = planGait(RIG, style, walk, walkSteps, [-1, 5]);
+    const doorStep: Ground = (x) => (x < 0.12 ? 0.15 : 0);
+    const stepping = planGait(RIG, style, walk, walkSteps, [-1, 5], doorStep);
+    expect(stepping.level).toBe(false);
+    for (let t = 1.5; t < 4.5; t += 0.01) {
+      expect(bobLimit(stepping, t)).toBe(bobLimit(flat, t));
+    }
+  });
+
   test("a foot authored to land inside a step is refused", () => {
-    const into = STAIRS.steps.map((step, i) => (i === 2 && step.at ? { ...step, at: { x: step.at.x, z: step.at.z - 0.04 } } : step));
-    expect(() => planGait(RIG, tibikGait().style, STAIRS.root, into, [-1, END + 1], stairs)).toThrow(/inside/);
+    const into = STAIRS.steps.map((step, i) =>
+      i === 2 && step.at
+        ? { ...step, at: { x: step.at.x, z: step.at.z - 0.04 } }
+        : step,
+    );
+    expect(() =>
+      planGait(
+        RIG,
+        tibikGait().style,
+        STAIRS.root,
+        into,
+        [-1, END + 1],
+        stairs,
+      ),
+    ).toThrow(/inside/);
   });
 });
 
@@ -405,8 +761,16 @@ test("a foot placed on a tread has its heel exactly the gap in front of the rise
       const ankle = ankleOnTread(RIG, side, yaw, { x: 1, z: -2 }, 0.01);
       const { heel, radius } = footCapsule(RIG, side);
       const forward = new Vector3(Math.sin(yaw), 0, Math.cos(yaw));
-      const heelEnd = new Vector3(ankle.x, 0, ankle.z).addScaledVector(forward, heel[2] - radius);
-      expect(heelEnd.clone().sub(new Vector3(1, 0, -2)).dot(forward)).toBeCloseTo(0.01, 9);
+      const heelEnd = new Vector3(ankle.x, 0, ankle.z).addScaledVector(
+        forward,
+        heel[2] - radius,
+      );
+      expect(
+        heelEnd
+          .clone()
+          .sub(new Vector3(1, 0, -2))
+          .dot(forward),
+      ).toBeCloseTo(0.01, 9);
     }
   }
 });

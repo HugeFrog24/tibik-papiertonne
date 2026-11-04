@@ -5,8 +5,8 @@ const smooth = Easing.bezier(0.45, 0, 0.55, 1);
 
 export const kf = (
   t: number,
-  times: number[],
-  values: number[],
+  times: readonly number[],
+  values: readonly number[],
   easing: (n: number) => number = smooth,
 ) =>
   interpolate(t, times, values, {
@@ -15,7 +15,7 @@ export const kf = (
     extrapolateRight: "clamp",
   });
 
-export const armKf = (t: number, times: number[], poses: ArmPose[]): ArmPose => ({
+export const armKf = (t: number, times: readonly number[], poses: readonly ArmPose[]): ArmPose => ({
   raise: kf(t, times, poses.map((p) => p.raise)),
   out: kf(t, times, poses.map((p) => p.out)),
   elbow: kf(t, times, poses.map((p) => p.elbow)),

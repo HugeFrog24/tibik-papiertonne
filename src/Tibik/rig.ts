@@ -1,4 +1,4 @@
-import { restLeg } from "../characters/legs";
+import { restPose } from "../characters/legs";
 import type { ArmPose, Pose, Skeleton } from "../characters/skeleton";
 import type { Vec3 } from "../toon/primitives";
 
@@ -72,19 +72,6 @@ export const ARM_REST: ArmPose = { raise: 0.8, out: 0.8, elbow: 1.5, inward: 1.2
 
 export const ARM_WALK: ArmPose = { raise: 0.1, out: 0.95, elbow: 0.35, inward: 0 };
 
-export const TIBIK_REST: Pose = {
-  bob: 0,
-  lean: 0,
-  twist: 0,
-  sway: 0,
-  headPitch: 0,
-  headYaw: 0,
-  headRoll: 0,
-  gazeYaw: 0,
-  gazePitch: 0,
-  blink: 0,
-  leftArm: ARM_REST,
-  rightArm: ARM_REST,
-  leftLeg: restLeg(RIG, 1),
-  rightLeg: restLeg(RIG, -1),
-};
+export const ARM_TUCK: ArmPose = { raise: 0.35, out: 0.55, elbow: 1.6, inward: 1.0 };
+
+export const TIBIK_REST: Pose = restPose(RIG, ARM_REST);

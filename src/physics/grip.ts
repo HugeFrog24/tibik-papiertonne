@@ -4,26 +4,50 @@ import {
   armIntoTorso,
   carriedBox,
   handPosition,
+  handSphere,
   torsoMatrix,
   type ArmName,
   type ArmPose,
 } from "../characters/skeleton";
-import { frame, pointIn, contacts, deepest, nearby, sphereObbGap, type Obb, type Solid, type Sphere } from "./collision";
-import { guardCarried, guardLean, type Bounds, type Carried, type Character } from "./guards";
+import {
+  frame,
+  pointIn,
+  contacts,
+  deepest,
+  nearby,
+  sphereObbGap,
+  type Contact,
+  type Obb,
+  type Solid,
+  type Sphere,
+} from "./collision";
+import {
+  guardCarried,
+  guardLean,
+  type Bounds,
+  type Carried,
+  type Character,
+} from "./guards";
 
 const ARM_LIMITS: Record<keyof ArmPose, [number, number]> = {
   raise: [-0.6, 3.0],
   out: [-0.3, 1.6],
   elbow: [0, 2.4],
-  inward: [-0.5, 1.6],
+  inward: [-1.2, 1.6],
 };
 
 export const armLimb = (spheres: readonly Sphere[]) => {
   const hand = spheres[spheres.length - 1];
-  return spheres.filter((s) => s !== hand && s.center.distanceTo(hand.center) > hand.radius + 0.05);
+  return spheres.filter(
+    (s) => s !== hand && s.center.distanceTo(hand.center) > hand.radius + 0.05,
+  );
 };
 
-const withArm = <C extends Character>(c: C, which: ArmName, arm: ArmPose): C => ({
+const withArm = <C extends Character>(
+  c: C,
+  which: ArmName,
+  arm: ArmPose,
+): C => ({
   ...c,
   pose: { ...c.pose, [which]: arm },
 });
@@ -37,10 +61,14 @@ export const reachArm = <C extends Character>(
   solids: readonly Solid[],
   held: Obb | null,
   extraStarts: readonly ArmPose[] = [],
+  onlyFromAuthored = false,
 ): C => {
   const { upperArm, forearm, hand } = c.skeleton;
   const shoulder = armColliders(c.skeleton, c, which)[0].center;
-  const length = upperArm.length + Math.max(forearm.length, hand.offset) + Math.max(upperArm.radius, forearm.radius, ...hand.size);
+  const length =
+    upperArm.length +
+    Math.max(forearm.length, hand.offset) +
+    Math.max(upperArm.radius, forearm.radius, ...hand.size);
   const reachable = nearby(solids, shoulder, length);
   const authored = c.pose[which];
   const keys = Object.keys(ARM_LIMITS) as (keyof ArmPose)[];
@@ -53,12 +81,16 @@ export const reachArm = <C extends Character>(
       held ? deepest(contacts(limb, [held])) : 0,
       armIntoTorso(c.skeleton, placed.pose, which),
     );
-    const drift = keys.reduce((sum, key) => sum + Math.abs(arm[key] - authored[key]), 0);
+    const drift = keys.reduce(
+      (sum, key) => sum + Math.abs(arm[key] - authored[key]),
+      0,
+    );
     const hand = spheres[spheres.length - 1];
     const miss =
       target instanceof Vector3
         ? hand.center.distanceTo(target)
-        : Math.abs(sphereObbGap(hand, target.touch)) + 0.1 * hand.center.distanceTo(target.near);
+        : Math.abs(sphereObbGap(hand, target.touch)) +
+          0.1 * hand.center.distanceTo(target.near);
     return miss + 40 * hit + 0.002 * drift;
   };
 
@@ -87,10 +119,13 @@ export const reachArm = <C extends Character>(
   };
 
   const fromAuthored = descend(authored);
-  if (fromAuthored.best < 0.004) {
+  if (onlyFromAuthored || fromAuthored.best < 0.004) {
     return withArm(c, which, fromAuthored.arm);
   }
-  const results = [fromAuthored, ...[...REACH_STARTS, ...extraStarts].map(descend)];
+  const results = [
+    fromAuthored,
+    ...[...REACH_STARTS, ...extraStarts].map(descend),
+  ];
   results.sort((a, b) => a.best - b.best);
   return withArm(c, which, results[0].arm);
 };
@@ -103,8 +138,17 @@ const REACH_STARTS: ArmPose[] = [
 
 const HOLDING_ARMS: ArmName[] = ["leftArm", "rightArm"];
 
-const gripTargets = <T extends Carried>(c: Character, item: T, bounds: Bounds, sideGrip: number) => {
-  const box = frame(torsoMatrix(c.skeleton, c), item.position, new Euler(...item.rotation));
+const gripTargets = <T extends Carried>(
+  c: Character,
+  item: T,
+  bounds: Bounds,
+  sideGrip: number,
+) => {
+  const box = frame(
+    torsoMatrix(c.skeleton, c),
+    item.position,
+    new Euler(...item.rotation),
+  );
   const r = Math.max(...c.skeleton.hand.size) * 0.8;
   const [cx, cy, cz] = bounds.center;
   const [sx, sy] = bounds.size;
@@ -128,6 +172,29 @@ const worldToTorso = (c: Character, delta: Vector3) => {
   return delta.clone().applyQuaternion(rotation.invert());
 };
 
+const reachHands = <C extends Character, T extends Carried>(
+  c: C,
+  item: T,
+  bounds: Bounds,
+  solids: readonly Solid[],
+  sideGrip: number,
+) => {
+  const held = carriedBox(
+    c.skeleton,
+    c,
+    item.position,
+    item.rotation,
+    bounds.size,
+    bounds.center,
+  );
+  const targets = gripTargets(c, item, bounds, sideGrip);
+  let character = c;
+  for (const which of HOLDING_ARMS) {
+    character = reachArm(character, which, targets[which], solids, held);
+  }
+  return { character, targets };
+};
+
 export const holdCarried = <C extends Character, T extends Carried>(
   c: C,
   item: T,
@@ -137,40 +204,89 @@ export const holdCarried = <C extends Character, T extends Carried>(
 ): { readonly character: C; readonly item: T } => {
   let current = item;
   let character = c;
+  let settled = false;
   for (let pass = 0; pass < 3; pass++) {
     if (movable) {
       current = guardCarried(character, current, boundsOf, solids);
     }
-    const bounds = boundsOf(current);
-    const held = carriedBox(c.skeleton, character, current.position, current.rotation, bounds.size, bounds.center);
-    const targets = gripTargets(character, current, bounds, sideGrip);
-    for (const which of HOLDING_ARMS) {
-      character = reachArm(character, which, targets[which], solids, held);
-    }
+    const reached = reachHands(
+      character,
+      current,
+      boundsOf(current),
+      solids,
+      sideGrip,
+    );
+    character = reached.character;
+    const targets = reached.targets;
     const miss = new Vector3();
     for (const which of HOLDING_ARMS) {
       miss.add(handPosition(c.skeleton, character, which).sub(targets[which]));
     }
     miss.divideScalar(HOLDING_ARMS.length);
     if (!movable || miss.length() < 0.005) {
+      settled = true;
       break;
     }
     const local = worldToTorso(character, miss);
     current = {
       ...current,
-      position: [current.position[0] + local.x, current.position[1] + local.y, current.position[2] + local.z],
+      position: [
+        current.position[0] + local.x,
+        current.position[1] + local.y,
+        current.position[2] + local.z,
+      ],
     };
   }
+  if (!settled) {
+    current = guardCarried(character, current, boundsOf, solids);
+    character = reachHands(
+      character,
+      current,
+      boundsOf(current),
+      solids,
+      sideGrip,
+    ).character;
+  }
   const bounds = boundsOf(current);
-  const held = carriedBox(c.skeleton, character, current.position, current.rotation, bounds.size, bounds.center);
+  const held = carriedBox(
+    c.skeleton,
+    character,
+    current.position,
+    current.rotation,
+    bounds.size,
+    bounds.center,
+  );
   return { character: guardLean(character, [held]), item: current };
 };
 
-export const gripGaps = <T extends Carried>(c: Character, item: T, bounds: Bounds) => {
-  const held = carriedBox(c.skeleton, c, item.position, item.rotation, bounds.size, bounds.center);
+export const gripGapViolations = <T extends Carried>(
+  c: Character,
+  item: T,
+  bounds: Bounds,
+): Contact[] =>
+  gripGaps(c, item, bounds)
+    .filter(({ gap }) => gap > 0)
+    .map(({ which, gap }) => ({
+      a: "carried box",
+      b: `${which === "leftArm" ? "left" : "right"} hand (not touching it)`,
+      depth: gap,
+      normal: new Vector3(),
+    }));
+
+export const gripGaps = <T extends Carried>(
+  c: Character,
+  item: T,
+  bounds: Bounds,
+) => {
+  const held = carriedBox(
+    c.skeleton,
+    c,
+    item.position,
+    item.rotation,
+    bounds.size,
+    bounds.center,
+  );
   return HOLDING_ARMS.map((which) => {
-    const spheres = armColliders(c.skeleton, c, which);
-    return { which, gap: sphereObbGap(spheres[spheres.length - 1], held) };
+    return { which, gap: sphereObbGap(handSphere(c.skeleton, c, which), held) };
   });
 };
-

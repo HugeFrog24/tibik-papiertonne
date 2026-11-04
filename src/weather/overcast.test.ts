@@ -1,0 +1,87 @@
+import { Color } from "three";
+import { expect, test } from "vitest";
+import { SUN } from "../street/StreetSet";
+import { footprint, overlap, partFootprint } from "../street/footprint";
+import {
+  BINS,
+  FACADE_Z,
+  KERB_DEPTH,
+  KERB_Z,
+  STREET_PARTS,
+  STREET_TREE_XS,
+  hydrantCap,
+  treePit,
+} from "../street/layout";
+import { TONNE } from "../street/tonneShape";
+import {
+  GULLIES,
+  MANHOLES,
+  gullyFootprint,
+  manholeFootprint,
+} from "../street/drainShape";
+import { PATCHES, jointFootprint } from "../street/roadShape";
+import { PUDDLES, WEATHER } from "./overcast";
+import { luminance } from "../toon/colourChecks";
+
+const hsl = (hex: string) => {
+  const out = { h: 0, s: 0, l: 0 };
+  new Color(hex).getHSL(out);
+  return out;
+};
+
+test("sunny is today's street, value for value", () => {
+  expect(WEATHER.sunny.sky).toEqual(["#8ecdf0", "#cfeaf7"]);
+  expect(WEATHER.sunny.hemisphere).toEqual({
+    sky: "#ffffff",
+    ground: "#b5ad9c",
+    intensity: 1.7,
+  });
+  expect(WEATHER.sunny.sun.intensity).toBe(2.0);
+  expect(SUN.intensity).toBe(WEATHER.sunny.sun.intensity);
+  expect(WEATHER.sunny.sun.shadows).toBe(true);
+  expect(WEATHER.sunny.wetTint).toBeNull();
+});
+
+test("the rainy day is overcast: grey sky, weak sun, sky light dominant", () => {
+  for (const colour of WEATHER.rain.sky)
+    expect(hsl(colour).s).toBeLessThan(0.15);
+  expect(WEATHER.rain.sun.intensity).toBeLessThanOrEqual(
+    0.3 * WEATHER.sunny.sun.intensity,
+  );
+  expect(WEATHER.rain.hemisphere.intensity).toBeGreaterThanOrEqual(
+    WEATHER.sunny.hemisphere.intensity,
+  );
+});
+
+test("wet ground is darker", () => {
+  expect(WEATHER.rain.wetTint).not.toBeNull();
+  expect(luminance(WEATHER.rain.wetTint!)).toBeLessThan(0.7);
+});
+
+test("puddles lie on open pavement or the road, never on anything standing there, in a tree pit, on a bin, over the hydrant cap or another decal on the ground", () => {
+  expect(PUDDLES.length).toBeGreaterThanOrEqual(4);
+  const onGround = STREET_PARTS.filter(
+    (p) => p.center[1] - p.size[1] / 2 <= 0.05,
+  ).map(partFootprint);
+  const pits = STREET_TREE_XS.map(treePit);
+  const bins = BINS.map((b) =>
+    footprint(b.position[0], b.position[2], TONNE.width, TONNE.depth),
+  );
+  const cap = hydrantCap();
+  const capPrint = footprint(cap.x, cap.z, 0.5, 0.4);
+  const decals = [
+    ...GULLIES.map(gullyFootprint),
+    ...MANHOLES.map(manholeFootprint),
+    ...PATCHES,
+    jointFootprint,
+  ];
+  const kerbFace = [KERB_Z - KERB_DEPTH / 2, KERB_Z + KERB_DEPTH / 2];
+  for (const p of PUDDLES) {
+    const print = footprint(p.x, p.z, 2 * p.rx, 2 * p.rz);
+    const pavement = p.z - p.rz > FACADE_Z && p.z + p.rz < kerbFace[0];
+    const road = p.z - p.rz > kerbFace[1];
+    expect(pavement || road, `${p.x}, ${p.z}`).toBe(true);
+    for (const other of [...onGround, ...pits, ...bins, capPrint, ...decals])
+      expect(overlap(print, other), `${p.x}, ${p.z}`).toBe(false);
+  }
+});

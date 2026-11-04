@@ -12,17 +12,184 @@ Items marked **(test)** are enforced by `npm test`.
   house with a lawn, porch or garage.
 - **Season and light:** summer (the street tree has leaves). The sun comes
   from the front-left in every scene; keep it there.
+- **Wind:** a light breeze (Beaufort 2, leaves rustle) blows down the street
+  (towards +x, slightly towards the houses), with gusts. One breeze runs on
+  film time across all scenes (src/physics/wind.ts). The tree crown sways a
+  few centimetres and Karen's locks and strands sway on their own springs.
+  Hair blown onto her shoulders rests on them. **(test)**
 - **Parking:** cars park along the kerb (Längsparken) or on a Mieterparkplatz,
-  not in garages. Plates are white with a blue EU band and "D", format
-  `MU-AB 123` (fictional).
-- **Entrance:** a doorbell panel with every flat's surname (Tibik lives here),
-  a mailbox unit with a "Bitte keine Werbung!" sticker, and a blue
-  house-number sign. Doors are reached by a step; there is no porch.
+  not in garages. They face the direction of travel with the kerb on their
+  right (StVO § 12 (4); this is no one-way street). Plates are white with a
+  blue EU band and "D", format `MU-AB 123` (fictional). Between the district
+  and the letters, plates carry the round registration seal instead of a
+  hyphen. On the rear plate, the HU sticker sits above that seal: yellow for
+  2027, brown for 2028. Every car has the green Umweltplakette (80 mm, "4")
+  inside the windscreen, lower right on the passenger side, so on the kerb
+  side. **(test)** Plates sit in black holders that cover nothing of the plate;
+  about two thirds carry the dealer's strip "Autohaus Musterstadt" under the
+  plate. The front plate's lower edge is 0.42 m over the road (§ 12 (8) FZV:
+  at least 200 mm, at most 30 degrees of tilt). **(test)** The cars are compact
+  hatchbacks with no brand marks.
+  They have dark wheel wells and wing mirrors, and the mirrors are solid.
+  Both sides of the street are parked up (17 cars, at least 35 cm between
+  bumpers, every plate unique). Far-side cars face the other way, so their
+  kerb is on their right as well. **(test)**
+- **Across the street:** a twin block, No. 13 (odd numbers on that side,
+  even on ours), in a slightly cooler plaster, with its own pavement and kerb.
+  The facades are 16.7 m apart. It shows through the open Haustür.
+- **The street goes on:** three more blocks each way on both sides, as a
+  continuous street wall (Nos. 6–18 on our side, 7–19 opposite; numbers rise
+  towards +x on both sides). Each is a simplified block: a painted facade with
+  the same window layout, plus real balconies. A cross street closes the view
+  at both ends (x ±118 m), and more street trees stand along both pavements.
+  Every house has its own bin row by the entrance (Restmüll, two Papier,
+  Wertstoffe), each bin stickered with its house number. Numbering zigzags:
+  even on our side, odd across the street, both rising towards +x. **(test)**
+- **Bike stands:** two galvanised Anlehnbügel by No. 12 (1.2 m long, 0.8 m
+  high, knee rail, 0.8 m off the wall, 1.3 m apart) at x −7 and −8.3, clear of
+  where Tibik and Karen walk. A blue city bike leans beside the first one,
+  locked: a black armoured cable (15 mm) runs through its down tube and round
+  the stand's lower rail, the red lock head hanging below. **(test)**
+  **(test)**
+- **Road level:** the carriageway lies 12 cm below the pavement (a Hochbord
+  kerb, 10–12 cm in German cross-sections), and the parked cars stand on it,
+  not at pavement height. **(test)**
+- **Drains:** 300 × 500 gully grates (DIN 19594) in the gutter against both
+  kerbs, roughly every 13–25 m and never under a parked tyre; round sewer
+  covers (625 mm opening) down the middle of the road every 35 m. **(test)**
+- **Asphalt:** fine grey grain (a seamless 4 m tile, seeded), laid in two
+  passes with one black-sealed joint 0.75 m off the sewer line; three darker
+  patches with sealed edges: a house-connection trench from No. 12 to the
+  sewer and two pothole repairs, none under a tyre, gully or cover. **(test)**
+- **Street trees** stand in open tree pits (2.0 × 1.3 m of soil from the kerb
+  into the pavement, granite edging, fallen leaves and a few weeds). **(test)**
+  Each trunk carries its tree-register number on a small aluminium tag at
+  about 2 m, facing back along the pavement: 101-107 along this side, 108-113
+  along the far side, every number once. **(test)**
+- **Street lamps:** 5 m steel masts with a short arm over the road and a flat
+  LED head (off by day). They stand 30 m apart on each side, staggered by
+  15 m across the street, set back 45 cm from the kerb, and never in front of
+  No. 12's entrance and bins. **(test)** Each mast carries its number on a
+  small white plate at 2.15 m (201-213, for reporting a dark lamp) and a few
+  stickers within reach (0.9-2 m), lying flat on the 12-sided pole; the one
+  behind Karen shows its plate and three stickers. **(test)**
+- **Entrance:** a Türsprechanlage: a speaker grille and microphone above a bell
+  button for every flat's surname (Tibik lives here; the handsets are in the flats),
+  a mailbox unit with a "Bitte keine Werbung!" sticker (on Schulz's box; a
+  yellow pizza flyer sticks out of Krause's slot, Tibik's box is empty), and a blue
+  house-number sign. Doors are reached by a step; there is no porch. A
+  60 × 40 cm anthracite mat in an aluminium frame is set flush into the step in
+  front of the Haustür; feet walk over it at step height. **(test)**
+  An anthracite wall lamp with a motion sensor hangs over the mailboxes,
+  2.2 m up (off by day). **(test)**
+  No. 13 across the street has its own twelve tenants (none shares a surname
+  with No. 12; its "keine Werbung" sticker is on Lehmann's box) and no flyer.
+  **(test)**
 - **Windows:** tilt-and-turn (Dreh-Kipp) with the handle on the side frame,
   roller-shutter boxes above, some shutters let down, half-height lace
   curtains. Balconies on the upper floors, one with a satellite dish.
-- **Also there:** a red-and-white hydrant sign (H) on the wall; no hydrants
-  standing on the sidewalk, and no overhead power lines.
+- **Also there:** a red-and-white hydrant sign "H 80" on bare wall left of the
+  mailboxes. It reads 1,4 beside the stem (1.4 m to the right) and 3,2 under
+  the bar (3.2 m straight out), and that is where the oval cast-iron cap of the
+  underground hydrant lies flush in the pavement. No hydrants stand on the
+  sidewalk, and there are no overhead power lines. **(test)**
+
+## Scenes
+
+The film plays four scenes in this order (`src/Film.tsx`), each its own
+composition under "Scenes" in the Studio:
+
+1. **Treppenhaus** (`src/scenes/treppenhaus/`): Tibik leaves his flat, presses
+   the stairwell light, goes down the EG flight with his hand on the rail and
+   out through the Haustür. Shots run on story time with one ellipsis (the
+   middle of the descent is skipped).
+2. **Papiertonnen** (`src/scenes/papiertonnen/`): he steps out of the door of
+   No. 12, the door shuts behind him, he searches the Papiertonne and finds a
+   box.
+3. **Hausmuell** (`src/scenes/hausmuell/`): Senioren-Karen confronts him.
+4. **Klingelsturm** (`src/scenes/klingelsturm/`): later, on the 1. OG
+   landing, she storms his doorbell, phones the Hausverwaltung and then 110;
+   the light timer runs out, and Tibik leaves with the box packed as a
+   parcel.
+
+## The staircase (Treppenhaus)
+
+- Tibik lives on the **1. OG, links** (nameplate "Tibik"; Schulz opposite).
+  The Reinigungsplan on the notice board says "1. OG links" this week.
+  Beside the board hangs an A5 sheet from the **Hausverwaltung Musterstadt**
+  (Sprechzeiten, Notdienst; the numbers are not legible) — the same
+  Hausverwaltung Karen phones in the Klingelsturm and the one that will send
+  the Rundschreiben. **(test)**
+- Stairs follow DIN 18065: the EG flight has 18 risers of 17.5 cm on 28 cm
+  treads; the handrail is 90 cm above the nosing line, 8 cm off the wall;
+  balustrade bars are at most 12 cm apart. **(test)**
+- Terrazzo floors, plastered walls with a green dado. Treppenlicht on a timer,
+  switched by orange-lit push buttons beside each flat door.
+- Orange RAUCHABZUG buttons (RAL 2011, 126 × 126 × 32 mm, 1.4 m up) open the
+  smoke vent at the top of the stairwell: one on the EG east wall by the
+  entrance, one beside the lift on the top landing (the 5. OG floor is
+  above 13 m, so Gebäudeklasse 5). No door leaf ever covers them. **(test)**
+- There is a lift (doors on every floor). Tibik takes the stairs; a later
+  scene may use the lift if he ever lives higher up.
+- The stairwell is acoustically hard: every sound inside it carries a long
+  reverb (about 3 s; `scripts/make-stairwell.mjs` renders the stairwell
+  versions in `public/sfx/stairwell/`). The street is heard through the walls,
+  muffled, until the Haustür opens.
+
+## The landing (Klingelsturm)
+
+- Karen is **Frau Schulz**, **1. OG rechts**, directly across from Tibik
+  (nameplate "Schulz"). Her shoes stand at the door edge of her coir mat.
+- She rings in the **2-3-4-2** rhythm learned from the user's clapping
+  (`assets/recordings/doorbell-rhythm.model.json`; the recording itself stays
+  private). His door opens only to a **12 cm slit** while she is there.
+- Her phone is a red big-button phone on speaker. She calls the
+  **Hausverwaltung** (answering machine, out of hours), then **110**; the
+  dispatcher has the last word. Misusing 110 is an offence (§ 145 StGB), so
+  the dispatcher stays calm and asks what the emergency is. After hanging up
+  she lowers the phone to her belly.
+- His Flur: a chest of drawers by the door. He packs the found Karton with a
+  paperback and tapes it shut with 50 mm packing tape on a 76 mm core, which
+  stays on the chest. Beside his door, on the latch side, a white rocker
+  light switch at 1.05 m, 15 cm from the door (DIN 18015-3 zone ZS-t). **(test)**
+- **Stairwell light:** a 180 s timer, switched on downstairs inside the time
+  jump. It runs out about 2 s after the dispatcher's last word and gives **no
+  warning blink**: on, then dark (the user's experience; DIN 18015-2's
+  warning isn't what people see). The timer relay is heard as a damp,
+  echoing click when it switches off and again when Tibik switches it back
+  on. **(test)** The orange locator lights of the push buttons glow in the
+  dark; daylight from the windows keeps the landing readable.
+- **His exit:** behind his shut door he takes the parcel on his left
+  forearm, opens the door with his right hand on the lever, and moves the
+  parcel to his right forearm while the door swings open (hidden by the
+  wall). He sidles out with the parcel leading, pulls the door shut by its
+  knob with his left hand, presses the light switch, nods to Karen and goes
+  down the stairs without the rail. The parcel rides on his forearm at
+  shoulder height: his arms are too short to hold it at the hip. **(test)**
+  Karen stands aside at her door and turns to watch him go.
+
+## Doors
+
+- **Flat doors** open into the flat, with a lever inside and a fixed brass
+  knob outside (Wechselgarnitur). His has no door closer (an older building),
+  so it stays where it's left: he pulls it shut by the knob as he steps out,
+  and it latches.
+- **The Haustür** opens inwards and has an overhead door closer (mounted on
+  the lintel inside, slide rail on the leaf). It never stays open by itself:
+  whoever goes through holds it, and when let go it swings shut, slowing to
+  the latch over the last 15°. **(test)**
+- Handles are data (`Door.grips` in `src/building/doors.ts`): what's drawn,
+  what collides and what a hand holds are the same object.
+- Every door with a handle has its hardware: flat doors carry a long plate on
+  both faces (lever inside, knob outside) with the profile cylinder 72 mm
+  below the handle; the Haustür has its inside plate, a cylinder rosette 92 mm below the lever
+  and a pull bar on two posts; the living-room door has an L-lever on round roses on
+  both faces, 55 mm in from its edge and 1050 mm up, with a Buntbart keyhole
+  72 mm below. Lift doors have none. **(test)**
+- A lever (Drücker) turns about its spindle at the edge-side end. The hand
+  that grips it presses it down about 29° in the 0.15 s before the pull, so
+  the latch is free before the door moves. It stays down through the pull
+  and springs back within 0.08 s of being let go. **(test)**
 
 ## Waste and bins
 
@@ -73,11 +240,47 @@ Items marked **(test)** are enforced by `npm test`.
 - Hinged lids that are open and still rest on something (the wall, or the
   cardboard propping them). **(test)**
 - Bin contents fit inside their bins. **(test)**
-- Respect reach: Tibik's arms reach ~46 cm from the shoulder, and his belly
-  keeps him ~30 cm from anything he faces. Plan choreography around that.
+- Respect reach: Tibik's arms reach ~46 cm from the shoulder (~55 cm to the
+  centre of a handle, counting the hand), and his belly keeps him ~30 cm from
+  anything he faces. He is 0.81 m wide and 0.65 m deep: he tucks his arms in
+  through doorways and sidles sideways through narrow gaps. Plan choreography
+  around that (doors especially: see the Treppenhaus door beats).
+- When a hand works something (a door handle, a light button, the handrail,
+  the Haustür leaf), it touches it for the whole hold. **(test)**
+- Hips never rise or fall faster than 0.75 m/s, and never jump from frame to
+  frame. **(test)**
 - Karen is heavy: short strides, slow to speed up, audible breathing. Her head
   can only turn a little on its own (pass head poses through
   `limitKarenHead`), so turn her whole body instead.
+- Karen's eyes are eyeballs set into her head, never flat black buttons: a
+  white ball with a grey-blue iris (darker rim) and a small black pupil that
+  turn with her gaze, under skin lids. Anger slants the upper lids down toward
+  her nose and narrows the eyes; the lids ride with the gaze, never hide a
+  pupil while open, and shut fully in a blink. **(test)** Anger also draws
+  wrinkles: frown furrows between the brows, a crease above each inner brow
+  that follows the brow, creases on the bridge and beside the nose, the
+  cheek folds to the mouth, under-eye lines and crow's feet; they stay off
+  her eyes, brows, nose and lips, and her fringe hides at most a third of any.
+  **(test)** When she opens her mouth, her skin opens exactly along the lip
+  line onto a dark pocket that goes about 5 cm back into her head, sealed
+  under the lips; ten upper teeth hang fixed from the skull just behind the
+  upper lip, ten lower teeth ride down and back with a rigid jaw behind the
+  upper ones (overbite), each tooth its own rounded box with a thin outline,
+  and a tongue lies behind the lower front teeth. Nothing of it pokes out of
+  her skin, jowls or nose; the rows never bite into each other; wide open the
+  front teeth and the tongue's top show. **(test)** Her head's outline shell ends at the chin, so it never pokes out
+  through her top below the chin. **(test)**
+- Karen's hair is short and grey, in locks, never one solid mass and never
+  a smooth "icecap". Each lock is drawn as a tapered clump: thick at its root,
+  curling slightly outward, ending in a point, with darker strand lines along
+  it. **(test: inside its lock's ellipsoid, pointed tip, faces outward)**
+  Locks radiate from the crown; three hairline locks run into seven narrow
+  bangs fanned across the forehead; two side curtains of three strands each
+  hang over a darker under-layer. The cap underneath is darker and has no ink
+  outline, so the pointed locks make the silhouette. Each lock stands off the
+  cap by more than an ink line. **(test)** Shades vary slightly from lock to
+  lock (salt and pepper). Physics (sway, resting on her body) still works on
+  each lock's ellipsoid, which bounds the drawn clump.
 - Feet and legs: a foot carrying weight stays planted until it lifts off; it
   rolls heel to toe without sliding, and swings to its next plant in a low
   arc. **(test)** Knees bend like a human's (0–150°, pointing forwards), and
@@ -92,14 +295,23 @@ Items marked **(test)** are enforced by `npm test`.
 
 ## Continuity between scenes
 
-- Each scene starts exactly where the previous one ended. Papiertonnen's last
-  state is exported as `papiertonnenEnd()` (src/scenes/papiertonnen/solve.ts): searched bin lid
+- Each scene starts exactly where the previous one ended. **(test)** The
+  Treppenhaus ends (`treppenhausEnd()`) with Tibik paused on the threshold,
+  right hand holding the Haustür open at 1.35 rad; Papiertonnen starts in that
+  exact pose and door angle. Papiertonnen's last state is exported as
+  `papiertonnenEnd()` (src/scenes/papiertonnen/solve.ts): searched bin lid
   open against the wall, the popped-open box in both of Tibik's hands,
   Papier 1 still overfull.
+- **Declared time jump:** Hausmuell → Klingelsturm is the one named exception
+  to "each scene starts where the previous one ended". Klingelsturm starts
+  with Tibik inside, his door shut and latched, Karen on the landing, her
+  shoes on her mat. **(test)**
 - In dialogue between Tibik and Karen, keep the camera on one side of the line
   between them (180° rule), with matching eyelines in shot/reverse-shot.
 - The street ambience runs under every scene and across cuts: two loops,
-  atmosphere and traffic, balanced in src/street/StreetAmbience.tsx.
+  atmosphere and traffic, balanced in src/street/StreetAmbience.tsx. Inside
+  the building they are heard muffled (low-passed twins) and open up as the
+  Haustür opens (`filmIndoors` in src/timeline.ts). **(test)**
 - Karen's footsteps are always loud, heavy stomps. Every scene plays them
   through `KarenStomp` (src/Karen/KarenStomp.tsx), so they sound the same
   everywhere.
@@ -111,9 +323,29 @@ Items marked **(test)** are enforced by `npm test`.
   he keeps one (neck ribbon, wrist loop, ...); whatever is chosen then appears
   in every later scene.
 
-- Tibik should come **out of the door of No. 12** at the start of Papiertonnen.
-  This needs a real doorway in the facade's collision model and stepping down
-  the door step.
+- ~~Tibik should come **out of the door of No. 12**~~ — done: the Treppenhaus
+  scene leads him there and Papiertonnen starts on the threshold.
+- **Shipping label:** the parcel he carries out has a fresh A6 address label
+  (148 × 105 mm, not legible, no carrier brand) stuck right over the found
+  box's old blacked-out one, as carriers ask (off screen, between the taping
+  and the coda). **(test)**
+- **Karen's spray:** when she shouts, droplets leave from just in front of her
+  lips on the plosives (P/B most, T/D, K/G a little; ch, doubled letters, z = ts
+  and pf per German spelling), an extra drop per "!" at the end of a line (up
+  to three). They fly at 3.6-4.6 m/s inside a 15-degree cone, slow in the air
+  and fall, and stop on the first thing they meet: they never pass through
+  anything (her own body included). Drawn as the streak one 1/60 s exposure
+  leaves, no outline. Spots: on the pavement they dry within 4 s, on cardboard
+  they stay and travel with it, spots on moving things (his door, her phone)
+  move with them, none on people. **(test)** In the Hausmuell exchange it
+  lands on the pavement about a metre in front of her (a few on Tibik); at his
+  door it lands on the door just below the viewer (she shouts from 45 cm, mouth
+  below the lens, so none reaches the lens); on the phone, on the landing.
+- **Lift (later):** if a later scene has him live higher up, he takes the
+  lift instead of the stairs.
+- **Self-shadowing look:** in sunlight his own eyes and head cast shadows on
+  his back (physically right, blotchy in toon style). Softer character
+  self-shadows are a look decision for the user.
 - ~~**Foot planting**~~ — done: feet are planted step by step and legs have
   knees (see "Feet and legs" under Physical realism).
 - Decide **16:9 or 9:16** before the dialogue scenes (speech bubbles must fit

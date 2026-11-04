@@ -1,16 +1,6 @@
-import { writeFileSync } from "node:fs";
-
-const RATE = 32000;
-const SPEED_OF_SOUND = 343;
-
-const randomFrom = (seed) => () => {
-  seed = (seed + 0x6d2b79f5) | 0;
-  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-};
-
-const pole = (frequency) => 1 - Math.exp((-2 * Math.PI * frequency) / RATE);
+import { readFileSync } from "node:fs";
+import { RATE, SPEED_OF_SOUND, pole, randomFrom, sfx, writeWav } from "./sfx-audio.mjs";
+import { sing, voiceOf } from "./pigeon-voice.mjs";
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
@@ -37,7 +27,7 @@ const makeLoop = (seconds, channels) => {
   };
 };
 
-const writeWav = (file, loop, peak) => {
+const writeLoop = (file, loop, peak, fixedGain) => {
   const channels = loop.data.length;
   let max = 0;
   for (const channel of loop.data) {
@@ -45,30 +35,32 @@ const writeWav = (file, loop, peak) => {
       max = Math.max(max, Math.abs(v));
     }
   }
-  const gain = peak / max;
-  const data = Buffer.alloc(loop.length * channels * 2);
-  for (let i = 0; i < loop.length; i++) {
-    for (let c = 0; c < channels; c++) {
-      const v = Math.round(clamp(loop.data[c][i] * gain, -1, 1) * 32767);
-      data.writeInt16LE(v, (i * channels + c) * 2);
+  const gain = fixedGain ?? peak / max;
+  writeWav(sfx(file), loop.data, gain);
+  console.log(`${file}: ${loop.length / RATE} s, ${channels === 1 ? "mono" : "stereo"}`);
+  return gain;
+};
+
+const MUFFLED = { cutoff: 450, level: 10 ** (-12 / 20) };
+const muffle = (loop) => {
+  const a = pole(MUFFLED.cutoff);
+  const data = loop.data.map((channel) => Float32Array.from(channel));
+  for (const channel of data) {
+    for (let stage = 0; stage < 2; stage++) {
+      let y = 0;
+      for (let pass = 0; pass < 2; pass++) {
+        for (let i = 0; i < channel.length; i++) {
+          y += a * (channel[i] - y);
+          if (pass === 1) channel[i] = y;
+        }
+      }
     }
   }
-  const header = Buffer.alloc(44);
-  header.write("RIFF", 0);
-  header.writeUInt32LE(36 + data.length, 4);
-  header.write("WAVE", 8);
-  header.write("fmt ", 12);
-  header.writeUInt32LE(16, 16);
-  header.writeUInt16LE(1, 20);
-  header.writeUInt16LE(channels, 22);
-  header.writeUInt32LE(RATE, 24);
-  header.writeUInt32LE(RATE * channels * 2, 28);
-  header.writeUInt16LE(channels * 2, 32);
-  header.writeUInt16LE(16, 34);
-  header.write("data", 36);
-  header.writeUInt32LE(data.length, 40);
-  writeFileSync(new URL(`../public/sfx/${file}`, import.meta.url), Buffer.concat([header, data]));
-  console.log(`${file}: ${loop.length / RATE} s, ${channels === 1 ? "mono" : "stereo"}`);
+  return { ...loop, data };
+};
+const writeWithMuffled = (name, loop, peak) => {
+  const gain = writeLoop(`${name}.wav`, loop, peak);
+  writeLoop(`${name}-muffled.wav`, muffle(loop), peak, gain * MUFFLED.level);
 };
 
 const atmosphere = () => {
@@ -124,7 +116,7 @@ const atmosphere = () => {
     }
   }
 
-  writeWav("street-atmosphere.wav", loop, 0.5);
+  writeWithMuffled("street-atmosphere", loop, 0.5);
 };
 
 const passBy = (loop, random, vehicle) => {
@@ -229,8 +221,77 @@ const traffic = () => {
   }
   bicycleBell(loop, 18.2, 0.55, 0.05);
 
-  writeWav("street-traffic.wav", loop, 0.7);
+  writeWithMuffled("street-traffic", loop, 0.7);
+};
+
+const leaves = () => {
+  const random = randomFrom(4409);
+  const loop = makeLoop(20, 1);
+
+  let air = 0;
+  let airLow = 0;
+  loop.bed(0, 2, () => {
+    const noise = random() * 2 - 1;
+    air += pole(5200) * (noise - air);
+    airLow += pole(900) * (air - airLow);
+    return (air - airLow) * 0.05;
+  });
+
+  let swell = 0;
+  for (let at = 0; at < loop.length; at += Math.floor(RATE / (180 + 260 * swell))) {
+    swell = clamp(swell + (random() * 2 - 1) * 0.08, 0, 1);
+    const from = at + Math.floor(random() * RATE * 0.004);
+    const count = Math.floor(RATE * (0.003 + random() * 0.012));
+    const level = (0.15 + 0.85 * random() ** 2) * (0.4 + 0.6 * swell);
+    let high = 0;
+    let low = 0;
+    const centre = 1500 + random() * 3500;
+    for (let n = 0; n < count; n++) {
+      const u = n / count;
+      const noise = random() * 2 - 1;
+      high += pole(centre * 1.6) * (noise - high);
+      low += pole(centre * 0.6) * (high - low);
+      const envelope = Math.min(1, u * 12) * (1 - u) ** 2;
+      loop.add(0, from + n, level * envelope * (high - low));
+    }
+  }
+
+  writeWithMuffled("street-leaves", loop, 0.45);
+};
+
+const PIGEON_MODEL = JSON.parse(readFileSync(new URL("../assets/recordings/street-pigeons.model.json", import.meta.url), "utf8"));
+const PIGEON = {
+  bouts: [
+    { at: 3.0, pan: -0.5, distance: 1 },
+    { at: 17.5, pan: 0.6, distance: 0.6 },
+  ],
+  vary: { pitch: 0.03, tempo: 0.04, level: 1 },
+  loudness: 0.3,
+};
+
+const pigeons = () => {
+  const random = randomFrom(1758);
+  const loop = makeLoop(32, 2);
+  const voice = voiceOf(random, PIGEON_MODEL.bands);
+  const spread = (amount) => 1 + amount * (random() * 2 - 1);
+  PIGEON.bouts.forEach((bout, b) => {
+    const pitch = spread(PIGEON.vary.pitch);
+    const tempo = spread(PIGEON.vary.tempo);
+    for (const s of PIGEON_MODEL.recordings[b % PIGEON_MODEL.recordings.length].syllables) {
+      const sung = { ...s, ...s.voice };
+      const sound = sing(voice, sung, { pitch, tempo, level: sung.level + PIGEON.vary.level * (random() * 2 - 1) });
+      const from = Math.round((bout.at + s.start * tempo) * RATE);
+      sound.forEach((v, n) => {
+        const value = PIGEON.loudness * bout.distance * v;
+        loop.add(0, from + n, value * (1 - bout.pan) * 0.5);
+        loop.add(1, from + n, value * (1 + bout.pan) * 0.5);
+      });
+    }
+  });
+  writeWithMuffled("street-pigeons", loop, 0.5);
 };
 
 atmosphere();
 traffic();
+leaves();
+pigeons();

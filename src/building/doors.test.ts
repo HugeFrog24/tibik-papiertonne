@@ -80,10 +80,10 @@ describe("door handles", () => {
     }
   });
 
-  test("handles sit at the free edge, at hand height", () => {
+  test("handles sit at the free edge, at hand height; a pull bar a little further in, clear of the key hand", () => {
     for (const door of [TIBIK_DOOR, HAUSTUER]) {
       for (const grip of door.grips) {
-        expect(grip.center[0]).toBeGreaterThan(door.width - 0.2);
+        expect(grip.center[0]).toBeGreaterThan(door.width - (grip.shape === "bar" ? 0.25 : 0.2));
         expect(grip.center[1]).toBeGreaterThan(0.95);
         expect(grip.center[1]).toBeLessThan(1.15);
       }

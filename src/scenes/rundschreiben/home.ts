@@ -10,27 +10,25 @@ import { HAND_TOUCH, IN, UNLOCK } from "./choreography";
 export const HOUSE_KEY_INSERT = 0.026;
 const KEY_APPROACH = 0.25;
 const KEY_SLIDE = 0.02;
-const TURN: readonly [number, number] = [UNLOCK[0] + 0.05, UNLOCK[0] + 0.35];
-const CRACK: readonly [number, number] = [TURN[1], TURN[1] + 0.2];
+const INSERTED = UNLOCK[0] + KEY_APPROACH;
+const TURN: readonly [number, number] = [INSERTED + 0.05, INSERTED + 0.35];
+const CRACK: readonly [number, number] = [TURN[1], TURN[1] + 0.15];
 const TURN_BACK: readonly [number, number] = [CRACK[1], UNLOCK[1]];
 const KEY_OUT: readonly [number, number] = [UNLOCK[1], UNLOCK[1] + 0.2];
-const TO_THE_BAR: readonly [number, number] = [KEY_OUT[1], IN[0] + 0.5];
-export const PUSHED: readonly [number, number] = [TO_THE_BAR[1], TO_THE_BAR[1] + 0.06];
-const AJAR = 0.1;
-const SHOVED = 0.16;
+const TO_THE_LEAF: readonly [number, number] = [KEY_OUT[1], IN[0] + 0.4];
+export const PUSHED: readonly [number, number] = [TO_THE_LEAF[1], TO_THE_LEAF[1] + 0.02];
+const AJAR = 0.015;
+const SHOVED = 0.032;
 const WIDE = 1.5;
 const LET_GO = PUSHED[1];
 const COAST = ((WIDE - SHOVED) * (PUSHED[1] - PUSHED[0])) / (SHOVED - AJAR);
 const SWUNG = LET_GO + COAST;
 const DWELL = 0.3;
 const CLOSING = 4;
-const BAR_HEIGHT = 1.0;
+const LEAF_GRIP = { x: 1.02, y: 1.15 };
 
 export const DOOR_SHUT = SWUNG + DWELL + CLOSING;
-export const HOUSE_KEYS_IN_LOCK: readonly [number, number] = [
-  UNLOCK[0] - KEY_APPROACH,
-  KEY_OUT[1],
-];
+export const HOUSE_KEYS_IN_LOCK: readonly [number, number] = [UNLOCK[0], KEY_OUT[1]];
 
 export const haustuerAt = (t: number) => {
   if (t < PUSHED[0]) return kf(t, [...CRACK], [0, AJAR]);
@@ -54,7 +52,7 @@ export const outerCylinderAt = (angle: number) =>
   CYLINDER.clone().applyMatrix4(doorFrame(HAUSTUER, angle));
 
 const keyDepth = (t: number) => {
-  const inserted = easeUnit((t - (UNLOCK[0] - KEY_APPROACH)) / KEY_APPROACH);
+  const inserted = easeUnit((t - UNLOCK[0]) / KEY_APPROACH);
   const withdrawn = easeUnit((t - KEY_OUT[0]) / (KEY_OUT[1] - KEY_OUT[0]));
   return (
     HOUSE_KEY_INSERT -
@@ -74,33 +72,31 @@ export const houseKeyInLock = (t: number) =>
     keyTurn(t),
   );
 
-const BAR = HAUSTUER.grips.find((g) => g.shape === "bar")!;
-
-export const haustuerBarGripAt = (t: number) =>
+export const haustuerLeafGripAt = (t: number) =>
   new Vector3(
-    BAR.center[0],
-    BAR_HEIGHT,
-    BAR.center[2] + BAR.size[2] / 2 + HAND_TOUCH,
+    LEAF_GRIP.x,
+    LEAF_GRIP.y,
+    HAUSTUER.thickness / 2 + HAND_TOUCH,
   ).applyMatrix4(doorFrame(HAUSTUER, haustuerAt(t)));
 
 const leftHandAt = (t: number) => {
   const onKey = keyBowGrip(
-    houseKeyInLock(Math.min(t, TO_THE_BAR[0])),
+    houseKeyInLock(Math.min(t, TO_THE_LEAF[0])),
     "house",
     KEY_GRIP,
   );
-  if (t <= TO_THE_BAR[0]) return onKey;
+  if (t <= TO_THE_LEAF[0]) return onKey;
   return onKey.lerp(
-    haustuerBarGripAt(t),
-    easeUnit((t - TO_THE_BAR[0]) / (TO_THE_BAR[1] - TO_THE_BAR[0])),
+    haustuerLeafGripAt(t),
+    easeUnit((t - TO_THE_LEAF[0]) / (TO_THE_LEAF[1] - TO_THE_LEAF[0])),
   );
 };
 
 export const HAUSTUER_HOLD: Hold = {
-  name: "his house key, then the Haustür's bar",
+  name: "his house key, then a flick on the Haustür's leaf",
   arm: "leftArm",
-  reach: UNLOCK[0] - 0.6,
-  grip: UNLOCK[0] - KEY_APPROACH,
+  reach: UNLOCK[0] - 0.4,
+  grip: UNLOCK[0],
   release: LET_GO,
   done: LET_GO + 0.3,
   target: (t) => gripSolid(HAUSTUER, haustuerAt(t), "outer"),

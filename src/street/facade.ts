@@ -160,7 +160,7 @@ export const HAUSTUER: Door = {
     {
       side: "outer",
       shape: "bar",
-      center: [0.905, 1.08, 0.075],
+      center: [0.855, 1.08, 0.075],
       size: [0.04, 0.5, 0.04],
     },
   ],

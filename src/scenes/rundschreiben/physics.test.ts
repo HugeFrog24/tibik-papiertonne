@@ -23,7 +23,7 @@ import {
 import { BINS, ENTRANCE_LAMP, ENTRANCE_X, MAILBOXES, binByName } from "../../street/layout";
 import { DOORSTEP, FACADE_Z } from "../../street/building";
 import { FACADE_THICKNESS } from "../../street/facade";
-import { DOOR_SHUT, HOUSE_KEYS_IN_LOCK, HOUSE_KEY_INSERT, PUSHED, haustuerBarGripAt, outerCylinderAt } from "./home";
+import { DOOR_SHUT, HOUSE_KEYS_IN_LOCK, HOUSE_KEY_INSERT, PUSHED, haustuerLeafGripAt, outerCylinderAt } from "./home";
 import { entranceGround } from "../../street/layout";
 import { characterViolations } from "../../physics/guards";
 import { RIG } from "../../Tibik/rig";
@@ -500,7 +500,7 @@ test("he kloppt the envelope through the lid opening into the empty bin, where i
 test("he unlocks the Haustür from outside with his house key and goes in; the closer shuts it behind him", { timeout: 300_000 }, () => {
   const house = keyParts().find((k) => k.name === "house")!;
   const turns: Vector3[] = [];
-  for (const t of window(UNLOCK[0], UNLOCK[1])) {
+  for (const t of window(UNLOCK[0] + 0.25, UNLOCK[1])) {
     const state = solveRundschreiben(t);
     const m = state.keys!;
     const tip = house.tip.clone().applyMatrix4(m);
@@ -514,11 +514,12 @@ test("he unlocks the Haustür from outside with his house key and goes in; the c
   }
   expect(Math.min(...turns.map((u) => u.dot(turns[0])))).toBeLessThan(-0.95);
   expect(solveRundschreiben(UNLOCK[0]).haustuer).toBe(0);
-  const opening = window(PUSHED[0], PUSHED[1]);
-  expect(opening.length).toBeGreaterThanOrEqual(2);
-  expect(Math.max(...window(UNLOCK[1], RUNDSCHREIBEN_DURATION).map((t) => solveRundschreiben(t).haustuer))).toBeGreaterThan(1.2);
-  for (const t of opening)
-    expect(handOf(t, "leftArm").distanceTo(haustuerBarGripAt(t)), t.toFixed(2)).toBeLessThan(0.02);
+  const flick = window(PUSHED[0], PUSHED[1]);
+  expect(flick.length).toBeGreaterThanOrEqual(1);
+  expect(solveRundschreiben(PUSHED[1]).haustuer).toBeGreaterThan(solveRundschreiben(PUSHED[0]).haustuer);
+  expect(Math.max(...window(UNLOCK[1], RUNDSCHREIBEN_DURATION).map((t) => solveRundschreiben(t).haustuer))).toBeGreaterThan(1.4);
+  for (const t of flick)
+    expect(handOf(t, "leftArm").distanceTo(haustuerLeafGripAt(t)), t.toFixed(2)).toBeLessThan(0.02);
   for (const t of window(DOOR_SHUT, RUNDSCHREIBEN_DURATION)) expect(solveRundschreiben(t).haustuer, t.toFixed(2)).toBe(0);
   const end = solveRundschreiben(RUNDSCHREIBEN_DURATION - 1 / FPS);
   expect(end.indoors).toBe(1);
@@ -580,9 +581,9 @@ test("his left hand goes straight from one grip to the next, never dropping to h
   expect(low.slice(0, 6)).toEqual([]);
 });
 
-test("the mailbox key stays in his fist, carried or in its lock, except while it hangs in the open box", { timeout: 300_000 }, () => {
+test("the key he holds stays in his fist, carried or in a lock, except while it hangs in the open box", { timeout: 300_000 }, () => {
   const away: string[] = [];
-  for (const t of frames.filter((f) => f < KEY_REGRIP)) {
+  for (const t of frames) {
     if (t > BOX_OPEN[1] && t < BOX_SHUT[0] + 0.1) continue;
     const name = t < KEY_REGRIP ? "mailbox" : "house";
     const grip = keyBowGrip(solveRundschreiben(t).keys!, name, KEY_GRIP);

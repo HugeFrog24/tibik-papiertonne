@@ -61,11 +61,11 @@ export const LID_UP = [34.7, 35.4] as const;
 export const KLOPPEN = [35.4, 35.8] as const;
 export const LID_THUD = 36.1;
 export const TO_DOOR = [36.3, 38.3] as const;
-export const UNLOCK = [38.3, 39.1] as const;
-export const IN = [39.1, 40.5] as const;
+export const UNLOCK = [38.3, 39.35] as const;
+export const IN = [39.35, 40.75] as const;
 export const RUNDSCHREIBEN_DURATION = 47;
-const IN_WALK: readonly [number, number] = [IN[0] + 0.65, IN[0] + 3.4];
-const SIDESTEPPED = IN_WALK[0] + 0.8;
+const IN_WALK: readonly [number, number] = [IN[0] + 0.45, IN[0] + 3.85];
+const SIDESTEPPED = IN_WALK[0] + 1.2;
 const THROUGH_THE_DOORWAY: readonly [number, number] = [SIDESTEPPED - 0.3, IN_WALK[1] + 0.3];
 
 const LID_OPEN = 0.3;
@@ -108,7 +108,7 @@ const walkToBin: Walk = {
   ],
 };
 
-const DOOR_STAND = { x: -1.3, z: -1.8 };
+const DOOR_STAND = { x: -1.25, z: -1.8 };
 const INSIDE = { x: -1.45, z: -3.5 };
 const SETTLE = 0.45;
 
@@ -117,8 +117,8 @@ const walkToDoor: Walk = {
   to: TO_DOOR[1],
   via: [
     [BIN_STAND.x, BIN_STAND.z],
-    [BIN_STAND.x - 0.25, -0.35],
-    [DOOR_STAND.x + 0.2, -0.9],
+    [BIN_STAND.x - 0.25, -0.3],
+    [DOOR_STAND.x, -0.55],
     [DOOR_STAND.x, DOOR_STAND.z],
   ],
 };
@@ -170,7 +170,7 @@ const rootAt: RootAt = (t) => {
 };
 
 const STANCE = 0.17;
-const ON_THE_PAVEMENT = -1.5;
+const ON_THE_PAVEMENT = -1.42;
 const ON_THE_STEP = DOOR_STAND.z - 0.05;
 
 const upTheStep = (steps: readonly Step[]): Step[] =>

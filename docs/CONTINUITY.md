@@ -203,10 +203,15 @@ composition under "Scenes" in the Studio:
   knob outside (Wechselgarnitur). His has no door closer (an older building),
   so it stays where it's left: he pulls it shut by the knob as he steps out,
   and it latches.
-- **The Haustür** opens inwards and has an overhead door closer (mounted on
-  the lintel inside, slide rail on the leaf). It never stays open by itself:
-  whoever goes through holds it, and when let go it swings shut, slowing to
-  the latch over the last 15°. **(test)**
+- **The Haustür** opens outwards, towards the street, as German entrance doors
+  do (escape route); only flat doors open inwards. **(test)** It has an
+  overhead door closer on the push side, inside under the head of the
+  opening, its slide rail on the leaf. It never stays open by itself: a leaf
+  pushed or pulled open coasts on, the closer waits about 1.2 s (delayed
+  closing) and then swings it shut over 4 s, slowing to the latch over the
+  last 15°. **(test)** From inside he presses the lever and pushes the door
+  out; from outside he unlocks it and pulls it open by the key, stepping back
+  off the step as it comes towards him. **(test)**
 - Handles are data (`Door.grips` in `src/building/doors.ts`): what's drawn,
   what collides and what a hand holds are the same object.
 - Every door with a handle has its hardware: flat doors carry a long plate on
@@ -388,8 +393,8 @@ Ideas (proposed, not built; the user picks):
 
 - Each scene starts exactly where the previous one ended. **(test)** The
   Treppenhaus ends (`treppenhausEnd()`) with Tibik paused on the threshold,
-  right hand holding the Haustür open at 1.35 rad; Papiertonnen starts in that
-  exact pose and door angle. Papiertonnen's last state is exported as
+  right hand holding the outward-swung Haustür open at 1.5 rad; Papiertonnen
+  starts in that exact pose and door angle. Papiertonnen's last state is exported as
   `papiertonnenEnd()` (src/scenes/papiertonnen/solve.ts): searched bin lid
   open against the wall, the popped-open box in both of Tibik's hands,
   Papier 1 still overfull.

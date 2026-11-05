@@ -1,15 +1,15 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { allColliders } from "../../characters/skeleton";
-import { FRAME_SIZE } from "../../dialogue/screen";
+import { FRAME_SIZE, mouthInWorld } from "../../dialogue/screen";
 import { A4, DL } from "../../props/letterShape";
 import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
 import { onScreen, seenBy } from "../../dialogue/screen";
 import { LETTER_LAYOUT, PT, letterLineWidth, pointOnLetter } from "../../props/letterShape";
 import { FPS } from "../../timeline";
-import { CAPTION, SHOTS, cameraAt } from "./cameras";
-import { FLAP, RUNDSCHREIBEN_DURATION, UNFOLD } from "./choreography";
+import { CAPTION, FOLDING_SHOT, SHOTS, cameraAt } from "./cameras";
+import { FLAP, FOLD, RUNDSCHREIBEN_DURATION, UNFOLD } from "./choreography";
 import { solveRundschreiben } from "./solve";
 
 const NAMES = [
@@ -19,6 +19,7 @@ const NAMES = [
   "Insert: the letter",
   "Insert: Vie-len DANK",
   "Tibik",
+  "His hands: folding it back",
   "Coda",
 ];
 const READ_RATE = 17;
@@ -76,8 +77,9 @@ test("the time-jump caption is up for the first three seconds", () => {
   expect(CAPTION).toEqual({ text: "Zwei Wochen später.", from: 0, to: 3 });
 });
 
-test("the opening shot shows his hands at work: the envelope and the unfolding letter are in frame, turned towards the lens while he opens and unfolds them, never behind his head or body", { timeout: 300_000 }, () => {
-  const { from, to } = shot("Opening");
+type Working = { readonly envelope?: readonly [number, number]; readonly letter?: readonly [number, number] };
+
+const paperOutOfView = (from: number, to: number, working: Working) => {
   const hidden: string[] = [];
   for (let f = Math.ceil(from * FPS); f < Math.round(to * FPS); f += 3) {
     const t = f / FPS;
@@ -86,15 +88,13 @@ test("the opening shot shows his hands at work: the envelope and the unfolding l
     const lens = new Vector3(...setup.position);
     const body = allColliders(RIG, asCharacter(state.tibik));
     const held = [
-      ...(state.envelope ? [{ name: "envelope", at: new Vector3(DL[0] / 2, DL[1] / 2, 0).applyMatrix4(state.envelope.matrix), matrix: state.envelope.matrix }] : []),
-      ...(state.letter ? [{ name: "letter", at: pointOnLetter(state.letter, A4[0] / 2, A4[1] / 2), matrix: state.letter.matrix }] : []),
+      ...(state.envelope && working.envelope ? [{ name: "envelope", at: new Vector3(DL[0] / 2, DL[1] / 2, 0).applyMatrix4(state.envelope.matrix), matrix: state.envelope.matrix, window: working.envelope }] : []),
+      ...(state.letter && working.letter ? [{ name: "letter", at: pointOnLetter(state.letter, A4[0] / 2, A4[1] / 2), matrix: state.letter.matrix, window: working.letter }] : []),
     ];
-    for (const { name, at, matrix } of held) {
+    for (const { name, at, matrix, window: [start, end] } of held) {
       const normal = new Vector3(0, 0, 1).transformDirection(matrix);
       const facing = Math.abs(normal.dot(lens.clone().sub(at).normalize()));
-      const [start, end] = name === "envelope" ? FLAP : UNFOLD;
-      const working = t >= start && t <= end;
-      if (working && facing < 0.45) hidden.push(`${t.toFixed(2)} s: ${name} seen edge-on (${facing.toFixed(2)})`);
+      if (t >= start && t <= end && facing < 0.45) hidden.push(`${t.toFixed(2)} s: ${name} seen edge-on (${facing.toFixed(2)})`);
       const [x, y] = onScreen(at, setup);
       if (x < 0 || x > FRAME_SIZE.width || y < 0 || y > FRAME_SIZE.height) hidden.push(`${t.toFixed(2)} s: ${name} out of frame`);
       const ray = at.clone().sub(lens);
@@ -107,5 +107,20 @@ test("the opening shot shows his hands at work: the envelope and the unfolding l
       if (blocker) hidden.push(`${t.toFixed(2)} s: ${name} behind ${blocker.name}`);
     }
   }
-  expect(hidden.slice(0, 6)).toEqual([]);
+  return hidden;
+};
+
+test("the opening shot shows his hands at work: the envelope and the unfolding letter are in frame, turned towards the lens while he opens and unfolds them, never behind his head or body", { timeout: 300_000 }, () => {
+  const { from, to } = shot("Opening");
+  expect(paperOutOfView(from, to, { envelope: FLAP, letter: UNFOLD }).slice(0, 6)).toEqual([]);
+});
+
+test("after the deadpan close-up he is seen finishing the fold and sliding the letter into the envelope", { timeout: 300_000 }, () => {
+  expect(paperOutOfView(FOLDING_SHOT, FOLD[1] - 0.2, { letter: [FOLDING_SHOT, FOLD[1]] }).slice(0, 6)).toEqual([]);
+  const { from, to } = shot("Tibik");
+  for (let f = Math.ceil(from * FPS); f < Math.round(to * FPS); f += 3) {
+    const t = f / FPS;
+    const [x, y] = onScreen(mouthInWorld(RIG, solveRundschreiben(t).tibik), cameraAt(t));
+    expect(x > 0 && x < FRAME_SIZE.width && y > 0 && y < FRAME_SIZE.height, `${t.toFixed(2)} s: his face`).toBe(true);
+  }
 });

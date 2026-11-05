@@ -306,7 +306,7 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
       ],
       [0, 0.12, 0.12, 0, 0, 0.3, 0.3, 0],
     ),
-    blink: blinkAt(t, [1.4, 3.1, 6.6, 9.9, 17.2, 25.8, 30.4, 34.6, 38.9, 42.7]),
+    blink: blinkAt(t, [1.4, 3.1, 6.6, 9.9, 17.2, 25.8, 29.95, 34.6, 38.9, 42.7]),
     leftArm: blendArm({ ...arms, raise: arms.raise - swing }, ARM_TUCK, tucked),
     rightArm: blendArm({ ...arms, raise: arms.raise + swing }, ARM_TUCK, tucked),
   };

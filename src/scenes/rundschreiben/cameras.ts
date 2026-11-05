@@ -91,6 +91,7 @@ const roleLines = (...roles: LetterLine["role"][]) =>
 const OPENING = FLAP[0] - 0.4;
 const THANKS_UP = READ[1];
 const DEADPAN = 29.5;
+export const FOLDING_SHOT = 30.4;
 const CODA = 31.5;
 
 const body = roleLines("body");
@@ -138,8 +139,14 @@ export const SHOTS: readonly RundschreibenShot[] = [
   {
     name: "Tibik",
     from: DEADPAN,
-    to: CODA,
+    to: FOLDING_SHOT,
     at: fixed([-2.62, 1.6, -2.04], [-2.33, 1.56, -1.68], 44),
+  },
+  {
+    name: "His hands: folding it back",
+    from: FOLDING_SHOT,
+    to: CODA,
+    at: fixed([-2.42, 1.2, -2.14], [-2.32, 1.08, -1.72], 50),
   },
   {
     name: "Coda",

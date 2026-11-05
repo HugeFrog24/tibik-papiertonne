@@ -1,11 +1,11 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { allColliders } from "../../characters/skeleton";
-import { letterSolids } from "../../props/letterShape";
+import { DL, ENVELOPE, envelopeFlap, envelopeSag, flapPieces, letterSolids } from "../../props/letterShape";
 import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
 import { FPS } from "../../frameRate";
-import { READ, THANKS, UNFOLD } from "./choreography";
+import { ENVELOPE_OUT, KLOPPEN, READ, THANKS, UNFOLD } from "./choreography";
 import { rundschreibenRain } from "./rain";
 import { solveRundschreiben } from "./solve";
 
@@ -45,4 +45,43 @@ test("no raindrop ends inside Tibik", { timeout: 300_000 }, () => {
     }
   }
   expect(sunk.slice(0, 6)).toEqual([]);
+});
+
+const inPolygon = (x: number, y: number, outline: readonly (readonly [number, number])[]) => {
+  let inside = false;
+  for (let i = 0, j = outline.length - 1; i < outline.length; j = i++) {
+    const [xi, yi] = outline[i];
+    const [xj, yj] = outline[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+};
+
+test("no raindrop passes through the envelope he holds or its torn flap, bow and all", { timeout: 300_000 }, () => {
+  const through: string[] = [];
+  for (const t of frames(ENVELOPE_OUT[1], KLOPPEN[0], 6)) {
+    const state = solveRundschreiben(t);
+    const envelope = state.envelope!;
+    const toEnvelope = envelope.matrix.clone().invert();
+    const toFlap = envelope.matrix.clone().multiply(envelopeFlap(envelope.flap)).invert();
+    for (const drop of rundschreibenRain(t, state)) {
+      const head = new Vector3(...drop.head);
+      const tail = new Vector3(...drop.tail);
+      for (let k = 0; k <= 40; k++) {
+        const p = tail.clone().lerp(head, k / 40);
+        const e = p.clone().applyMatrix4(toEnvelope);
+        const sag = envelopeSag(e.x, e.y, envelope.bow, envelope.twist);
+        if (e.x > 0 && e.x < DL[0] && e.y > 0 && e.y < DL[1] && e.z < sag + 0.001 && e.z > sag - ENVELOPE.thickness - 0.001) {
+          through.push(`${t.toFixed(2)} s: drop ${drop.id} through the envelope`);
+          break;
+        }
+        const f = p.clone().applyMatrix4(toFlap);
+        if (Math.abs(f.z) < 0.001 && inPolygon(f.x, f.y, flapPieces().lifted)) {
+          through.push(`${t.toFixed(2)} s: drop ${drop.id} through the flap`);
+          break;
+        }
+      }
+    }
+  }
+  expect(through.slice(0, 6)).toEqual([]);
 });

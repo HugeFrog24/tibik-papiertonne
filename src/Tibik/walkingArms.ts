@@ -1,4 +1,4 @@
-import { kf } from "../characters/animate";
+import { armKf, kf } from "../characters/animate";
 import type { ArmPose } from "../characters/skeleton";
 import { blendArm } from "../physics/holds";
 import { ARM_REST, ARM_TUCK, ARM_WALK } from "./rig";
@@ -21,3 +21,13 @@ export const swungArms = (arms: ArmPose, swing: number, tucked: number) => ({
   leftArm: blendArm({ ...arms, raise: arms.raise - swing }, ARM_TUCK, tucked),
   rightArm: blendArm({ ...arms, raise: arms.raise + swing }, ARM_TUCK, tucked),
 });
+
+export const walkingPose = (t: number, legs: readonly Leg[], step: number, tucked = 0) => {
+  const walking = Math.max(...walkingOn(t, legs));
+  const keys = walkArmKeys(legs);
+  const arms = armKf(t, keys.times, keys.poses);
+  return {
+    sway: step * WALK_SWAY * walking * (1 - tucked),
+    ...swungArms(arms, WALK_SWING * walking * step * (1 - tucked), tucked),
+  };
+};

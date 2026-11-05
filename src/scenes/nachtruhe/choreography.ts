@@ -1,5 +1,5 @@
 import { BEDROOM_DOOR, type CurtainOpen } from "../../building/bedroomShape";
-import { armKf, blinkAt, kf } from "../../characters/animate";
+import { blinkAt, kf } from "../../characters/animate";
 import { STEP_OVERLAP, offTheEdges, opposite, rhythmicSteps, strideAt, walkCadence } from "../../characters/gait";
 import { inWindow } from "../../characters/scalar";
 import type { Walk } from "../../characters/walkPath";
@@ -9,13 +9,12 @@ import { SENSOR, sensorLampOn } from "../../street/entranceSensor";
 import { switchedOn } from "../../street/lightsOn";
 import { TIBIK_GAIT, plantedTibik, tibikGaitOf, type TibikFrame } from "../../Tibik/character";
 import { RIG, TIBIK_REST } from "../../Tibik/rig";
-import { WALK_SWAY, WALK_SWING, swungArms, walkArmKeys, walkingOn } from "../../Tibik/walkingArms";
+import { walkingPose } from "../../Tibik/walkingArms";
 import type { Vec3 } from "../../toon/primitives";
 import { mixLooks, WEATHER, type WeatherLook } from "../../weather/overcast";
 import { DOOR_STAND, pinApproach, walkLeg, type Root } from "../enterHouse";
-import { bedroomAt, coveredAt } from "./bedroom";
+import { bedroomAt, coveredAt, curtainOpenAt } from "./bedroom";
 import {
-  CURTAIN_PULL,
   DAWN,
   DRONE,
   DUSK,
@@ -84,17 +83,7 @@ const duskGait = tibikGaitOf(
 
 const duskTibikAt = (t: number): TibikFrame => {
   const { x, y, z, yaw } = duskRootAt(t);
-  const walking = Math.max(...walkingOn(t, DUSK_LEGS));
-  const step = strideAt(duskGait(), t);
-  const tucked = ENTRY.tuckedAt(t);
-  const keys = walkArmKeys(DUSK_LEGS);
-  const arms = armKf(t, keys.times, keys.poses);
-  const pose = {
-    ...TIBIK_REST,
-    sway: step * WALK_SWAY * walking,
-    blink: blinkAt(t, DUSK_BLINKS),
-    ...swungArms(arms, WALK_SWING * walking * step * (1 - tucked), tucked),
-  };
+  const pose = { ...TIBIK_REST, blink: blinkAt(t, DUSK_BLINKS), ...walkingPose(t, DUSK_LEGS, strideAt(duskGait(), t), ENTRY.tuckedAt(t)) };
   return plantedTibik(duskGait(), t, { position: [x, y, z], rotationY: yaw, pose });
 };
 
@@ -121,7 +110,7 @@ export const nachtruheWorldAt = (t: number) => {
     if (o.kind === "stairs") return house === 12 && stairwellLit ? GLOW : 0;
     return switchedOn(`nachtruhe/${house}/${o.kind}/${o.x}/${o.storey}`, neighbours) ? GLOW : 0;
   };
-  const curtains: CurtainOpen = [0, inWindow(t, CURTAIN_PULL)];
+  const curtains: CurtainOpen = [0, curtainOpenAt(t)];
   return {
     look: lookAt(t),
     rain: t >= DAWN[0],

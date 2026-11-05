@@ -42,17 +42,20 @@ const shuffle = (t: number, span: readonly [number, number], from: Stand, to: St
 };
 
 export const squareAt =
-  (stand: Stand) =>
-  (s: Step): Step => ({ ...s, at: { x: stand.x - s.side * STANCE, z: stand.z } });
+  (stand: Stand, facing = FACING_THE_WALL) =>
+  (s: Step): Step =>
+    facing === FACING_THE_WALL
+      ? { ...s, at: { x: stand.x - s.side * STANCE, z: stand.z } }
+      : { ...s, at: { x: stand.x + s.side * STANCE * Math.cos(facing), z: stand.z - s.side * STANCE * Math.sin(facing) } };
 
-export const pinEnd = (steps: readonly Step[], stands: readonly Stand[]): Step[] =>
+export const pinEnd = (steps: readonly Step[], stands: readonly Stand[], facing = FACING_THE_WALL): Step[] =>
   steps.map((s, i) => {
     const k = i - (steps.length - stands.length);
-    return k < 0 ? s : squareAt(stands[k])(s);
+    return k < 0 ? s : squareAt(stands[k], facing)(s);
   });
 
-const pinStart = (steps: readonly Step[], stands: readonly Stand[]): Step[] =>
-  steps.map((s, i) => (i < stands.length ? squareAt(stands[i])(s) : s));
+export const pinStart = (steps: readonly Step[], stands: readonly Stand[], facing = FACING_THE_WALL): Step[] =>
+  steps.map((s, i) => (i < stands.length ? squareAt(stands[i], facing)(s) : s));
 
 export const pinApproach = (steps: readonly Step[]): Step[] =>
   pinEnd(steps, [{ x: DOOR_STAND.x, z: ON_THE_PAVEMENT }, ON_THE_DOORSTEP, ON_THE_DOORSTEP]);

@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
-import { BED_RECT, BEDROOM, CORD_SWITCH, bedroomSolids, cordPath, cordSwitchSolid } from "../../building/bedroomShape";
+import { BED_RECT, BEDROOM, CORD_SWITCH, PANE, bedroomSolids, cordPath, cordSwitchSolid, curtainPanels } from "../../building/bedroomShape";
 import { allColliders, armColliders, bodyColliders, handPosition, handSphere } from "../../characters/skeleton";
 import { contacts, sphere, sphereObbGap } from "../../physics/collision";
 import { OUTLINE } from "../../toon/primitives";
@@ -20,15 +20,15 @@ import { lensProblems, penetrations, seconds } from "../sceneChecks";
 import { streetSolids } from "../streetSolids";
 import { cameraAt } from "./cameras";
 import { BED_SEAT, duskRootAt } from "./choreography";
-import { PULLING, PUSHING, STAND, blanketLie } from "./bedroom";
+import { CORNER, CURTAIN_HANDS, CURTAIN_OPENS_TO, PULLING, PUSHING, STAND, blanketLie, curtainGrip } from "./bedroom";
 import { solveNachtruhe, type NachtruheState } from "./solve";
-import { BLANKET_BACK, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT } from "./timeline";
+import { BLANKET_BACK, CURTAIN_PULL, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND } from "./timeline";
 
 const dusk = Array.from({ length: Math.round(DUSK[1] * FPS) }, (_, f) => f / FPS);
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
 const between = (from: number, to: number) => frames.filter((t) => t >= from && t < to);
 const bedroomOf = (state: NachtruheState) => bedroomSolids({ door: state.bedroomDoor, curtain: state.curtains });
-const EVENING_FRAMES = [...between(DUSK[1], EVENING[1]), ...between(MORNING[0], HOP_DOWN[1] + 0.2)];
+const EVENING_FRAMES = [...between(DUSK[1], EVENING[1]), ...between(MORNING[0], MORNING[1])];
 
 test("the dusk continues Klingelsturm's world: he is on the pavement with nothing in his hands but his keys, the Haustür shut", () => {
   const first = solveNachtruhe(0);
@@ -80,8 +80,10 @@ test("in the evening Tibik passes through nothing in the bedroom, outlines inclu
   expect(violations.slice(0, 8)).toEqual([]);
 });
 
-test("in the evening his drawn soles never dip below the bedroom floor", { timeout: 300_000 }, () => {
-  expect(sunkSoles(TIBIK_FOOT, (t) => ({ ...solveNachtruhe(t).tibik, skeleton: RIG }), DUSK[1], HOP_UP[0], () => BEDROOM.floor).slice(0, 6)).toEqual([]);
+test("in the bedroom his drawn soles never dip below the floor, walking in at night or round the bed in the morning", { timeout: 300_000 }, () => {
+  const on = (t: number) => ({ ...solveNachtruhe(t).tibik, skeleton: RIG });
+  expect(sunkSoles(TIBIK_FOOT, on, DUSK[1], HOP_UP[0], () => BEDROOM.floor).slice(0, 6)).toEqual([]);
+  expect(sunkSoles(TIBIK_FOOT, on, HOP_DOWN[1] + 0.05, MORNING[1], () => BEDROOM.floor).slice(0, 6)).toEqual([]);
 });
 
 test("he comes in through the bedroom door, walks along his side of the bed and hops up onto its edge", () => {
@@ -207,4 +209,36 @@ test("the cord switch rests on his pillow and its cord runs to the lamp through 
     ];
   });
   expect(problems.slice(0, 8)).toEqual([]);
+});
+
+test("after getting up he walks round the foot of the bed to the corner by the window, the curtain at his right", () => {
+  const there = solveNachtruhe(WALK_ROUND[1] + 0.1).tibik;
+  expect(near(there.position, [CORNER.x, BEDROOM.floor, CORNER.z], 0.01)).toBe(true);
+  expect(Math.sin(there.rotationY)).toBeGreaterThan(0.99);
+  for (const t of between(WALK_ROUND[0], WALK_ROUND[1])) {
+    const [x, , z] = solveNachtruhe(t).tibik.position;
+    expect(x > BED_RECT.x1 || z < BED_RECT.z0 - 0.3, t.toFixed(2)).toBe(true);
+  }
+});
+
+test("he slides the near curtain panel toward the wall by its fabric until the near half of the window is open, his right hand on it, and the far panel stays drawn", { timeout: 300_000 }, () => {
+  const away = (["rightArm"] as const).flatMap((arm) =>
+    between(...CURTAIN_HANDS[arm]).flatMap((t) => {
+      const gap = sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(t).tibik), arm), curtainGrip(t));
+      return Math.abs(gap) > 0.005 ? [`${t.toFixed(2)} s: ${arm} ${(gap * 1000).toFixed(1)} mm off the curtain`] : [];
+    }),
+  );
+  expect(away.slice(0, 8)).toEqual([]);
+  for (const t of between(MORNING[0], MORNING[1])) expect(solveNachtruhe(t).curtains[0], t.toFixed(2)).toBe(0);
+  expect(solveNachtruhe(CURTAIN_PULL[0]).curtains[1]).toBe(0);
+  expect(solveNachtruhe(CURTAIN_PULL[1]).curtains[1]).toBe(CURTAIN_OPENS_TO);
+  const { x0 } = curtainPanels(solveNachtruhe(CURTAIN_PULL[1]).curtains)[1];
+  expect(x0).toBeGreaterThan(PANE.x1);
+});
+
+test("the morning hands the epilogue its world: rain, every lid and the Haustür shut", () => {
+  const last = solveNachtruhe(NACHTRUHE_DURATION);
+  expect(last.rain).toBe(true);
+  expect(last.lids.every((l) => l === 0)).toBe(true);
+  expect(last.haustuer).toBe(0);
 });

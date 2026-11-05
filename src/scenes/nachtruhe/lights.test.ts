@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { FPS } from "../../frameRate";
 import { OPENINGS, flatWindow, openingsOf, type Opening } from "../../street/building";
 import { WEATHER } from "../../weather/overcast";
+import { PANE, curtainPanels } from "../../building/bedroomShape";
 import { NACHTRUHE_DURATION, NACHTRUHE_SHOTS } from "./cameras";
 import { FAR, HIS, LIGHTS, nachtruheWorldAt } from "./choreography";
 
@@ -58,7 +59,7 @@ test("dusk turns to night, one grey dawn blends into the rain, and the morning h
   expect(nachtruheWorldAt(NACHTRUHE_DURATION).look).toEqual(WEATHER.rain);
   expect(nachtruheWorldAt(NACHTRUHE_DURATION).lampsOn).toBe(false);
   expect(nachtruheWorldAt(NACHTRUHE_DURATION).curtains[0]).toBe(0);
-  expect(nachtruheWorldAt(NACHTRUHE_DURATION).curtains[1]).toBeGreaterThan(0.95);
+  expect(curtainPanels(nachtruheWorldAt(NACHTRUHE_DURATION).curtains)[1].x0).toBeGreaterThan(PANE.x1);
   expect(nachtruheWorldAt(shot("Bedroom: evening").from).curtains).toEqual([0, 0]);
   expect(nachtruheWorldAt(shot("Bedroom: evening").to - 0.1).blanket).toBeGreaterThan(0.95);
   expect(LIGHTS.stairwell[1]).toBeLessThanOrEqual(shot("Drone rise").from);

@@ -14,6 +14,7 @@ import {
   AT_MAILBOX,
   FLAP,
   READ,
+  UNFOLD,
   RUNDSCHREIBEN_DURATION,
   letterAt,
 } from "./choreography";
@@ -34,6 +35,18 @@ const fixed =
     target,
     fov,
   });
+
+const dolly =
+  (from: CameraSetup, to: CameraSetup, start: number, end: number) =>
+  (t: number): CameraSetup => {
+    const k = easeUnit((t - start) / (end - start));
+    const mix = (a: Vec3, b: Vec3) => a.map((v, i) => v + (b[i] - v) * k) as unknown as Vec3;
+    return {
+      position: mix(from.position, to.position),
+      target: mix(from.target, to.target),
+      fov: from.fov + (to.fov - from.fov) * k,
+    };
+  };
 
 const insert = (
   lines: readonly LetterLine[],
@@ -101,7 +114,12 @@ export const SHOTS: readonly RundschreibenShot[] = [
     name: "Opening",
     from: OPENING,
     to: READ[0],
-    at: fixed([-2.6, 1.95, -2.0], [-2.3, 1.1, -1.72], 50),
+    at: dolly(
+      { position: [-2.42, 0.92, -2.14], target: [-2.34, 1.06, -1.73], fov: 50 },
+      { position: [-2.42, 1.2, -2.14], target: [-2.32, 1.08, -1.72], fov: 50 },
+      FLAP[1],
+      UNFOLD[0],
+    ),
   },
   {
     name: "Insert: the letter",

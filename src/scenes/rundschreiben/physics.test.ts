@@ -12,6 +12,7 @@ import {
 } from "../../props/letterShape";
 import { expect, test } from "vitest";
 import { bodyColliders, handPosition, handSphere } from "../../characters/skeleton";
+import { headSurface } from "../../Tibik/headShape";
 import { KEY_GRIP, keyBowGrip, keyParts } from "../../props/keyRingShape";
 import {
   MAILBOX_DOOR,
@@ -228,8 +229,14 @@ const handBalls = (t: number) => {
 
 type Outline = readonly (readonly [number, number])[];
 const rectangle = (w: number, h: number): Outline => [[0, 0], [w, 0], [w, h], [0, h]];
+const inverses = new WeakMap<Matrix4, Matrix4>();
+const inverseOf = (m: Matrix4) => {
+  let inverse = inverses.get(m);
+  if (!inverse) inverses.set(m, (inverse = m.clone().invert()));
+  return inverse;
+};
 const outlineGap = (point: Vector3, m: Matrix4, outline: Outline) => {
-  const p = point.clone().applyMatrix4(m.clone().invert());
+  const p = point.clone().applyMatrix4(inverseOf(m));
   const edges = outline.map((a, i) => [a, outline[(i + 1) % outline.length]] as const);
   const sides = edges.map(([a, b]) => (b[0] - a[0]) * (p.y - a[1]) - (b[1] - a[1]) * (p.x - a[0]));
   if (sides.every((s) => s >= 0) || sides.every((s) => s <= 0)) return Math.abs(p.z);
@@ -362,6 +369,24 @@ test("his hands hold the envelope, its flap and the letter by their edges, never
         if (gap < -0.0005) found.push(`${t.toFixed(2)} ${i ? "right" : "left"} hand in the ${sheet.name} by ${(-gap * 1000).toFixed(1)} mm`);
       }
   expect(found.slice(0, 900)).toEqual([]);
+});
+
+test("while he takes out, opens, unfolds, reads and folds back the letter, the envelope and the letter keep an ink outline clear of his head and body, so his outline never shows across the paper", { timeout: 300_000 }, () => {
+  const found: string[] = [];
+  for (const t of window(BOX_OPEN[0], TO_BIN[1] - 0.4)) {
+    const character = asCharacter(solveRundschreiben(t).tibik);
+    const head = headSurface(character, 16, 32);
+    const torso = bodyColliders(RIG, character).torso;
+    for (const sheet of sheetsAt(t)) {
+      const headGap = Math.min(...head.map((p) => outlineGap(p, sheet.m, sheet.outline)));
+      if (headGap < OUTLINE) found.push(`${t.toFixed(2)} s: the ${sheet.name} ${(headGap * 1000).toFixed(1)} mm from his head`);
+      for (const ball of torso) {
+        const gap = outlineGap(ball.center, sheet.m, sheet.outline) - ball.radius;
+        if (gap < OUTLINE) found.push(`${t.toFixed(2)} s: the ${sheet.name} ${(gap * 1000).toFixed(1)} mm from his ${ball.name}`);
+      }
+    }
+  }
+  expect([...new Set(found)].slice(0, 8)).toEqual([]);
 });
 
 const wholeScene = frames;

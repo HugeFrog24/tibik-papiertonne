@@ -1,5 +1,4 @@
 import {
-  BackSide,
   Float32BufferAttribute,
   PlaneGeometry,
   Vector3,
@@ -55,12 +54,21 @@ const paintLetter = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
 
 const SEGMENTS = { across: 16, down: 4 };
 
-const panelGeometry = (panel: Panel, face: number) => {
+export const panelGeometry = (panel: Panel, face: number, back: boolean) => {
   const [w, h] = panel.size;
   const g = new PlaneGeometry(w, h, SEGMENTS.across, SEGMENTS.down);
   g.translate(w / 2, h / 2, 0);
   const p = g.getAttribute("position");
   for (let i = 0; i < p.count; i++) p.setZ(i, face + sheetBow(p.getX(i)));
+  if (back) {
+    const index = g.getIndex()!;
+    for (let k = 0; k < index.count; k += 3) {
+      const second = index.getX(k + 1);
+      index.setX(k + 1, index.getX(k + 2));
+      index.setX(k + 2, second);
+    }
+    index.needsUpdate = true;
+  }
   g.computeVertexNormals();
   const top = 1 - panel.fromTop / A4[1];
   const bottom = 1 - (panel.fromTop + h) / A4[1];
@@ -79,8 +87,8 @@ const PanelView: React.FC<{
   readonly texture: Texture | null;
   readonly spots: readonly { u: number; v: number; r: number }[];
 }> = ({ panel, texture, spots }) => {
-  const geometry = useDisposable(() => panelGeometry(panel, PAPER.face), [panel.fromTop]);
-  const back = useDisposable(() => panelGeometry(panel, -PAPER.face), [panel.fromTop]);
+  const geometry = useDisposable(() => panelGeometry(panel, PAPER.face, false), [panel.fromTop]);
+  const back = useDisposable(() => panelGeometry(panel, -PAPER.face, true), [panel.fromTop]);
   const [w, h] = panel.size;
   const mine = spots.filter((s) => {
     const y = s.v * A4[1] - panel.fromTop;
@@ -92,7 +100,7 @@ const PanelView: React.FC<{
         <meshToonMaterial color="#ffffff" map={texture} gradientMap={paperRamp()} />
       </mesh>
       <mesh geometry={back} receiveShadow>
-        <meshToonMaterial color={PAPER.colour} gradientMap={paperRamp()} side={BackSide} />
+        <meshToonMaterial color={PAPER.colour} gradientMap={paperRamp()} />
       </mesh>
       {mine.map((s, i) => (
         <WetSpot

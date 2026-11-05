@@ -457,6 +457,12 @@ const boxPose = (slide: number) => {
     );
 };
 
+const UNFOLD_ROOM = 0.04;
+const roomToUnfold = (t: number) =>
+  Math.max(
+    ...[UNFOLDING, FOLD_BACK].map(([a, b]) => kf(t, [a - 0.3, a, b, b + 0.4], [0, 1, 1, 0])),
+  );
+
 const heldPose = (t: number) => {
   const tibik = rundschreibenTibikAt(t);
   const character = asCharacter(tibik);
@@ -466,7 +472,7 @@ const heldPose = (t: number) => {
   const middle = shoulder("leftArm")
     .add(shoulder("rightArm"))
     .multiplyScalar(0.5)
-    .addScaledVector(forward, HOLD_OUT)
+    .addScaledVector(forward, HOLD_OUT + UNFOLD_ROOM * roomToUnfold(t))
     .addScaledVector(new Vector3(forward.z, 0, -forward.x), OPENING_SHIFT * openingUp(t))
     .add(new Vector3(0, -HOLD_DOWN, 0));
   const turn = new Matrix4()

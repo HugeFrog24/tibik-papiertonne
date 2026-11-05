@@ -519,7 +519,8 @@ export const StairwellSet: React.FC<{
   readonly tibikDoor: number;
   readonly tibikLever?: number;
   readonly lights: number;
-}> = ({ tibikDoor, tibikLever = 0, lights }) => (
+  readonly livingRoomLit?: boolean;
+}> = ({ tibikDoor, tibikLever = 0, lights, livingRoomLit = true }) => (
   <>
     {TREADS.map((tread, i) =>
       tread.name === "Flur floor" ? (
@@ -558,7 +559,7 @@ export const StairwellSet: React.FC<{
       ))}
     </group>{" "}
     <FlurSet />
-    <LivingRoomSet />
+    <LivingRoomSet lit={livingRoomLit} />
     {FLIGHT_SLABS.map((box, i) => (
       <ObbBox key={i} box={box} color={WHITE} />
     ))}

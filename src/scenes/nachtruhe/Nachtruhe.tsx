@@ -70,7 +70,7 @@ const Scene: React.FC = () => {
   return (
     <>
       <Outside t={t} state={state} />
-      {stairwellShown(state) ? <StairwellSet tibikDoor={0} lights={state.stairwellLit ? 1 : 0} /> : null}
+      {stairwellShown(state) ? <StairwellSet tibikDoor={0} lights={state.stairwellLit ? 1 : 0} livingRoomLit={state.livingRoomLit} /> : null}
       <BinRow lids={state.lids} boxTaken emptied={t >= DAWN[0]} />
       {t < DUSK[1] ? tibik : null}
       {state.keys ? <KeyRing matrix={state.keys} /> : null}

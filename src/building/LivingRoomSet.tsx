@@ -274,23 +274,27 @@ const Sofa: React.FC = () => {
   );
 };
 
-export const LivingRoomSet: React.FC = () => (
+export const LivingRoomSet: React.FC<{ readonly lit?: boolean }> = ({
+  lit = true,
+}) => (
   <group>
     <Shell />
     <DoorFrame />
     <Door />
     <Cabinets />
     <Sofa />
-    <pointLight
-      position={[
-        (LIVING_ROOM.x0 + LIVING_ROOM.x1) / 2,
-        floor + 2.3,
-        (LIVING_ROOM.z0 + LIVING_ROOM.z1) / 2,
-      ]}
-      color="#ffd9a0"
-      intensity={5}
-      distance={7}
-      decay={2}
-    />
+    {lit ? (
+      <pointLight
+        position={[
+          (LIVING_ROOM.x0 + LIVING_ROOM.x1) / 2,
+          floor + 2.3,
+          (LIVING_ROOM.z0 + LIVING_ROOM.z1) / 2,
+        ]}
+        color="#ffd9a0"
+        intensity={5}
+        distance={7}
+        decay={2}
+      />
+    ) : null}
   </group>
 );

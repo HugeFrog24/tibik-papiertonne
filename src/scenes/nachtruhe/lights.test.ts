@@ -92,3 +92,7 @@ test("the rain sets in through the dawn, a few drops first and the full shower b
   }
   expect(nachtruheWorldAt(dawn.from + 0.5).rain).toBeLessThan(0.15);
 });
+
+test("of his flat only the bedroom lights: the living-room lamp stays off all Nachtruhe, so nothing glows through the facade from it", () => {
+  for (let t = 0; t <= NACHTRUHE_DURATION; t += 0.5) expect(nachtruheWorldAt(t).livingRoomLit, `${t} s`).toBe(false);
+});

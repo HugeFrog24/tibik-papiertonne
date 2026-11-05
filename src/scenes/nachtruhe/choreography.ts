@@ -116,6 +116,7 @@ export const nachtruheWorldAt = (t: number) => {
   return {
     look: lookAt(t),
     rain: rainShareAt(t),
+    livingRoomLit: false,
     lampsOn: during(t, LIGHTS.streetLamps),
     entranceLamp: t < DUSK[1] && sensorLampOn(duskRoot, SENSOR.range, t),
     town: kf(t, TOWN.times, TOWN.shares),

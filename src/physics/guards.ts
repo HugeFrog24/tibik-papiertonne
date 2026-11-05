@@ -31,11 +31,14 @@ export const guardGround = <C extends Character>(c: C, ground: Solid): C => {
   return sink > 0 ? withPose(c, { ...c.pose, bob: c.pose.bob + sink }) : c;
 };
 
+export const GUARD_REACH = 0.1;
+
 export const guardBody = <C extends Character>(
   c: C,
   solids: readonly Solid[],
 ): C => {
   let current = c;
+  const [x0, , z0] = c.position;
   for (let i = 0; i < 8; i++) {
     const body = bodyColliders(current.skeleton, current);
     const found = contacts([...body.legs, ...body.lowerTorso], solids);
@@ -46,9 +49,14 @@ export const guardBody = <C extends Character>(
     for (const contact of found) {
       push.addScaledVector(contact.normal, contact.depth);
     }
-    push.y = 0;
     const [x, y, z] = current.position;
-    current = { ...current, position: [x + push.x, y, z + push.z] };
+    const [nx, nz] = [x + push.x, z + push.z];
+    const moved = Math.hypot(nx - x0, nz - z0);
+    if (moved > GUARD_REACH) {
+      const k = GUARD_REACH / moved;
+      return { ...current, position: [x0 + (nx - x0) * k, y, z0 + (nz - z0) * k] };
+    }
+    current = { ...current, position: [nx, y, nz] };
   }
   return current;
 };

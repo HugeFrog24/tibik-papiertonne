@@ -238,7 +238,12 @@ composition under "Scenes" in the Studio:
   cabinet. From the street he sees exactly what hangs behind the pane.
   **(test)**
 - **Light:** evening: the two lamps; night: dark, a faint orange street glow
-  through the curtain; morning: grey daylight through the window.
+  through the curtain; morning: grey daylight through the window, which is a
+  real opening in No. 12's facade (No. 13's window there stays solid), so the
+  room looks out onto the street. **(test)**
+- **Getting round the bed:** with his arms out as he walks he is 1.5 m wide;
+  past the bed's foot he tucks them in (1.05 m) — the passage is 1.155 m.
+  **(test)**
 
 ## Doors
 
@@ -477,6 +482,19 @@ Ideas (proposed, not built; the user picks):
   late (a cheap photocell).
 - A wipe mark at hand height on the stairwell panes; a small stain on his
   sill under the tilt gap, where condensation runs.
+- His bedroom: a shallow scuff at a headboard corner (knocked sitting down);
+  a few millimetres of dip on the side of the mattress he sleeps on; one
+  pillow cover creased at a corner (folded into a bag); a faint pale ring on
+  a cabinet top from a mug; one drawer front a fraction proud (swollen wood);
+  a lamp's rocker a degree or two off straight; the shade's seam overlapping
+  by a few millimetres.
+- His bedroom fittings: chipped paint at the radiator's valve corner; the
+  thermostat dial a few degrees off its mark; the door lever resting a few
+  degrees low (a tired spring) with a faint sheen at hand height; a faint arc
+  rubbed into the laminate by the door's lower corner; the light switch plate
+  yellowed round the rocker and a degree off level; a dust film on the smoke
+  alarm's test button; a dry moth in the dome lamp; a roller lap line and a
+  hairline crack on the ceiling.
 
 ## Continuity between scenes
 

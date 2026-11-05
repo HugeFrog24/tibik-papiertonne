@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { PUDDLES, WEATHER, type Weather } from "../weather/overcast";
 import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
 import { ExtrudeGeometry, type Texture } from "three";
@@ -93,6 +92,7 @@ import { useSignColor } from "../weather/DayLight";
 import { Dish } from "./Dish";
 import { Roof, Town } from "./Town";
 import { OpeningView } from "./OpeningView";
+import { useDisposable } from "../toon/useDisposable";
 import { PartBoxes } from "./PartBoxes";
 
 const PLASTER = "#eadcc0";
@@ -408,20 +408,20 @@ const StreetTree: React.FC<{
   );
 };
 
-const FacadeWall: React.FC<{ readonly plaster: string }> = ({ plaster }) => {
-  const geometry = useMemo(
+const FacadeWall: React.FC<{ readonly plaster: string; readonly house: number }> = ({ plaster, house }) => {
+  const geometry = useDisposable(
     () =>
       new ExtrudeGeometry(
         rectShape(
           { x0: -15, x1: 15, y0: 0, y1: BUILDING_HEIGHT },
-          facadeOpenings(),
+          facadeOpenings(house),
         ),
         {
           depth: FACADE_THICKNESS,
           bevelEnabled: false,
         },
       ),
-    [],
+    [house],
   );
   return (
     <mesh
@@ -452,7 +452,7 @@ const Block: React.FC<{
   readonly windows: WindowLights;
 }> = ({ haustuer, haustuerLever, number, plaster, lampOn, mailboxDoor, windows }) => (
   <>
-    <FacadeWall plaster={plaster} />
+    <FacadeWall plaster={plaster} house={Number(number)} />
     <PartBoxes parts={[CORNICE]} color={COPING} />
     <PartBoxes parts={PLINTH} color="#8f877b" outline={false} />
     <PartBoxes parts={FLOOR_BAND} color="#d9caa9" outline={false} />

@@ -3,11 +3,12 @@ import { expect, test } from "vitest";
 import { bodyColliders } from "../characters/skeleton";
 import { boxGap, obbCorners } from "../physics/collision";
 import { FACADE_Z, flatWindow, openingFrame } from "../street/building";
-import { FACADE_THICKNESS } from "../street/facade";
+import { FACADE_THICKNESS, facadeOpenings } from "../street/facade";
 import { LAMP_LIGHT } from "../street/lamps";
 import { overlap, rectFootprint } from "../street/footprint";
-import { RIG, TIBIK_REST } from "../Tibik/rig";
-import { doorLeaf } from "./doors";
+import { ARM_TUCK, RIG, TIBIK_REST } from "../Tibik/rig";
+import { restPose } from "../characters/legs";
+import { doorLeaf, doorSolids } from "./doors";
 import {
   BED,
   BED_RECT,
@@ -16,9 +17,11 @@ import {
   BEDROOM_DOOR,
   BEDROOM_DOORWAY,
   CABINETS,
+  CABINET_INK,
   CURTAIN,
   DOME_LAMP,
   LAMPS,
+  PANE,
   PILLOWS,
   RADIATOR,
   SKIRTING,
@@ -102,11 +105,13 @@ test("the radiator sits under the window and the curtain clears it", () => {
   }
 });
 
-test("walking round the bed's foot fits him", () => {
-  const spheres = Object.values(bodyColliders(RIG, { position: [0, 0, 0], rotationY: 0, pose: TIBIK_REST })).flat();
-  const width = Math.max(...spheres.map((s) => s.center.x + s.radius)) - Math.min(...spheres.map((s) => s.center.x - s.radius));
+test("walking round the bed's foot fits him, arms hanging or tucked as he squeezes past", () => {
   const foot = Math.max(...parts.filter((p) => p.name.startsWith("bed ")).map((p) => hi(p, 0)));
-  expect(BEDROOM.x1 - foot).toBeGreaterThanOrEqual(width + 0.1);
+  for (const pose of [TIBIK_REST, restPose(RIG, ARM_TUCK)]) {
+    const spheres = Object.values(bodyColliders(RIG, { position: [0, 0, 0], rotationY: 0, pose })).flat();
+    const width = Math.max(...spheres.map((s) => s.center.x + s.radius)) - Math.min(...spheres.map((s) => s.center.x - s.radius));
+    expect(BEDROOM.x1 - foot).toBeGreaterThanOrEqual(width + 0.1);
+  }
 });
 
 test("the smoke alarm is at least 50 cm from every wall, as DIN 14676 asks, and from the ceiling lamp", () => {
@@ -133,14 +138,15 @@ test("no piece of furniture overlaps another, the walls or the closed door", () 
 });
 
 test("the door swings into the bedroom, along the east wall, and clears the furniture at every angle up to its stop", () => {
-  const furniture = bedroomSolids({ door: 0, curtain: 1 }).filter((s) => !s.name.startsWith(BEDROOM_DOOR.name) && !s.name.includes("wall"));
+  const room = bedroomSolids({ door: 0, curtain: 1 }).filter((s) => !s.name.startsWith(BEDROOM_DOOR.name));
   for (let a = 0; a <= BEDROOM_DOOR.open + 1e-9; a += 0.05) {
     const leaf = doorLeaf(BEDROOM_DOOR, a);
     for (const p of obbCorners(leaf)) {
       expect(p.z).toBeGreaterThanOrEqual(BEDROOM.z0 - 1e-6);
       expect(p.x).toBeLessThanOrEqual(BEDROOM.x1 + 1e-6);
     }
-    for (const s of furniture) expect(boxGap(leaf, s), `${s.name} at ${a.toFixed(2)}`).toBeGreaterThanOrEqual(-1e-9);
+    for (const part of doorSolids(BEDROOM_DOOR, a))
+      for (const s of room) if (part.kind === "obb") expect(boxGap(part, s), `${part.name} / ${s.name} at ${a.toFixed(2)}`).toBeGreaterThanOrEqual(-1e-9);
   }
 });
 
@@ -199,5 +205,27 @@ test("the light switch sits beside the door on its latch side, where DIN 18015-3
   for (const s of sockets) {
     expect(lo(s, 0)).toBeCloseTo(BEDROOM.x0, 9);
     expect(CABINETS.some((c) => Math.abs(c.center[2] - s.center[2]) < 1e-9 && lo(s, 1) > hi(c, 1))).toBe(true);
+  }
+});
+
+test("his window is a real opening in No. 12's facade, so from the bed he looks out onto the street", () => {
+  const hole = facadeOpenings(12).find((r) => r.x0 < his.x && r.x1 > his.x && r.y0 < his.y && r.y1 > his.y);
+  expect(hole).toBeDefined();
+  expect(hole!.x0).toBeCloseTo(PANE.x0, 9);
+  expect(hole!.x1).toBeCloseTo(PANE.x1, 9);
+  expect(hole!.y0).toBeCloseTo(PANE.y0, 9);
+  expect(hole!.y1).toBeCloseTo(PANE.y1, 9);
+  expect(facadeOpenings(13).some((r) => r.x0 < his.x && r.x1 > his.x && r.y0 < his.y && r.y1 > his.y)).toBe(false);
+});
+
+test("the ceiling lamp's dome hangs as deep as it is drawn, a half sphere", () => {
+  expect(DOME_LAMP.height).toBeCloseTo(DOME_LAMP.diameter / 2, 9);
+});
+
+test("the cabinets' outlines stay off the curtain however far it is drawn", () => {
+  for (let k = 0; k <= 10; k++) {
+    const c = curtainShape(k / 10);
+    for (const cabinet of CABINETS)
+      if (lo(cabinet, 0) < c.x1 && hi(cabinet, 0) > c.x0) expect(hi(cabinet, 2) + CABINET_INK).toBeLessThan(c.z - c.amplitude);
   }
 });

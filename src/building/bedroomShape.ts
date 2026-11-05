@@ -71,6 +71,7 @@ const bedParts = (): Part[] => {
 };
 
 const CABINET = { width: 0.45, depth: 0.45, height: 0.55, gap: 0.005 };
+export const CABINET_INK = 0.006;
 
 export const CABINETS: readonly Part[] = [
   [bed.z1 + CABINET.gap, bed.z1 + CABINET.gap + CABINET.width],
@@ -134,13 +135,13 @@ const SILL = { thickness: 0.02, nose: 0.03, lining: 0.012 };
 
 const windowParts = (): Part[] => {
   const wall = [BEDROOM.z1, BEDROOM.z1 + FACADE_THICKNESS] as const;
-  const sillTop = PANE.y0;
+  const sillTop = PANE.y0 + SILL.thickness;
   return [
     boundsPart("window wall", [BEDROOM.x0 - WALL, PANE.x0], [floor, ceiling], wall),
     boundsPart("window wall", [PANE.x1, BEDROOM.x1 + WALL], [floor, ceiling], wall),
-    boundsPart("window wall", [PANE.x0, PANE.x1], [floor, sillTop - SILL.thickness], wall),
+    boundsPart("window wall", [PANE.x0, PANE.x1], [floor, PANE.y0], wall),
     boundsPart("window wall", [PANE.x0, PANE.x1], [PANE.y1, ceiling], wall),
-    boundsPart("window sill", [PANE.x0, PANE.x1], [sillTop - SILL.thickness, sillTop], [BEDROOM.z1 - SILL.nose, FACADE_Z]),
+    boundsPart("window sill", [PANE.x0, PANE.x1], [PANE.y0, sillTop], [BEDROOM.z1 - SILL.nose, FACADE_Z]),
     boundsPart("window reveal", [PANE.x0, PANE.x0 + SILL.lining], [sillTop, PANE.y1], [BEDROOM.z1, FACADE_Z]),
     boundsPart("window reveal", [PANE.x1 - SILL.lining, PANE.x1], [sillTop, PANE.y1], [BEDROOM.z1, FACADE_Z]),
     boundsPart("window reveal", [PANE.x0 + SILL.lining, PANE.x1 - SILL.lining], [PANE.y1 - SILL.lining, PANE.y1], [BEDROOM.z1, FACADE_Z]),
@@ -233,7 +234,7 @@ const curtainParts = (): Part[] => {
   ];
 };
 
-export const DOME_LAMP = { center: [centre.x, ceiling, centre.z] as Vec3, diameter: 0.3, height: 0.12 };
+export const DOME_LAMP = { center: [centre.x, ceiling, centre.z] as Vec3, diameter: 0.3, height: 0.15 };
 export const SMOKE_ALARM = { center: [centre.x, ceiling, centre.z - 0.9] as Vec3, diameter: 0.11, height: 0.045 };
 
 const ceilingParts = (): Part[] => {

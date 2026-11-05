@@ -11,6 +11,7 @@ import {
   BEDROOM_DOOR,
   BEDSIDE_LIGHT,
   CABINETS,
+  CABINET_INK,
   DOME_LAMP,
   LAMPS,
   PANE,
@@ -144,6 +145,7 @@ const Shell: React.FC = () => {
       <PartBoxes
         parts={parts.filter((p) => ["skirting", "window sill", "window reveal", "curtain rail", "thermostat", "light switch", "socket"].includes(p.name))}
         color={(p) => paints[p.name]}
+        outline={false}
       />
       {frame.map((p) => box(p, "#ffffff", { map: alder(), ink: 0.004 }))}
     </group>
@@ -191,8 +193,8 @@ const Cabinet: React.FC<{ readonly part: Part }> = ({ part }) => {
   const knob = (y: number): Vec3 => [front + 0.004 + CABINET_FRONT.knob / 2, y, cz];
   return (
     <group>
-      <ToonBox position={[cx, bottom + body / 2, cz]} size={[w, body, d]} color={COLOURS.cabinet} />
-      <ToonBox position={[cx, bottom + body + CABINET_FRONT.top / 2, cz]} size={[w, CABINET_FRONT.top, d]} color="#ffffff" map={wildOak()} />
+      <ToonBox position={[cx, bottom + body / 2, cz]} size={[w, body, d]} color={COLOURS.cabinet} ink={CABINET_INK} />
+      <ToonBox position={[cx, bottom + body + CABINET_FRONT.top / 2, cz]} size={[w, CABINET_FRONT.top, d]} color="#ffffff" map={wildOak()} ink={CABINET_INK} />
       {box(panel(drawerBottom, drawerTop), COLOURS.cabinet, { ink: 0.003 })}
       {box(panel(doorBottom, doorTop), COLOURS.cabinet, { ink: 0.003 })}
       {[(drawerTop + drawerBottom) / 2, doorTop - 0.06].map((y) => (
@@ -205,10 +207,11 @@ const Cabinet: React.FC<{ readonly part: Part }> = ({ part }) => {
 const Lamp: React.FC<{ readonly lamp: BedsideLamp; readonly on: boolean }> = ({ lamp, on }) => {
   const [x, y, z] = lamp.base;
   const shadeY = y + lamp.height - lamp.shadeHeight / 2;
+  const socketTop = shadeY - lamp.shadeHeight / 2 + 0.04;
   return (
     <group>
       <ToonCylinder position={[x, y + 0.0125, z]} radius={lamp.foot / 2} height={0.025} segments={32} color={COLOURS.foot} ink={0.004} />
-      <ToonCylinder position={[x, (y + shadeY) / 2, z]} radius={0.01} height={shadeY - y} segments={12} color={COLOURS.foot} ink={0.003} />
+      <ToonCylinder position={[x, (y + socketTop) / 2, z]} radius={0.01} height={socketTop - y} segments={12} color={COLOURS.foot} ink={0.003} />
       <ToonCylinder
         position={[x, shadeY, z]}
         radius={lamp.shade / 2}

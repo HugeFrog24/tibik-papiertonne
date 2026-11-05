@@ -135,3 +135,8 @@ describe("the Haustür closer", () => {
     expect(boxGap(obb("closer", new Matrix4(), size, center), doorLeaf(HAUSTUER, 0))).toBeGreaterThan(0);
   });
 });
+
+test("a hole outside a shape's outline is left out, so a lining cut from a part of the wall stays whole", () => {
+  const outer = { x0: 0, x1: 2, y0: 0, y1: 2 };
+  expect(rectShape(outer, [{ x0: 5, x1: 6, y0: 0.5, y1: 1 }, { x0: 0.5, x1: 1, y0: 0.5, y1: 1 }]).holes).toHaveLength(1);
+});

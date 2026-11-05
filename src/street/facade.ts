@@ -7,8 +7,8 @@ import {
   BUILDING_HEIGHT,
   ENTRANCE_X,
   FACADE_Z,
-  OPENINGS,
-  STAIR_WINDOW,
+  openingFrame,
+  openingsOf,
   type Part,
 } from "./building";
 
@@ -26,7 +26,8 @@ export const rectShape = (outer: Rect, holes: readonly Rect[]): Shape => {
   outline.lineTo(outer.x1, outer.y1);
   outline.lineTo(outer.x0, outer.y1);
   outline.closePath();
-  for (const o of holes) {
+  const inside = holes.filter((o) => o.x0 >= outer.x0 && o.x1 <= outer.x1 && o.y0 >= outer.y0 && o.y1 <= outer.y1);
+  for (const o of inside) {
     const hole = new Path();
     hole.moveTo(o.x0, o.y0);
     hole.lineTo(o.x0, o.y1);
@@ -48,14 +49,14 @@ export const DOORWAY: Rect = {
   y1: 2.45,
 };
 
-export const facadeOpenings = (): Rect[] => [
+export const facadeOpenings = (house = 12): Rect[] => [
   DOORWAY,
-  ...OPENINGS.filter((o) => o.kind === "stairs").map((o) => ({
-    x0: o.x - STAIR_WINDOW.frame[0] / 2,
-    x1: o.x + STAIR_WINDOW.frame[0] / 2,
-    y0: o.y - STAIR_WINDOW.frame[1] / 2,
-    y1: o.y + STAIR_WINDOW.frame[1] / 2,
-  })),
+  ...openingsOf(house)
+    .filter((o) => o.kind === "stairs" || o.bedroom)
+    .map((o) => {
+      const [w, h] = openingFrame(o);
+      return { x0: o.x - w / 2, x1: o.x + w / 2, y0: o.y - h / 2, y1: o.y + h / 2 };
+    }),
 ];
 
 const wallPart = (name: string, r: Rect, z0: number, z1: number): Part => ({

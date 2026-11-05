@@ -7,7 +7,7 @@ import {
   Quaternion,
   Vector3,
 } from "three";
-import { clamp } from "../characters/scalar";
+import { clamp, lerp } from "../characters/scalar";
 import { lazy } from "../physics/lazy";
 import { facePoint } from "./headShape";
 
@@ -39,7 +39,6 @@ export type EyeLids = {
 
 export type EyeTurn = { readonly yaw: number; readonly pitch: number };
 
-const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
 export const eyeFrame = (side: 1 | -1) => {
   const x = side * EYE.x;
@@ -73,12 +72,12 @@ export const eyeLids = (
   const a = Math.max(0, Math.min(1, anger));
   const lift = Math.sin(clamp(pitch, -EYE.turn.pitch, EYE.turn.pitch));
   const lower =
-    mix(EYE.open.lower, EYE.angry.lower, a) + EYE.follow.lower * lift;
+    lerp(EYE.open.lower, EYE.angry.lower, a) + EYE.follow.lower * lift;
   const open =
-    mix(EYE.open.upper, EYE.angry.upper, a) + EYE.follow.upper * lift;
+    lerp(EYE.open.upper, EYE.angry.upper, a) + EYE.follow.upper * lift;
   return {
     upper: {
-      height: mix(open, lower - EYE.overlap, blink),
+      height: lerp(open, lower - EYE.overlap, blink),
       roll: side * EYE.angry.roll * a * (1 - blink),
     },
     lower: { height: lower },

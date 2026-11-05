@@ -1,5 +1,5 @@
 import { HAUSVERWALTUNG } from "../../street/building";
-import { smoothstep, round6 } from "../../characters/scalar";
+import { lerpVec3, smoothstep, round6 } from "../../characters/scalar";
 
 import { bubbleBox, type Line } from "../../dialogue/line";
 import {
@@ -10,7 +10,6 @@ import {
   type Key,
   type PhonePlace,
 } from "../../Karen/phoneShape";
-import type { Vec3 } from "../../toon/primitives";
 
 export const POCKET: readonly [number, number] = [15.8, 16.1];
 
@@ -110,11 +109,6 @@ const PLACES: readonly { readonly at: number; readonly place: PhonePlace }[] = [
   { at: LOWERED[1], place: PHONE_AT_HIP },
 ];
 
-const mix = (a: Vec3, b: Vec3, w: number): Vec3 => [
-  a[0] + (b[0] - a[0]) * w,
-  a[1] + (b[1] - a[1]) * w,
-  a[2] + (b[2] - a[2]) * w,
-];
 
 const between = <T>(
   stops: readonly { readonly at: number; readonly value: T }[],
@@ -137,8 +131,8 @@ export const SETTLED = PLACES[1].at;
 export const phonePlaceAt = (t: number): PhonePlace => {
   const { a, b, w } = between(PLACE_STOPS, t);
   return {
-    position: mix(a.value.position, b.value.position, w),
-    rotation: mix(a.value.rotation, b.value.rotation, w),
+    position: lerpVec3(a.value.position, b.value.position, w),
+    rotation: lerpVec3(a.value.rotation, b.value.rotation, w),
   };
 };
 

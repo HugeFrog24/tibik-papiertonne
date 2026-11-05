@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import { easeUnit } from "../../characters/scalar";
+import { easeUnit, lerpVec3 } from "../../characters/scalar";
 import {
   LETTER_LAYOUT,
   PT,
@@ -40,10 +40,9 @@ const dolly =
   (from: CameraSetup, to: CameraSetup, start: number, end: number) =>
   (t: number): CameraSetup => {
     const k = easeUnit((t - start) / (end - start));
-    const mix = (a: Vec3, b: Vec3) => a.map((v, i) => v + (b[i] - v) * k) as unknown as Vec3;
     return {
-      position: mix(from.position, to.position),
-      target: mix(from.target, to.target),
+      position: lerpVec3(from.position, to.position, k),
+      target: lerpVec3(from.target, to.target, k),
       fov: from.fov + (to.fov - from.fov) * k,
     };
   };

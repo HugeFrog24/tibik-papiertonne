@@ -1,5 +1,6 @@
 import { Vector3 } from "three";
 import { random } from "remotion";
+import { lerp } from "../characters/scalar";
 import type { Line } from "../dialogue/line";
 import { contacts, sphere, type Obb, type Solid } from "../physics/collision";
 import type { Spike } from "./spittle";
@@ -104,7 +105,6 @@ export type Launch = {
   readonly radius: number;
 };
 
-const mix = ([a, b]: readonly [number, number], t: number) => a + (b - a) * t;
 
 export const coneDirection = (
   { forward, up }: Emitter,
@@ -141,8 +141,8 @@ export const launchesOf = (
         id,
         at,
         from: origin.clone(),
-        velocity: direction.multiplyScalar(mix(SPRAY.speed, r("speed"))),
-        radius: mix(SPRAY.radius, r("size")),
+        velocity: direction.multiplyScalar(lerp(...SPRAY.speed, r("speed"))),
+        radius: lerp(...SPRAY.radius, r("size")),
       };
     }),
   );

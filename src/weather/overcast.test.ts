@@ -20,7 +20,7 @@ import {
   manholeFootprint,
 } from "../street/drainShape";
 import { PATCHES, jointFootprint } from "../street/roadShape";
-import { HAZE, PUDDLES, RAIN_VISIBILITY, SIGN_LIGHT, WEATHER, facadeLight, hazeAt } from "./overcast";
+import { HAZE, PUDDLES, RAIN_VISIBILITY, SIGN_LIGHT, WEATHER, facadeLight, hazeAt, hazeOf, mixLooks, signLightOf } from "./overcast";
 import { luminance } from "../toon/colourChecks";
 
 const hsl = (hex: string) => {
@@ -110,4 +110,37 @@ test("in the rain the distance hazes towards the horizon like air with 3 km visi
   expect(hazeAt(20, rain.density)).toBeLessThan(0.01);
   expect(hazeAt(100, rain.density)).toBeGreaterThan(0.05);
   expect(hazeAt(100, rain.density)).toBeLessThan(0.15);
+});
+
+test("dusk and night have no sun, and night is darker than dusk, dusk darker than the rainy day", () => {
+  expect(WEATHER.dusk.sun.intensity).toBe(0);
+  expect(WEATHER.night.sun.intensity).toBe(0);
+  expect(facadeLight(WEATHER.night)).toBeLessThan(facadeLight(WEATHER.dusk));
+  expect(facadeLight(WEATHER.dusk)).toBeLessThan(facadeLight(WEATHER.rain));
+});
+
+test("mixing two looks starts at one and ends at the other", () => {
+  for (const [a, b] of [[WEATHER.night, WEATHER.rain], [WEATHER.dusk, WEATHER.night]] as const) {
+    expect(mixLooks(a, b, 0)).toEqual(a);
+    expect(mixLooks(a, b, 1)).toEqual(b);
+    expect(mixLooks(a, b, 0.5).hemisphere.intensity).toBeCloseTo((a.hemisphere.intensity + b.hemisphere.intensity) / 2, 12);
+  }
+});
+
+test("the haze grows with the dawn into the rain", () => {
+  expect(hazeOf(mixLooks(WEATHER.night, WEATHER.rain, 0))).toBeNull();
+  let last = 0;
+  for (let k = 0.1; k <= 1.0001; k += 0.1) {
+    const density = hazeOf(mixLooks(WEATHER.night, WEATHER.rain, Math.min(1, k)))!.density;
+    expect(density).toBeGreaterThan(last);
+    last = density;
+  }
+  expect(last).toBeCloseTo(HAZE.rain!.density, 12);
+});
+
+test("signs dim with the light", () => {
+  expect(signLightOf(WEATHER.night)).toBeLessThan(signLightOf(WEATHER.dusk));
+  expect(signLightOf(WEATHER.dusk)).toBeLessThan(SIGN_LIGHT.rain);
+  expect(SIGN_LIGHT.rain).toBeLessThan(SIGN_LIGHT.sunny);
+  expect(SIGN_LIGHT.sunny).toBe(1);
 });

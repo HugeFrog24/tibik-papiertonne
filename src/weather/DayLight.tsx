@@ -1,15 +1,18 @@
 import { createContext, useContext, useMemo } from "react";
 import { Color } from "three";
-import { SIGN_LIGHT, type Weather } from "./overcast";
+import { WEATHER, signLightOf, type Weather, type WeatherLook } from "./overcast";
 
-const DayLightContext = createContext<Weather>("sunny");
+const DayLightContext = createContext<WeatherLook>(WEATHER.sunny);
 
-export const DayLight: React.FC<{ readonly weather: Weather; readonly children: React.ReactNode }> = ({
-  weather,
-  children,
-}) => <DayLightContext.Provider value={weather}>{children}</DayLightContext.Provider>;
+export const DayLight: React.FC<{
+  readonly weather?: Weather;
+  readonly look?: WeatherLook;
+  readonly children: React.ReactNode;
+}> = ({ weather = "sunny", look, children }) => (
+  <DayLightContext.Provider value={look ?? WEATHER[weather]}>{children}</DayLightContext.Provider>
+);
 
 export const useSignColor = () => {
-  const weather = useContext(DayLightContext);
-  return useMemo(() => new Color().setScalar(SIGN_LIGHT[weather]), [weather]);
+  const look = useContext(DayLightContext);
+  return useMemo(() => new Color().setScalar(signLightOf(look)), [look]);
 };

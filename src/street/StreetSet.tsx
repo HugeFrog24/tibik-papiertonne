@@ -4,7 +4,7 @@ import { FOUND_KARTON_SIZE } from "./kartonShape";
 import { Karton, Sheet } from "./Karton";
 import { BINS, FOUND_SHEET } from "./layout";
 import { Tonne } from "./Tonne";
-import { WEATHER, hazeOf, type Weather, type WeatherLook } from "../weather/overcast";
+import { WEATHER, hazeOf, lookOf, type Weather, type WeatherLook } from "../weather/overcast";
 
 export const INDOOR_SHADOW_RANGE = 150;
 export const SUN = {
@@ -53,7 +53,7 @@ export const StreetLighting: React.FC<{
   readonly weather?: Weather;
   readonly look?: WeatherLook;
 }> = ({ weather = "sunny", look }) => {
-  const chosen = look ?? WEATHER[weather];
+  const chosen = lookOf(weather, look);
   const { hemisphere, sun } = chosen;
   const haze = hazeOf(chosen);
   return (
@@ -72,7 +72,7 @@ export const Sky: React.FC<{
   readonly weather?: Weather;
   readonly look?: WeatherLook;
 }> = ({ children, weather = "sunny", look }) => {
-  const [top, bottom] = (look ?? WEATHER[weather]).sky;
+  const [top, bottom] = lookOf(weather, look).sky;
   return (
     <AbsoluteFill
       style={{

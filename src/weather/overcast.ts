@@ -1,4 +1,6 @@
 import { Color } from "three";
+import { lerp } from "../characters/scalar";
+import { luminance } from "../toon/colourChecks";
 
 export type Weather = "sunny" | "rain" | "dusk" | "night";
 
@@ -46,7 +48,9 @@ export const WEATHER: Readonly<Record<Weather, WeatherLook>> = {
 };
 
 const mixColour = (a: string, b: string, k: number) => `#${new Color(a).lerp(new Color(b), k).getHexString()}`;
-const mixNumber = (a: number, b: number, k: number) => a + (b - a) * k;
+const NO_TINT = "#ffffff";
+const mixTint = (a: string | null, b: string | null, k: number) =>
+  a === null && b === null ? null : mixColour(a ?? NO_TINT, b ?? NO_TINT, k);
 
 export const mixLooks = (a: WeatherLook, b: WeatherLook, k: number): WeatherLook =>
   k <= 0
@@ -58,28 +62,27 @@ export const mixLooks = (a: WeatherLook, b: WeatherLook, k: number): WeatherLook
           hemisphere: {
             sky: mixColour(a.hemisphere.sky, b.hemisphere.sky, k),
             ground: mixColour(a.hemisphere.ground, b.hemisphere.ground, k),
-            intensity: mixNumber(a.hemisphere.intensity, b.hemisphere.intensity, k),
+            intensity: lerp(a.hemisphere.intensity, b.hemisphere.intensity, k),
           },
           sun: {
-            intensity: mixNumber(a.sun.intensity, b.sun.intensity, k),
-            shadows: k < 0.5 ? a.sun.shadows : b.sun.shadows,
+            intensity: lerp(a.sun.intensity, b.sun.intensity, k),
+            shadows: a.sun.shadows || b.sun.shadows,
           },
-          wetTint: k < 0.5 ? a.wetTint : b.wetTint,
-          wet: mixNumber(a.wet, b.wet, k),
+          wetTint: mixTint(a.wetTint, b.wetTint, k),
+          wet: lerp(a.wet, b.wet, k),
         };
-
-const luminance = (hex: string) => {
-  const c = new Color(hex);
-  return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
-};
 
 export const facadeLight = (look: WeatherLook) =>
   ((luminance(look.hemisphere.sky) + luminance(look.hemisphere.ground)) / 2) * look.hemisphere.intensity +
   look.sun.intensity;
 
+export const signLightOf = (look: WeatherLook) => facadeLight(look) / facadeLight(WEATHER.sunny);
+
 export const SIGN_LIGHT = Object.fromEntries(
-  (Object.keys(WEATHER) as Weather[]).map((w) => [w, facadeLight(WEATHER[w]) / facadeLight(WEATHER.sunny)]),
+  (Object.keys(WEATHER) as Weather[]).map((w) => [w, signLightOf(WEATHER[w])]),
 ) as Readonly<Record<Weather, number>>;
+
+export const lookOf = (weather: Weather = "sunny", look?: WeatherLook) => look ?? WEATHER[weather];
 
 export const RAIN_VISIBILITY = 3000;
 const MATCHED_AT = 150;
@@ -95,8 +98,6 @@ export const HAZE: Readonly<Record<Weather, { readonly colour: string; readonly 
 
 export const hazeOf = (look: WeatherLook) =>
   look.wet > 0 ? { colour: HAZE.rain!.colour, density: HAZE.rain!.density * look.wet } : null;
-
-export const signLightOf = (look: WeatherLook) => facadeLight(look) / facadeLight(WEATHER.sunny);
 
 export const PUDDLES: readonly {
   readonly x: number;

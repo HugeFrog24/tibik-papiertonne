@@ -20,7 +20,7 @@ import {
   manholeFootprint,
 } from "../street/drainShape";
 import { PATCHES, jointFootprint } from "../street/roadShape";
-import { HAZE, PUDDLES, RAIN_VISIBILITY, SIGN_LIGHT, WEATHER, facadeLight, hazeAt, hazeOf, mixLooks, signLightOf } from "./overcast";
+import { HAZE, PUDDLES, RAIN_VISIBILITY, SIGN_LIGHT, WEATHER, facadeLight, hazeAt, hazeOf, lookOf, mixLooks, signLightOf } from "./overcast";
 import { luminance } from "../toon/colourChecks";
 
 const hsl = (hex: string) => {
@@ -143,4 +143,43 @@ test("signs dim with the light", () => {
   expect(signLightOf(WEATHER.dusk)).toBeLessThan(SIGN_LIGHT.rain);
   expect(SIGN_LIGHT.rain).toBeLessThan(SIGN_LIGHT.sunny);
   expect(SIGN_LIGHT.sunny).toBe(1);
+});
+
+const channels = (hex: string | null) => {
+  const c = new Color(hex ?? "#ffffff");
+  return [c.r, c.g, c.b].map((v) => Math.round(Math.pow(v, 1 / 2.2) * 255));
+};
+const colourStep = (a: string | null, b: string | null) =>
+  Math.max(...channels(a).map((v, i) => Math.abs(v - channels(b)[i])));
+
+test("the dawn has no jumps: from night into rain every value moves a little each frame", () => {
+  const frames = 90;
+  for (let f = 1; f <= frames; f++) {
+    const a = mixLooks(WEATHER.night, WEATHER.rain, (f - 1) / frames);
+    const b = mixLooks(WEATHER.night, WEATHER.rain, f / frames);
+    for (const [x, y] of [[a.sky[0], b.sky[0]], [a.sky[1], b.sky[1]], [a.hemisphere.sky, b.hemisphere.sky], [a.hemisphere.ground, b.hemisphere.ground], [a.wetTint, b.wetTint]] as const)
+      expect(colourStep(x, y), `frame ${f}`).toBeLessThanOrEqual(8);
+    expect(Math.abs(b.wet - a.wet)).toBeLessThanOrEqual(1.5 / frames);
+    if (a.sun.shadows !== b.sun.shadows) expect(Math.min(a.sun.intensity, b.sun.intensity)).toBeLessThan(0.01);
+  }
+});
+
+test("a blend lies between its ends", () => {
+  const mid = mixLooks(WEATHER.night, WEATHER.rain, 0.5);
+  for (const pick of [(l: typeof mid) => l.sky[1], (l: typeof mid) => l.hemisphere.sky]) {
+    const [n, m, r] = [WEATHER.night, mid, WEATHER.rain].map((l) => luminance(pick(l)));
+    expect(m).toBeGreaterThan(n);
+    expect(m).toBeLessThan(r);
+  }
+  expect(mid.wet).toBeCloseTo(0.5, 12);
+});
+
+test("dry looks have no haze", () => {
+  for (const w of ["sunny", "dusk", "night"] as const) expect(hazeOf(WEATHER[w])).toBeNull();
+});
+
+test("a given look wins over the weather's own", () => {
+  expect(lookOf("rain")).toBe(WEATHER.rain);
+  expect(lookOf("rain", WEATHER.night)).toBe(WEATHER.night);
+  expect(lookOf()).toBe(WEATHER.sunny);
 });

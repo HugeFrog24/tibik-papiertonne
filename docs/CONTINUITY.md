@@ -401,6 +401,11 @@ Ideas (proposed, not built; the user picks):
   run-off from the reflector).
 - The bins' stickers lift at one corner (damp and daily handling).
 - The mailbox name cards are slightly wavy where damp swelled them.
+- One street lamp in the row glows a shade cooler than the others: its LED
+  module was swapped after a fault (visible only at night).
+- A few dead moths and some dust lie in the stairwell lamp's diffuser (the
+  light draws insects in; nobody cleans it), showing when the Treppenlicht is
+  on.
 - Rain spots on the paper vary in darkness and edge instead of being uniform
   discs: water wicks unevenly along the fibres, so a rim wobbles a few
   percent of its radius, and wet paper turns translucent and greyer, with a

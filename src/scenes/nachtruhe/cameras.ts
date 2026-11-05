@@ -33,6 +33,9 @@ export const NACHTRUHE_SHOTS: readonly Shot[] = [
 
 export const { shotAt, cameraAt } = camerasOf(NACHTRUHE_SHOTS);
 
+const CAPTION_HOLD = 3;
+export const CAPTION = { text: "Zwei Wochen später.", from: MORNING[0], to: MORNING[0] + CAPTION_HOLD } as const;
+
 const bed: Vec3 = [BED_RECT.x0 + 1.0, BED_RECT.top + 0.3, (BED_RECT.z0 + BED_RECT.z1) / 2];
 
 export type KeyMoment = { readonly name: string; readonly from: number; readonly to: number; readonly at: Vec3 };

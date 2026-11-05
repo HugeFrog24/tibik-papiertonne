@@ -1,7 +1,8 @@
 import { Composition, Folder, Still } from "remotion";
 import { Film } from "./Film";
-import { FILM_FRAMES, FPS, PAPIERTONNEN_FRAMES, HAUSMUELL_FRAMES, KLINGELSTURM_FRAMES, RUNDSCHREIBEN_FRAMES, TREPPENHAUS_FRAMES } from "./timeline";
+import { FILM_FRAMES, FPS, PAPIERTONNEN_FRAMES, HAUSMUELL_FRAMES, KLINGELSTURM_FRAMES, NACHTRUHE_FRAMES, RUNDSCHREIBEN_FRAMES, TREPPENHAUS_FRAMES } from "./timeline";
 import { Klingelsturm } from "./scenes/klingelsturm/Klingelsturm";
+import { Nachtruhe } from "./scenes/nachtruhe/Nachtruhe";
 import { Rundschreiben } from "./scenes/rundschreiben/Rundschreiben";
 import { KarenModelSheet } from "./Karen/KarenModelSheet";
 import { StairwellSheet } from "./building/StairwellSheet";
@@ -50,6 +51,7 @@ export const RemotionRoot: React.FC = () => {
           height={1080}
         />
         <Composition id="Klingelsturm" component={Klingelsturm} durationInFrames={KLINGELSTURM_FRAMES} fps={FPS} width={1920} height={1080} />
+        <Composition id="Nachtruhe" component={Nachtruhe} durationInFrames={NACHTRUHE_FRAMES} fps={FPS} width={1920} height={1080} />
         <Composition id="Rundschreiben" component={Rundschreiben} durationInFrames={RUNDSCHREIBEN_FRAMES} fps={FPS} width={1920} height={1080} />
       </Folder>
       <Folder name="Characters">

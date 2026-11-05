@@ -25,7 +25,6 @@ import {
 
 export type RundschreibenShot = Shot & { readonly pov?: boolean };
 
-export const CAPTION = { text: "Zwei Wochen später.", from: 0, to: 3 } as const;
 
 const INSERT_FOV = 20;
 const MARGIN = 0.006;

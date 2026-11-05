@@ -7,6 +7,8 @@ import {
   HAUSMUELL_FRAMES,
   KLINGELSTURM_FRAMES,
   KLINGELSTURM_FROM,
+  NACHTRUHE_FRAMES,
+  NACHTRUHE_FROM,
   PAPIERTONNEN_FRAMES,
   RUNDSCHREIBEN_FRAMES,
   RUNDSCHREIBEN_FROM,
@@ -21,6 +23,7 @@ import { BUBBLE_PLUCK } from "../../sound/bubbleCues";
 import { soundSeconds } from "../../sound/soundLength";
 import { ENVELOPE_LANDS, LID_THUD, RUNDSCHREIBEN_DURATION, footstepTimes, rundschreibenTibikAt } from "./choreography";
 import { FACADE_Z } from "../../street/building";
+import { NACHTRUHE_DURATION } from "../nachtruhe/timeline";
 import { DOOR_SHUT } from "./home";
 import { RAIN, RUNDSCHREIBEN_CUES, footstepsByRoom, rainLevel } from "./soundCues";
 
@@ -40,13 +43,14 @@ test("every cue has its file and every file is credited", () => {
   }
 });
 
-test("the time jump: no Klingelsturm cue runs past its scene, the rain starts at the cut", () => {
+test("the time jumps: no Klingelsturm cue runs past its scene, Nachtruhe follows at the cut, and the epilogue opens in the rain", () => {
   for (const cue of doorCues()) {
     const { rate, samples } = readWav(`${cue.sound}.wav`);
     const ends = cue.at + (cue.length ?? samples.length / rate - (cue.skip ?? 0));
     expect(ends, `${cue.sound} at ${cue.at.toFixed(2)} s`).toBeLessThanOrEqual(KLINGELSTURM_DURATION);
   }
-  expect(Math.round(RUNDSCHREIBEN_FROM * FPS)).toBe(Math.round(KLINGELSTURM_FROM * FPS) + KLINGELSTURM_FRAMES);
+  expect(Math.round(NACHTRUHE_FROM * FPS)).toBe(Math.round(KLINGELSTURM_FROM * FPS) + KLINGELSTURM_FRAMES);
+  expect(Math.round(RUNDSCHREIBEN_FROM * FPS)).toBe(Math.round(NACHTRUHE_FROM * FPS) + NACHTRUHE_FRAMES);
   expect(rainLevel(0).outside).toBe(RAIN.volume);
   expect(rainLevel(0).inside).toBe(0);
 });
@@ -75,10 +79,16 @@ test("the rain muffles once he is inside", () => {
   }
 });
 
-test("the declared time jumps, and the film is its five scenes end to end", () => {
-  expect(TIME_JUMPS).toContainEqual({ from: "Hausmuell", to: "Klingelsturm" });
-  expect(TIME_JUMPS).toContainEqual({ from: "Klingelsturm", to: "Rundschreiben" });
-  expect(FILM_FRAMES).toBe(TREPPENHAUS_FRAMES + PAPIERTONNEN_FRAMES + HAUSMUELL_FRAMES + KLINGELSTURM_FRAMES + RUNDSCHREIBEN_FRAMES);
+test("the declared time jumps, and the film is its six scenes end to end", () => {
+  expect(TIME_JUMPS).toEqual([
+    { from: "Hausmuell", to: "Klingelsturm" },
+    { from: "Klingelsturm", to: "Nachtruhe" },
+    { from: "Nachtruhe", to: "Rundschreiben" },
+  ]);
+  expect(FILM_FRAMES).toBe(TREPPENHAUS_FRAMES + PAPIERTONNEN_FRAMES + HAUSMUELL_FRAMES + KLINGELSTURM_FRAMES + NACHTRUHE_FRAMES + RUNDSCHREIBEN_FRAMES);
+  expect(NACHTRUHE_FROM).toBe(KLINGELSTURM_FROM + KLINGELSTURM_FRAMES / FPS);
+  expect(RUNDSCHREIBEN_FROM).toBeCloseTo(NACHTRUHE_FROM + NACHTRUHE_FRAMES / FPS, 9);
+  expect(NACHTRUHE_FRAMES).toBe(Math.round(NACHTRUHE_DURATION * FPS));
   expect(RUNDSCHREIBEN_FRAMES).toBe(Math.round(RUNDSCHREIBEN_DURATION * FPS));
 });
 

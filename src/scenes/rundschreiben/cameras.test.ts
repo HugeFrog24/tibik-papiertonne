@@ -8,7 +8,8 @@ import { RIG } from "../../Tibik/rig";
 import { onScreen, seenBy } from "../../dialogue/screen";
 import { LETTER_LAYOUT, PT, letterLineWidth, pointOnLetter } from "../../props/letterShape";
 import { FPS } from "../../timeline";
-import { CAPTION, FOLDING_SHOT, SHOTS, cameraAt } from "./cameras";
+import * as cameras from "./cameras";
+import { FOLDING_SHOT, SHOTS, cameraAt } from "./cameras";
 import { FLAP, FOLD, RUNDSCHREIBEN_DURATION, UNFOLD, envelopeAt } from "./choreography";
 import { solveRundschreiben } from "./solve";
 
@@ -73,8 +74,8 @@ test("each insert is on screen long enough to read: characters / 17 seconds", ()
   }
 });
 
-test("the time-jump caption is up for the first three seconds", () => {
-  expect(CAPTION).toEqual({ text: "Zwei Wochen später.", from: 0, to: 3 });
+test("the epilogue's opening wide carries no caption: the time jump is captioned on the morning before it", () => {
+  expect("CAPTION" in cameras).toBe(false);
 });
 
 type Working = { readonly envelope?: readonly [number, number]; readonly letter?: readonly [number, number] };

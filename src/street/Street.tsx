@@ -1,4 +1,4 @@
-import { PUDDLES, WEATHER, type Weather } from "../weather/overcast";
+import { PUDDLES, lookOf, type Weather, type WeatherLook } from "../weather/overcast";
 import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
 import { ExtrudeGeometry, type Texture } from "three";
 import {
@@ -576,6 +576,7 @@ export const Street: React.FC<{
   readonly haustuerLever?: number;
   readonly windAt?: number;
   readonly weather?: Weather;
+  readonly look?: WeatherLook;
   readonly lampOn?: boolean;
   readonly mailboxDoor?: number;
   readonly roofs?: boolean;
@@ -588,6 +589,7 @@ export const Street: React.FC<{
   haustuerLever = 0,
   windAt,
   weather = "sunny",
+  look,
   lampOn = false,
   mailboxDoor,
   roofs = false,
@@ -598,7 +600,7 @@ export const Street: React.FC<{
 }) => {
   const windows = { light: windowLight, curtainOpen: bedroomCurtains };
   const paving = usePavingTexture((25 * STREET_LENGTH) / 30, 3.33);
-  const wetTint = WEATHER[weather].wetTint ?? undefined;
+  const wetTint = lookOf(weather, look).wetTint ?? undefined;
 
   return (
     <>

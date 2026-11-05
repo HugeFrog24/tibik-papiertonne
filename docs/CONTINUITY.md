@@ -113,7 +113,7 @@ Items marked **(test)** are enforced by `npm test`.
 
 ## Scenes
 
-The film plays five scenes in this order (`src/Film.tsx`), each its own
+The film plays six scenes in this order (`src/Film.tsx`), each its own
 composition under "Scenes" in the Studio:
 
 1. **Treppenhaus** (`src/scenes/treppenhaus/`): Tibik leaves his flat, presses
@@ -128,8 +128,15 @@ composition under "Scenes" in the Studio:
    landing, she storms his doorbell, phones the Hausverwaltung and then 110;
    the light timer runs out, and Tibik leaves with the box packed as a
    parcel.
-5. **Rundschreiben** (`src/scenes/rundschreiben/`), the epilogue, "Zwei Wochen
-   später.": on a rainy day Tibik comes home, takes the Hausverwaltung's
+5. **Nachtruhe** (`src/scenes/nachtruhe/`), the breather: at dusk Tibik walks
+   home, unlocks the Haustür and goes in; in his bedroom he climbs into bed,
+   pulls the turned-back fleece over himself and clicks his lamp off by its
+   cord switch; the drone rises past Karen's window, the last to go out, and a
+   grey dawn brings the rain; the caption "Zwei Wochen später." opens the
+   morning, when he switches the lamp on, gets up and slides the near curtain
+   half open onto the rain. No dialogue.
+6. **Rundschreiben** (`src/scenes/rundschreiben/`), the epilogue: on the same
+   rainy day Tibik comes home, takes the Hausverwaltung's
    circular to all tenants out of his mailbox, reads it (two readable inserts,
    ending in four "Vie-len DANK."), folds it back, kloppt it into the blue
    Papiertonne and goes in; the Haustür shuts behind him. No dialogue.
@@ -535,12 +542,16 @@ Ideas (proposed, not built; the user picks):
   `papiertonnenEnd()` (src/scenes/papiertonnen/solve.ts): searched bin lid
   open against the wall, the popped-open box in both of Tibik's hands,
   Papier 1 still overfull.
-- **Declared time jumps:** Hausmuell → Klingelsturm and Klingelsturm →
-  Rundschreiben are the named exceptions to "each scene starts where the
-  previous one ended" (`TIME_JUMPS` in src/timeline.ts). **(test)**
+- **Declared time jumps:** Hausmuell → Klingelsturm, Klingelsturm → Nachtruhe
+  and Nachtruhe → Rundschreiben are the named exceptions to "each scene starts
+  where the previous one ended" (`TIME_JUMPS` in src/timeline.ts); inside
+  Nachtruhe the shots skip through the evening and night, and its dawn is the
+  one time-lapse that takes the story two weeks on. **(test)**
   Klingelsturm starts with Tibik inside, his door shut and latched, Karen on
-  the landing, her shoes on her mat. **(test)** The Rundschreiben starts two
-  weeks later, outside on the pavement, the Haustür and every lid shut, the
+  the landing, her shoes on her mat. **(test)** Nachtruhe starts at dusk the same
+  evening, Tibik on the pavement with only his keys in hand; its morning is the
+  epilogue's rainy day. **(test)** The Rundschreiben starts on that morning,
+  outside on the pavement, the Haustür and every lid shut, the
   bins emptied. **(test)** No Klingelsturm sound runs over the cut into the
   rain. **(test)**
 - **Hausmuell starts on the act:** Papiertonnen ends 0.35 s after the box has

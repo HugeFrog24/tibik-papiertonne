@@ -8,9 +8,7 @@ import { BinRow, Sky, StreetLighting } from "../../street/StreetSet";
 import { Street } from "../../street/Street";
 import { Tibik } from "../../Tibik/Tibik";
 import { CameraRig } from "../../toon/primitives";
-import { AbsoluteFill, Sequence } from "remotion";
-import { Caption } from "../../dialogue/Caption";
-import { CAPTION, cameraAt, shotAt } from "./cameras";
+import { cameraAt, shotAt } from "./cameras";
 import { solveRundschreiben } from "./solve";
 import { rundschreibenRain } from "./rain";
 import { UNFOLD } from "./choreography";
@@ -79,11 +77,6 @@ export const Rundschreiben: React.FC<{
           <Scene />
         </DayLight>
       </ToonCanvas>
-      <Sequence from={Math.round(CAPTION.from * fps)} durationInFrames={Math.round((CAPTION.to - CAPTION.from) * fps)} layout="none">
-        <AbsoluteFill>
-          <Caption text={CAPTION.text} />
-        </AbsoluteFill>
-      </Sequence>
       <RundschreibenSound ambience={ambience} />
     </Sky>
   );

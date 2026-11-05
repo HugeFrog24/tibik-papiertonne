@@ -1,3 +1,5 @@
+import { Score } from "../../sound/Score";
+import { MAIN_STREET } from "../../sound/music";
 import { useVideoConfig } from "remotion";
 import { HAUSMUELL_FROM } from "../../timeline";
 import { KarenStomps } from "../../Karen/KarenStomp";
@@ -16,6 +18,7 @@ export const HausmuellSound: React.FC<{ readonly ambience: boolean }> = ({
   return (
     <>
       {ambience ? <StreetAmbience windFrom={HAUSMUELL_FROM} /> : null}
+      {ambience ? <Score music={MAIN_STREET} offset={HAUSMUELL_FROM} /> : null}
 
       <KarenStomps times={karenFootsteps(fps)} />
 

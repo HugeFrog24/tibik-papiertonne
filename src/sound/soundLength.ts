@@ -18,6 +18,14 @@ export const oggSeconds = (buffer: Buffer) => {
   return Number(buffer.readBigInt64LE(lastPageAt(buffer) + 6)) / rate;
 };
 
+const STREAMINFO = { at: 18, rateShift: BigInt(44), samples: (BigInt(1) << BigInt(36)) - BigInt(1) };
+
+export const flacSeconds = (buffer: Buffer) => {
+  if (buffer.toString("latin1", 0, 4) !== "fLaC" || (buffer[4] & 0x7f) !== 0) throw new Error("not a FLAC file");
+  const packed = buffer.readBigUInt64BE(STREAMINFO.at);
+  return Number(packed & STREAMINFO.samples) / Number(packed >> STREAMINFO.rateShift);
+};
+
 export const soundSeconds = (name: string) => {
   if (name.endsWith(".ogg")) return oggSeconds(readFileSync(`public/sfx/${name}`));
   const { rate, samples } = readWav(name);

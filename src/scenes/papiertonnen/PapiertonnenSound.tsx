@@ -1,3 +1,5 @@
+import { Score } from "../../sound/Score";
+import { MAIN_STREET } from "../../sound/music";
 import { Audio } from "@remotion/media";
 import { PAPIERTONNEN_FROM } from "../../timeline";
 import { FootstepSounds } from "../../sound/FootstepSounds";
@@ -17,6 +19,7 @@ export const PapiertonnenSound: React.FC<{ readonly ambience: boolean }> = ({
   return (
     <>
       {ambience ? <StreetAmbience windFrom={PAPIERTONNEN_FROM} /> : null}
+      {ambience ? <Score music={MAIN_STREET} offset={PAPIERTONNEN_FROM} /> : null}
 
       {Array.from({ length: FLY_COUNT }, (_, i) => (
         <Audio

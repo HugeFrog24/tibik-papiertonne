@@ -2,6 +2,8 @@ import { AbsoluteFill, Series } from "remotion";
 import { Papiertonnen } from "./scenes/papiertonnen/Papiertonnen";
 import { Hausmuell } from "./scenes/hausmuell/Hausmuell";
 import { StreetAmbience } from "./street/StreetAmbience";
+import { Score } from "./sound/Score";
+import { MAIN_STREET } from "./sound/music";
 import { Treppenhaus } from "./scenes/treppenhaus/Treppenhaus";
 import { Klingelsturm } from "./scenes/klingelsturm/Klingelsturm";
 import { Rundschreiben } from "./scenes/rundschreiben/Rundschreiben";
@@ -27,5 +29,6 @@ export const Film: React.FC = () => (
       </Series.Sequence>
     </Series>
     <StreetAmbience indoors={filmIndoors} />
+    <Score music={MAIN_STREET} offset={0} />
   </AbsoluteFill>
 );

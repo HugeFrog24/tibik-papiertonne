@@ -1,3 +1,5 @@
+import { Score } from "../../sound/Score";
+import { MAIN_STREET } from "../../sound/music";
 import { FootstepSounds } from "../../sound/FootstepSounds";
 import { SoundCues, withSources } from "../../sound/SoundCues";
 import { StreetAmbience } from "../../street/StreetAmbience";
@@ -47,6 +49,7 @@ export const TreppenhausSound: React.FC<{ readonly ambience: boolean }> = ({
   return (
     <>
       {ambience ? <StreetAmbience indoors={treppenhausIndoorsAt} /> : null}
+      {ambience ? <Score music={MAIN_STREET} offset={0} /> : null}
       <FootstepSounds times={times} who="Tibik" volume={0.3} room="stairwell" />
       <SoundCues
         cues={withSources(CUES, (cue) => `stairwell/${cue.file}.wav`)}

@@ -517,6 +517,12 @@ Ideas (proposed, not built; the user picks):
   popped open; at Hausmuell's start he turns to walk off with it and Karen
   bursts in shouting within 0.8 s of the box opening, his found-it ding cut
   off by the record scratch. **(test)**
+- **Music (main street):** the recording `public/music/mainstreet.flac` plays
+  from its start as he opens the Haustür (a 0.5 s fade in), under his walk
+  out and his search of the Papiertonne, and stops dead on the record scratch
+  as Karen bursts in. Non-diegetic: never muffled indoors. It plays at its own
+  recorded level (1.0), about level with the street ambience under it. A scene
+  previewed alone plays the same part of it as in the film. **(test)**
 - In dialogue between Tibik and Karen, keep the camera on one side of the line
   between them (180° rule), with matching eyelines in shot/reverse-shot.
 - The street ambience runs under every scene and across cuts: two loops,

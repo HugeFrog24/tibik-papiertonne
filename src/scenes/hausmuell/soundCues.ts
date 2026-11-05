@@ -4,7 +4,7 @@ import type { SoundCue } from "../../sound/SoundCues";
 import { LINES } from "./choreography";
 
 const SHOUT = LINES.find((l) => l.speaker === "karen")!.from;
-const RECORD_SCRATCH = SHOUT - 0.1;
+export const RECORD_SCRATCH = SHOUT - 0.1;
 
 export const HAUSMUELL_CUES: readonly SoundCue[] = [
   {

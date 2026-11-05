@@ -54,3 +54,7 @@ rain.wav and rain-muffled.wav (heard from inside the building) are made by scrip
 https://commons.wikimedia.org/wiki/File:Rain_(1).ogg, kept in assets/recordings/rain-ezwa.ogg: its
 steadiest 32 s are crossfaded into a 30 s loop, the few close drop crackles softened (4:1 above the
 99.99th percentile), and the muffled twin filtered like the street ambience.
+
+Music: public/music/mainstreet.flac ("mainstreet", 2:24, stereo FLAC 44.1 kHz / 24 bit), supplied by
+the film's author for this film and vendored as is. It plays under Treppenhaus, Papiertonnen and the
+start of Hausmuell (src/sound/music.ts).

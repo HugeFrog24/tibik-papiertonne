@@ -6,6 +6,7 @@ import {
   type Material,
   type Object3D,
 } from "three";
+import { frameHeightAt } from "./frameHeight";
 import { INK } from "./primitives";
 
 export const INK_PASS = {
@@ -23,7 +24,7 @@ export const inkRadius = (
   fovDegrees: number,
   depth: number,
 ) =>
-  (outline * heightPx) / (2 * depth * Math.tan((fovDegrees * Math.PI) / 360));
+  (outline * heightPx) / frameHeightAt(depth, fovDegrees);
 
 export const ONE_UNIT = { inkGroup: true } as const;
 

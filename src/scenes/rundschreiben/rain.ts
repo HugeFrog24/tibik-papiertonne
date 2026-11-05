@@ -12,4 +12,5 @@ export const rundschreibenRain = (t: number, state: RundschreibenState) =>
     cameraAt(t).position,
     [...rundschreibenSolids(state), ...(state.letter ? letterSolids(state.letter) : [])],
     allColliders(RIG, asCharacter(state.tibik)),
+    { fov: cameraAt(t).fov },
   );

@@ -43,7 +43,14 @@ const Outside: React.FC<{ readonly t: number; readonly state: NachtruheState }> 
       bedroomCurtains={state.curtains}
       lampsOn={state.lampsOn}
     />
-    {state.rain > 0 ? <Rain drops={rainAt(t, cameraAt(t).position, streetSolids(state), [], state.rain)} light={rainLight(state.look, state.lampsOn)} /> : null}
+    {state.rain > 0 ? (
+      <Rain
+        drops={rainAt(t, cameraAt(t).position, streetSolids(state), [], { share: state.rain, fov: cameraAt(t).fov })}
+        eye={cameraAt(t).position}
+        fov={cameraAt(t).fov}
+        light={rainLight(state.look, state.lampsOn)}
+      />
+    ) : null}
   </>
 );
 

@@ -51,7 +51,7 @@ const Scene: React.FC = () => {
           spots={paperSpotsAt(t, UNFOLD[0])}
         />
       ) : null}
-      <Rain drops={rundschreibenRain(t, state)} />
+      <Rain drops={rundschreibenRain(t, state)} eye={cameraAt(t).position} fov={cameraAt(t).fov} />
       {state.envelope ? (
         <Envelope
           matrix={state.envelope.matrix}

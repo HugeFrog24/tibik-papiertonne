@@ -26,6 +26,8 @@ import {
   clearOfLens,
   lensFade,
 } from "./rainDrops";
+import { STREAK_LENGTH } from "./rainStreaks";
+import { frameHeightAt } from "../toon/frameHeight";
 
 const SOLIDS = worldSolids(BINS.map(() => 0));
 const TIBIK = bodyColliders(RIG, {
@@ -275,7 +277,7 @@ test("drops near the camera are drawn fainter, those further off at full strengt
 
 test("rain sets in: a share of the columns falls, and as the share grows more join, the earlier ones falling on", () => {
   const all = rainAt(7.25, CAMERA, SOLIDS, BODIES);
-  const ids = (share: number) => new Set(rainAt(7.25, CAMERA, SOLIDS, BODIES, share).map((d) => d.id));
+  const ids = (share: number) => new Set(rainAt(7.25, CAMERA, SOLIDS, BODIES, { share }).map((d) => d.id));
   expect(ids(0).size).toBe(0);
   expect(ids(1).size).toBe(all.length);
   const few = ids(0.25);
@@ -283,5 +285,38 @@ test("rain sets in: a share of the columns falls, and as the share grows more jo
   expect(few.size / all.length).toBeGreaterThan(0.15);
   expect(few.size / all.length).toBeLessThan(0.35);
   for (const id of few) expect(more.has(id)).toBe(true);
-  expect(rainAt(7.25, CAMERA, SOLIDS, BODIES, 0.6).every((d) => all.some((a) => a.id === d.id && a.head.every((v, i) => v === d.head[i])))).toBe(true);
+  expect(rainAt(7.25, CAMERA, SOLIDS, BODIES, { share: 0.6 }).every((d) => all.some((a) => a.id === d.id && a.head.every((v, i) => v === d.head[i])))).toBe(true);
+});
+
+const FOV = 50;
+const span = (a: Vec3, b: Vec3) => new Vector3(...a).distanceTo(new Vector3(...b));
+
+test("far off a streak is drawn long enough to read as rain, at least 27 lines of a 1080-line frame, stretched back along its own fall and never above the sky it fell from", () => {
+  const plain = new Map(rainAt(7.25, CAMERA, SOLIDS, BODIES).map((d) => [d.id, d]));
+  let stretched = 0;
+  for (const d of rainAt(7.25, CAMERA, SOLIDS, BODIES, { fov: FOV })) {
+    const p = plain.get(d.id);
+    if (!p || d.splash) continue;
+    expect(d.head).toEqual(p.head);
+    const k = Math.max(1, (STREAK_LENGTH.leastOfFrame * frameHeightAt(span(CAMERA, d.head), FOV)) / RAIN.streak);
+    const fromTheSky = (RAIN_AREA.top - d.head[1]) / -RAIN_DIR.y;
+    expect(span(d.head, d.tail)).toBeCloseTo(Math.min(span(p.head, p.tail) * k, fromTheSky), 6);
+    const along = new Vector3(...d.head).sub(new Vector3(...d.tail));
+    if (along.length() > 1e-6) expect(along.normalize().dot(RAIN_DIR)).toBeCloseTo(1, 9);
+    if (k > 1.01) stretched++;
+  }
+  expect(stretched).toBeGreaterThan(100);
+});
+
+test("drawn long, every streak still lies outside every solid and Tibik", () => {
+  const others = SOLIDS.filter((s) => s !== GROUND);
+  for (const t of TIMES)
+    for (const d of rainAt(t, CAMERA, SOLIDS, BODIES, { fov: FOV })) {
+      const mid = new Vector3(...d.head).lerp(new Vector3(...d.tail), 0.5);
+      const near = nearby([...others, ...BODIES], mid, span(d.head, d.tail));
+      for (const p of points(d)) {
+        expect(p.y).toBeGreaterThanOrEqual(rainGroundY(p.x, p.z) - 1e-9);
+        for (const s of near) expect(inside(p, s), `${d.id} in ${s.name}`).toBe(false);
+      }
+    }
 });

@@ -12,6 +12,8 @@ import {
   acrossZ,
 } from "../street/building";
 import type { Vec3 } from "../toon/primitives";
+import { frameHeightAt } from "../toon/frameHeight";
+import { STREAK_LENGTH } from "./rainStreaks";
 
 export const RAIN = {
   perSquareMetre: 10,
@@ -258,9 +260,11 @@ export const rainAt = (
   camera: Vec3,
   solids: readonly Solid[],
   bodies: readonly Sphere[],
-  share = 1,
+  { share = 1, fov }: { readonly share?: number; readonly fov?: number } = {},
 ): Drop[] => {
   const eye = new Vector3(...camera);
+  const stretchAt = (head: Vector3) =>
+    fov === undefined ? 1 : Math.max(1, (STREAK_LENGTH.leastOfFrame * frameHeightAt(eye.distanceTo(head), fov)) / RAIN.streak);
   const moving = movingOf(solids);
   const drops: Drop[] = [];
   for (const column of rainColumns()) {
@@ -273,8 +277,10 @@ export const rainAt = (
     const at = (d: number) => origin.clone().addScaledVector(RAIN_DIR, d);
     let drop: Drop | null = null;
     if (travelled - RAIN.streak < stop) {
-      const head = at(Math.min(travelled, stop));
-      const tail = at(Math.max(0, travelled - RAIN.streak));
+      const reached = Math.min(travelled, stop);
+      const head = at(reached);
+      const real = reached - Math.max(0, travelled - RAIN.streak);
+      const tail = at(Math.max(0, reached - real * stretchAt(head)));
       drop = {
         id: column.id,
         head: toVec3(head),

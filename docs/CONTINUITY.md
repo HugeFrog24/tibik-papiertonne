@@ -293,6 +293,54 @@ composition under "Scenes" in the Studio:
   when the body is nearly where it stops (Karen's legs are straight at rest:
   she can only stand still with her body right over her feet).
 
+## Everyday imperfections
+
+Things in this world carry the small marks of being made, used and handled
+by people in an ordinary hurry, never marks staged for their own sake
+(user rule, 2026-11-05). Every imperfection:
+
+- has a real everyday cause: how the thing was made, handled, carried,
+  weathered or aged;
+- stays subtle: the viewer notices it second, never first, and it never
+  draws focus from the action or the joke (millimetres and degrees, not
+  centimetres and dozens of degrees);
+- is physical: collisions, outlines and grips use the same imperfect shape
+  that is drawn, and it is deterministic (seeded), so every render agrees;
+- stays with its object from shot to shot and scene to scene.
+
+In the film now:
+
+- The Rundschreiben's envelope is torn open by hand: the flap rips along a
+  ragged, slanted line and a jagged strip of it stays glued on the back.
+  **(test)**
+- The letter was folded by hand: its creases sit 1-1.5 mm off the DIN fold
+  marks, and unfolded its outer panels keep 5-7 degrees towards the text;
+  held at its sides it bows about 2 mm, and faint crease shadows stay on the
+  paper. **(test)**
+- The envelope is floppy: it bows 7-14 mm and flexes while held, and droops
+  when he holds it in one hand. **(test)**
+- Rain spots stay where they land on the paper. **(test)** Paper has its own
+  finer toon ramp, so creases and bends catch the light in steps.
+- Karen's locks vary slightly in shade (salt and pepper); about two thirds of
+  the cars carry a dealer's plate strip; the bins carry their stickers.
+
+Review passes check every new or changed object against this section. They
+flag anything too clean for its use (perfect folds, pristine edges, identical
+copies, objects aligned to the millimetre) and anything staged (too big, too
+many, implausible or attention-grabbing), and they add new ideas, each with
+its everyday cause, to the list below for the user to pick.
+
+Ideas (proposed, not built; the user picks):
+
+- The doormat lies slightly askew in front of the Haustür, where feet kick it.
+- The mailbox name labels differ: printed, handwritten, one a little crooked
+  or sun-faded.
+- The Rundschreiben's envelope has a soft bent corner from being pushed
+  through the mailbox slot.
+- The house key's brass is worn brighter at its tip and bow; the ring is a
+  little sprung.
+- The bins are scuffed at their wheels and lid edges.
+
 ## Continuity between scenes
 
 - Each scene starts exactly where the previous one ended. **(test)** The

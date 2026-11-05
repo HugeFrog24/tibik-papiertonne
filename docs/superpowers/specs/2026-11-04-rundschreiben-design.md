@@ -44,6 +44,11 @@ Papiertonne, so he follows it to the letter.
   walks past the Haustür to the blue Papiertonne, lifts the lid and "kloppt"
   it in with a firm flick; the lid drops shut with a thud. He goes inside and
   the Haustür closes. This is the last shot of the film.
+- **Everyday imperfections (user, 2026-11-05):** the props show the subtle,
+  realistic marks of handling, never staged ones: the envelope torn open by
+  hand, the letter folded by hand and never quite flat again, the envelope
+  floppy, light that shows the folds. The film-wide rule and its review duty
+  live in docs/CONTINUITY.md, "Everyday imperfections".
 - **Look decisions the user made for this scene:** overcast, soft light (the
   approved softer self-shadows on characters fall out of it naturally: the sky
   light dominates and the sun is weak and diffuse).

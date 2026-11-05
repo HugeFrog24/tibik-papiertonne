@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
 import { expect, test } from "vitest";
+import { expectFilesCredited } from "../../sound/creditChecks";
 import { readWav } from "../../sound/wavFile";
 import {
   FILM_FRAMES,
@@ -28,14 +28,10 @@ import { DOOR_SHUT } from "./home";
 import { RAIN } from "../../sound/rain";
 import { RUNDSCHREIBEN_CUES, footstepsByRoom, rainLevel } from "./soundCues";
 
-const CREDITS = readFileSync("public/sfx/CREDITS.md", "utf8");
 
 test("every cue has its file and every file is credited", () => {
   const files = [...RUNDSCHREIBEN_CUES.map((c) => c.file), `${RAIN.file}.wav`, `${RAIN.file}-muffled.wav`];
-  for (const file of files) {
-    expect(existsSync(`public/sfx/${file}`), file).toBe(true);
-    expect(CREDITS.includes(file.split("/").pop()!), `${file} in CREDITS.md`).toBe(true);
-  }
+  expectFilesCredited(files);
   expect(RUNDSCHREIBEN_CUES.some((c) => Math.abs(c.at - LID_THUD) < 1 / FPS)).toBe(true);
   expect(RUNDSCHREIBEN_CUES.some((c) => Math.abs(c.at - DOOR_SHUT) < 1 / FPS)).toBe(true);
   for (const cue of RUNDSCHREIBEN_CUES) {

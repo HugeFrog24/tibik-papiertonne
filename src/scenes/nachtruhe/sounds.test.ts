@@ -1,6 +1,6 @@
-import { existsSync, readFileSync } from "node:fs";
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
+import { expectFilesCredited } from "../../sound/creditChecks";
 import { ENTRANCE_X, FACADE_Z } from "../../street/building";
 import { RAIN } from "../../sound/rain";
 import { soundSeconds } from "../../sound/soundLength";
@@ -16,7 +16,6 @@ import { nachtruheWorldAt } from "./choreography";
 import { BLACKBIRD, EPILOGUE_RAIN_START, HAUSTUER_FAR_OFF, NACHTRUHE_CUES, RAIN_FROM, footstepsByPlace, hushAt, rainLevelAt } from "./soundCues";
 import { CURTAIN_PULL, DAWN, DRONE, DUSK, ENTRY, LAMP_OFF, LAMP_ON, NACHTRUHE_DURATION } from "./timeline";
 
-const CREDITS = readFileSync("public/sfx/CREDITS.md", "utf8");
 const frameOf = (t: number) => Math.round(t * FPS);
 
 test("every cue has its file and every file is credited", () => {
@@ -30,10 +29,7 @@ test("every cue has its file and every file is credited", () => {
     `${RAIN.file}-muffled.wav`,
     ...steps,
   ];
-  for (const file of files) {
-    expect(existsSync(`public/sfx/${file}`), file).toBe(true);
-    expect(CREDITS.includes(file.split("/").pop()!), `${file} in CREDITS.md`).toBe(true);
-  }
+  expectFilesCredited(files);
   for (const cue of NACHTRUHE_CUES) {
     expect(cue.at, cue.name).toBeGreaterThanOrEqual(0);
     expect(cue.at + soundSeconds(cue.file), cue.name).toBeLessThan(NACHTRUHE_DURATION);

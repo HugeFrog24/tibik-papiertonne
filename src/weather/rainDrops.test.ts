@@ -61,18 +61,23 @@ const points = (d: Drop) =>
 const inside = (p: Vector3, s: Solid) =>
   (collide(sphere("rain", p, 1e-4), s)?.depth ?? 0) > 1e-3;
 
-test("every streak lies outside every solid and Tibik, and never below the ground it falls on", { timeout: 120_000 }, () => {
+const span = (a: Vec3, b: Vec3) => new Vector3(...a).distanceTo(new Vector3(...b));
+
+const expectThroughNothing = (options?: Parameters<typeof rainAt>[4]) => {
   const others = ALL.filter((s) => s !== GROUND);
   for (const t of TIMES)
-    for (const d of rainAt(t, CAMERA, SOLIDS, BODIES)) {
+    for (const d of rainAt(t, CAMERA, SOLIDS, BODIES, options)) {
       const mid = new Vector3(...d.head).lerp(new Vector3(...d.tail), 0.5);
-      const near = nearby([...others, ...BODIES], mid, RAIN.streak);
+      const near = nearby([...others, ...BODIES], mid, Math.max(RAIN.streak, span(d.head, d.tail)));
       for (const p of points(d)) {
         expect(p.y).toBeGreaterThanOrEqual(rainGroundY(p.x, p.z) - 1e-9);
-        for (const s of near)
-          expect(inside(p, s), `${d.id} in ${s.name}`).toBe(false);
+        for (const s of near) expect(inside(p, s), `${d.id} in ${s.name}`).toBe(false);
       }
     }
+};
+
+test("every streak lies outside every solid and Tibik, and never below the ground it falls on", { timeout: 120_000 }, () => {
+  expectThroughNothing();
 });
 
 const segmentHitsBox = (
@@ -338,8 +343,6 @@ test("rain sets in: a share of the columns falls, and as the share grows more jo
 });
 
 const FOV = 50;
-const span = (a: Vec3, b: Vec3) => new Vector3(...a).distanceTo(new Vector3(...b));
-
 test("far off a streak is drawn long enough to read as rain, at least 27 lines of a 1080-line frame, stretched back along its own fall and never above the sky it fell from", () => {
   const plain = new Map(rainAt(7.25, CAMERA, SOLIDS, BODIES).map((d) => [d.id, d]));
   let stretched = 0;
@@ -357,15 +360,6 @@ test("far off a streak is drawn long enough to read as rain, at least 27 lines o
   expect(stretched).toBeGreaterThan(100);
 });
 
-test("drawn long, every streak still lies outside every solid and Tibik", () => {
-  const others = SOLIDS.filter((s) => s !== GROUND);
-  for (const t of TIMES)
-    for (const d of rainAt(t, CAMERA, SOLIDS, BODIES, { fov: FOV })) {
-      const mid = new Vector3(...d.head).lerp(new Vector3(...d.tail), 0.5);
-      const near = nearby([...others, ...BODIES], mid, span(d.head, d.tail));
-      for (const p of points(d)) {
-        expect(p.y).toBeGreaterThanOrEqual(rainGroundY(p.x, p.z) - 1e-9);
-        for (const s of near) expect(inside(p, s), `${d.id} in ${s.name}`).toBe(false);
-      }
-    }
+test("drawn long, every streak still lies outside every solid and Tibik", { timeout: 120_000 }, () => {
+  expectThroughNothing({ fov: FOV });
 });

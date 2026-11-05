@@ -1,10 +1,10 @@
 import { expect, test } from "vitest";
-import { bedroomParts, bedroomSolids, BED_RECT, BEDROOM } from "../building/bedroomShape";
+import { bedroomParts, bedroomSolids, BED_RECT, BEDROOM, PILLOWS } from "../building/bedroomShape";
 import { contacts, partObb } from "../physics/collision";
 import { OUTLINE } from "../toon/primitives";
 import { guardGround } from "../physics/guards";
 import { solveRundschreiben } from "../scenes/rundschreiben/solve";
-import { LYING, LYING_TILT, SITTING, SITTING_EDGE } from "../Tibik/bedPoses";
+import { HEAD_DRAWN, LYING, lyingInBed, sittingOnBed } from "../Tibik/bedPoses";
 import { RIG, TIBIK_REST } from "../Tibik/rig";
 import { allColliders, bodyColliders, faceDirection, type Placement } from "./skeleton";
 
@@ -60,7 +60,7 @@ test("lying on his back his heels rest on the mattress as his back does, not hel
 });
 
 test("sitting on the bed's edge his seat rests on the mattress and his short legs hang free of the floor", () => {
-  const sitting = bodyColliders(RIG, { position: [BED_RECT.x0 + 1.0, BEDROOM.floor, BED_RECT.z0 + SITTING_EDGE], rotationY: Math.PI, pose: SITTING });
+  const sitting = bodyColliders(RIG, sittingOnBed(BED_RECT.x0 + 1.3));
   expect(Math.abs(bottomOf(sitting.lowerTorso) - BED_RECT.top)).toBeLessThan(0.01);
   expect(bottomOf(sitting.legs)).toBeGreaterThan(BEDROOM.floor + 0.05);
   const knees = sitting.legs.filter((s) => s.name.includes("thigh"));
@@ -71,19 +71,46 @@ const grown = <S extends { radius: number }>(spheres: readonly S[]) => spheres.m
 const bedSolids = bedroomSolids({ door: 0, curtain: 0 }).filter((s) => ["mattress", "bed rail", "bed foot rail", "headboard", "pillow"].includes(s.name));
 
 test("sitting at the edge his legs hang over it, clear of the mattress and the bed rail, outlines included", () => {
-  const legs = bodyColliders(RIG, { position: [BED_RECT.x0 + 1.0, BEDROOM.floor, BED_RECT.z0 + SITTING_EDGE], rotationY: Math.PI, pose: SITTING }).legs;
+  const legs = bodyColliders(RIG, sittingOnBed(BED_RECT.x0 + 1.3)).legs;
   expect(contacts(grown(legs.filter((s) => !s.name.includes("thigh"))), bedSolids).map((c) => `${c.a} / ${c.b}`)).toEqual([]);
 });
 
-test("lying with his head on his pillow he rests on pillow and mattress and passes through neither", () => {
-  const pillows = bedSolids.filter((s) => s.name === "pillow");
-  const ground = [partObb(mattress), ...pillows];
-  const start = { skeleton: RIG, position: [BED_RECT.x0 + 1.05, BED_RECT.top - 0.1, (BED_RECT.z0 + BED_RECT.z1) / 2 + 0.39] as [number, number, number], rotationY: Math.PI / 2, pose: LYING, tilt: LYING_TILT };
-  const rested = guardGround(start, ground);
-  const body = allColliders(RIG, rested);
-  expect(Math.max(0, ...contacts(body, ground).map((c) => c.depth))).toBeLessThan(0.002);
-  const touching = contacts(body.map((s) => ({ ...s, radius: s.radius + 0.01 })), ground).map((c) => c.b);
-  expect(touching).toContain("pillow");
-  expect(touching).toContain("mattress");
-  expect(faceDirection(RIG, rested).y).toBeGreaterThan(0.85);
+const headboard = bedSolids.find((s) => s.name === "headboard")!;
+const pillows = bedSolids.filter((s) => s.name === "pillow");
+const pillowTop = BED_RECT.top + PILLOWS[0].size[1];
+
+test("in bed his head rests on his pillow and his back on the mattress, the drawn head clear of the headboard", () => {
+  for (const side of [1, -1] as const) {
+    const inBed = lyingInBed(side);
+    const body = bodyColliders(RIG, inBed);
+    const rest = [...body.torso, ...body.legs, ...body.leftArm, ...body.rightArm];
+    expect(Math.max(0, ...contacts(allColliders(RIG, inBed), [partObb(mattress), ...pillows]).map((c) => c.depth)), `side ${side}`).toBeLessThan(0.002);
+    const headGap = bottomOf(body.head) - pillowTop;
+    expect(headGap).toBeGreaterThanOrEqual(HEAD_DRAWN - 0.002);
+    expect(headGap).toBeLessThan(HEAD_DRAWN + 0.02);
+    expect(bottomOf(rest) - BED_RECT.top).toBeGreaterThanOrEqual(-0.002);
+    expect(bottomOf(rest) - BED_RECT.top).toBeLessThan(0.03);
+    const face = headboard.kind === "obb" ? headboard.center.x + headboard.half[0] : 0;
+    for (const s of body.head) expect(s.center.x - s.radius - HEAD_DRAWN - OUTLINE / 2, s.name).toBeGreaterThanOrEqual(face);
+    expect(faceDirection(RIG, inBed).y).toBeGreaterThan(0.95);
+    const heads = body.head.filter((s) => s.name === "head");
+    const headZ = heads.reduce((sum, s) => sum + s.center.z, 0) / heads.length;
+    expect(Math.abs(headZ - (BED_RECT.z0 + BED_RECT.z1) / 2 - side * 0.39)).toBeLessThan(0.1);
+  }
+});
+
+test("a sideways touch never lifts him while he lies: pressed to the headboard he is not raised off the mattress", () => {
+  const start = { ...lyingInBed(1), position: [lyingInBed(1).position[0] - 0.08, lyingInBed(1).position[1], lyingInBed(1).position[2]] as [number, number, number] };
+  const without = guardGround(start, [partObb(mattress), ...pillows]);
+  const against = guardGround(start, [partObb(mattress), ...pillows, headboard]);
+  expect(against.pose.bob).toBeCloseTo(without.pose.bob, 6);
+});
+
+test("sitting on the bed's edge past the pillows, nothing of him passes into a pillow, the headboard or the rail, outlines included", () => {
+  const sitting = sittingOnBed(BED_RECT.x0 + 1.3);
+  const body = bodyColliders(RIG, sitting);
+  const others = bedSolids.filter((s) => s.name !== "mattress");
+  expect(contacts(grown([...body.torso, ...body.head, ...body.leftArm, ...body.rightArm, ...body.legs]), others).map((c) => `${c.a} / ${c.b}`)).toEqual([]);
+  expect(Math.abs(bottomOf(body.lowerTorso) - BED_RECT.top)).toBeLessThan(0.01);
+  expect(sitting.position[1]).toBe(BEDROOM.floor);
 });

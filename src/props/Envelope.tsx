@@ -8,8 +8,9 @@ import {
 import { ENVELOPE_TEXT } from "../scenes/rundschreiben/letter";
 import { useDisposable } from "../toon/useDisposable";
 import { LETTER_FAMILY, useLetterTexture } from "./letterFont";
-import { DL, ENVELOPE, envelopeFlap, envelopeSag, flapOutline } from "./letterShape";
+import { DL, ENVELOPE, envelopeFlap, envelopeSag, flapPieces } from "./letterShape";
 import { PAPER } from "./Letter";
+import { paperRamp } from "../toon/paperRamp";
 
 const WHITE = "#f6f5f0";
 const PX = 5000;
@@ -35,9 +36,9 @@ const bentSheet = (bow: number, twist: number, z: number) => {
   return g;
 };
 
-const flapShape = () => {
+const shapeOf = (outline: readonly (readonly [number, number])[]) => {
   const s = new Shape();
-  flapOutline().forEach(([x, y], i) => (i === 0 ? s.moveTo(x, y) : s.lineTo(x, y)));
+  outline.forEach(([x, y], i) => (i === 0 ? s.moveTo(x, y) : s.lineTo(x, y)));
   s.closePath();
   return s;
 };
@@ -60,18 +61,24 @@ export const Envelope: React.FC<{
     [bow, twist],
   );
   const back = useDisposable(() => bentSheet(bow, twist, -t), [bow, twist]);
-  const flapGeometry = useDisposable(() => new ShapeGeometry(flapShape()), []);
+  const lifted = useDisposable(() => new ShapeGeometry(shapeOf(flapPieces().lifted)), []);
+  const glued = useDisposable(() => new ShapeGeometry(shapeOf(flapPieces().glued)), []);
   return (
     <group matrixAutoUpdate={false} matrix={matrix}>
       <mesh geometry={back} receiveShadow castShadow>
-        <meshToonMaterial color={WHITE} side={DoubleSide} />
+        <meshToonMaterial color={WHITE} side={DoubleSide} gradientMap={paperRamp()} />
       </mesh>
       <mesh geometry={front} receiveShadow>
-        <meshToonMaterial color="#ffffff" map={face} />
+        <meshToonMaterial color="#ffffff" map={face} gradientMap={paperRamp()} />
       </mesh>
       <group matrixAutoUpdate={false} matrix={envelopeFlap(flap)}>
-        <mesh geometry={flapGeometry} receiveShadow>
-          <meshToonMaterial color={WHITE} side={DoubleSide} />
+        <mesh geometry={lifted} receiveShadow>
+          <meshToonMaterial color={WHITE} side={DoubleSide} gradientMap={paperRamp()} />
+        </mesh>
+      </group>
+      <group matrixAutoUpdate={false} matrix={envelopeFlap(0)}>
+        <mesh geometry={glued} receiveShadow>
+          <meshToonMaterial color={WHITE} side={DoubleSide} gradientMap={paperRamp()} />
         </mesh>
       </group>
     </group>

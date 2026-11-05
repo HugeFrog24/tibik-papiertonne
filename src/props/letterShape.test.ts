@@ -6,14 +6,18 @@ import { HAUSVERWALTUNG } from "../street/building";
 import {
   A4,
   DL,
+  CREASES,
   ENVELOPE,
   FOLD_MARKS,
   LETTER_LAYOUT,
   envelopeFlap,
   envelopeSag,
+  flapOutline,
+  flapPieces,
   letterLineWidth,
   letterPanels,
   paperSpotsAt,
+  sheetBow,
 } from "./letterShape";
 
 const SPEC = "docs/superpowers/specs/2026-11-04-rundschreiben-design.md";
@@ -68,8 +72,8 @@ describe("the wording", () => {
   test("no line of text sits on a fold, where the crease would cut it", () => {
     for (const l of LETTER_LAYOUT.lines) {
       const height = (l.pt * 0.0254) / 72;
-      for (const mark of FOLD_MARKS)
-        expect(mark < l.y - 0.001 || mark > l.y + height + 0.001, l.text).toBe(true);
+      for (const crease of CREASES)
+        expect(crease < l.y - 0.001 || crease > l.y + height + 0.001, l.text).toBe(true);
     }
   });
 });
@@ -83,26 +87,51 @@ const cornersOf = ({ matrix, size }: ReturnType<typeof letterPanels>[number]) =>
   ].map(([x, y]) => new Vector3(x, y, 0).applyMatrix4(matrix));
 
 describe("the sheet", () => {
-  test("flat, the three panels make one A4 sheet; folded, it is a 210 x 105 mm stack that fits a DL envelope", () => {
+  test("folded by hand, the three panels make one A4 sheet: the creases sit 1-2 mm off the DIN fold marks, the panels meet along them, and folded it still fits a DL envelope", () => {
     expect(FOLD_MARKS).toEqual([0.105, 0.21]);
+    CREASES.forEach((crease, i) => {
+      const off = Math.abs(crease - FOLD_MARKS[i]);
+      expect(off).toBeGreaterThanOrEqual(0.001);
+      expect(off).toBeLessThanOrEqual(0.002);
+    });
     const flat = letterPanels(1);
-    expect(flat.map((p) => Math.round(p.size[1] * 1000))).toEqual([105, 105, 87]);
     expect(flat.reduce((s, p) => s + p.size[1], 0)).toBeCloseTo(A4[1], 9);
     for (const p of flat) expect(p.size[0]).toBeCloseTo(A4[0], 9);
-    const flatCorners = flat.flatMap(cornersOf);
-    for (const c of flatCorners) expect(Math.abs(c.z)).toBeLessThan(1e-9);
-    const ys = flatCorners.map((c) => c.y);
-    expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(A4[1], 9);
+    const [top, middle, bottom] = flat;
+    const edge = (p: typeof top, y: number) => [0, A4[0]].map((x) => new Vector3(x, y, 0).applyMatrix4(p.matrix));
+    edge(top, 0).forEach((c, i) => expect(c.distanceTo(edge(middle, middle.size[1])[i])).toBeLessThan(0.0005));
+    edge(bottom, bottom.size[1]).forEach((c, i) => expect(c.distanceTo(edge(middle, 0)[i])).toBeLessThan(0.0005));
     const folded = letterPanels(0).flatMap(cornersOf);
+    const height = middle.size[1];
     for (const c of folded) {
       expect(Math.abs(c.z)).toBeLessThan(0.001);
       expect(c.x).toBeGreaterThanOrEqual(-1e-9);
       expect(c.x).toBeLessThanOrEqual(0.21 + 1e-9);
       expect(c.y).toBeGreaterThanOrEqual(-1e-9);
-      expect(c.y).toBeLessThanOrEqual(0.105 + 1e-9);
+      expect(c.y).toBeLessThanOrEqual(height + 1e-9);
     }
     expect((DL[0] - 0.21) / 2).toBeGreaterThanOrEqual(0.002);
-    expect((DL[1] - 0.105) / 2).toBeGreaterThanOrEqual(0.002);
+    expect((DL[1] - height) / 2).toBeGreaterThanOrEqual(0.002);
+  });
+
+  test("held by its side edges, the sheet bows gently between them, towards the text: none at the edges, 1.5-3 mm in the middle", () => {
+    expect(sheetBow(0)).toBeCloseTo(0, 9);
+    expect(sheetBow(A4[0])).toBeCloseTo(0, 9);
+    expect(sheetBow(A4[0] / 2)).toBeGreaterThanOrEqual(0.0015);
+    expect(sheetBow(A4[0] / 2)).toBeLessThanOrEqual(0.003);
+    for (let x = 0; x <= A4[0]; x += 0.01) expect(sheetBow(x)).toBeGreaterThanOrEqual(0);
+  });
+
+  test("a folded letter never lies quite flat again: unfolded, its top and bottom panels keep 4-9 degrees at their creases, both towards the text", () => {
+    const [top, middle, bottom] = letterPanels(1);
+    const normal = (p: typeof top) => new Vector3(0, 0, 1).transformDirection(p.matrix);
+    for (const p of [top, bottom]) {
+      const angle = (normal(p).angleTo(normal(middle)) * 180) / Math.PI;
+      expect(angle).toBeGreaterThanOrEqual(4);
+      expect(angle).toBeLessThanOrEqual(9);
+      const centre = new Vector3(p.size[0] / 2, p.size[1] / 2, 0).applyMatrix4(p.matrix);
+      expect(centre.z).toBeGreaterThan(0);
+    }
   });
 
   test("folded, it is a C-fold: the bottom third tucked under the top third, the text facing in", () => {
@@ -149,8 +178,8 @@ describe("the sheet", () => {
     };
     expect(angleOf(0.25, 0)).toBeLessThan(Math.PI - 0.1);
     expect(angleOf(0.25, 2)).toBeCloseTo(Math.PI, 6);
-    expect(angleOf(0.75, 0)).toBeCloseTo(0, 6);
-    expect(angleOf(0.75, 2)).toBeGreaterThan(0.1);
+    expect(angleOf(0.75, 0)).toBeCloseTo(angleOf(1, 0), 6);
+    expect(angleOf(0.75, 2)).toBeGreaterThan(angleOf(1, 2) + 0.1);
   });
 });
 
@@ -160,6 +189,26 @@ describe("the envelope", () => {
     const hullBack = -ENVELOPE.thickness - ENVELOPE.ink;
     expect(flapPlane).toBeLessThanOrEqual(hullBack);
     expect(hullBack - flapPlane).toBeLessThan(0.001);
+  });
+
+  test("torn open by hand, the flap splits along one ragged line: the piece that lifts and the strip left glued on the back share it, and together they make the whole flap", () => {
+    const { lifted, glued } = flapPieces();
+    const area = (pts: readonly (readonly [number, number])[]) =>
+      Math.abs(pts.reduce((s, [x, y], i) => {
+        const [nx, ny] = pts[(i + 1) % pts.length];
+        return s + x * ny - nx * y;
+      }, 0)) / 2;
+    expect(area(lifted) + area(glued)).toBeCloseTo(area(flapOutline()), 7);
+    const tear = lifted.filter(([, y]) => y < -1e-9 && y > -ENVELOPE.flapDepth + 1e-9);
+    expect(tear.length).toBeGreaterThanOrEqual(16);
+    for (const point of tear) expect(glued.some(([x, y]) => Math.abs(x - point[0]) < 1e-9 && Math.abs(y - point[1]) < 1e-9)).toBe(true);
+    const ys = tear.map(([, y]) => y);
+    expect(Math.max(...ys) - Math.min(...ys)).toBeGreaterThan(0.003);
+    expect(Math.max(...ys)).toBeLessThan(-0.012);
+    expect(Math.min(...ys)).toBeGreaterThan(-ENVELOPE.flapDepth + 0.004);
+    let turns = 0;
+    for (let i = 2; i < ys.length; i++) if ((ys[i] - ys[i - 1]) * (ys[i - 1] - ys[i - 2]) < 0) turns++;
+    expect(turns).toBeGreaterThanOrEqual(6);
   });
 
   test("its flap lies on its back when shut and stands up above it when open", () => {

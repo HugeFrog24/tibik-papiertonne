@@ -6,6 +6,8 @@ import { LETTER_LINES, type LetterRole } from "../scenes/rundschreiben/letter";
 
 export const A4 = [0.21, 0.297] as const;
 export const FOLD_MARKS = [0.105, 0.21] as const;
+export const CREASES = [0.1035, 0.209] as const;
+const CREASE_MEMORY = { top: 0.12, bottom: 0.09 };
 export const DL = [0.22, 0.11] as const;
 export const PT = 0.0254 / 72;
 export const LETTER_FONT = "arimo" as const;
@@ -73,9 +75,9 @@ const layout = (): LetterLine[] => {
 export const LETTER_LAYOUT = { margins: MARGINS, lines: layout() };
 
 const PANEL_HEIGHTS = [
-  FOLD_MARKS[0],
-  FOLD_MARKS[1] - FOLD_MARKS[0],
-  A4[1] - FOLD_MARKS[1],
+  CREASES[0],
+  CREASES[1] - CREASES[0],
+  A4[1] - CREASES[1],
 ] as const;
 const STACK = { bottom: 0.00015, top: 0.0003 };
 
@@ -101,6 +103,12 @@ export const pointOnLetter = (
 };
 
 const SHEET_THICKNESS = 0.0005;
+const BOW = 0.0022;
+
+export const sheetBow = (x: number) => {
+  const u = (2 * x) / A4[0] - 1;
+  return BOW * (1 - u * u);
+};
 
 export const letterSolids = (letter: { readonly matrix: Matrix4; readonly fold: number }) =>
   letterPanels(letter.fold).map((panel, i) =>
@@ -114,8 +122,8 @@ export const letterSolids = (letter: { readonly matrix: Matrix4; readonly fold: 
 
 export const letterPanels = (fold: number): Panel[] => {
   const [topH, middleH, bottomH] = PANEL_HEIGHTS;
-  const topAngle = Math.PI * (1 - clamp01(2 * fold));
-  const bottomAngle = Math.PI * (1 - clamp01(2 * fold - 1));
+  const topAngle = Math.max(CREASE_MEMORY.top, Math.PI * (1 - clamp01(2 * fold)));
+  const bottomAngle = Math.max(CREASE_MEMORY.bottom, Math.PI * (1 - clamp01(2 * fold - 1)));
   const top = new Matrix4()
     .makeTranslation(0, middleH, STACK.top)
     .multiply(new Matrix4().makeRotationX(topAngle))
@@ -126,8 +134,8 @@ export const letterPanels = (fold: number): Panel[] => {
     .multiply(new Matrix4().makeTranslation(0, -bottomH, -STACK.bottom));
   return [
     { matrix: top, size: [A4[0], topH], fromTop: 0 },
-    { matrix: new Matrix4(), size: [A4[0], middleH], fromTop: FOLD_MARKS[0] },
-    { matrix: bottom, size: [A4[0], bottomH], fromTop: FOLD_MARKS[1] },
+    { matrix: new Matrix4(), size: [A4[0], middleH], fromTop: CREASES[0] },
+    { matrix: bottom, size: [A4[0], bottomH], fromTop: CREASES[1] },
   ];
 };
 
@@ -147,6 +155,42 @@ export const flapOutline = (): [number, number][] => [
   [DL[0] - ENVELOPE.flapChamfer, -ENVELOPE.flapDepth],
   [ENVELOPE.flapChamfer, -ENVELOPE.flapDepth],
 ];
+
+const TEAR = { depth: 0.026, slant: 0.006, jag: 0.0018, points: 24 };
+
+const flapSides = (y: number) => {
+  const inset = (ENVELOPE.flapChamfer * -y) / ENVELOPE.flapDepth;
+  return [inset, DL[0] - inset] as const;
+};
+
+const tearLine = (): [number, number][] =>
+  Array.from({ length: TEAR.points + 1 }, (_, i) => {
+    const u = i / TEAR.points;
+    const ragged = i === 0 || i === TEAR.points ? 0 : TEAR.jag * (2 * random(`flap-tear/${i}`) - 1);
+    const y = -(TEAR.depth + TEAR.slant * (u - 0.5)) + ragged;
+    const [left, right] = flapSides(y);
+    return [left + (right - left) * u, y];
+  });
+
+export const flapPieces = () => {
+  const tear = tearLine();
+  return {
+    lifted: [[0, 0], [DL[0], 0], ...[...tear].reverse()] as [number, number][],
+    glued: [
+      ...tear,
+      [DL[0] - ENVELOPE.flapChamfer, -ENVELOPE.flapDepth],
+      [ENVELOPE.flapChamfer, -ENVELOPE.flapDepth],
+    ] as [number, number][],
+  };
+};
+
+export const tearY = (x: number) => {
+  const tear = tearLine();
+  const i = Math.max(1, tear.findIndex(([tx]) => tx >= x));
+  const [x0, y0] = tear[i - 1];
+  const [x1, y1] = tear[Math.min(i, tear.length - 1)];
+  return x1 === x0 ? y0 : y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
+};
 
 export const envelopeFlap = (open: number) =>
   new Matrix4()

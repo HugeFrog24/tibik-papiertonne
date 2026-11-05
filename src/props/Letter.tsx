@@ -1,4 +1,5 @@
 import {
+  BackSide,
   Float32BufferAttribute,
   PlaneGeometry,
   Vector3,
@@ -8,7 +9,8 @@ import {
 import { WetSpot } from "../Karen/WetSpot";
 import { useDisposable } from "../toon/useDisposable";
 import { LETTER_FAMILY, useLetterTexture } from "./letterFont";
-import { A4, LETTER_LAYOUT, PT, letterPanels, type Panel } from "./letterShape";
+import { A4, CREASES, LETTER_LAYOUT, PT, letterPanels, sheetBow, type Panel } from "./letterShape";
+import { paperRamp } from "../toon/paperRamp";
 
 export const PAPER = {
   pxPerMetre: 10_000,
@@ -35,6 +37,12 @@ const paintLetter = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
     ctx.font = `${line.bold ? 700 : 400} ${line.pt * PT * px}px ${LETTER_FAMILY}`;
     ctx.fillText(line.text, line.x * px, line.y * px);
   }
+  for (const crease of CREASES) {
+    for (const [width, alpha] of [[0.004, 0.035], [0.0012, 0.06]] as const) {
+      ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+      ctx.fillRect(0, (crease - width / 2) * px, w, width * px);
+    }
+  }
   const head = LETTER_LAYOUT.lines.find((l) => l.role === "head")!;
   ctx.fillStyle = PAPER.rule;
   ctx.fillRect(
@@ -45,10 +53,15 @@ const paintLetter = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
   );
 };
 
-const panelGeometry = (panel: Panel) => {
+const SEGMENTS = { across: 16, down: 4 };
+
+const panelGeometry = (panel: Panel, face: number) => {
   const [w, h] = panel.size;
-  const g = new PlaneGeometry(w, h);
+  const g = new PlaneGeometry(w, h, SEGMENTS.across, SEGMENTS.down);
   g.translate(w / 2, h / 2, 0);
+  const p = g.getAttribute("position");
+  for (let i = 0; i < p.count; i++) p.setZ(i, face + sheetBow(p.getX(i)));
+  g.computeVertexNormals();
   const top = 1 - panel.fromTop / A4[1];
   const bottom = 1 - (panel.fromTop + h) / A4[1];
   const uv = g.getAttribute("uv");
@@ -66,7 +79,8 @@ const PanelView: React.FC<{
   readonly texture: Texture | null;
   readonly spots: readonly { u: number; v: number; r: number }[];
 }> = ({ panel, texture, spots }) => {
-  const geometry = useDisposable(() => panelGeometry(panel), [panel.fromTop]);
+  const geometry = useDisposable(() => panelGeometry(panel, PAPER.face), [panel.fromTop]);
+  const back = useDisposable(() => panelGeometry(panel, -PAPER.face), [panel.fromTop]);
   const [w, h] = panel.size;
   const mine = spots.filter((s) => {
     const y = s.v * A4[1] - panel.fromTop;
@@ -74,22 +88,17 @@ const PanelView: React.FC<{
   });
   return (
     <group matrixAutoUpdate={false} matrix={panel.matrix}>
-      <mesh geometry={geometry} position={[0, 0, PAPER.face]} receiveShadow>
-        <meshToonMaterial color="#ffffff" map={texture} />
+      <mesh geometry={geometry} receiveShadow>
+        <meshToonMaterial color="#ffffff" map={texture} gradientMap={paperRamp()} />
       </mesh>
-      <mesh
-        position={[w / 2, h / 2, -PAPER.face]}
-        rotation={[0, Math.PI, 0]}
-        receiveShadow
-      >
-        <planeGeometry args={[w, h]} />
-        <meshToonMaterial color={PAPER.colour} />
+      <mesh geometry={back} receiveShadow>
+        <meshToonMaterial color={PAPER.colour} gradientMap={paperRamp()} side={BackSide} />
       </mesh>
       {mine.map((s, i) => (
         <WetSpot
           key={i}
           point={
-            new Vector3(s.u * w, h - (s.v * A4[1] - panel.fromTop), PAPER.face)
+            new Vector3(s.u * w, h - (s.v * A4[1] - panel.fromTop), PAPER.face + sheetBow(s.u * w))
           }
           normal={OUT}
           radius={s.r}

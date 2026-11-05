@@ -7,7 +7,7 @@ import {
   DL,
   ENVELOPE,
   envelopeFlap,
-  flapOutline,
+  flapPieces,
   letterPanels,
 } from "../../props/letterShape";
 import { expect, test } from "vitest";
@@ -249,7 +249,8 @@ const sheetsAt = (t: number) => {
     const back = new Matrix4().makeTranslation(0, 0, -ENVELOPE.thickness / 2);
     sheets.push(
       { name: "envelope", m: envelope.matrix.clone().multiply(back), outline: rectangle(DL[0], DL[1]) },
-      { name: "flap", m: envelope.matrix.clone().multiply(envelopeFlap(envelope.flap)), outline: flapOutline() },
+      { name: "flap", m: envelope.matrix.clone().multiply(envelopeFlap(envelope.flap)), outline: flapPieces().lifted },
+      { name: "flap strip glued on", m: envelope.matrix.clone().multiply(envelopeFlap(0)), outline: flapPieces().glued },
     );
   }
   if (letter)
@@ -327,13 +328,14 @@ test("he holds the envelope a little askew, as anyone would, and it shifts sligh
   expect(degrees(upOf(READ[0]), upOf((READ[0] + READ[1]) / 2))).toBeGreaterThan(0.5);
 });
 
-test("the envelope is floppy: it bows a few millimetres while held, flat in the box, and its open flap flops back past upright", () => {
+test("the envelope is floppy: it bows and flexes while held, flat in the box, and its open flap flops back past upright", () => {
   expect(solveRundschreiben(ENVELOPE_OUT[0]).envelope!.bow).toBe(0);
-  for (const t of [ENVELOPE_OUT[1] + 0.5, READ[0], READ[1] - 1]) {
-    const { bow } = solveRundschreiben(t).envelope!;
-    expect(bow, t.toFixed(2)).toBeGreaterThan(0.003);
-    expect(bow, t.toFixed(2)).toBeLessThan(0.01);
+  const bows = window(ENVELOPE_OUT[1] + 0.5, READ[1] - 1).map((t) => solveRundschreiben(t).envelope!.bow);
+  for (const bow of bows) {
+    expect(bow).toBeGreaterThan(0.006);
+    expect(bow).toBeLessThan(0.016);
   }
+  expect(Math.max(...bows) - Math.min(...bows)).toBeGreaterThan(0.003);
   const flap = solveRundschreiben(FLAP[1] + 0.6).envelope!.flap;
   expect(flap).toBeGreaterThan(1.05);
   expect(flap).toBeLessThan(1.25);

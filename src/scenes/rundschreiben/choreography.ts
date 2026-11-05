@@ -20,8 +20,9 @@ import {
   A4,
   DL,
   ENVELOPE,
-  FOLD_MARKS,
+  CREASES,
   envelopeFlap,
+  tearY,
 } from "../../props/letterShape";
 import { aroundCorner } from "../../physics/gripPath";
 import { asCharacter } from "../../Tibik/character";
@@ -409,7 +410,7 @@ const SKEW = {
   pitchSway: 0.015,
   yaw: 0.05,
 };
-const FLOPPY = { bow: 0.007, bowSway: 0.001, twist: 0.003 };
+const FLOPPY = { bow: 0.0105, bowSway: 0.0025, twist: 0.005 };
 const FLAP_FLOP = 1.12;
 const DROOP = 0.4;
 const oneHanded = (t: number) =>
@@ -610,12 +611,13 @@ export const flapAt = (t: number) =>
 export const envelopeBendAt = (t: number) => {
   const held = inWindow(t, ENVELOPE_LIFT) * (1 - inWindow(t, KLOPPEN));
   return {
-    bow: held * (FLOPPY.bow + FLOPPY.bowSway * Math.sin(2 * t)),
-    twist: held * FLOPPY.twist,
+    bow: held * (FLOPPY.bow + FLOPPY.bowSway * (Math.sin(2 * t) + 0.4 * Math.sin(4.7 * t + 1))),
+    twist: held * FLOPPY.twist * (1 + 0.3 * Math.sin(1.3 * t)),
   };
 };
 
-const FLAP_LIFT = { x: DL[0] - 2 * ENVELOPE.flapChamfer, y: -ENVELOPE.flapDepth };
+const FLAP_LIFT_X = DL[0] - 2 * ENVELOPE.flapChamfer;
+const FLAP_LIFT = { x: FLAP_LIFT_X, y: tearY(FLAP_LIFT_X) };
 
 const FLAP_REACH: readonly [number, number] = [KEY_OUT[1], FLAP[0] - 0.25];
 const ONTO_THE_FLAP: readonly [number, number] = [FLAP_REACH[1], FLAP[0]];
@@ -637,7 +639,7 @@ const LETTER_INSET = DL[0] - A4[0];
 const LETTER_START = 0.002;
 const LETTER_RISE = 0.12;
 const BEHIND = -ENVELOPE.thickness - 0.0012;
-const LETTER_REST = (DL[1] - FOLD_MARKS[0]) / 2;
+const LETTER_REST = (DL[1] - (CREASES[1] - CREASES[0])) / 2;
 const FOLD_BACK: readonly [number, number] = [FOLD[0], FOLD[0] + 0.8];
 const OVER_THE_MOUTH = FOLD_BACK[1] + 0.35;
 const LETTER_IN = FOLD[1] - 0.001;
@@ -669,7 +671,7 @@ export const letterAt = (t: number) => {
 const leftOfLetter = (t: number) =>
   onEnvelope(
     letterAt(Math.min(t, LETTER_IN))!.matrix,
-    new Vector3(0, FOLD_MARKS[0] / 2, 0),
+    new Vector3(0, (CREASES[1] - CREASES[0]) / 2, 0),
     new Vector3(-1, 0, 0),
   );
 
@@ -698,7 +700,7 @@ const leftHandLocal = (t: number) => {
   if (t <= TO_LETTER[0]) return flapHandLocal(t);
   const k = inWindow(t, TO_LETTER);
   const from = flapHandLocal(TO_LETTER[0]);
-  const y = letterY(t) + FOLD_MARKS[0] / 2;
+  const y = letterY(t) + (CREASES[1] - CREASES[0]) / 2;
   return roundTheEdge(k, from.y + (y - from.y) * k, from);
 };
 

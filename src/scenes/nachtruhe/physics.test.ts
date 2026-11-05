@@ -1,7 +1,9 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
-import { BED_RECT, BEDROOM, bedroomSolids } from "../../building/bedroomShape";
-import { allColliders, armColliders, bodyColliders, handPosition } from "../../characters/skeleton";
+import { BED_RECT, BEDROOM, CORD_SWITCH, bedroomSolids, cordPath, cordSwitchSolid } from "../../building/bedroomShape";
+import { allColliders, armColliders, bodyColliders, handPosition, handSphere } from "../../characters/skeleton";
+import { contacts, sphere, sphereObbGap } from "../../physics/collision";
+import { OUTLINE } from "../../toon/primitives";
 import { blanketProblems } from "../../props/blanketChecks";
 import { blanketSurface } from "../../props/blanketShape";
 import { LYING_TILT, SITTING, lyingInBed, sittingUpInBed } from "../../Tibik/bedPoses";
@@ -20,7 +22,7 @@ import { cameraAt } from "./cameras";
 import { BED_SEAT, duskRootAt } from "./choreography";
 import { PULLING, blanketLie } from "./bedroom";
 import { solveNachtruhe, type NachtruheState } from "./solve";
-import { DRONE, DUSK, ENTRY, EVENING, HOP_UP, LIE_DOWN, NACHTRUHE_DURATION, PULL_OVER, SWING_IN } from "./timeline";
+import { DRONE, DUSK, ENTRY, EVENING, HOP_UP, LAMP_OFF, LIE_DOWN, NACHTRUHE_DURATION, PULL_OVER, SWING_IN } from "./timeline";
 
 const dusk = Array.from({ length: Math.round(DUSK[1] * FPS) }, (_, f) => f / FPS);
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
@@ -142,4 +144,32 @@ test("he pulls the turned-back blanket over himself by its fold, his right hand 
   expect(away.slice(0, 8)).toEqual([]);
   expect(solveNachtruhe(PULL_OVER[0]).blanket).toBe(0);
   expect(solveNachtruhe(PULL_OVER[1]).blanket).toBe(1);
+});
+
+test("his fingers are on the cord switch when his lamp clicks off", () => {
+  const click = Math.ceil(LAMP_OFF * FPS) / FPS;
+  expect(solveNachtruhe(click - 1 / FPS).lamps[1]).toBe(true);
+  expect(solveNachtruhe(click).lamps[1]).toBe(false);
+  const gap = sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(click).tibik), "leftArm"), cordSwitchSolid());
+  expect(gap).toBeLessThan(0.005);
+  expect(gap).toBeGreaterThan(-0.005);
+});
+
+test("the cord switch rests on his pillow and its cord runs to the lamp through nothing, him included, outlines included", { timeout: 300_000 }, () => {
+  const pillowTop = Math.max(...bedroomSolids({ door: 0, curtain: [0, 0] }).filter((s) => s.name === "pillow").map((s) => (s.kind === "obb" ? s.center.y + s.half[1] : -Infinity)));
+  expect(CORD_SWITCH.center[1] - CORD_SWITCH.size[1] / 2).toBeCloseTo(pillowTop, 3);
+  const cord = cordPath().map((p, i) => sphere(`cord ${i}`, p, CORD_SWITCH.cord / 2 + OUTLINE / 2));
+  const room = bedroomSolids({ door: 1.5, curtain: [0, 0] });
+  const intoRoom = contacts(cord, room).filter((c) => c.depth > OUTLINE / 2 + 0.001).map((c) => `${c.a} into ${c.b} by ${(c.depth * 1000).toFixed(1)} mm`);
+  expect(intoRoom.slice(0, 6)).toEqual([]);
+  const problems = EVENING_FRAMES.filter((_, i) => i % 3 === 0).flatMap((t) => {
+    const body = allColliders(RIG, asCharacter(solveNachtruhe(t).tibik)).map((s) => ({ ...s, radius: s.radius + OUTLINE / 2 }));
+    return [
+      ...contacts(cord, body)
+        .filter((c) => !c.b.includes("hand") || c.depth > OUTLINE + 0.001)
+        .map((c) => `${t.toFixed(2)} s: ${c.a} into his ${c.b} by ${(c.depth * 1000).toFixed(1)} mm`),
+      ...contacts(body, [cordSwitchSolid()]).filter((c) => !c.a.includes("hand")).map((c) => `${t.toFixed(2)} s: his ${c.a} into the switch`),
+    ];
+  });
+  expect(problems.slice(0, 8)).toEqual([]);
 });

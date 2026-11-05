@@ -82,5 +82,5 @@ test("turned back from the door side, it drapes over whatever of him lies under 
 test("the blanket's head hem can stay where it was laid, whatever pose he is in", () => {
   const laid = blanketEdge(BED_RECT, bodyOf(-1), 1);
   const grid = blanketGrid(BED_RECT, [], 1, 0, laid);
-  expect(grid.columns[1]).toBeCloseTo(laid, 9);
+  expect(grid.columns[0]).toBeCloseTo(laid, 9);
 });

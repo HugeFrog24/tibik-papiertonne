@@ -54,7 +54,7 @@ const over = (body: readonly Sphere[], x: number, z: number, base: number) => {
 const foldAt = (bed: BedRect, aside: number) => bed.z0 + clamp(aside, 0, bed.z1 - bed.z0);
 
 const underneath = (body: readonly Sphere[], edge: number, fold: number) =>
-  body.filter((s) => s.center.x + s.radius >= edge && s.center.z + s.radius >= fold);
+  body.filter((s) => s.center.x + s.radius + BLANKET.clearance >= edge && s.center.z + s.radius + BLANKET.clearance >= fold);
 
 const overhang = (bed: BedRect, x: number, z: number) =>
   (Math.max(0, bed.z0 - z, z - bed.z1, x - bed.x1) / BLANKET.hang) * BLANKET.drop;
@@ -92,7 +92,7 @@ export const blanketGrid = (
   const across = aside > 0 ? Math.max(2, Math.round(((bed.z1 - fold) / (bed.z1 - bed.z0)) * BLANKET.across)) : BLANKET.across;
   const dz = (bed.z1 - (aside > 0 ? fold : bed.z0)) / across;
   const side = Math.max(1, Math.round(BLANKET.hang / dz));
-  const columns = Array.from({ length: along + foot + 2 }, (_, i) => edge + (i - 1) * dx);
+  const columns = Array.from({ length: along + foot + 1 }, (_, i) => edge + i * dx);
   const rows =
     aside > 0
       ? Array.from({ length: across + side + 1 }, (_, j) => fold + j * dz)
@@ -101,6 +101,6 @@ export const blanketGrid = (
   const hem = bed.top + BLANKET.hem;
   const under = underneath(body, edge, fold);
   const height = (x: number, z: number) =>
-    x < edge - dx / 2 || (aside > 0 && z < fold + dz / 2) ? Math.max(hem - overhang(bed, x, z), over(under, x, z, hem)) : surface(x, z);
+    x < edge + dx / 2 || (aside > 0 && z < fold + dz / 2) ? Math.max(hem - overhang(bed, x, z), over(under, x, z, hem)) : surface(x, z);
   return { columns, rows, dx, dz, height };
 };

@@ -1,4 +1,4 @@
-import { BED, BED_RECT, BEDROOM, BEDROOM_DOOR, BEDROOM_DOORWAY } from "../../building/bedroomShape";
+import { BED, BED_RECT, BEDROOM, BEDROOM_DOOR, BEDROOM_DOORWAY, CORD_SWITCH, cordSwitchSolid } from "../../building/bedroomShape";
 import { DOOR_FRAME } from "../../building/doorwayFrame";
 import { ROOM_DOOR } from "../../building/doors";
 import { Euler, Matrix4, Vector3 } from "three";
@@ -17,7 +17,7 @@ import { RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { WALK_SWAY, WALK_SWING, swungArms, walkArmKeys, walkingOn } from "../../Tibik/walkingArms";
 import { OUTLINE, type Vec3 } from "../../toon/primitives";
 import { FACING_THE_WALL, pinEnd } from "../enterHouse";
-import { HOP_UP, LIE_DOWN, PULL_OVER, SWING_IN, WALK_TO_BED } from "./timeline";
+import { HOP_UP, LAMP_OFF, LIE_DOWN, PULL_OVER, SWING_IN, WALK_TO_BED } from "./timeline";
 
 export const BED_SEAT = sittingOnBed(BED_RECT.x0 + 1.3);
 
@@ -113,12 +113,16 @@ const swingingIn = (t: number): TibikFrame => {
   });
 };
 
+const SWITCH_PRESS = { reach: LAMP_OFF - 0.45, grip: LAMP_OFF - 0.08, release: LAMP_OFF + 0.12, done: LAMP_OFF + 0.55 };
+const TOWARD_THE_SWITCH = 0.15;
+
 const lyingDown = (t: number): TibikFrame => {
   const w = inWindow(t, LIE_DOWN);
+  const twist = kf(t, [SWITCH_PRESS.reach, SWITCH_PRESS.grip, SWITCH_PRESS.release, SWITCH_PRESS.done], [0, TOWARD_THE_SWITCH, TOWARD_THE_SWITCH, 0]);
   return placed(t, {
     position: UP.position.map((v, i) => lerp(v, IN_BED.position[i], w)),
     rotationY: UP.rotationY,
-    pose: blendPose(SITTING_UP, IN_BED.pose, w),
+    pose: { ...blendPose(SITTING_UP, IN_BED.pose, w), twist },
     tilt: lerp(0, IN_BED.tilt, w),
   });
 };
@@ -175,5 +179,15 @@ const foldHold = (arm: ArmName, [from, to]: readonly [number, number], outside: 
   exact: true,
 });
 
-export const EVENING_HOLDS: readonly Hold[] = [foldHold("rightArm", PULL.right, 0), foldHold("leftArm", PULL.left, FROM_OUTSIDE)];
+const PRESS_POINT = new Vector3(CORD_SWITCH.center[0], CORD_SWITCH.center[1] + CORD_SWITCH.size[1] / 2 + HAND, CORD_SWITCH.center[2]);
+
+const switchHold: Hold = {
+  name: "his lamp's cord switch, pressed",
+  arm: "leftArm",
+  ...SWITCH_PRESS,
+  target: cordSwitchSolid,
+  near: () => PRESS_POINT,
+};
+
+export const EVENING_HOLDS: readonly Hold[] = [foldHold("rightArm", PULL.right, 0), foldHold("leftArm", PULL.left, FROM_OUTSIDE), switchHold];
 export const PULLING = { right: [PULL_OVER[0] + PULL.right[0], PULL_OVER[0] + PULL.right[1]], left: [PULL_OVER[0] + PULL.left[0], PULL_OVER[0] + PULL.left[1]] } as const;

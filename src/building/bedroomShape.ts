@@ -1,4 +1,4 @@
-import { Euler, Matrix4 } from "three";
+import { CurvePath, Euler, LineCurve3, Matrix4, Vector3 } from "three";
 import { clamp, lerp } from "../characters/scalar";
 import { frame, obb, partObb, type Solid } from "../physics/collision";
 import { FACADE_Z, boundsPart, flatWindow, floorLevel, openingFrame, type Part } from "../street/building";
@@ -298,6 +298,73 @@ export const PILLOWS: readonly Pillow[] = ([
   center: [bed.x0 + PILLOW.fromHead, floor + BED.top + PILLOW.height / 2, (BED_RECT.z0 + BED_RECT.z1) / 2 + side * PILLOW.apart] as Vec3,
   yaw,
 }));
+
+const doorPillow = PILLOWS.reduce((a, b) => (b.center[2] < a.center[2] ? b : a));
+const pillowTop = doorPillow.center[1] + doorPillow.size[1] / 2;
+const SWITCH_AT = { x: BED_RECT.x0 + 0.505, z: BED_RECT.z0 + 0.07 };
+const CORD_LEAVES = { x: BED_RECT.x0 + 0.395, z: BED_RECT.z0 + 0.045 };
+const switchYaw = Math.atan2(-(CORD_LEAVES.z - SWITCH_AT.z), CORD_LEAVES.x - SWITCH_AT.x);
+
+const SWITCH_SIZE: Vec3 = [0.06, 0.02, 0.027];
+
+export const CORD_SWITCH = {
+  center: [SWITCH_AT.x, pillowTop + SWITCH_SIZE[1] / 2, SWITCH_AT.z] as Vec3,
+  size: SWITCH_SIZE,
+  yaw: switchYaw,
+  cord: 0.005,
+  color: "#f1efe8",
+};
+
+export const cordSwitchSolid = () => obb("cord switch", frame(new Matrix4(), CORD_SWITCH.center, new Euler(0, CORD_SWITCH.yaw, 0)), CORD_SWITCH.size);
+
+const along = (d: number, side = 0): Vec3 => {
+  const [x, y, z] = CORD_SWITCH.center;
+  const u = [Math.cos(switchYaw), -Math.sin(switchYaw)];
+  const v = [-u[1], u[0]];
+  return [x + u[0] * d + v[0] * side, y, z + u[1] * d + v[1] * side];
+};
+
+const CORD_REST = 0.002;
+const onTop = (y: number) => y + CORD_SWITCH.cord / 2 + CORD_REST;
+
+export const CORD_STRANDS: readonly (readonly Vec3[])[] = (() => {
+  const half = CORD_SWITCH.size[0] / 2;
+  const lampFoot = LAMPS.reduce((a, b) => (b.base[2] < a.base[2] ? b : a));
+  const cabinetEdge = CABINETS.reduce((a, b) => (b.center[2] < a.center[2] ? b : a));
+  const cabinetFront = cabinetEdge.center[2] + cabinetEdge.size[2] / 2;
+  const cabinetTop = cabinetEdge.center[1] + cabinetEdge.size[1] / 2;
+  const toLamp = (offset: number): Vec3[] => [
+    [CORD_LEAVES.x - offset * 0.2, onTop(pillowTop), CORD_LEAVES.z - 0.011],
+    [CORD_LEAVES.x - 0.02 - offset * 0.2, onTop(BED_RECT.top), CORD_LEAVES.z - 0.016],
+    [CORD_LEAVES.x - 0.045, onTop(BED_RECT.top), BED_RECT.z0 + 0.012 - offset * 0.3],
+    [CORD_LEAVES.x - 0.1, onTop(BED_RECT.top), cabinetFront - 0.015 - offset],
+    [lampFoot.base[0] + 0.04 + offset, onTop(cabinetTop), lampFoot.base[2] + lampFoot.foot / 2 + 0.01 + offset],
+  ];
+  const lamp: Vec3[] = [along(-half), ...toLamp(0)];
+  const plug: Vec3[] = [
+    along(half),
+    along(half + 0.02, 0.02),
+    along(0, 0.032),
+    along(-half - 0.012, 0.022),
+    ...toLamp(0.012).slice(0, 4),
+    [cabinetEdge.center[0] - cabinetEdge.size[0] / 2 + 0.01, onTop(cabinetTop), cabinetFront - 0.04],
+  ];
+  return [lamp, plug];
+})();
+
+const SAMPLE = 0.01;
+
+export const cordCurve = (points: readonly Vec3[]) => {
+  const path = new CurvePath<Vector3>();
+  for (let i = 1; i < points.length; i++) path.add(new LineCurve3(new Vector3(...points[i - 1]), new Vector3(...points[i])));
+  return path;
+};
+
+export const cordPath = (): Vector3[] =>
+  CORD_STRANDS.flatMap((points) => {
+    const curve = cordCurve(points);
+    return curve.getSpacedPoints(Math.max(2, Math.ceil(curve.getLength() / SAMPLE)));
+  });
 
 export const bedroomParts = (): readonly Part[] => [
   ...shellParts(),

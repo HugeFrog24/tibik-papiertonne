@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Color, DoubleSide, RepeatWrapping } from "three";
+import { Color, DoubleSide, RepeatWrapping, TubeGeometry } from "three";
+import { NO_INK } from "../toon/inkWidth";
 import { bentPlane } from "../props/bentPlane";
 import { useDisposable } from "../toon/useDisposable";
 import { cushionGeometry } from "../props/cushion";
@@ -12,6 +13,9 @@ import {
   BEDROOM_DOOR,
   BEDSIDE_LIGHT,
   CABINETS,
+  CORD_STRANDS,
+  CORD_SWITCH,
+  cordCurve,
   CABINET_INK,
   DOME_LAMP,
   LAMPS,
@@ -230,6 +234,26 @@ const Lamp: React.FC<{ readonly lamp: BedsideLamp; readonly on: boolean }> = ({ 
   );
 };
 
+const CORD_SEGMENTS = 48;
+
+const Cord: React.FC<{ readonly points: readonly Vec3[] }> = ({ points }) => {
+  const geometry = useDisposable(() => new TubeGeometry(cordCurve(points), CORD_SEGMENTS, CORD_SWITCH.cord / 2, 6, false), [points]);
+  return (
+    <mesh geometry={geometry} userData={NO_INK}>
+      <meshToonMaterial color={CORD_SWITCH.color} />
+    </mesh>
+  );
+};
+
+const CordSwitch: React.FC = () => (
+  <group>
+    <ToonBox position={CORD_SWITCH.center} rotation={[0, CORD_SWITCH.yaw, 0]} size={CORD_SWITCH.size} color={CORD_SWITCH.color} />
+    {CORD_STRANDS.map((points, i) => (
+      <Cord key={i} points={points} />
+    ))}
+  </group>
+);
+
 const Radiator: React.FC = () => (
   <ToonBox position={RADIATOR.center} size={RADIATOR.size} color="#ffffff" map={radiatorProfile()} />
 );
@@ -327,6 +351,7 @@ export const Bedroom: React.FC<{
     {LAMPS.map((lamp, i) => (
       <Lamp key={i} lamp={lamp} on={lamps[i]} />
     ))}
+    <CordSwitch />
     <Radiator />
     <Curtain open={curtain} daylight={daylight} streetGlow={streetGlow} />
     <Pelmet />

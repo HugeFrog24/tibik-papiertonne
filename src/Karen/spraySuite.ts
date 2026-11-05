@@ -3,7 +3,8 @@ import type { Placement } from "../characters/skeleton";
 import type { Solid } from "../physics/collision";
 import type { CameraSetup } from "../scenes/hausmuell/cameras";
 import type { Burst, Flight, SprayFrame } from "./spray";
-import type { Spike } from "./spittle";
+import { SPITTLE, type Spike } from "./spittle";
+import { atFrame } from "./sceneSpray";
 import {
   dropWidthsOnScreen,
   median,
@@ -17,13 +18,21 @@ export type SprayUnderTest = {
   readonly loudest: () => readonly Burst[];
   readonly spittleAt: (t: number) => readonly Spike[];
   readonly targets: (t: number) => readonly Solid[];
-  readonly karenAt: (t: number) => Placement;
+  readonly karenAt: (t: number) => Placement & { readonly mouthOpen: number };
   readonly cameraAt: (t: number) => CameraSetup;
 };
 
 const SLOW = { timeout: 600_000 };
 
 export const sprayReadabilityTests = (scene: SprayUnderTest) => {
+  test("every droplet leaves an open mouth, at least as open as a spittle burst needs", SLOW, () => {
+    const shut = scene
+      .flights()
+      .filter(({ launch }) => scene.karenAt(atFrame(launch.at)).mouthOpen < SPITTLE.open)
+      .map(({ launch }) => `${launch.id} at ${launch.at.toFixed(2)} s`);
+    expect(shut.slice(0, 6)).toEqual([]);
+  });
+
   test(
     "a droplet in flight is big enough to read on a phone: at least 5 px across in the 1080p frame, about three times real spit",
     SLOW,

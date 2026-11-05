@@ -704,3 +704,5 @@ export const stairwellGround = (x: number, z: number): number => {
   }
   return 0;
 };
+
+export const stairwellShown = ({ haustuer, indoors = 0 }: { readonly haustuer: number; readonly indoors?: number }) => haustuer > 0 || indoors > 0;

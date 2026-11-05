@@ -1,5 +1,5 @@
 import { ToonCanvas } from "../../toon/ToonCanvas";
-import { useCurrentFrame, useVideoConfig } from "remotion";
+import { useSeconds } from "../../useSeconds";
 import { StairwellLighting } from "../../building/StairwellLighting";
 import { flurSpill } from "../../building/flurSpill";
 import { StairwellSet } from "../../building/StairwellSet";
@@ -12,8 +12,7 @@ import { solveTreppenhaus } from "./solve";
 import { TreppenhausSound } from "./TreppenhausSound";
 
 const Stairwell: React.FC = () => {
-  const { fps } = useVideoConfig();
-  const filmTime = useCurrentFrame() / fps;
+  const filmTime = useSeconds();
   const { tibik, tibikDoor, haustuer, tibikLever, haustuerLever, lights } =
     solveTreppenhaus(storyTime(filmTime));
   return (

@@ -439,6 +439,15 @@ Ideas (proposed, not built; the user picks):
   catches for a moment on the rail before it slides on.
 - His bedroom door: open, the leaf rests a degree or two off its stop; a faint
   scuff on the wall where its lever has bumped.
+- His bedside lamp's shade: the fabric a shade darker on the bulb side (years
+  of heat and dust), so lit at night its glow is a touch dimmer and warmer there.
+- His bedroom floor: a faint sheen worn into the laminate along his daily path
+  from the door to the bed, a glossier strip under the lamp, never a line.
+- Karen's window at night: one slat of her blind hangs a few degrees out of step
+  (its cord pulled harder on one side), a brighter hairline in the row in the
+  drone shot (needs a blind on her window first).
+- The kerb by the house: a small chip off its top edge where a wheel bumped it,
+  pale stone under the grey, seen only in a street lamp's pool at night.
 - The doormat lies slightly askew in front of the Haustür, where feet kick it.
 - The mailbox name labels differ: printed, handwritten, one a little crooked
   or sun-faded.

@@ -20,7 +20,7 @@ import {
   manholeFootprint,
 } from "../street/drainShape";
 import { PATCHES, jointFootprint } from "../street/roadShape";
-import { HAZE, PUDDLES, RAIN_VISIBILITY, SIGN_LIGHT, WEATHER, facadeLight, hazeAt, hazeOf, lookOf, mixLooks, signLightOf } from "./overcast";
+import { HAZE, PUDDLES, RAIN_VISIBILITY, SIGN_LIGHT, WEATHER, daylightOf, facadeLight, hazeAt, hazeOf, lookOf, mixLooks, signLightOf } from "./overcast";
 import { luminance } from "../toon/colourChecks";
 
 const hsl = (hex: string) => {
@@ -188,4 +188,12 @@ test("the night stays darker than the dusk but bright enough that a facade still
   const ratio = facadeLight(WEATHER.night) / facadeLight(WEATHER.dusk);
   expect(ratio).toBeGreaterThan(0.45);
   expect(ratio).toBeLessThan(0.8);
+});
+
+test("the daylight through a window runs from none at night to full on the rainy day, and no further", () => {
+  expect(daylightOf(WEATHER.night)).toBe(0);
+  expect(daylightOf(WEATHER.rain)).toBe(1);
+  expect(daylightOf(WEATHER.sunny)).toBe(1);
+  expect(daylightOf(WEATHER.dusk)).toBeGreaterThan(0);
+  expect(daylightOf(WEATHER.dusk)).toBeLessThan(1);
 });

@@ -1,4 +1,5 @@
-import { Sequence, useCurrentFrame, useVideoConfig } from "remotion";
+import { Sequence, useVideoConfig } from "remotion";
+import { useSeconds } from "../useSeconds";
 import { CameraRig } from "./primitives";
 import { shotFrames, type CutShot } from "./shotFrames";
 
@@ -11,7 +12,7 @@ const ShotCamera = <S extends CutShot>({
   readonly shot: S;
   readonly camera: (shot: S, sinceCut: number) => Framing;
 }) => {
-  const sinceCut = useCurrentFrame() / useVideoConfig().fps;
+  const sinceCut = useSeconds();
   return <CameraRig {...camera(shot, sinceCut)} />;
 };
 

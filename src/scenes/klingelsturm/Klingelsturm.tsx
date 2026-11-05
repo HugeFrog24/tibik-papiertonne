@@ -1,5 +1,6 @@
 import { ToonCanvas } from "../../toon/ToonCanvas";
-import { Track, useCurrentFrame, useVideoConfig } from "remotion";
+import { Track } from "remotion";
+import { useSeconds } from "../../useSeconds";
 import { StairwellLighting } from "../../building/StairwellLighting";
 import { flurSpill } from "../../building/flurSpill";
 import { StairwellSet } from "../../building/StairwellSet";
@@ -23,8 +24,7 @@ import { klingelsturmSprayAt } from "./spray";
 export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
   ambience = true,
 }) => {
-  const { fps } = useVideoConfig();
-  const t = useCurrentFrame() / fps;
+  const t = useSeconds();
   const {
     karen,
     tibik,

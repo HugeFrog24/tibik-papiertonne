@@ -1,4 +1,5 @@
-import { useCurrentFrame, useVideoConfig } from "remotion";
+import { useVideoConfig } from "remotion";
+import { useSeconds } from "../useSeconds";
 import type { Line } from "./line";
 import { SpeechBubble } from "./SpeechBubble";
 
@@ -12,7 +13,7 @@ export const DialogueTrack: React.FC<{
   readonly tailTo: (line: Line, t: number) => [number, number] | null;
 }> = ({ lines, tailTo }) => {
   const { fps } = useVideoConfig();
-  const t = useCurrentFrame() / fps;
+  const t = useSeconds();
   return (
     <>
       {lines.map((line) => (

@@ -1,8 +1,9 @@
-import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
+import { useSeconds } from "../../useSeconds";
 import { Bedroom, BedroomLighting } from "../../building/Bedroom";
 import { BED_RECT } from "../../building/bedroomShape";
+import { stairwellShown } from "../../building/stairwell";
 import { StairwellSet } from "../../building/StairwellSet";
-import { clamp } from "../../characters/scalar";
 import { allColliders } from "../../characters/skeleton";
 import { Caption } from "../../dialogue/Caption";
 import { Blanket } from "../../props/Blanket";
@@ -16,7 +17,7 @@ import { Tibik } from "../../Tibik/Tibik";
 import { CameraRig } from "../../toon/primitives";
 import { ToonCanvas } from "../../toon/ToonCanvas";
 import { DayLight } from "../../weather/DayLight";
-import { WEATHER, facadeLight, type WeatherLook } from "../../weather/overcast";
+import { daylightOf } from "../../weather/overcast";
 import { Rain } from "../../weather/Rain";
 import { rainAt } from "../../weather/rainDrops";
 import { streetSolids } from "../streetSolids";
@@ -25,8 +26,7 @@ import { CAPTION, cameraAt, inTheBedroom, lightingAt } from "./cameras";
 import { solveNachtruhe, type NachtruheState } from "./solve";
 import { DAWN, DUSK } from "./timeline";
 
-const daylightOf = (look: WeatherLook) =>
-  clamp((facadeLight(look) - facadeLight(WEATHER.night)) / (facadeLight(WEATHER.rain) - facadeLight(WEATHER.night)), 0, 1);
+const roomLight = (state: NachtruheState) => ({ lamps: state.lamps, daylight: daylightOf(state.look), streetGlow: state.lampsOn ? 1 : 0 });
 
 const Outside: React.FC<{ readonly t: number; readonly state: NachtruheState }> = ({ t, state }) => (
   <>
@@ -46,13 +46,13 @@ const Outside: React.FC<{ readonly t: number; readonly state: NachtruheState }> 
 );
 
 const Scene: React.FC = () => {
-  const t = useCurrentFrame() / useVideoConfig().fps;
+  const t = useSeconds();
   const state = solveNachtruhe(t);
   const tibik = <Tibik position={state.tibik.position} rotationY={state.tibik.rotationY} pose={state.tibik.pose} tilt={state.tibik.tilt} />;
   if (inTheBedroom(t))
     return (
       <>
-        <Bedroom door={state.bedroomDoor} lamps={state.lamps} curtain={state.curtains} daylight={daylightOf(state.look)} streetGlow={state.lampsOn ? 1 : 0} />
+        <Bedroom door={state.bedroomDoor} curtain={state.curtains} {...roomLight(state)} />
         <Blanket bed={BED_RECT} body={allColliders(RIG, asCharacter(state.tibik))} {...blanketLie(state.blanket)} />
         {tibik}
         <Outside t={t} state={state} />
@@ -61,7 +61,7 @@ const Scene: React.FC = () => {
   return (
     <>
       <Outside t={t} state={state} />
-      {state.haustuer > 0 || state.indoors > 0 ? <StairwellSet tibikDoor={0} lights={state.stairwellLit ? 1 : 0} /> : null}
+      {stairwellShown(state) ? <StairwellSet tibikDoor={0} lights={state.stairwellLit ? 1 : 0} /> : null}
       <BinRow lids={state.lids} boxTaken emptied={t >= DAWN[0]} />
       {t < DUSK[1] ? tibik : null}
       {state.keys ? <KeyRing matrix={state.keys} /> : null}
@@ -75,14 +75,14 @@ const Lighting: React.FC<{ readonly t: number }> = ({ t }) => {
   return (
     <>
       {lit.street ? <StreetLighting look={state.look} /> : null}
-      {lit.bedroom ? <BedroomLighting lamps={state.lamps} daylight={daylightOf(state.look)} streetGlow={state.lampsOn ? 1 : 0} /> : null}
+      {lit.bedroom ? <BedroomLighting {...roomLight(state)} /> : null}
     </>
   );
 };
 
 export const Nachtruhe: React.FC<{ readonly ambience?: boolean }> = () => {
   const { fps } = useVideoConfig();
-  const t = useCurrentFrame() / fps;
+  const t = useSeconds();
   const { look } = solveNachtruhe(t);
   return (
     <Sky look={look}>

@@ -1,5 +1,5 @@
 import { Color } from "three";
-import { lerp } from "../characters/scalar";
+import { clamp, lerp } from "../characters/scalar";
 import { luminance } from "../toon/colourChecks";
 
 export type Weather = "sunny" | "rain" | "dusk" | "night";
@@ -75,6 +75,9 @@ export const mixLooks = (a: WeatherLook, b: WeatherLook, k: number): WeatherLook
 export const facadeLight = (look: WeatherLook) =>
   ((luminance(look.hemisphere.sky) + luminance(look.hemisphere.ground)) / 2) * look.hemisphere.intensity +
   look.sun.intensity;
+
+export const daylightOf = (look: WeatherLook) =>
+  clamp((facadeLight(look) - facadeLight(WEATHER.night)) / (facadeLight(WEATHER.rain) - facadeLight(WEATHER.night)), 0, 1);
 
 export const signLightOf = (look: WeatherLook) => facadeLight(look) / facadeLight(WEATHER.sunny);
 

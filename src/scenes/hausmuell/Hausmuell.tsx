@@ -1,6 +1,7 @@
 import { ToonCanvas } from "../../toon/ToonCanvas";
 import { HAUSMUELL_FROM } from "../../timeline";
-import { Track, useCurrentFrame, useVideoConfig } from "remotion";
+import { Track } from "remotion";
+import { useSeconds } from "../../useSeconds";
 import { DialogueTrack } from "../../dialogue/DialogueTrack";
 import { Karen } from "../../Karen/Karen";
 import { SprayView } from "../../Karen/SprayView";
@@ -18,7 +19,7 @@ import { hausmuellSprayAt } from "./spray";
 import { mouthOnScreen } from "./speakers";
 
 const Characters: React.FC = () => {
-  const t = useCurrentFrame() / useVideoConfig().fps;
+  const t = useSeconds();
   const { lids, tibik, karton, karen } = solveHausmuell(t);
   return (
     <>
@@ -52,8 +53,7 @@ const Characters: React.FC = () => {
 export const Hausmuell: React.FC<{
   readonly ambience?: boolean;
 }> = ({ ambience = true }) => {
-  const { fps } = useVideoConfig();
-  const t = useCurrentFrame() / fps;
+  const t = useSeconds();
 
   return (
     <Sky>

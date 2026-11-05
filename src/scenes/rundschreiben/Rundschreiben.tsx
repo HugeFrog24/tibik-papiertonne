@@ -1,5 +1,6 @@
 import { ToonCanvas } from "../../toon/ToonCanvas";
-import { useCurrentFrame, useVideoConfig } from "remotion";
+import { useSeconds } from "../../useSeconds";
+import { stairwellShown } from "../../building/stairwell";
 import { StairwellSet } from "../../building/StairwellSet";
 import { Envelope } from "../../props/Envelope";
 import { KeyRing } from "../../props/KeyRing";
@@ -20,7 +21,7 @@ import { RUNDSCHREIBEN_FROM } from "../../timeline";
 
 
 const Scene: React.FC = () => {
-  const t = useCurrentFrame() / useVideoConfig().fps;
+  const t = useSeconds();
   const state = solveRundschreiben(t);
   return (
     <>
@@ -31,7 +32,7 @@ const Scene: React.FC = () => {
         mailboxDoor={state.mailboxDoor}
         haustuer={state.haustuer}
       />
-      {state.haustuer > 0 || state.indoors > 0 ? (
+      {stairwellShown(state) ? (
         <StairwellSet tibikDoor={0} lights={1} />
       ) : null}
       <BinRow lids={state.lids} boxTaken={false} emptied />
@@ -66,8 +67,7 @@ const Scene: React.FC = () => {
 export const Rundschreiben: React.FC<{
   readonly ambience?: boolean;
 }> = ({ ambience = true }) => {
-  const { fps } = useVideoConfig();
-  const t = useCurrentFrame() / fps;
+  const t = useSeconds();
   return (
     <Sky weather="rain">
       <ToonCanvas name="Rundschreiben – 3D">

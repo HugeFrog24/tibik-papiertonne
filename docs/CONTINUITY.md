@@ -353,7 +353,8 @@ In the film now:
   paper. **(test)**
 - The envelope is floppy: it bows 7-14 mm and flexes while held, and droops
   when he holds it in one hand. **(test)**
-- Rain spots stay where they land on the paper. **(test)** Paper has its own
+- Rain spots stay where they land on the paper and lie on its bow, a spot
+  over a crease drawn on both panels. **(test)** Paper has its own
   finer toon ramp, so creases and bends catch the light in steps.
 - Karen's locks vary slightly in shade (salt and pepper); about two thirds of
   the cars carry a dealer's plate strip; the bins carry their stickers.
@@ -387,7 +388,9 @@ Ideas (proposed, not built; the user picks):
 - The mailbox key's blade is bent about a degree at its tip (0.4 mm), from
   forcing a stiff lock.
 - Rain spots on the paper vary in darkness and edge instead of being uniform
-  discs.
+  discs: water wicks unevenly along the fibres, so a rim wobbles a few
+  percent of its radius, and wet paper turns translucent and greyer, with a
+  faint darker tide line where an early spot starts to dry.
 
 ## Continuity between scenes
 

@@ -1,8 +1,17 @@
 import { Quaternion, Vector3 } from "three";
 import { NO_INK } from "../toon/inkWidth";
 
-const WET = { colour: "#000000", opacity: 0.3, lift: 0.0003 };
+export const WET = { colour: "#000000", opacity: 0.3, lift: 0.0003, segments: 32 };
 const OUT = new Vector3(0, 0, 1);
+
+export const WetMaterial: React.FC<{ readonly opacity: number }> = ({ opacity }) => (
+  <meshBasicMaterial
+    color={WET.colour}
+    transparent
+    opacity={WET.opacity * opacity}
+    depthWrite={false}
+  />
+);
 
 export const WetSpot: React.FC<{
   readonly point: Vector3;
@@ -16,12 +25,7 @@ export const WetSpot: React.FC<{
     quaternion={new Quaternion().setFromUnitVectors(OUT, normal)}
     userData={NO_INK}
   >
-    <circleGeometry args={[radius, 12]} />
-    <meshBasicMaterial
-      color={WET.colour}
-      transparent
-      opacity={WET.opacity * opacity}
-      depthWrite={false}
-    />
+    <circleGeometry args={[radius, WET.segments]} />
+    <WetMaterial opacity={opacity} />
   </mesh>
 );

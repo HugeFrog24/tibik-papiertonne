@@ -1,11 +1,13 @@
 import {
+  CircleGeometry,
   Float32BufferAttribute,
   PlaneGeometry,
-  Vector3,
   type Matrix4,
   type Texture,
 } from "three";
-import { WetSpot } from "../Karen/WetSpot";
+import { WET, WetMaterial } from "../Karen/WetSpot";
+import { NO_INK } from "../toon/inkWidth";
+import { lerp } from "../characters/scalar";
 import { useDisposable } from "../toon/useDisposable";
 import { LETTER_FAMILY, useLetterTexture } from "./letterFont";
 import { A4, CREASES, LETTER_LAYOUT, PT, letterPanels, sheetBow, type Panel } from "./letterShape";
@@ -84,21 +86,51 @@ export const panelGeometry = (panel: Panel, face: number, back: boolean, bow = 1
   return g;
 };
 
-const OUT = new Vector3(0, 0, 1);
+type Spot = { readonly u: number; readonly v: number; readonly r: number };
+
+const sheetHeight = (panel: Panel, x: number, face: number, bow: number) => {
+  const step = panel.size[0] / SEGMENTS.across;
+  const k = Math.min(SEGMENTS.across - 1, Math.max(0, Math.floor(x / step)));
+  return face + bow * lerp(sheetBow(k * step), sheetBow((k + 1) * step), x / step - k);
+};
+
+const spotCentre = (spot: Spot, panel: Panel) =>
+  [spot.u * panel.size[0], panel.size[1] - (spot.v * A4[1] - panel.fromTop)] as const;
+
+export const spotOnPanel = (spot: Spot, panel: Panel) => {
+  const [, y] = spotCentre(spot, panel);
+  return y > -spot.r && y < panel.size[1] + spot.r;
+};
+
+export const paperSpotGeometry = (spot: Spot, panel: Panel, bow: number) => {
+  const [cx, cy] = spotCentre(spot, panel);
+  const g = new CircleGeometry(spot.r, WET.segments);
+  const p = g.getAttribute("position");
+  for (let i = 0; i < p.count; i++) {
+    const x = Math.min(panel.size[0], Math.max(0, cx + p.getX(i)));
+    const y = Math.min(panel.size[1], Math.max(0, cy + p.getY(i)));
+    p.setXYZ(i, x, y, sheetHeight(panel, x, PAPER.face, bow) + PAPER.spotLift);
+  }
+  return g;
+};
+
+const PaperSpot: React.FC<{ readonly spot: Spot; readonly panel: Panel; readonly bow: number }> = ({ spot, panel, bow }) => {
+  const geometry = useDisposable(() => paperSpotGeometry(spot, panel, bow), [spot.u, spot.v, spot.r, panel.fromTop, bow]);
+  return (
+    <mesh geometry={geometry} userData={NO_INK}>
+      <WetMaterial opacity={1} />
+    </mesh>
+  );
+};
 
 const PanelView: React.FC<{
   readonly panel: Panel;
   readonly texture: Texture | null;
-  readonly spots: readonly { u: number; v: number; r: number }[];
+  readonly spots: readonly Spot[];
   readonly bow: number;
 }> = ({ panel, texture, spots, bow }) => {
   const geometry = useDisposable(() => panelGeometry(panel, PAPER.face, false, bow), [panel.fromTop, bow]);
   const back = useDisposable(() => panelGeometry(panel, -PAPER.face, true, bow), [panel.fromTop, bow]);
-  const [w, h] = panel.size;
-  const mine = spots.filter((s) => {
-    const y = s.v * A4[1] - panel.fromTop;
-    return y >= 0 && y < h;
-  });
   return (
     <group matrixAutoUpdate={false} matrix={panel.matrix}>
       <mesh geometry={geometry} receiveShadow>
@@ -107,17 +139,8 @@ const PanelView: React.FC<{
       <mesh geometry={back} receiveShadow>
         <meshToonMaterial color={PAPER.colour} gradientMap={paperRamp()} />
       </mesh>
-      {mine.map((s, i) => (
-        <WetSpot
-          key={i}
-          point={
-            new Vector3(s.u * w, h - (s.v * A4[1] - panel.fromTop), PAPER.face + bow * sheetBow(s.u * w))
-          }
-          normal={OUT}
-          radius={s.r}
-          opacity={1}
-          lift={PAPER.spotLift}
-        />
+      {spots.filter((s) => spotOnPanel(s, panel)).map((s, i) => (
+        <PaperSpot key={i} spot={s} panel={panel} bow={bow} />
       ))}
     </group>
   );
@@ -126,7 +149,7 @@ const PanelView: React.FC<{
 export const Letter: React.FC<{
   readonly matrix: Matrix4;
   readonly fold: number;
-  readonly spots?: readonly { u: number; v: number; r: number }[];
+  readonly spots?: readonly Spot[];
 }> = ({ matrix, fold, spots = [] }) => {
   const texture = useLetterTexture(
     "rundschreiben-letter",

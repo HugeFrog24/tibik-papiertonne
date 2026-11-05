@@ -9,7 +9,7 @@ import { onScreen, seenBy } from "../../dialogue/screen";
 import { LETTER_LAYOUT, PT, letterLineWidth, pointOnLetter } from "../../props/letterShape";
 import { FPS } from "../../timeline";
 import { CAPTION, FOLDING_SHOT, SHOTS, cameraAt } from "./cameras";
-import { FLAP, FOLD, RUNDSCHREIBEN_DURATION, UNFOLD } from "./choreography";
+import { FLAP, FOLD, RUNDSCHREIBEN_DURATION, UNFOLD, envelopeAt } from "./choreography";
 import { solveRundschreiben } from "./solve";
 
 const NAMES = [
@@ -122,5 +122,16 @@ test("after the deadpan close-up he is seen finishing the fold and sliding the l
     const t = f / FPS;
     const [x, y] = onScreen(mouthInWorld(RIG, solveRundschreiben(t).tibik), cameraAt(t));
     expect(x > 0 && x < FRAME_SIZE.width && y > 0 && y < FRAME_SIZE.height, `${t.toFixed(2)} s: his face`).toBe(true);
+  }
+});
+
+test("while the letter slides back into the envelope, the lens sees the envelope's front, so the letter behind it reads as inside", () => {
+  for (let f = Math.ceil(FOLD[0] * FPS); f < FOLD[1] * FPS; f++) {
+    const t = f / FPS;
+    const envelope = envelopeAt(t)!;
+    const centre = new Vector3(DL[0] / 2, DL[1] / 2, 0).applyMatrix4(envelope);
+    const front = new Vector3(0, 0, 1).transformDirection(envelope);
+    const toLens = new Vector3(...cameraAt(t).position).sub(centre).normalize();
+    expect(toLens.dot(front), t.toFixed(2)).toBeGreaterThan(0.2);
   }
 });

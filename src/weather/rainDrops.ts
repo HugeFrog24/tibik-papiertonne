@@ -42,7 +42,27 @@ export type Drop = {
   readonly head: Vec3;
   readonly tail: Vec3;
   readonly splash: { readonly at: Vec3; readonly age: number } | null;
+  readonly fade?: number;
 };
+
+const FADE = { from: 2.5, nearest: 0.3 };
+
+export const lensFade = (distance: number) => {
+  const k = Math.min(1, Math.max(0, (distance - RAIN.nearCamera) / (FADE.from - RAIN.nearCamera)));
+  return FADE.nearest + (1 - FADE.nearest) * k;
+};
+
+const lensDistance = (eye: Vector3, drop: Pick<Drop, "head" | "tail">) => {
+  const head = new Vector3(...drop.head);
+  const tail = new Vector3(...drop.tail);
+  const along = head.clone().sub(tail);
+  const length = along.lengthSq();
+  const k = length === 0 ? 0 : Math.min(1, Math.max(0, eye.clone().sub(tail).dot(along) / length));
+  return eye.distanceTo(tail.addScaledVector(along, k));
+};
+
+export const clearOfLens = (eye: Vector3, drop: Pick<Drop, "head" | "tail">) =>
+  lensDistance(eye, drop) >= RAIN.nearCamera;
 
 export const rainGroundY = (_x: number, z: number) =>
   z > KERB_Z + KERB_DEPTH / 2 && z < acrossZ(KERB_Z) - KERB_DEPTH / 2
@@ -270,12 +290,8 @@ export const rainAt = (
         };
       }
     }
-    if (
-      drop &&
-      eye.distanceTo(new Vector3(...drop.head)) >= RAIN.nearCamera &&
-      eye.distanceTo(new Vector3(...drop.tail)) >= RAIN.nearCamera
-    )
-      drops.push(drop);
+    if (drop && clearOfLens(eye, drop))
+      drops.push({ ...drop, fade: lensFade(lensDistance(eye, drop)) });
   }
   return drops;
 };

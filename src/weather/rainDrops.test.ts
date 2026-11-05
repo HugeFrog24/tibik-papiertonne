@@ -23,6 +23,8 @@ import {
   rainColumns,
   rainGroundY,
   type Drop,
+  clearOfLens,
+  lensFade,
 } from "./rainDrops";
 
 const SOLIDS = worldSolids(BINS.map(() => 0));
@@ -250,4 +252,23 @@ test("a ray starting inside Tibik stops at once", () => {
 
 test("rain needs the street's solids to stop on", () => {
   expect(() => rainAt(0, CAMERA, [], [])).toThrow();
+});
+
+test("no streak passes within RAIN.nearCamera of the lens, not even its middle", () => {
+  const eye = new Vector3(0, 1.4, 0);
+  const across = RAIN.nearCamera - 0.015;
+  const half = RAIN.streak / 2;
+  const grazing = { id: 0, head: [across, 1.4 - half, 0] as Vec3, tail: [across, 1.4 + half, 0] as Vec3, splash: null };
+  expect(eye.distanceTo(new Vector3(...grazing.head))).toBeGreaterThan(RAIN.nearCamera);
+  expect(clearOfLens(eye, grazing)).toBe(false);
+  const clear = { ...grazing, head: [RAIN.nearCamera + 0.01, 1.3, 0] as Vec3, tail: [RAIN.nearCamera + 0.01, 1.5, 0] as Vec3 };
+  expect(clearOfLens(eye, clear)).toBe(true);
+});
+
+test("drops near the camera are drawn fainter, those further off at full strength", () => {
+  expect(lensFade(RAIN.nearCamera)).toBeLessThan(0.4);
+  expect(lensFade(1)).toBeGreaterThan(lensFade(RAIN.nearCamera));
+  expect(lensFade(1)).toBeLessThan(1);
+  expect(lensFade(5)).toBe(1);
+  for (let d = RAIN.nearCamera; d < 5; d += 0.1) expect(lensFade(d + 0.1)).toBeGreaterThanOrEqual(lensFade(d));
 });

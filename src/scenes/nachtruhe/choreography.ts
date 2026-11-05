@@ -96,6 +96,8 @@ const hers = flatWindow(12, 1, "rechts");
 const same = (a: Opening, b: Opening) => a.kind === b.kind && a.x === b.x && a.storey === b.storey;
 const inHisFlat = (house: number, o: Opening) => house === 12 && o.storey === his.storey && o.x < ENTRANCE_X && o.kind !== "stairs";
 
+export const rainShareAt = (t: number) => inWindow(t, DAWN);
+
 const lookAt = (t: number): WeatherLook => (t < DUSK[1] ? WEATHER.dusk : mixLooks(WEATHER.night, WEATHER.rain, inWindow(t, DAWN)));
 
 export const nachtruheWorldAt = (t: number) => {
@@ -113,7 +115,7 @@ export const nachtruheWorldAt = (t: number) => {
   const curtains: CurtainOpen = [0, curtainOpenAt(t)];
   return {
     look: lookAt(t),
-    rain: t >= DAWN[0],
+    rain: rainShareAt(t),
     lampsOn: during(t, LIGHTS.streetLamps),
     entranceLamp: t < DUSK[1] && sensorLampOn(duskRoot, SENSOR.range, t),
     town: kf(t, TOWN.times, TOWN.shares),

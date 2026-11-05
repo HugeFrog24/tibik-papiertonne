@@ -20,6 +20,7 @@ import { DayLight } from "../../weather/DayLight";
 import { daylightOf } from "../../weather/overcast";
 import { Rain } from "../../weather/Rain";
 import { rainAt } from "../../weather/rainDrops";
+import { rainLight } from "../../weather/rainLight";
 import { streetSolids } from "../streetSolids";
 import { blanketLie } from "./bedroom";
 import { CAPTION, cameraAt, inTheBedroom, lightingAt } from "./cameras";
@@ -42,7 +43,7 @@ const Outside: React.FC<{ readonly t: number; readonly state: NachtruheState }> 
       bedroomCurtains={state.curtains}
       lampsOn={state.lampsOn}
     />
-    {state.rain ? <Rain drops={rainAt(t, cameraAt(t).position, streetSolids(state), [])} /> : null}
+    {state.rain > 0 ? <Rain drops={rainAt(t, cameraAt(t).position, streetSolids(state), [], state.rain)} light={rainLight(state.look, state.lampsOn)} /> : null}
   </>
 );
 

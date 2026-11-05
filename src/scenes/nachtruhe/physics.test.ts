@@ -233,7 +233,7 @@ test("he slides the near curtain panel toward the wall by its fabric until the n
 
 test("the morning hands the epilogue its world: rain, every lid and the Haustür shut", () => {
   const last = solveNachtruhe(NACHTRUHE_DURATION);
-  expect(last.rain).toBe(true);
+  expect(last.rain).toBe(1);
   expect(last.lids.every((l) => l === 0)).toBe(true);
   expect(last.haustuer).toBe(0);
 });

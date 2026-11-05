@@ -1,4 +1,6 @@
 import { expect, test } from "vitest";
+import { RAIN } from "../../sound/rain";
+import { rainLevelAt } from "./soundCues";
 import { FPS } from "../../frameRate";
 import { OPENINGS, flatWindow, openingsOf, type Opening } from "../../street/building";
 import { WEATHER } from "../../weather/overcast";
@@ -54,8 +56,9 @@ test("his window glows exactly while his bedside lamp is on, and the far lamp st
 test("dusk turns to night, one grey dawn blends into the rain, and the morning hands the epilogue its rainy world", () => {
   expect(nachtruheWorldAt(0).look).toEqual(WEATHER.dusk);
   expect(nachtruheWorldAt(shot("Drone rise").from).look).toEqual(WEATHER.night);
-  expect(nachtruheWorldAt(shot("Dawn").from).rain).toBe(true);
-  expect(nachtruheWorldAt(shot("Dawn").from - 0.1).rain).toBe(false);
+  expect(nachtruheWorldAt(shot("Dawn").from - 0.1).rain).toBe(0);
+  expect(nachtruheWorldAt(shot("Dawn").from).rain).toBe(0);
+  expect(nachtruheWorldAt(shot("Dawn").to).rain).toBe(1);
   expect(nachtruheWorldAt(NACHTRUHE_DURATION).look).toEqual(WEATHER.rain);
   expect(nachtruheWorldAt(NACHTRUHE_DURATION).lampsOn).toBe(false);
   expect(nachtruheWorldAt(NACHTRUHE_DURATION).curtains[0]).toBe(0);
@@ -75,4 +78,17 @@ test("before the morning every window is lit for one unbroken stretch at most, a
       const hisFlat = house === 12 && o.storey === his.storey && o.x < -1.9 && o.kind !== "stairs" && !same(o, his);
       if (hisFlat) expect(lit.some(Boolean), `his flat's ${o.kind} at ${o.x}`).toBe(false);
     }
+});
+
+test("the rain sets in through the dawn, a few drops first and the full shower by its end, and is heard as it is seen", () => {
+  const dawn = shot("Dawn");
+  let previous = 0;
+  for (let t = dawn.from; t <= dawn.to; t += 1 / 30) {
+    const { rain } = nachtruheWorldAt(t);
+    expect(rain).toBeGreaterThanOrEqual(previous);
+    expect(rain - previous).toBeLessThan(0.06);
+    expect(rainLevelAt(t)).toBeCloseTo(RAIN.volume * rain, 12);
+    previous = rain;
+  }
+  expect(nachtruheWorldAt(dawn.from + 0.5).rain).toBeLessThan(0.15);
 });

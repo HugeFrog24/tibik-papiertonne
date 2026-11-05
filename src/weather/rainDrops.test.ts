@@ -272,3 +272,16 @@ test("drops near the camera are drawn fainter, those further off at full strengt
   expect(lensFade(5)).toBe(1);
   for (let d = RAIN.nearCamera; d < 5; d += 0.1) expect(lensFade(d + 0.1)).toBeGreaterThanOrEqual(lensFade(d));
 });
+
+test("rain sets in: a share of the columns falls, and as the share grows more join, the earlier ones falling on", () => {
+  const all = rainAt(7.25, CAMERA, SOLIDS, BODIES);
+  const ids = (share: number) => new Set(rainAt(7.25, CAMERA, SOLIDS, BODIES, share).map((d) => d.id));
+  expect(ids(0).size).toBe(0);
+  expect(ids(1).size).toBe(all.length);
+  const few = ids(0.25);
+  const more = ids(0.6);
+  expect(few.size / all.length).toBeGreaterThan(0.15);
+  expect(few.size / all.length).toBeLessThan(0.35);
+  for (const id of few) expect(more.has(id)).toBe(true);
+  expect(rainAt(7.25, CAMERA, SOLIDS, BODIES, 0.6).every((d) => all.some((a) => a.id === d.id && a.head.every((v, i) => v === d.head[i])))).toBe(true);
+});

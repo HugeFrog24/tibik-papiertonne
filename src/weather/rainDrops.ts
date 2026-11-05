@@ -166,7 +166,7 @@ export const firstHit = (
   };
 };
 
-let columns: { id: number; x: number; z: number; phase: number }[] | null =
+let columns: { id: number; x: number; z: number; phase: number; onset: number }[] | null =
   null;
 
 export const rainColumns = () => {
@@ -179,6 +179,7 @@ export const rainColumns = () => {
     x: x0 + (x1 - x0) * random(`rain-x-${id}`),
     z: z0 + (z1 - z0) * random(`rain-z-${id}`),
     phase: random(`rain-phase-${id}`),
+    onset: random(`rain-onset-${id}`),
   }));
   return columns;
 };
@@ -257,11 +258,13 @@ export const rainAt = (
   camera: Vec3,
   solids: readonly Solid[],
   bodies: readonly Sphere[],
+  share = 1,
 ): Drop[] => {
   const eye = new Vector3(...camera);
   const moving = movingOf(solids);
   const drops: Drop[] = [];
   for (const column of rainColumns()) {
+    if (column.onset >= share) continue;
     const { origin, fixed, hit } = hitOfColumn(column.id, moving, bodies);
     const cycle = fixed.distance / RAIN.speed + RAIN.splash;
     const u = (((t / cycle + column.phase) % 1) + 1) % 1;

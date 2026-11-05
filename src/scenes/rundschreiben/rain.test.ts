@@ -7,6 +7,10 @@ import { RIG } from "../../Tibik/rig";
 import { FPS } from "../../frameRate";
 import { ENVELOPE_OUT, KLOPPEN, READ, THANKS, UNFOLD } from "./choreography";
 import { rundschreibenRain } from "./rain";
+import { RAIN_DIR } from "../../weather/rainDrops";
+import { DOORWAY, ENTRANCE_PARTS } from "../../street/facade";
+import { FACADE_Z } from "../../street/building";
+import { RUNDSCHREIBEN_DURATION } from "./choreography";
 import { solveRundschreiben } from "./solve";
 
 const inside = (p: Vector3, box: ReturnType<typeof letterSolids>[number]) =>
@@ -84,4 +88,27 @@ test("no raindrop passes through the envelope he holds or its torn flap, bow and
     }
   }
   expect(through.slice(0, 6)).toEqual([]);
+});
+
+test("the Haustür's door head keeps the rain off what lies in its lee: a drop under it came in on its slant from in front of it", { timeout: 300_000 }, () => {
+  const head = ENTRANCE_PARTS.find((p) => p.name === "door head")!;
+  const front = head.center[2] + head.size[2] / 2;
+  const sheltered: string[] = [];
+  for (const t of frames(0, RUNDSCHREIBEN_DURATION, 6)) {
+    for (const drop of rundschreibenRain(t, solveRundschreiben(t))) {
+      const headPoint = new Vector3(...drop.head);
+      const tail = new Vector3(...drop.tail);
+      for (let k = 0; k <= 20; k++) {
+        const p = tail.clone().lerp(headPoint, k / 20);
+        const under = p.x > DOORWAY.x0 && p.x < DOORWAY.x1 && p.y < DOORWAY.y1 && p.z >= FACADE_Z && p.z < front;
+        if (!under) continue;
+        const back = p.clone().addScaledVector(RAIN_DIR, (DOORWAY.y1 - p.y) / RAIN_DIR.y);
+        if (back.z < front - 1e-6) {
+          sheltered.push(`${t.toFixed(2)} s: drop ${drop.id} at ${p.toArray().map((v) => v.toFixed(3))}`);
+          break;
+        }
+      }
+    }
+  }
+  expect(sheltered.slice(0, 6)).toEqual([]);
 });

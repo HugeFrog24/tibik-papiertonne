@@ -399,7 +399,7 @@ test("the entrance lamp switches on as he comes within its sensor's range and st
   };
   expect(solveRundschreiben(0).lampOn).toBe(false);
   const first = wholeScene.find((t) => away(t) <= LAMP_SENSOR.range)!;
-  expect(first).toBeGreaterThan(0);
+  expect(first).toBeGreaterThan(0.8);
   expect(first).toBeLessThan(3);
   for (const t of wholeScene) expect(solveRundschreiben(t).lampOn, t.toFixed(2)).toBe(t >= first);
 });

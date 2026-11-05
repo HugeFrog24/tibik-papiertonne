@@ -85,3 +85,9 @@ test("puddles lie on open pavement or the road, never on anything standing there
       expect(overlap(print, other), `${p.x}, ${p.z}`).toBe(false);
   }
 });
+
+test("in the rain the weak sun still casts shadows, faint because the sky light dominates", () => {
+  const { sun, hemisphere } = WEATHER.rain;
+  expect(sun.shadows).toBe(true);
+  expect(sun.intensity / hemisphere.intensity).toBeLessThan(0.25);
+});

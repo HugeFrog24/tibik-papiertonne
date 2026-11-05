@@ -311,7 +311,7 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
 
 export const KEY_REGRIP = READ[0] + 1;
 
-export const LAMP_SENSOR = { range: 3 };
+export const LAMP_SENSOR = { range: 2.5 };
 
 const lampSwitchesOn = lazy(() => {
   const [lx, , lz] = ENTRANCE_LAMP.center;

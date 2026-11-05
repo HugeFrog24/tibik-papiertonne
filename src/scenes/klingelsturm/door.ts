@@ -3,6 +3,7 @@ import { groundWithMats } from "../../building/ground";
 import { TIBIK_DOOR, stairwellGround } from "../../building/stairwell";
 import {
   planGait,
+  shiftSteps,
   type RootAt,
   type Step,
 } from "../../characters/gait";
@@ -83,11 +84,7 @@ const OUT: readonly Step[] = [
 
 const STEPS: readonly Step[] = [
   ...OUT,
-  ...OUT.map((step) => ({
-    side: step.side,
-    lift: step.lift + BACK,
-    land: step.land + BACK,
-  })),
+  ...shiftSteps(OUT, BACK),
   ...exitSteps(OUT, TURN[0]),
 ];
 

@@ -369,6 +369,20 @@ Ideas (proposed, not built; the user picks):
 - The house key's brass is worn brighter at its tip and bow; the ring is a
   little sprung.
 - The bins are scuffed at their wheels and lid edges.
+- Shut things settle a hair ajar: Papier 1's lid lands 0.5-1 degree open
+  (5-8 mm at its front edge) after the thud, and the mailbox door rests about
+  a degree off its stop (a slammed lid, a tired spring).
+- The letter's print sits about 0.4 degree off square (a printer's paper
+  feed), so the rule and the text drift about 1.5 mm across the sheet.
+- The second fold was pressed harder: the lower crease's shadow is a fifth
+  darker than the upper one's.
+- The Haustür shows wear: scuffs at kick height on the green leaf and a paler
+  patch behind the outer pull bar (feet and hands).
+- Puddle edges wobble 1-2 cm with slightly darker rims (dips in the paving).
+- The mailbox key's blade is bent about a degree at its tip (0.4 mm), from
+  forcing a stiff lock.
+- Rain spots on the paper vary in darkness and edge instead of being uniform
+  discs.
 
 ## Continuity between scenes
 

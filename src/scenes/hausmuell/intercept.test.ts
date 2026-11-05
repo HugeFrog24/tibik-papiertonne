@@ -1,10 +1,11 @@
 import { expect, test } from "vitest";
+import { wrapAngle } from "../../characters/scalar";
 import { KARTON_OPENS, PAPIERTONNEN_DURATION } from "../papiertonnen/choreography";
 import { KAREN_SPOT, LINES, facing, tibikAt } from "./choreography";
 import { FOUND_IT } from "../papiertonnen/soundCues";
 import { HAUSMUELL_CUES } from "./soundCues";
 
-const apart = (a: number, b: number) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+const apart = (a: number, b: number) => Math.abs(wrapAngle(a - b));
 const EXIT_HEADING = -Math.PI / 2;
 
 test("Karen catches him in the act: her first shout comes within 0.8 s of the carton popping open, across the cut", () => {

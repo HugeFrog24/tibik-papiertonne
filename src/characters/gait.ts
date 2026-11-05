@@ -1,4 +1,4 @@
-import { clamp, easeUnit, smoothstep } from "./scalar";
+import { clamp, easeUnit, smoothstep, wrapAngle } from "./scalar";
 import { Matrix4, Quaternion, Vector3 } from "three";
 import { legLength, restAnkle, solveLeg } from "./legs";
 import {
@@ -82,8 +82,10 @@ const STEP_DOWN = 0.05;
 const BALL_FIRST = 0.6;
 const BOB_SMOOTHING = { level: 0.1, uneven: 0.12 };
 
-const angleBetween = (from: number, to: number) =>
-  Math.atan2(Math.sin(to - from), Math.cos(to - from));
+const angleBetween = (from: number, to: number) => wrapAngle(to - from);
+
+export const shiftSteps = (steps: readonly Step[], by: number): Step[] =>
+  steps.map((s) => ({ ...s, lift: s.lift + by, land: s.land + by }));
 
 export const legOf = (side: Side): LegName =>
   side === 1 ? "leftLeg" : "rightLeg";

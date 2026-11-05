@@ -3,6 +3,7 @@ import { armKf, blinkAt, kf } from "../../characters/animate";
 import {
   planGait,
   rhythmicSteps,
+  shiftSteps,
   STEP_OVERLAP,
   strideAt,
   touchdownTimes,
@@ -149,7 +150,8 @@ const rootAt: RootAt = (t) => {
   return { x: walkX(u), z: walkZ(u), yaw: turnAt(u), y: 0 };
 };
 
-const AT_THE_BIN: Step[] = [
+const AT_THE_BIN: Step[] = shiftSteps(
+  [
   { side: 1, lift: 3.0, land: 3.17 },
   { side: -1, lift: 3.21, land: 3.4 },
   { side: -1, lift: 7.45, land: 7.62 },
@@ -159,12 +161,8 @@ const AT_THE_BIN: Step[] = [
   { side: -1, lift: 8.54, land: 8.69 },
   { side: 1, lift: 8.71, land: 8.86 },
   { side: -1, lift: 8.88, land: 9.03 },
-].map(
-  (s): Step => ({
-    side: s.side as 1 | -1,
-    lift: s.lift + OPENING,
-    land: s.land + OPENING,
-  }),
+  ],
+  OPENING,
 );
 const walkToTheBin = (first: 1 | -1) =>
   rhythmicSteps({

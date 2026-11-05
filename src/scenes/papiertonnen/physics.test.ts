@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { wrapAngle } from "../../characters/scalar";
 import {
   TOLERANCE,
   frameLabel,
@@ -241,7 +242,6 @@ test("papiertonnen ends exactly as before the re-staging", () => {
   }).toMatchSnapshot();
 });
 
-const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const numbersIn = (value: unknown, path = ""): [string, number][] =>
   typeof value === "number"
     ? [[path, value]]

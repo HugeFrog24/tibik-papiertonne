@@ -1,6 +1,6 @@
 import { stairwellGround } from "../../building/stairwell";
 import { armKf, kf } from "../../characters/animate";
-import type { RootAt, Step } from "../../characters/gait";
+import { shiftSteps, type RootAt, type Step } from "../../characters/gait";
 import { inWindow } from "../../characters/scalar";
 import type { ArmPose } from "../../characters/skeleton";
 import type { Hold } from "../../physics/holds";
@@ -140,11 +140,7 @@ export const exitRoot =
   };
 
 export const exitSteps = (walk: readonly Step[], from: number): Step[] => [
-  ...walk.map((s) => ({
-    ...s,
-    lift: s.lift + EXIT.walk - from,
-    land: s.land + EXIT.walk - from,
-  })),
+  ...shiftSteps(walk, EXIT.walk - from),
   ...treppenhausSteps()
     .filter(
       (s) => s.lift >= LEAVING.sidle[0] && filmTime(s.land) < EXIT.end + 1,

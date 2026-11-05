@@ -1,6 +1,7 @@
 import { Euler, Matrix4, Vector3 } from "three";
 import { eulerFromBasis } from "../toon/orient";
 import { restPose } from "../characters/legs";
+import { wrapAngle } from "../characters/scalar";
 import type { ArmPose, Pose, Skeleton } from "../characters/skeleton";
 import type { Vec3 } from "../toon/primitives";
 import { SCALP, hairlinePolar } from "./scalpShape";
@@ -287,7 +288,7 @@ const TEMPLES: readonly [number, number, number][] = [
 const latticeLocks = (): HairPiece[] =>
   Array.from({ length: LATTICE.points }, (_, k) => {
     const polar = Math.acos(1 - (2 * (k + 0.5)) / LATTICE.points);
-    const azimuth = Math.atan2(Math.sin(k * GOLDEN), Math.cos(k * GOLDEN));
+    const azimuth = wrapAngle(k * GOLDEN);
     return { k, polar, azimuth };
   })
     .filter(

@@ -30,6 +30,7 @@ import {
 import { RIG } from "../../Tibik/rig";
 import { TIBIK_GAIT } from "../../Tibik/character";
 import { lazy } from "../../physics/lazy";
+import { wrapAngle } from "../../characters/scalar";
 import type { Vec3 } from "../../toon/primitives";
 import { speakingAmountIn, speakingIn, type Line } from "../../dialogue/line";
 import type { KarenFrame } from "../../Karen/character";
@@ -195,12 +196,11 @@ const tibikX = (t: number) =>
 const LEAVING: readonly [number, number] = [0.2, 0.55];
 const AWAY = 1.5;
 const BACK_TO_HER: readonly [number, number] = [0.75, 1.3];
-const shortest = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 
 const tibikTurnAt = (t: number) => {
   const start = papiertonnenTibikAt(PAPIERTONNEN_LAST_T);
   const away =
-    start.rotationY + AWAY * Math.sign(shortest(EXIT_YAW - start.rotationY));
+    start.rotationY + AWAY * Math.sign(wrapAngle(EXIT_YAW - start.rotationY));
   const towardsKaren = facing(start.position, KAREN_SPOT);
   return (
     start.rotationY +

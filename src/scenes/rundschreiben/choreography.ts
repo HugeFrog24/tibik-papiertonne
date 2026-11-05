@@ -12,7 +12,7 @@ import {
   type RootAt,
   type Step,
 } from "../../characters/gait";
-import { easeUnit } from "../../characters/scalar";
+import { easeUnit, inWindow } from "../../characters/scalar";
 import { armColliders, type Side } from "../../characters/skeleton";
 import { frame, obb } from "../../physics/collision";
 import { TONNE, TONNE_FLOOR, tonneLidParts } from "../../street/tonneShape";
@@ -29,7 +29,7 @@ import { blendMatrices } from "../../toon/orient";
 import { walkAt, type Walk } from "../../characters/walkPath";
 import type { Hold } from "../../physics/holds";
 import { lazy } from "../../physics/lazy";
-import { KEY_GRIP, keyBowGrip, keyInLock } from "../../props/keyRingShape";
+import { KEY_APPROACH, KEY_GRIP, keyBowGrip, keyDepthAt, keyInLock } from "../../props/keyRingShape";
 import { MAILBOXES, binByName } from "../../street/layout";
 import {
   MAILBOX_DOOR,
@@ -75,9 +75,6 @@ const THROUGH_THE_DOORWAY: readonly [number, number] = [ROUND_THE_LEAF[0] + 0.5,
 const LID_OPEN = 0.3;
 const LID_LET_GO = KLOPPEN[1] + 0.1;
 const TO_READY: readonly [number, number] = [TO_BIN[1] - 0.4, LID_UP[0]];
-
-const progress = (t: number, [a, b]: readonly [number, number]) =>
-  easeUnit((t - a) / (b - a));
 
 export const START = { x: -5.9, z: -0.9 };
 export const STAND = { x: -2.3, z: -1.39 };
@@ -149,7 +146,7 @@ const walkIn: Walk = {
 };
 
 const shuffle = (t: number, span: readonly [number, number], from: Stand, to: Stand) => {
-  const k = progress(t, span);
+  const k = inWindow(t, span);
   const x = from.x + (to.x - from.x) * k;
   const z = from.z + (to.z - from.z) * k;
   return { x, z, yaw: FACING_THE_WALL, y: stepLift(z, ...ONTO_THE_STEP) };
@@ -161,8 +158,8 @@ const walkLeg = (walk: Walk, t: number, settle = true) => {
     heading +
     2 * Math.PI * Math.round((FACING_THE_WALL - heading) / (2 * Math.PI));
   const away =
-    progress(t, [walk.from, walk.from + SETTLE]) *
-    (settle ? 1 - progress(t, [walk.to - SETTLE, walk.to]) : 1);
+    inWindow(t, [walk.from, walk.from + SETTLE]) *
+    (settle ? 1 - inWindow(t, [walk.to - SETTLE, walk.to]) : 1);
   return {
     x,
     z,
@@ -332,8 +329,6 @@ const lampSwitchesOn = lazy(() => {
 export const lampOnAt = (t: number) => t >= lampSwitchesOn();
 
 export const KEY_INSERT = 0.016;
-const KEY_APPROACH = 0.25;
-const KEY_SLIDE = 0.02;
 
 export const KEY_OUT: readonly [number, number] = [
   BOX_SHUT[1] + 0.35,
@@ -355,10 +350,7 @@ const keyTurnAt = (t: number) =>
   );
 
 export const keysInLock = (t: number): Matrix4 => {
-  const inserted = easeUnit((t - (KEY_IN - KEY_APPROACH)) / KEY_APPROACH);
-  const withdrawn = easeUnit((t - KEY_OUT[0]) / (KEY_OUT[1] - KEY_OUT[0]));
-  const depth =
-    KEY_INSERT - (KEY_INSERT + KEY_SLIDE) * Math.max(1 - inserted, withdrawn);
+  const depth = keyDepthAt(t, [KEY_IN - KEY_APPROACH, KEY_IN], KEY_OUT, KEY_INSERT);
   return keyInLock(
     mailboxDoorFrame(mailboxDoorAt(t)),
     new Vector3(...mailboxLockLocal()),
@@ -522,10 +514,10 @@ const thrown = (t: number) => {
 export const envelopeAt = (t: number): Matrix4 | null => {
   if (t < BOX_OPEN[0]) return null;
   if (t >= KLOPPEN[0]) return thrown(t);
-  const lift = progress(t, ENVELOPE_LIFT);
-  const box = boxPose(progress(t, ENVELOPE_SLIDE));
+  const lift = inWindow(t, ENVELOPE_LIFT);
+  const box = boxPose(inWindow(t, ENVELOPE_SLIDE));
   const held = lift <= 0 ? box : blendMatrices(box, heldPose(t), lift);
-  const ready = progress(t, TO_READY);
+  const ready = inWindow(t, TO_READY);
   return ready <= 0 ? held : blendMatrices(held, thrown(KLOPPEN[0]), ready);
 };
 
@@ -567,7 +559,7 @@ export const envelopeGripAt = (t: number, which: "leftArm" | "rightArm") => {
   const mid = -ENVELOPE.thickness / 2;
   if (which === "rightArm")
     return onEnvelope(m, new Vector3(0, DL[1] / 2, mid), new Vector3(-1, 0, 0));
-  const [x, y] = ROUND_THE_CORNER(progress(t, ENVELOPE_LIFT));
+  const [x, y] = ROUND_THE_CORNER(inWindow(t, ENVELOPE_LIFT));
   return new Vector3(x, y, mid).applyMatrix4(m);
 };
 
@@ -597,7 +589,7 @@ const rightHandAt = (t: number) =>
     ? envelopeGripAt(t, "rightArm")
     : envelopeGripAt(KLOPPEN[0], "rightArm").addScaledVector(
         FOLLOW_THROUGH,
-        progress(t, [KLOPPEN[0], KLOPPEN[0] + 0.15]),
+        inWindow(t, [KLOPPEN[0], KLOPPEN[0] + 0.15]),
       );
 
 export const ENVELOPE_RIGHT_HOLD: Hold = {
@@ -616,7 +608,7 @@ export const flapAt = (t: number) =>
   kf(t, [FLAP[0], FLAP[1], FLAP[1] + 0.4], [0, 1, FLAP_FLOP]);
 
 export const envelopeBendAt = (t: number) => {
-  const held = progress(t, ENVELOPE_LIFT) * (1 - progress(t, KLOPPEN));
+  const held = inWindow(t, ENVELOPE_LIFT) * (1 - inWindow(t, KLOPPEN));
   return {
     bow: held * (FLOPPY.bow + FLOPPY.bowSway * Math.sin(2 * t)),
     twist: held * FLOPPY.twist,
@@ -657,8 +649,8 @@ const letterY = (t: number) => {
       [FOLD_BACK[1], OVER_THE_MOUTH, FOLD[1]],
       [LETTER_REST, LETTER_START + LETTER_RISE, LETTER_START],
     );
-  const raised = LETTER_START + LETTER_RISE * progress(t, LETTER_RISING);
-  return raised + (LETTER_REST - raised) * progress(t, LETTER_DOWN);
+  const raised = LETTER_START + LETTER_RISE * inWindow(t, LETTER_RISING);
+  return raised + (LETTER_REST - raised) * inWindow(t, LETTER_DOWN);
 };
 
 export const letterAt = (t: number) => {
@@ -670,7 +662,7 @@ export const letterAt = (t: number) => {
       .clone()
       .multiply(new Matrix4().makeTranslation(LETTER_INSET + A4[0], y, BEHIND))
       .multiply(new Matrix4().makeRotationY(Math.PI)),
-    fold: progress(t, UNFOLDING) - progress(t, FOLD_BACK),
+    fold: inWindow(t, UNFOLDING) - inWindow(t, FOLD_BACK),
   };
 };
 
@@ -700,11 +692,11 @@ const roundTheEdge = (k: number, y: number, onFlap: Vector3) => {
 const leftHandLocal = (t: number) => {
   const tip = flapHandLocal(FLAP[0]);
   if (t <= ONTO_THE_FLAP[1]) {
-    const k = progress(t, ONTO_THE_FLAP);
+    const k = inWindow(t, ONTO_THE_FLAP);
     return roundTheEdge(1 - k, tip.y, tip);
   }
   if (t <= TO_LETTER[0]) return flapHandLocal(t);
-  const k = progress(t, TO_LETTER);
+  const k = inWindow(t, TO_LETTER);
   const from = flapHandLocal(TO_LETTER[0]);
   const y = letterY(t) + FOLD_MARKS[0] / 2;
   return roundTheEdge(k, from.y + (y - from.y) * k, from);

@@ -392,3 +392,18 @@ export const doorSolids = (door: Door, angle: number, press = 0): Obb[] => [
   ...gripSolids(door, angle, press),
   ...fittingSolids(door, angle),
 ];
+
+export const coastTime = (pull: readonly [number, number], from: number, to: number) =>
+  (pull[1] - pull[0]) * ((to - from) / from);
+
+export const pulledThenCoasting = (
+  t: number,
+  pull: readonly [number, number],
+  cracked: number,
+  open: number,
+) => {
+  if (t <= pull[0]) return 0;
+  if (t <= pull[1]) return cracked * ((t - pull[0]) / (pull[1] - pull[0])) ** 2;
+  const s = Math.min(1, (t - pull[1]) / coastTime(pull, cracked, open));
+  return cracked + (open - cracked) * (1 - (1 - s) ** 2);
+};

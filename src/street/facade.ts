@@ -172,6 +172,8 @@ export const haustuerSolids = (angle: number, lever = 0): Obb[] =>
 export const CLOSER_TIME = 4;
 export const CLOSER_DELAY = 1.2;
 
+export const closerEnd = (release: number) => release + CLOSER_DELAY + CLOSER_TIME;
+
 export const closerSwing = (
   t: number,
   release: number,

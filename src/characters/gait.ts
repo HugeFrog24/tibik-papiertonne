@@ -474,6 +474,17 @@ const unevenSpans = (plan: GaitPlan): (readonly [number, number])[] => {
   );
 };
 
+const restingAnkle = (
+  skeleton: Skeleton,
+  side: Side,
+  width: number | undefined,
+  r: { readonly x: number; readonly z: number; readonly yaw: number },
+) => {
+  const local = restAnkle(skeleton, side);
+  if (width !== undefined) local.x = side * width;
+  return local.applyAxisAngle(Y_AXIS, r.yaw).add(new Vector3(r.x, 0, r.z));
+};
+
 const EDGE_SHIFT = { step: 0.005, most: 0.4, clear: 0.05 };
 
 const straddles = (ground: Ground, skeleton: Skeleton, side: Side, x: number, z: number, yaw: number) => {
@@ -502,9 +513,7 @@ export const offTheEdges = (
       .sort((a, b) => a.lift - b.lift)[0];
     const when = next ? step.land + (next.lift - step.land) * style.plantAt : span[1];
     const r = root(when);
-    const local = restAnkle(skeleton, step.side);
-    if (step.width !== undefined) local.x = step.side * step.width;
-    const ankle = local.applyAxisAngle(Y_AXIS, r.yaw).add(new Vector3(r.x, 0, r.z));
+    const ankle = restingAnkle(skeleton, step.side, step.width, r);
     if (!straddles(ground, skeleton, step.side, ankle.x, ankle.z, r.yaw)) return step;
     const fx = Math.sin(r.yaw);
     const fz = Math.cos(r.yaw);
@@ -556,13 +565,7 @@ export const planGait = (
           when = span[1];
         }
         const r = root(when);
-        const local = restAnkle(skeleton, side);
-        if (width !== undefined) {
-          local.x = side * width;
-        }
-        const ankle = local
-          .applyAxisAngle(Y_AXIS, r.yaw)
-          .add(new Vector3(r.x, 0, r.z));
+        const ankle = restingAnkle(skeleton, side, width, r);
         if (at) {
           ankle.x = at.x;
           ankle.z = at.z;

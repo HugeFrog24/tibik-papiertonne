@@ -36,6 +36,11 @@ export const findShot = <
   t: number,
 ): S => shots.find((s) => t >= s.from && t < s.to) ?? shots[shots.length - 1];
 
+export const camerasOf = <S extends Shot>(shots: readonly S[]) => ({
+  shotAt: (t: number): S => findShot(shots, t),
+  cameraAt: (t: number): CameraSetup => findShot(shots, t).at(t),
+});
+
 const HEAD_HEIGHT = { tibik: 1.45, karen: 1.45 };
 
 const across = (() => {
@@ -175,4 +180,4 @@ export const SHOTS: readonly Shot[] = [
   },
 ];
 
-export const cameraAt = (t: number): CameraSetup => findShot(SHOTS, t).at(t);
+export const { cameraAt } = camerasOf(SHOTS);

@@ -1,4 +1,4 @@
-import { doorLeaf, gripSolid } from "../../building/doors";
+import { coastTime, doorLeaf, gripSolid, pulledThenCoasting } from "../../building/doors";
 import {
   FLIGHTS,
   TIBIK_DOOR,
@@ -68,8 +68,6 @@ const STAIR_TOP: Point = [STAIR_X, -8.79];
 const CRACKED = 0.22;
 const SWUNG = 1.25;
 const LEVER_PULL: readonly [number, number] = [0.25, 0.55];
-const coastTime = (pull: readonly [number, number], from: number, to: number) =>
-  (pull[1] - pull[0]) * ((to - from) / from);
 const SIDLE_IN: readonly [number, number] = [0.95, 1.95];
 const SHUFFLE = 5;
 const SWUNG_AT = LEVER_PULL[1] + coastTime(LEVER_PULL, CRACKED, SWUNG);
@@ -181,18 +179,6 @@ const YAW_KEYS: readonly (readonly [number, number])[] = [
 ];
 const YAW_TIMES = YAW_KEYS.map(([t]) => t);
 const YAW = YAW_KEYS.map(([, yaw]) => yaw);
-
-const pulledThenCoasting = (
-  t: number,
-  pull: readonly [number, number],
-  cracked: number,
-  open: number,
-) => {
-  if (t <= pull[0]) return 0;
-  if (t <= pull[1]) return cracked * ((t - pull[0]) / (pull[1] - pull[0])) ** 2;
-  const s = Math.min(1, (t - pull[1]) / coastTime(pull, cracked, open));
-  return cracked + (open - cracked) * (1 - (1 - s) ** 2);
-};
 
 export const LEVER = { down: 0.5, press: 0.14, settle: 0.01, back: 0.08 };
 

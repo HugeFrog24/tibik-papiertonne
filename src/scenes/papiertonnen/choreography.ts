@@ -15,7 +15,7 @@ import { stairwellGround, stepLift } from "../../building/stairwell";
 import { walkAt, type Walk } from "../../characters/walkPath";
 import type { Hold } from "../../physics/holds";
 import { lazy } from "../../physics/lazy";
-import { CLOSER_DELAY, CLOSER_TIME, HAUSTUER, closerSwing } from "../../street/facade";
+import { HAUSTUER, closerEnd, closerSwing } from "../../street/facade";
 import { BIN_Z, SEARCHED_BIN, binByName } from "../../street/layout";
 import { restingLid } from "../../street/lids";
 import { guardLid } from "../../street/restingLids";
@@ -87,7 +87,7 @@ export const kartonAt = (t: number): KartonState => {
 const PAUSE = 0.5;
 const OPENING_END = 2 + OPENING;
 const DOOR_RELEASE = 0.6;
-export const HAUSTUER_LATCHED = DOOR_RELEASE + CLOSER_DELAY + CLOSER_TIME;
+export const HAUSTUER_LATCHED = closerEnd(DOOR_RELEASE);
 const CLEAR_OF_THE_FRAME: readonly [number, number] = [1.6, 2.1];
 
 const walkingOut = lazy((): Walk => {

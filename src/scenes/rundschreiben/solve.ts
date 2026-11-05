@@ -1,6 +1,7 @@
 import { Matrix4, Quaternion, Vector3 } from "three";
 import type { Solid } from "../../physics/collision";
 import type { Hold } from "../../physics/holds";
+import { lazy } from "../../physics/lazy";
 import { memoByFrame } from "../../physics/memoSolve";
 import { BINS, worldSolids } from "../../street/layout";
 import { mailboxDoorSolid } from "../../street/mailboxDoorShape";
@@ -98,6 +99,8 @@ const keysAt = (t: number, tibik: TibikFrame) => {
   return keyRingAt(hand, carried, t < KEY_REGRIP ? "mailbox" : "house", KEY_GRIP);
 };
 
+const INDOORS = lazy(() => indoorSolids({ tibik: 0 }));
+
 export const rundschreibenSolids = (
   state: Pick<
     RundschreibenState,
@@ -106,7 +109,7 @@ export const rundschreibenSolids = (
 ): Solid[] => [
   ...worldSolids(state.lids, state.haustuer, state.haustuerLever),
   mailboxDoorSolid(state.mailboxDoor),
-  ...(state.haustuer > 0 || state.indoors > 0 ? indoorSolids({ tibik: 0 }) : []),
+  ...(state.haustuer > 0 || state.indoors > 0 ? INDOORS() : []),
 ];
 
 const solve = (t: number): RundschreibenState => {

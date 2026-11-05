@@ -3,7 +3,7 @@ import { viewerLens, type Door } from "../../building/doors";
 import { FRAME_SIZE } from "../../dialogue/screen";
 import { floorLevel } from "../../street/building";
 import type { Vec3 } from "../../toon/primitives";
-import { findShot, type CameraSetup, type Shot } from "../hausmuell/cameras";
+import { camerasOf, type CameraSetup, type Shot } from "../hausmuell/cameras";
 import { Vector3 } from "three";
 import { lazy } from "../../physics/lazy";
 import { doorFrame } from "../../building/doors";
@@ -153,6 +153,4 @@ export const SHOTS: readonly Shot[] = [
   },
 ];
 
-export const shotAt = (t: number) => findShot(SHOTS, t);
-
-export const cameraAt = (t: number): CameraSetup => shotAt(t).at(t);
+export const { shotAt, cameraAt } = camerasOf(SHOTS);

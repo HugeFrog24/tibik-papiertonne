@@ -1,5 +1,5 @@
 import { ENTRANCE_X, FACADE_Z } from "../../street/building";
-import { findShot, type CameraSetup, type Shot } from "../hausmuell/cameras";
+import { camerasOf, type CameraSetup, type Shot } from "../hausmuell/cameras";
 import {
   BIN_Z,
   PAPIERTONNEN_DURATION,
@@ -91,4 +91,4 @@ export const SHOTS: readonly Shot[] = [
   },
 ];
 
-export const cameraAt = (t: number): CameraSetup => findShot(SHOTS, t).at(t);
+export const { cameraAt } = camerasOf(SHOTS);

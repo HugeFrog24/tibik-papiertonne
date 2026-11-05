@@ -1,7 +1,6 @@
-import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { onScreen, seenBy } from "../../dialogue/screen";
-import { LETTER_LAYOUT, PT, letterLineWidth, letterPanels } from "../../props/letterShape";
+import { LETTER_LAYOUT, PT, letterLineWidth, pointOnLetter } from "../../props/letterShape";
 import { FPS } from "../../timeline";
 import { CAPTION, SHOTS, cameraAt } from "./cameras";
 import { RUNDSCHREIBEN_DURATION } from "./choreography";
@@ -32,15 +31,8 @@ test("the shots run end to end over the scene, in the spec's order", () => {
   for (let i = 1; i < SHOTS.length; i++) expect(SHOTS[i].from).toBe(SHOTS[i - 1].to);
 });
 
-const onTheSheet = (t: number, x: number, fromTop: number) => {
-  const { letter } = solveRundschreiben(t);
-  const panel = letterPanels(letter!.fold).find(
-    (p) => fromTop >= p.fromTop && fromTop <= p.fromTop + p.size[1],
-  )!;
-  return new Vector3(x, panel.size[1] - (fromTop - panel.fromTop), 0)
-    .applyMatrix4(panel.matrix)
-    .applyMatrix4(letter!.matrix);
-};
+const onTheSheet = (t: number, x: number, fromTop: number) =>
+  pointOnLetter(solveRundschreiben(t).letter!, x, fromTop);
 
 test("every body line is at least 40 px tall in insert 1, the thanks line and signature in insert 2", () => {
   const problems: string[] = [];

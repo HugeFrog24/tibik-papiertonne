@@ -4,12 +4,12 @@ import {
   LETTER_LAYOUT,
   PT,
   letterLineWidth,
-  letterPanels,
+  pointOnLetter,
   type LetterLine,
 } from "../../props/letterShape";
 import { FRAME_SIZE } from "../../dialogue/screen";
 import type { Vec3 } from "../../toon/primitives";
-import { findShot, type CameraSetup, type Shot } from "../hausmuell/cameras";
+import { camerasOf, type CameraSetup, type Shot } from "../hausmuell/cameras";
 import {
   AT_MAILBOX,
   FLAP,
@@ -35,16 +35,6 @@ const fixed =
     fov,
   });
 
-const onTheSheet = (t: number, x: number, fromTop: number) => {
-  const letter = letterAt(t)!;
-  const panel = letterPanels(letter.fold).find(
-    (p) => fromTop >= p.fromTop && fromTop <= p.fromTop + p.size[1],
-  )!;
-  return new Vector3(x, panel.size[1] - (fromTop - panel.fromTop), 0)
-    .applyMatrix4(panel.matrix)
-    .applyMatrix4(letter.matrix);
-};
-
 const insert = (
   lines: readonly LetterLine[],
   from: number,
@@ -69,7 +59,7 @@ const insert = (
       keepAbove === undefined
         ? (top + bottom) / 2
         : Math.min((top + bottom) / 2, keepAbove - height / 2);
-    const centre = onTheSheet(t, (left + right) / 2, centreFromTop);
+    const centre = pointOnLetter(letterAt(t)!, (left + right) / 2, centreFromTop);
     const sheet = letterAt(t)!.matrix;
     const normal = new Vector3(0, 0, 1).transformDirection(sheet);
     const distance = height / (2 * Math.tan((INSERT_FOV * Math.PI) / 360));
@@ -141,6 +131,4 @@ export const SHOTS: readonly RundschreibenShot[] = [
   },
 ];
 
-export const shotAt = (t: number) => findShot(SHOTS, t);
-
-export const cameraAt = (t: number): CameraSetup => shotAt(t).at(t);
+export const { shotAt, cameraAt } = camerasOf(SHOTS);

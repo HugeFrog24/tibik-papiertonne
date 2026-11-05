@@ -1,5 +1,19 @@
 import { Matrix4, Quaternion, Vector3 } from "three";
 import type { Vec3 } from "../toon/primitives";
+import { inWindow } from "../characters/scalar";
+
+export const KEY_APPROACH = 0.25;
+const KEY_SLIDE = 0.02;
+
+export const keyDepthAt = (
+  t: number,
+  inserting: readonly [number, number],
+  withdrawing: readonly [number, number],
+  insert: number,
+) =>
+  insert -
+  (insert + KEY_SLIDE) *
+    Math.max(1 - inWindow(t, inserting), inWindow(t, withdrawing));
 
 export const KEY_RING = {
   ring: { radius: 0.013, tube: 0.0012 },

@@ -1,40 +1,26 @@
 import { Vector3 } from "three";
 import { kf } from "../../characters/animate";
 import { easeUnit } from "../../characters/scalar";
-import { doorFrame, fittingsOf, gripSolid } from "../../building/doors";
+import { coastTime, doorFrame, fittingsOf, gripSolid, pulledThenCoasting } from "../../building/doors";
 import type { Hold } from "../../physics/holds";
-import { KEY_GRIP, keyBowGrip, keyInLock } from "../../props/keyRingShape";
-import { CLOSER_DELAY, CLOSER_TIME, HAUSTUER, closerSwing } from "../../street/facade";
+import { KEY_APPROACH, KEY_GRIP, keyBowGrip, keyDepthAt, keyInLock } from "../../props/keyRingShape";
+import { HAUSTUER, closerEnd, closerSwing } from "../../street/facade";
 import { BACK_STEP, UNLOCK } from "./choreography";
 
 export const HOUSE_KEY_INSERT = 0.026;
-const KEY_APPROACH = 0.25;
-const KEY_SLIDE = 0.02;
 const INSERTED = UNLOCK[0] + KEY_APPROACH;
 const TURN: readonly [number, number] = [INSERTED + 0.05, BACK_STEP[0]];
 const TURN_BACK: readonly [number, number] = [BACK_STEP[1] - 0.4, BACK_STEP[1]];
 const KEY_OUT: readonly [number, number] = [BACK_STEP[1], BACK_STEP[1] + 0.15];
 const PULLED = 0.4;
 const WIDE = 1.65;
-const LET_GO = BACK_STEP[1];
-const COAST = ((WIDE - PULLED) * (BACK_STEP[1] - BACK_STEP[0])) / PULLED;
-const SWUNG = LET_GO + COAST;
+const SWUNG = BACK_STEP[1] + coastTime(BACK_STEP, PULLED, WIDE);
 
-export const DOOR_SHUT = SWUNG + CLOSER_DELAY + CLOSER_TIME;
+export const DOOR_SHUT = closerEnd(SWUNG);
 export const HOUSE_KEYS_IN_LOCK: readonly [number, number] = [UNLOCK[0], KEY_OUT[1]];
 
-export const haustuerAt = (t: number) => {
-  if (t <= BACK_STEP[0]) return 0;
-  if (t < LET_GO) {
-    const k = (t - BACK_STEP[0]) / (BACK_STEP[1] - BACK_STEP[0]);
-    return PULLED * k * k;
-  }
-  if (t < SWUNG) {
-    const u = 1 - (t - LET_GO) / COAST;
-    return WIDE - (WIDE - PULLED) * u * u;
-  }
-  return closerSwing(t, SWUNG, WIDE);
-};
+export const haustuerAt = (t: number) =>
+  t < SWUNG ? pulledThenCoasting(t, BACK_STEP, PULLED, WIDE) : closerSwing(t, SWUNG, WIDE);
 
 const CYLINDER = new Vector3(
   ...fittingsOf(HAUSTUER).faces.find((f) => f.kind === "cylinder" && f.out > 0)!
@@ -44,14 +30,8 @@ const CYLINDER = new Vector3(
 export const outerCylinderAt = (angle: number) =>
   CYLINDER.clone().applyMatrix4(doorFrame(HAUSTUER, angle));
 
-const keyDepth = (t: number) => {
-  const inserted = easeUnit((t - UNLOCK[0]) / KEY_APPROACH);
-  const withdrawn = easeUnit((t - KEY_OUT[0]) / (KEY_OUT[1] - KEY_OUT[0]));
-  return (
-    HOUSE_KEY_INSERT -
-    (HOUSE_KEY_INSERT + KEY_SLIDE) * Math.max(1 - inserted, withdrawn)
-  );
-};
+const keyDepth = (t: number) =>
+  keyDepthAt(t, [UNLOCK[0], INSERTED], KEY_OUT, HOUSE_KEY_INSERT);
 
 const keyTurn = (t: number) =>
   kf(t, [TURN[0], TURN[1], TURN_BACK[0], TURN_BACK[1]], [0, Math.PI, Math.PI, 0]);
@@ -80,4 +60,4 @@ export const HAUSTUER_HOLD: Hold = {
   exact: true,
 };
 
-export const indoorsAt = (t: number) => easeUnit((t - (LET_GO + 1.2)) / 0.8);
+export const indoorsAt = (t: number) => easeUnit((t - (BACK_STEP[1] + 1.2)) / 0.8);

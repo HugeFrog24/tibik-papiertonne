@@ -1,4 +1,4 @@
-import { Matrix4 } from "three";
+import { Matrix4, Vector3 } from "three";
 import { random } from "remotion";
 import { textWidth } from "../dialogue/bubbleText";
 import { LETTER_LINES, type LetterRole } from "../scenes/rundschreiben/letter";
@@ -84,6 +84,19 @@ export type Panel = {
   readonly matrix: Matrix4;
   readonly size: readonly [number, number];
   readonly fromTop: number;
+};
+
+export const pointOnLetter = (
+  letter: { readonly matrix: Matrix4; readonly fold: number },
+  x: number,
+  fromTop: number,
+) => {
+  const panel = letterPanels(letter.fold).find(
+    (p) => fromTop >= p.fromTop && fromTop <= p.fromTop + p.size[1],
+  )!;
+  return new Vector3(x, panel.size[1] - (fromTop - panel.fromTop), 0)
+    .applyMatrix4(panel.matrix)
+    .applyMatrix4(letter.matrix);
 };
 
 export const letterPanels = (fold: number): Panel[] => {

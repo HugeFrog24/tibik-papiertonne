@@ -11,6 +11,9 @@ import { FRAME_SIZE } from "../../dialogue/screen";
 import type { Vec3 } from "../../toon/primitives";
 import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../hausmuell/cameras";
 import {
+  FOLD,
+  REACT,
+  THANKS,
   AT_MAILBOX,
   FLAP,
   READ,
@@ -71,9 +74,9 @@ const roleLines = (...roles: LetterLine["role"][]) =>
 
 const OPENING = FLAP[0] - 0.4;
 const THANKS_UP = READ[1];
-const DEADPAN = 29.5;
-export const FOLDING_SHOT = 30.4;
-const CODA = 31.5;
+const DEADPAN = THANKS[1] + 1.5;
+export const FOLDING_SHOT = REACT[1] + 0.4;
+const CODA = FOLD[1];
 
 const body = roleLines("body");
 const thanks = roleLines("thanks", "signature");

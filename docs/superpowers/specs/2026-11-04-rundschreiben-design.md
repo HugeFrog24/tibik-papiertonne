@@ -86,8 +86,10 @@ Betreff: Hausordnung
 Sehr geehrte Mieterinnen und Mieter,
 
 aus gegebenem Anlass:
-In die Papiertonne gehört nur Papier. Entnehmen ist nicht gestattet.
-Streit gehört nicht ins Treppenhaus.
+Wir sind stets bemüht, die Umwelt zu schonen. Deshalb bitten wir Sie:
+Das Entnehmen aus der Papiertonne ist nicht gestattet.
+Bitte wenden Sie sich an den örtlichen Baumarkt, um einen Karton
+käuflich zu erwerben.
 
 Vie-len DANK. Vie-len DANK. Vie-len DANK. Vie-len DANK.
 
@@ -95,15 +97,21 @@ Mit freundlichen Grüßen
 Ihre Hausverwaltung Musterstadt
 ```
 
-- The two paragraphs aim at both of them — the bins (Tibik) and the stairwell
-  (Karen) — without naming either. The 110 call is left out on purpose: the
-  Hausverwaltung could not know of it, and it is none of its business (user's
-  decision, 2026-11-04).
+- The Hausverwaltung contradicts itself (user's idea, 2026-11-05): it is "stets
+  bemüht", as a German reference puts a failure kindly, to spare the
+  environment, and for that reason forbids taking a box out of the Papiertonne
+  and sends the tenants to the Baumarkt to buy a new one.
+- The letter aims at Tibik alone, passive-aggressively and without naming
+  him, and says nothing of Karen's shouting, doorbell siege or phone calls:
+  that one-sidedness is the joke (user's decision, 2026-11-05, which dropped
+  the earlier line about quarrels in the stairwell). The 110 call is left out
+  too: the Hausverwaltung could not know of it.
 - "Vie-len DANK." is spelled exactly so, four times on one line, as the user
   wrote it.
 - **Readable:** the reading rule for speech bubbles applies to the inserts
   (at most 17 characters per second). Insert 1 carries salutation and body
-  (about 160 characters, so at least 10 s); insert 2 carries the thanks line
+  (about 265 characters with the 2026-11-05 wording, so at least 16 s; the
+  read's length follows the text); insert 2 carries the thanks line
   and the signature (about 90 characters, at least 5 s). The letterhead, date,
   address and subject are on screen too but are not counted as must-read.
 - **Size:** the letter text is normal letter size (body 11–12 pt). The inserts

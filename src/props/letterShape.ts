@@ -49,12 +49,23 @@ export const letterLineWidth = (line: {
   textWidth(line.text, LETTER_FONT, line.pt * PT, 0) *
   (line.bold ? BOLD_WIDEN : 1);
 
-const BELOW_SALUTATION = [2, 1, 1, 2, 2, 3];
+const GAP = { afterSalutation: 2, body: 1, beforeThanks: 2, beforeSignature: 2, signature: 3 };
+
+const gapAfter = (role: LetterRole, next: LetterRole | undefined, first: boolean) =>
+  first
+    ? GAP.afterSalutation
+    : role === "body" && next === "thanks"
+      ? GAP.beforeThanks
+      : role === "thanks"
+        ? GAP.beforeSignature
+        : role === "signature"
+          ? GAP.signature
+          : GAP.body;
 
 const layout = (): LetterLine[] => {
   let next = ROWS.salutation;
-  let bodyRow = 0;
-  return LETTER_LINES.map(({ text, role }) => {
+  let flowing = 0;
+  return LETTER_LINES.map(({ text, role }, i) => {
     const style = STYLE[role];
     const base = { text, role, ...style };
     if (role === "date") {
@@ -67,7 +78,7 @@ const layout = (): LetterLine[] => {
         : null;
     if (fixed !== null) return { ...base, x: MARGINS.left, y: fixed };
     const y = next;
-    next += (BELOW_SALUTATION[bodyRow++] ?? 1) * LEADING;
+    next += gapAfter(role, LETTER_LINES[i + 1]?.role, flowing++ === 0) * LEADING;
     return { ...base, x: MARGINS.left, y };
   });
 };

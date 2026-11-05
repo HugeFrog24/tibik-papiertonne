@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { easeUnit, inWindow } from "./scalar";
+import { easeUnit, inWindow, windowUnit } from "./scalar";
 
 test("easeUnit eases from 0 to 1 and holds outside", () => {
   expect(easeUnit(-1)).toBe(0);
@@ -18,4 +18,13 @@ test("inWindow eases across a time window, 0 before and 1 after", () => {
     expect(inWindow(t, [1, 3])).toBeGreaterThanOrEqual(before);
     before = inWindow(t, [1, 3]);
   }
+});
+
+test("windowUnit runs straight from 0 at a window's start to 1 at its end, held outside it, and inWindow eases the same window", () => {
+  expect(windowUnit(1, [1, 3])).toBe(0);
+  expect(windowUnit(2, [1, 3])).toBe(0.5);
+  expect(windowUnit(3, [1, 3])).toBe(1);
+  expect(windowUnit(0, [1, 3])).toBe(0);
+  expect(windowUnit(4, [1, 3])).toBe(1);
+  for (const t of [0, 1.3, 2, 2.7, 4]) expect(inWindow(t, [1, 3])).toBe(easeUnit(windowUnit(t, [1, 3])));
 });

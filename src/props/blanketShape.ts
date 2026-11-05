@@ -64,13 +64,12 @@ const doubled = (bed: BedRect, aside: number) => {
   return (z: number) => (aside > 0 && z >= fold && z <= fold + aside ? BLANKET.ply : 0);
 };
 
-export const blanketSurface = (
-  bed: BedRect,
-  body: readonly Sphere[],
-  cover: number,
-  aside = 0,
-  edge = blanketEdge(bed, body, cover),
-) => {
+export type BlanketLie = { readonly cover: number; readonly aside?: number; readonly edge?: number };
+
+const laid = (bed: BedRect, body: readonly Sphere[], { cover, aside = 0, edge = blanketEdge(bed, body, cover) }: BlanketLie) => ({ cover, aside, edge });
+
+export const blanketSurface = (bed: BedRect, body: readonly Sphere[], lie: BlanketLie) => {
+  const { cover, aside, edge } = laid(bed, body, lie);
   const base = bed.top + BLANKET.ply;
   const folded = (1 - clamp(cover, 0, 1)) * (BLANKET.layers - 1) * BLANKET.ply;
   const under = underneath(body, edge, foldAt(bed, aside));
@@ -78,13 +77,8 @@ export const blanketSurface = (
   return (x: number, z: number) => Math.max(base + folded - overhang(bed, x, z), over(under, x, z, base) + folded) + flap(z);
 };
 
-export const blanketGrid = (
-  bed: BedRect,
-  body: readonly Sphere[],
-  cover: number,
-  aside = 0,
-  edge = blanketEdge(bed, body, cover),
-) => {
+export const blanketGrid = (bed: BedRect, body: readonly Sphere[], lie: BlanketLie) => {
+  const { cover, aside, edge } = laid(bed, body, lie);
   const along = Math.max(2, Math.ceil((bed.x1 - edge) / BLANKET.step));
   const dx = (bed.x1 - edge) / along;
   const foot = Math.max(1, Math.round(BLANKET.hang / dx));
@@ -97,7 +91,7 @@ export const blanketGrid = (
     aside > 0
       ? Array.from({ length: across + side + 1 }, (_, j) => fold + j * dz)
       : Array.from({ length: BLANKET.across + 2 * side + 1 }, (_, j) => bed.z0 + (j - side) * dz);
-  const surface = blanketSurface(bed, body, cover, aside, edge);
+  const surface = blanketSurface(bed, body, { cover, aside, edge });
   const hem = bed.top + BLANKET.hem;
   const under = underneath(body, edge, fold);
   const height = (x: number, z: number) =>

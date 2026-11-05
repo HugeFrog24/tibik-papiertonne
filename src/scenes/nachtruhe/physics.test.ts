@@ -2,7 +2,7 @@ import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { BED_RECT, BEDROOM, CORD_SWITCH, PANE, bedroomSolids, cordPath, cordSwitchSolid, curtainPanels } from "../../building/bedroomShape";
 import { allColliders, armColliders, bodyColliders, handPosition, handSphere } from "../../characters/skeleton";
-import { contacts, sphere, sphereObbGap } from "../../physics/collision";
+import { contacts, sphere, sphereObbGap, type Solid } from "../../physics/collision";
 import { OUTLINE } from "../../toon/primitives";
 import { blanketProblems } from "../../props/blanketChecks";
 import { blanketSurface } from "../../props/blanketShape";
@@ -45,16 +45,20 @@ test("he walks home from the west, already in step on the first frame", () => {
   expect(a.x).toBeLessThan(DOOR_STAND.x - 3);
 });
 
+const expectClear = (frames: readonly number[], solidsOf: (state: NachtruheState) => readonly Solid[]) =>
+  expect(
+    penetrations(
+      frames,
+      (t) => {
+        const state = solveNachtruhe(t);
+        return characterViolations(asCharacter(state.tibik), solidsOf(state));
+      },
+      seconds,
+    ).slice(0, 8),
+  ).toEqual([]);
+
 test("at dusk Tibik passes through nothing, outlines included", { timeout: 300_000 }, () => {
-  const violations = penetrations(
-    dusk,
-    (t) => {
-      const state = solveNachtruhe(t);
-      return characterViolations(asCharacter(state.tibik), streetSolids(state));
-    },
-    seconds,
-  );
-  expect(violations.slice(0, 8)).toEqual([]);
+  expectClear(dusk, streetSolids);
 });
 
 test("at dusk his drawn soles never dip below the pavement, the step or the mat", { timeout: 300_000 }, () => {
@@ -69,15 +73,7 @@ test("he unlocks the Haustür from outside with his house key and goes in; the c
 });
 
 test("in the evening Tibik passes through nothing in the bedroom, outlines included", { timeout: 300_000 }, () => {
-  const violations = penetrations(
-    EVENING_FRAMES,
-    (t) => {
-      const state = solveNachtruhe(t);
-      return characterViolations(asCharacter(state.tibik), bedroomOf(state));
-    },
-    seconds,
-  );
-  expect(violations.slice(0, 8)).toEqual([]);
+  expectClear(EVENING_FRAMES, bedroomOf);
 });
 
 test("in the bedroom his drawn soles never dip below the floor, walking in at night or round the bed in the morning", { timeout: 300_000 }, () => {
@@ -107,8 +103,7 @@ test("the doorway camera keeps 30 cm off Tibik and out of every solid while he g
 test("the blanket never passes through him or the mattress all evening, outlines included", { timeout: 300_000 }, () => {
   const problems = EVENING_FRAMES.filter((_, i) => i % 2 === 0).flatMap((t) => {
     const state = solveNachtruhe(t);
-    const { cover, aside, edge } = blanketLie(state.blanket);
-    return blanketProblems(BED_RECT, allColliders(RIG, asCharacter(state.tibik)), cover, aside, edge).map((p) => `${t.toFixed(2)} s: ${p}`);
+    return blanketProblems(BED_RECT, allColliders(RIG, asCharacter(state.tibik)), blanketLie(state.blanket)).map((p) => `${t.toFixed(2)} s: ${p}`);
   });
   expect(problems.slice(0, 8)).toEqual([]);
 });
@@ -134,12 +129,12 @@ const foldMisses = (windows: { readonly right: readonly [number, number]; readon
     const [from, to] = windows[arm === "rightArm" ? "right" : "left"];
     return between(from, to + 1e-9).flatMap((t) => {
       const state = solveNachtruhe(t);
-      const { cover, aside, edge } = blanketLie(state.blanket);
+      const lie = blanketLie(state.blanket);
       const holding = new Set(armColliders(RIG, asCharacter(state.tibik), arm).map((s) => s.name));
       const body = allColliders(RIG, asCharacter(state.tibik)).filter((s) => !holding.has(s.name));
       const hand = handPosition(RIG, asCharacter(state.tibik), arm);
-      const fold = BED_RECT.z0 + aside;
-      const miss = hand.distanceTo(new Vector3(hand.x, blanketSurface(BED_RECT, body, cover, aside, edge)(hand.x, fold), fold));
+      const fold = BED_RECT.z0 + lie.aside;
+      const miss = hand.distanceTo(new Vector3(hand.x, blanketSurface(BED_RECT, body, lie)(hand.x, fold), fold));
       return miss > HOLDING ? [`${t.toFixed(2)} s: ${arm} ${(miss * 100).toFixed(1)} cm from the fold`] : [];
     });
   });

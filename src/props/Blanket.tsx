@@ -11,7 +11,7 @@ export const Blanket: React.FC<{
   readonly aside?: number;
   readonly edge?: number;
 }> = ({ bed, body, cover, aside = 0, edge }) => {
-  const grid = blanketGrid(bed, body, cover, aside, edge);
+  const grid = blanketGrid(bed, body, { cover, aside, edge });
   const x0 = grid.columns[0];
   const far = grid.rows[grid.rows.length - 1];
   const geometry = useDisposable(

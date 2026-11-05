@@ -18,6 +18,17 @@ export type Hold = {
   readonly exact?: boolean;
 };
 
+export const handHold = ({
+  window: [grip, release],
+  lead = 0.3,
+  tail = 0.4,
+  ...hold
+}: Omit<Hold, "reach" | "grip" | "release" | "done"> & {
+  readonly window: readonly [number, number];
+  readonly lead?: number;
+  readonly tail?: number;
+}): Hold => ({ ...hold, reach: grip - lead, grip, release, done: release + tail });
+
 const HOLD_STARTS: ArmPose[] = [
   { raise: 0.4, out: 1.4, elbow: 0.3, inward: 0 },
   { raise: 1.0, out: 1.0, elbow: 0.4, inward: 0.2 },

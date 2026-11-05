@@ -5,8 +5,9 @@ export const smoothstep = (k: number) => k * k * (3 - 2 * k);
 
 export const easeUnit = (k: number) => smoothstep(clamp(k, 0, 1));
 
-export const inWindow = (t: number, [a, b]: readonly [number, number]) =>
-  easeUnit((t - a) / (b - a));
+export const windowUnit = (t: number, [a, b]: readonly [number, number]) => clamp((t - a) / (b - a), 0, 1);
+
+export const inWindow = (t: number, window: readonly [number, number]) => easeUnit(windowUnit(t, window));
 
 export const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 

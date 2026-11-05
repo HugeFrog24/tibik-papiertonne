@@ -420,6 +420,18 @@ its everyday cause, to the list below for the user to pick.
 
 Ideas (proposed, not built; the user picks):
 
+- His lamp's cord switch: the cord near the switch body carries a short kink
+  where it is always bent over the pillow's edge, and lies in a slightly
+  different loose curve in the morning than at night (knocked in his sleep);
+  the rocker a shade shinier on the side his fingertips press.
+- His fleece turned back from the door side: the fold wanders a centimetre or
+  two along its length (turned by hand, never ironed), the nap a shade flatter
+  along the edge he takes hold of; the sheet slightly rucked where the turned
+  back half lay all day.
+- His curtain: the folds bunch unevenly around the spot he grabs, and a ring
+  catches for a moment on the rail before it slides on.
+- His bedroom door: open, the leaf rests a degree or two off its stop; a faint
+  scuff on the wall where its lever has bumped.
 - The doormat lies slightly askew in front of the Haustür, where feet kick it.
 - The mailbox name labels differ: printed, handwritten, one a little crooked
   or sun-faded.

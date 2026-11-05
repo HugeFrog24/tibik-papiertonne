@@ -19,7 +19,7 @@ import { ToonCanvas } from "../../toon/ToonCanvas";
 import { DayLight } from "../../weather/DayLight";
 import { daylightOf } from "../../weather/overcast";
 import { Rain } from "../../weather/Rain";
-import { rainAt } from "../../weather/rainDrops";
+import { rainAt, viewOf } from "../../weather/rainDrops";
 import { rainLight } from "../../weather/rainLight";
 import { streetSolids } from "../streetSolids";
 import { blanketLie } from "./bedroom";
@@ -45,7 +45,7 @@ const Outside: React.FC<{ readonly t: number; readonly state: NachtruheState }> 
     />
     {state.rain > 0 ? (
       <Rain
-        drops={rainAt(t, cameraAt(t).position, streetSolids(state), [], { share: state.rain, fov: cameraAt(t).fov })}
+        drops={rainAt(t, cameraAt(t).position, streetSolids(state), [], { share: state.rain, view: viewOf(cameraAt(t)) })}
         eye={cameraAt(t).position}
         fov={cameraAt(t).fov}
         light={rainLight(state.look, state.lampsOn)}

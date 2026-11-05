@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { frameHeightAt } from "../toon/frameHeight";
-import { STREAK_LENGTH, STREAK_WIDTH, ribbon, streakWidth } from "./rainStreaks";
+import { STREAK_LENGTH, STREAK_WIDTH, ribbon, streakOpacity, streakWidth } from "./rainStreaks";
 
 test("a streak is never thinner than 3 lines of a 1080-line frame wherever it falls, so a phone's downscale keeps it", () => {
   for (const fov of [30, 50, 60])
@@ -34,4 +34,12 @@ test("the frame at a depth is as tall as the lens sees there: twice as tall twic
 
 test("a streak's least drawn length is nine of its least widths", () => {
   expect(STREAK_LENGTH.leastOfFrame).toBeCloseTo(9 * STREAK_WIDTH.leastOfFrame, 12);
+});
+
+test("a streak drawn wider than a drop really is shows fainter for it, never below a third, and one drawn true to size at full strength", () => {
+  expect(streakOpacity(0.3, 50)).toBe(1);
+  for (const depth of [1, 3, 8, 20, 35]) expect(streakOpacity(depth + 1, 50)).toBeLessThanOrEqual(streakOpacity(depth, 50));
+  expect(streakOpacity(20, 50)).toBeGreaterThanOrEqual(STREAK_WIDTH.faintest);
+  expect(streakOpacity(20, 50)).toBeLessThan(0.5);
+  expect(STREAK_WIDTH.faintest).toBeCloseTo(1 / 3, 12);
 });

@@ -1,11 +1,11 @@
 import { useDisposable } from "../toon/useDisposable";
-import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute } from "three";
+import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Vector3 } from "three";
 import { LAMP_LIGHT } from "../street/lamps";
 import { NO_INK } from "../toon/inkWidth";
 import type { Vec3 } from "../toon/primitives";
 import type { Drop } from "./rainDrops";
 import { FULL_DAYLIGHT, type RainLight } from "./rainLight";
-import { ribbon } from "./rainStreaks";
+import { ribbon, streakOpacity } from "./rainStreaks";
 
 const STREAK = "#dfe6ec";
 const RING = 8;
@@ -45,10 +45,12 @@ const ribbonGeometry = (segments: readonly Segment[], eye: Vec3, fov: number) =>
   const positions: number[] = [];
   const colours: number[] = [];
   const index: number[] = [];
+  const lens = new Vector3(...eye);
   segments.forEach(({ from, to, colour }, i) => {
+    const faint = streakOpacity(lens.distanceTo(new Vector3(...to)), fov);
     for (const corner of ribbon(from, to, eye, fov)) {
       positions.push(...corner);
-      colours.push(...colour);
+      colours.push(colour[0], colour[1], colour[2], colour[3] * faint);
     }
     const o = 4 * i;
     index.push(o, o + 1, o + 2, o, o + 2, o + 3);

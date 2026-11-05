@@ -219,7 +219,7 @@ export const FLOOR_BAND = aroundOpenings({
   size: [30, 0.12, 0.08],
 });
 
-export const STREET_PARTS: readonly Part[] = [
+export const ROW_PARTS: readonly Part[] = [
   ...PLINTH,
   ...FLOOR_BAND,
   ...OPENINGS.map((o) => ({
@@ -246,6 +246,10 @@ export const STREET_PARTS: readonly Part[] = [
   DOORBELL_PANEL,
   MAILBOXES,
   ENTRANCE_LAMP,
+];
+
+export const STREET_PARTS: readonly Part[] = [
+  ...ROW_PARTS,
   {
     name: "curb",
     center: [0, KERB_Y, KERB_Z],
@@ -285,6 +289,9 @@ export type BinSpec = {
 };
 
 export const BIN_Z = -1.76;
+export const NEIGHBOURS = [-3, -2, -1, 1, 2, 3];
+export const NEIGHBOUR_BINS: readonly TonneKind[] = ["rest", "papier", "papier", "gelb"];
+export const BIN_SPACING = 0.7;
 export const SEARCHED_BIN = "Papier 2";
 export const FOUND_SHEET = "sheet lying on top";
 

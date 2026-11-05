@@ -2,10 +2,13 @@ import { Vector3 } from "three";
 import { frameHeightAt } from "../toon/frameHeight";
 import type { Vec3 } from "../toon/primitives";
 
-export const STREAK_WIDTH = { real: 0.004, leastOfFrame: 3 / 1080 };
+export const STREAK_WIDTH = { real: 0.004, leastOfFrame: 3 / 1080, faintest: 1 / 3, falloff: 0.4 };
 export const STREAK_LENGTH = { leastOfFrame: 9 * STREAK_WIDTH.leastOfFrame };
 
 export const streakWidth = (depth: number, fov: number) => Math.max(STREAK_WIDTH.real, STREAK_WIDTH.leastOfFrame * frameHeightAt(depth, fov));
+
+export const streakOpacity = (depth: number, fov: number) =>
+  Math.max(STREAK_WIDTH.faintest, (STREAK_WIDTH.real / streakWidth(depth, fov)) ** STREAK_WIDTH.falloff);
 
 const UP = new Vector3(0, 1, 0);
 

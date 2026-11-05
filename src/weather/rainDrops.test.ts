@@ -1,4 +1,4 @@
-import { Vector3 } from "three";
+import { Box3, Vector3 } from "three";
 import { expect, test } from "vitest";
 import { bodyColliders } from "../characters/skeleton";
 import { collide, nearby, sphere, type Solid } from "../physics/collision";
@@ -12,10 +12,17 @@ import {
   worldSolids,
 } from "../street/layout";
 import { RIG, TIBIK_REST } from "../Tibik/rig";
+import { RAIN_SOLIDS } from "../street/rainSolids";
+import { BUILDING_HEIGHT as ROOF_LEVEL } from "../street/building";
+import { roofParts } from "../street/townShape";
 import type { Vec3 } from "../toon/primitives";
 import {
   RAIN,
-  RAIN_AREA,
+  RAIN_REACH,
+  RAIN_FIELD,
+  RAIN_TOP,
+  reachFade,
+  viewFrustum,
   RAIN_DIR,
   columnHit,
   firstHit,
@@ -30,6 +37,7 @@ import { STREAK_LENGTH } from "./rainStreaks";
 import { frameHeightAt } from "../toon/frameHeight";
 
 const SOLIDS = worldSolids(BINS.map(() => 0));
+const ALL = [...new Set([...SOLIDS, ...RAIN_SOLIDS])];
 const TIBIK = bodyColliders(RIG, {
   position: [-2.6, 0, -0.9],
   rotationY: 0,
@@ -53,8 +61,8 @@ const points = (d: Drop) =>
 const inside = (p: Vector3, s: Solid) =>
   (collide(sphere("rain", p, 1e-4), s)?.depth ?? 0) > 1e-3;
 
-test("every streak lies outside every solid and Tibik, and never below the ground it falls on", () => {
-  const others = SOLIDS.filter((s) => s !== GROUND);
+test("every streak lies outside every solid and Tibik, and never below the ground it falls on", { timeout: 120_000 }, () => {
+  const others = ALL.filter((s) => s !== GROUND);
   for (const t of TIMES)
     for (const d of rainAt(t, CAMERA, SOLIDS, BODIES)) {
       const mid = new Vector3(...d.head).lerp(new Vector3(...d.tail), 0.5);
@@ -103,7 +111,7 @@ test(
       }),
     );
     for (const c of rainColumns()) {
-      const origin = new Vector3(c.x, RAIN_AREA.top, c.z);
+      const origin = new Vector3(c.x, RAIN_TOP, c.z);
       const stop = columnHit(c.id, SOLIDS, BODIES);
       const end = origin.clone().addScaledVector(RAIN_DIR, stop.distance);
       for (const box of sheltered)
@@ -114,11 +122,11 @@ test(
   },
 );
 
-test("rain never falls inside the house or the neighbours' houses: nothing behind the facade line", () => {
+test("rain never falls inside the houses: behind either row's facade line it stays above the roofs", () => {
   for (const t of TIMES)
     for (const d of rainAt(t, CAMERA, SOLIDS, BODIES))
       for (const p of [d.head, d.tail])
-        expect(p[2]).toBeGreaterThanOrEqual(FACADE_Z - 1e-9);
+        if (p[2] < FACADE_Z - 1e-9 || p[2] > acrossZ(FACADE_Z) + 1e-9) expect(p[1], `${d.id}`).toBeGreaterThanOrEqual(ROOF_LEVEL - 1e-9);
 });
 
 test("no drop right in front of the lens", () => {
@@ -133,7 +141,7 @@ test("no drop right in front of the lens", () => {
 
 test("Tibik keeps the ground under him dry: drops falling onto him stop on him", () => {
   const head = TIBIK.head[0].center;
-  const lift = (RAIN_AREA.top - head.y) / -RAIN_DIR.y;
+  const lift = (RAIN_TOP - head.y) / -RAIN_DIR.y;
   const origin = head.clone().addScaledVector(RAIN_DIR, -lift);
   const hit = firstHit(origin, RAIN_DIR, SOLIDS, BODIES);
   expect(hit.open).toBe(false);
@@ -169,47 +177,86 @@ test("the same instant is the same rain, in any order", () => {
 
 test("every drop starts above the house, in open air", () => {
   for (const c of rainColumns()) {
-    const o = new Vector3(c.x, RAIN_AREA.top, c.z);
-    for (const s of nearby(SOLIDS, o, 0.01))
+    const o = new Vector3(c.x, RAIN_TOP, c.z);
+    for (const s of nearby(ALL, o, 0.01))
       expect(inside(o, s), `${c.id} starts in ${s.name}`).toBe(false);
   }
 });
 
-test("steady summer rain: one drop per column, columns spread evenly over the street", () => {
+test("steady summer rain: one drop per column, the columns spread evenly over the street and both rows' roofs", () => {
   const columns = rainColumns();
-  const area =
-    (RAIN_AREA.x[1] - RAIN_AREA.x[0]) * (RAIN_AREA.z[1] - RAIN_AREA.z[0]);
-  expect(columns).toHaveLength(Math.round(RAIN.perSquareMetre * area));
-  const [mx, mz] = [
-    (RAIN_AREA.x[0] + RAIN_AREA.x[1]) / 2,
-    (RAIN_AREA.z[0] + RAIN_AREA.z[1]) / 2,
-  ];
+  const area = (RAIN_FIELD.x[1] - RAIN_FIELD.x[0]) * (RAIN_FIELD.z[1] - RAIN_FIELD.z[0]);
+  expect(columns).toHaveLength(Math.round(RAIN.perCubicMetre * area * RAIN_TOP));
+  const [mx, mz] = [(RAIN_FIELD.x[0] + RAIN_FIELD.x[1]) / 2, (RAIN_FIELD.z[0] + RAIN_FIELD.z[1]) / 2];
   for (const [sx, sz] of [
     [1, 1],
     [1, -1],
     [-1, 1],
     [-1, -1],
   ]) {
-    const share =
-      columns.filter(
-        (c) => Math.sign(c.x - mx) === sx && Math.sign(c.z - mz) === sz,
-      ).length / columns.length;
-    expect(share).toBeGreaterThan(0.17);
-    expect(share).toBeLessThan(0.33);
+    const share = columns.filter((c) => Math.sign(c.x - mx) === sx && Math.sign(c.z - mz) === sz).length / columns.length;
+    expect(share).toBeGreaterThan(0.23);
+    expect(share).toBeLessThan(0.27);
   }
   const ids = new Set<number>();
   for (const d of rainAt(7.25, CAMERA, SOLIDS, BODIES)) {
     expect(ids.has(d.id)).toBe(false);
     ids.add(d.id);
   }
-  expect(ids.size).toBeGreaterThan(0.7 * columns.length);
+  expect(ids.size).toBeGreaterThan(1000);
+});
+
+test("the air is as full of rain high up as down in the street", () => {
+  const above: Vec3 = [0, 14, 6];
+  const drops = rainAt(7.25, above, SOLIDS, []);
+  const inBox = (y0: number, y1: number) =>
+    drops.filter((d) => !d.splash && d.head[0] > -8 && d.head[0] < 8 && d.head[2] > 2 && d.head[2] < 10 && d.head[1] >= y0 && d.head[1] < y1).length;
+  const low = inBox(3, 9);
+  const high = inBox(19, 25);
+  expect(low).toBeGreaterThan(100);
+  expect(high / low).toBeGreaterThan(0.85);
+  expect(high / low).toBeLessThan(1.15);
+});
+
+test("rain falls on No. 12's row of roofs and stops on the slab, a parapet, the smoke vent or a vent pipe", () => {
+  const top = Math.max(...roofParts().map((p) => p.center[1] + p.size[1] / 2));
+  const onTheRoof = rainColumns().filter((c) => c.z < FACADE_Z);
+  expect(onTheRoof.length).toBeGreaterThan(1000);
+  for (const c of onTheRoof) {
+    const hit = columnHit(c.id, SOLIDS, []);
+    expect(hit.point.y, `${c.id}`).toBeGreaterThanOrEqual(ROOF_LEVEL - 1e-9);
+    expect(hit.point.y, `${c.id}`).toBeLessThanOrEqual(top + 1e-9);
+  }
+});
+
+test("far off the rain fades, and none is drawn past its reach", () => {
+  expect(reachFade(RAIN_REACH.full)).toBe(1);
+  expect(reachFade(RAIN_REACH.none)).toBe(0);
+  for (let d = RAIN_REACH.full; d < RAIN_REACH.none; d += 0.5) expect(reachFade(d + 0.5)).toBeLessThanOrEqual(reachFade(d));
+  const eye = new Vector3(...CAMERA);
+  for (const d of rainAt(7.25, CAMERA, SOLIDS, BODIES)) {
+    const far = eye.distanceTo(new Vector3(...d.head));
+    expect(far).toBeLessThan(RAIN_REACH.none);
+    expect(d.fade).toBeLessThanOrEqual(reachFade(far) + 1e-12);
+  }
+});
+
+test("given the lens's view, it makes just the drops that fall in view, the same drops as without it", () => {
+  const view = { target: [-3, 1.1, -1.4] as Vec3, fov: 45, aspect: 16 / 9 };
+  const inView = rainAt(7.25, CAMERA, SOLIDS, BODIES, { view });
+  const all = new Map(rainAt(7.25, CAMERA, SOLIDS, BODIES, { fov: view.fov }).map((d) => [d.id, d]));
+  const frustum = viewFrustum(CAMERA, view);
+  const seen = [...all.values()].filter((d) => frustum.intersectsBox(new Box3().setFromPoints([new Vector3(...d.head), new Vector3(...d.tail)])));
+  expect(inView.length).toBeGreaterThan(30);
+  expect(inView.length).toBeLessThan(all.size);
+  expect(new Set(inView.map((d) => d.id))).toEqual(new Set(seen.map((d) => d.id)));
+  for (const d of inView) expect(d).toEqual(all.get(d.id));
 });
 
 test("no drop stops in mid-air: every stop is on open ground, on a solid, or on the facade line below the roof", () => {
-  const others = SOLIDS.filter((s) => s !== GROUND);
+  const others = ALL.filter((s) => s !== GROUND);
   for (const c of rainColumns()) {
-    const origin = new Vector3(c.x, RAIN_AREA.top, c.z);
-    const hit = firstHit(origin, RAIN_DIR, SOLIDS, []);
+    const hit = columnHit(c.id, SOLIDS, []);
     if (hit.open) continue;
     const onSolid = nearby(others, hit.point, 0.01).some(
       (s) => collide(sphere("stop", hit.point, 1e-4), s) !== null,
@@ -234,8 +281,8 @@ test("the cached and pruned hit is the brute-force hit for every column, lids op
       lids,
     );
     for (const c of rainColumns()) {
-      const origin = new Vector3(c.x, RAIN_AREA.top, c.z);
-      const brute = firstHit(origin, RAIN_DIR, solids, bodies);
+      const origin = new Vector3(c.x, RAIN_TOP, c.z);
+      const brute = firstHit(origin, RAIN_DIR, [...new Set([...solids, ...RAIN_SOLIDS])], bodies);
       const pruned = columnHit(c.id, solids, bodies);
       expect(pruned.distance, `${c.id}`).toBeCloseTo(brute.distance, 9);
       expect(pruned.open).toBe(brute.open);
@@ -243,8 +290,10 @@ test("the cached and pruned hit is the brute-force hit for every column, lids op
   }
 }, 60_000);
 
-test("rain reaches across to the far facade", () => {
-  expect(RAIN_AREA.z[1]).toBe(acrossZ(FACADE_Z));
+test("rain falls from the back of No. 12's roof across the street to the back of No. 13's, none of it off the back of either row", () => {
+  expect(RAIN_FIELD.z[0]).toBeGreaterThan(FACADE_Z - 12);
+  expect(RAIN_FIELD.z[0]).toBeLessThan(FACADE_Z - 11);
+  expect(RAIN_FIELD.z[1]).toBe(acrossZ(FACADE_Z - 12));
 });
 
 test("a ray starting inside Tibik stops at once", () => {
@@ -299,7 +348,7 @@ test("far off a streak is drawn long enough to read as rain, at least 27 lines o
     if (!p || d.splash) continue;
     expect(d.head).toEqual(p.head);
     const k = Math.max(1, (STREAK_LENGTH.leastOfFrame * frameHeightAt(span(CAMERA, d.head), FOV)) / RAIN.streak);
-    const fromTheSky = (RAIN_AREA.top - d.head[1]) / -RAIN_DIR.y;
+    const fromTheSky = (RAIN_TOP - d.head[1]) / -RAIN_DIR.y;
     expect(span(d.head, d.tail)).toBeCloseTo(Math.min(span(p.head, p.tail) * k, fromTheSky), 6);
     const along = new Vector3(...d.head).sub(new Vector3(...d.tail));
     if (along.length() > 1e-6) expect(along.normalize().dot(RAIN_DIR)).toBeCloseTo(1, 9);

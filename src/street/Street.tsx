@@ -53,6 +53,9 @@ import {
   NO_ADS,
   residentsOf,
   PLINTH,
+  NEIGHBOURS,
+  NEIGHBOUR_BINS,
+  BIN_SPACING,
 } from "./layout";
 import { DoorGrips } from "../building/DoorGrips";
 import { WallBox } from "../building/WallBox";
@@ -70,7 +73,6 @@ import { Asphalt } from "./Asphalt";
 import { STREET_END, STREET_MIDDLE } from "./roadShape";
 import { Car } from "./Car";
 import { Tonne } from "./Tonne";
-import type { TonneKind } from "./tonneShape";
 import { DistantBlock } from "./DistantBlock";
 import { STREET_LAMPS } from "./lamps";
 import { StreetLamp } from "./StreetLamp";
@@ -458,14 +460,6 @@ const Block: React.FC<{
 );
 
 const STREET_LENGTH = 240;
-const NEIGHBOUR_BINS: readonly TonneKind[] = [
-  "rest",
-  "papier",
-  "papier",
-  "gelb",
-];
-const BIN_SPACING = 0.7;
-const NEIGHBOURS = [-3, -2, -1, 1, 2, 3];
 const NEIGHBOUR_PLASTERS = [
   "#e3d6bd",
   "#d6dccf",

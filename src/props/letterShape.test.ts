@@ -46,7 +46,10 @@ describe("the wording", () => {
         l.text.includes(HAUSVERWALTUNG),
       ),
     ).toBe(true);
-    expect(LETTER_LINES.find((l) => l.text.startsWith("Sehr geehrte"))!.role).toBe("body");
+    expect(LETTER_LINES.filter((l) => l.role === "salutation").map((l) => l.text)).toEqual([
+      "Sehr geehrte Daminnen und Damen, sehr geehrte Herrinnen und Herren,",
+      "sehr geehrter Tibik,",
+    ]);
     expect(ENVELOPE_TEXT).toEqual({
       sender: HAUSVERWALTUNG,
       to: "An alle Mieterinnen und Mieter",
@@ -57,7 +60,7 @@ describe("the wording", () => {
     const { margins, lines } = LETTER_LAYOUT;
     expect(lines.map((l) => l.text)).toEqual(LETTER_LINES.map((l) => l.text));
     for (const l of lines) {
-      if (l.role === "body" || l.role === "thanks") {
+      if (l.role === "salutation" || l.role === "body" || l.role === "thanks") {
         expect(l.pt).toBeGreaterThanOrEqual(11);
         expect(l.pt).toBeLessThanOrEqual(12);
       }

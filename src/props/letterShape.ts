@@ -17,6 +17,7 @@ const STYLE: Record<LetterRole, { readonly pt: number; readonly bold: boolean }>
   date: { pt: 11, bold: false },
   address: { pt: 11, bold: false },
   subject: { pt: 11, bold: true },
+  salutation: { pt: 11, bold: false },
   body: { pt: 11, bold: false },
   thanks: { pt: 11, bold: false },
   signature: { pt: 11, bold: false },
@@ -51,8 +52,8 @@ export const letterLineWidth = (line: {
 
 const GAP = { afterSalutation: 2, body: 1, beforeThanks: 2, beforeSignature: 2, signature: 3 };
 
-const gapAfter = (role: LetterRole, next: LetterRole | undefined, first: boolean) =>
-  first
+const gapAfter = (role: LetterRole, next: LetterRole | undefined) =>
+  role === "salutation" && next !== "salutation"
     ? GAP.afterSalutation
     : role === "body" && next === "thanks"
       ? GAP.beforeThanks
@@ -64,7 +65,6 @@ const gapAfter = (role: LetterRole, next: LetterRole | undefined, first: boolean
 
 const layout = (): LetterLine[] => {
   let next = ROWS.salutation;
-  let flowing = 0;
   return LETTER_LINES.map(({ text, role }, i) => {
     const style = STYLE[role];
     const base = { text, role, ...style };
@@ -78,7 +78,7 @@ const layout = (): LetterLine[] => {
         : null;
     if (fixed !== null) return { ...base, x: MARGINS.left, y: fixed };
     const y = next;
-    next += gapAfter(role, LETTER_LINES[i + 1]?.role, flowing++ === 0) * LEADING;
+    next += gapAfter(role, LETTER_LINES[i + 1]?.role) * LEADING;
     return { ...base, x: MARGINS.left, y };
   });
 };

@@ -5,6 +5,7 @@ export type LetterRole =
   | "date"
   | "address"
   | "subject"
+  | "salutation"
   | "body"
   | "thanks"
   | "signature";
@@ -15,21 +16,21 @@ export const LETTER_LINES: readonly {
 }[] = [
   { text: HAUSVERWALTUNG, role: "head" },
   { text: "Musterstadt, 14.07.2026", role: "date" },
-  { text: "An alle Mieterinnen und Mieter, Haus Nr. 12", role: "address" },
+  { text: "An alle Mieterinnen und Mieter (m/w/d), Haus Nr. 12", role: "address" },
   { text: "Betreff: Hausordnung", role: "subject" },
-  { text: "Sehr geehrte Mieterinnen und Mieter,", role: "body" },
-  { text: "aus gegebenem Anlass:", role: "body" },
-  { text: "Wir sind stets bemüht, die Umwelt zu schonen. Deshalb bitten wir Sie:", role: "body" },
-  { text: "Das Entnehmen aus der Papiertonne ist nicht gestattet.", role: "body" },
-  { text: "Ressourcen sind kostbar. Verschwenden Sie diese bitte nicht", role: "body" },
-  { text: "durch Wiederverwendung.", role: "body" },
-  { text: "Bitte wenden Sie sich an den örtlichen Baumarkt, um einen Karton", role: "body" },
-  { text: "käuflich zu erwerben.", role: "body" },
+  { text: "Sehr geehrte Daminnen und Damen, sehr geehrte Herrinnen und Herren,", role: "salutation" },
+  { text: "sehr geehrter Tibik,", role: "salutation" },
+  { text: "wir sind stets bemüht, die Umwelt (m/w/d) zu schonen.", role: "body" },
+  { text: "Deshalb bitten wir Sie:", role: "body" },
+  { text: "Das Entnehmen aus der Papiertonne (w/m/d) ist nicht gestattet.", role: "body" },
+  { text: "Ressourcinnen und Ressourcen sind kostbar.", role: "body" },
+  { text: "Bitte wenden Sie sich an den örtlichen", role: "body" },
+  { text: "Baumarkt, um einen Karton käuflich zu erwerben.", role: "body" },
   {
     text: "Vie-len DANK. Vie-len DANK. Vie-len DANK. Vie-len DANK.",
     role: "thanks",
   },
-  { text: "Mit freundlichen Grüßen", role: "signature" },
+  { text: "Mit freundlichen Grüßinnen und Grüßen", role: "signature" },
   { text: `Ihre ${HAUSVERWALTUNG}`, role: "signature" },
 ];
 

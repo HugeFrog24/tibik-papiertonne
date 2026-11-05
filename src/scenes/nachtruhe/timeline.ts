@@ -10,9 +10,11 @@ export const DUSK = [0, LAMP_ON_AT_DUSK + 1] as const;
 
 export const WALK_TO_BED = after(DUSK[1] - 1.2, 3);
 export const HOP_UP = after(WALK_TO_BED[1] + 0.2, 0.5);
-export const LIE_DOWN = after(HOP_UP[1] + 0.6, 1.3);
-export const BLANKET_UP = [LIE_DOWN[0] + 0.3, LIE_DOWN[1] + 0.7] as const;
-export const LAMP_OFF = BLANKET_UP[1] + 0.8;
+export const SWING_IN = after(HOP_UP[1] + 0.3, 1);
+export const GRAB_BLANKET = after(SWING_IN[1] + 0.1, 0.6);
+export const LIE_DOWN = after(GRAB_BLANKET[1] + 0.1, 1.3);
+export const BLANKET_UP = LIE_DOWN;
+export const LAMP_OFF = LIE_DOWN[1] + 0.9;
 export const EVENING = [DUSK[1], LAMP_OFF + 1.6] as const;
 
 export const DRONE = after(EVENING[1], 8);

@@ -13,6 +13,7 @@ import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../hausmue
 import {
   FOLD,
   REACT,
+  DEADPAN_HOLD,
   THANKS,
   AT_MAILBOX,
   FLAP,
@@ -74,11 +75,11 @@ const roleLines = (...roles: LetterLine["role"][]) =>
 
 const OPENING = FLAP[0] - 0.4;
 const THANKS_UP = READ[1];
-const DEADPAN = THANKS[1] + 1.5;
+const DEADPAN = THANKS[1] + DEADPAN_HOLD;
 export const FOLDING_SHOT = REACT[1] + 0.4;
 const CODA = FOLD[1];
 
-const body = roleLines("body");
+const body = roleLines("salutation", "body");
 const thanks = roleLines("thanks", "signature");
 const punchline = Math.min(...thanks.map((l) => l.y));
 

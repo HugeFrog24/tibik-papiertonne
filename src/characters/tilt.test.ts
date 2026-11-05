@@ -4,7 +4,7 @@ import { contacts, partObb } from "../physics/collision";
 import { OUTLINE } from "../toon/primitives";
 import { guardGround } from "../physics/guards";
 import { solveRundschreiben } from "../scenes/rundschreiben/solve";
-import { HEAD_DRAWN, LYING, lyingInBed, sittingOnBed } from "../Tibik/bedPoses";
+import { HEAD_DRAWN, LYING, lyingInBed, sittingOnBed, sittingUpInBed } from "../Tibik/bedPoses";
 import { RIG, TIBIK_REST } from "../Tibik/rig";
 import { allColliders, bodyColliders, faceDirection, lowestPoint, type Placement } from "./skeleton";
 
@@ -112,4 +112,24 @@ test("sitting on the bed's edge past the pillows, nothing of him passes into a p
   expect(contacts(grown([...body.torso, ...body.head, ...body.leftArm, ...body.rightArm, ...body.legs]), others).map((c) => `${c.a} / ${c.b}`)).toEqual([]);
   expect(Math.abs(bottomOf(body.lowerTorso) - BED_RECT.top)).toBeLessThan(0.01);
   expect(sitting.position[1]).toBe(BEDROOM.floor);
+});
+
+test("sitting up in bed with his legs stretched out along it, where he will lie, his seat rests on the mattress and nothing of him passes into the bed, outlines included", () => {
+  for (const side of [1, -1] as const) {
+    const up = sittingUpInBed(side);
+    const lying = lyingInBed(side);
+    expect(up.position[0], `side ${side}`).toBeCloseTo(lying.position[0], 6);
+    expect(up.position[2], `side ${side}`).toBeCloseTo(lying.position[2], 6);
+    expect(up.rotationY).toBe(lying.rotationY);
+    const body = bodyColliders(RIG, up);
+    expect(Math.abs(bottomOf(body.lowerTorso) - BED_RECT.top), `side ${side}`).toBeLessThan(0.01);
+    const others = bedSolids.filter((s) => s.name !== "mattress");
+    expect(contacts(grown([...body.torso, ...body.head, ...body.leftArm, ...body.rightArm, ...body.legs]), others).map((c) => `${c.a} / ${c.b}`)).toEqual([]);
+    const resting = body.legs.filter((s) => s.name.includes("thigh") || s.name.includes("foot"));
+    expect(contacts(grown(body.legs.filter((s) => !resting.includes(s))), [partObb(mattress)]).map((c) => `${c.a} / ${c.b}`)).toEqual([]);
+    expect(Math.max(0, ...contacts(resting, [partObb(mattress)]).map((c) => c.depth)), `side ${side}`).toBeLessThan(0.002);
+    const feet = body.legs.filter((s) => s.name.includes("foot"));
+    expect(bottomOf(feet) - BED_RECT.top, `side ${side}`).toBeLessThan(0.025);
+    expect(Math.min(...feet.map((s) => s.center.x)) - up.position[0], `side ${side}`).toBeGreaterThan(0.15);
+  }
 });

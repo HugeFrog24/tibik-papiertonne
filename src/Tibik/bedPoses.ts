@@ -45,6 +45,21 @@ export const LYING: Pose = {
   rightLeg: lyingLeg(-1),
 };
 
+const UP_LEG = { splay: 0.03, forward: 0.26, heel: 0.11 };
+const uprightSeat = lowestPoint(bodyColliders(RIG, { position: [0, 0, 0], rotationY: 0, pose: TIBIK_REST }).lowerTorso);
+const TOES_UP = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
+const upLeg = (side: Side) =>
+  solveLeg(RIG, side, new Vector3(side * (RIG.hipX + UP_LEG.splay), uprightSeat + UP_LEG.heel, UP_LEG.forward), TOES_UP);
+
+export const SITTING_UP: Pose = {
+  ...TIBIK_REST,
+  bob: BED.top - uprightSeat,
+  leftArm: ARM_REST,
+  rightArm: ARM_REST,
+  leftLeg: upLeg(1),
+  rightLeg: upLeg(-1),
+};
+
 export const HEAD_DRAWN = 0.03;
 const HEADBOARD_GAP = 0.02;
 
@@ -111,3 +126,8 @@ export const sittingOnBed = (x: number) => ({
   rotationY: Math.PI,
   pose: SITTING,
 });
+
+export const sittingUpInBed = (side: 1 | -1) => {
+  const { position, rotationY } = lyingInBed(side);
+  return { skeleton: RIG, position, rotationY, pose: SITTING_UP, tilt: 0 };
+};

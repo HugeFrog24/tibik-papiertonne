@@ -25,7 +25,7 @@ const NAMES = [
 const READ_RATE = 17;
 const shot = (name: string) => SHOTS.find((s) => s.name === name)!;
 const mustRead = {
-  "Insert: the letter": LETTER_LAYOUT.lines.filter((l) => l.role === "body"),
+  "Insert: the letter": LETTER_LAYOUT.lines.filter((l) => l.role === "salutation" || l.role === "body"),
   "Insert: Vie-len DANK": LETTER_LAYOUT.lines.filter(
     (l) => l.role === "thanks" || l.role === "signature",
   ),

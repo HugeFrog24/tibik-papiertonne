@@ -79,42 +79,47 @@ approved):
 ```
 Hausverwaltung Musterstadt                       Musterstadt, 14.07.2026
 
-An alle Mieterinnen und Mieter, Haus Nr. 12
+An alle Mieterinnen und Mieter (m/w/d), Haus Nr. 12
 
 Betreff: Hausordnung
 
-Sehr geehrte Mieterinnen und Mieter,
+Sehr geehrte Daminnen und Damen, sehr geehrte Herrinnen und Herren,
+sehr geehrter Tibik,
 
-aus gegebenem Anlass:
-Wir sind stets bemüht, die Umwelt zu schonen. Deshalb bitten wir Sie:
-Das Entnehmen aus der Papiertonne ist nicht gestattet.
-Ressourcen sind kostbar. Verschwenden Sie diese bitte nicht
-durch Wiederverwendung.
-Bitte wenden Sie sich an den örtlichen Baumarkt, um einen Karton
-käuflich zu erwerben.
+wir sind stets bemüht, die Umwelt (m/w/d) zu schonen.
+Deshalb bitten wir Sie:
+Das Entnehmen aus der Papiertonne (w/m/d) ist nicht gestattet.
+Ressourcinnen und Ressourcen sind kostbar.
+Bitte wenden Sie sich an den örtlichen
+Baumarkt, um einen Karton käuflich zu erwerben.
 
 Vie-len DANK. Vie-len DANK. Vie-len DANK. Vie-len DANK.
 
-Mit freundlichen Grüßen
+Mit freundlichen Grüßinnen und Grüßen
 Ihre Hausverwaltung Musterstadt
 ```
 
-- The Hausverwaltung contradicts itself (user's idea, 2026-11-05): it is "stets
-  bemüht", as a German reference puts a failure kindly, to spare the
-  environment, and for that reason forbids taking a box out of the Papiertonne
-  and sends the tenants to the Baumarkt to buy a new one. Between the two it
-  turns mockingly stern: resources are precious, so do not waste them by
-  reusing them (the user's pick of the offered lines, 2026-11-05).
-- The letter aims at Tibik alone, passive-aggressively and without naming
-  him, and says nothing of Karen's shouting, doorbell siege or phone calls:
-  that one-sidedness is the joke (user's decision, 2026-11-05, which dropped
-  the earlier line about quarrels in the stairwell). The 110 call is left out
-  too: the Hausverwaltung could not know of it.
+- The wording is the user's, verbatim (2026-11-05): the Hausverwaltung
+  contradicts itself — it is "stets bemüht", as a German reference puts a
+  failure kindly, to spare the environment, and for that reason forbids
+  taking a box out of the Papiertonne and sends the tenants to the Baumarkt
+  to buy a new one; "Ressourcinnen und Ressourcen sind kostbar." It genders
+  everything to absurdity ("Daminnen und Damen", "Herrinnen und Herren",
+  "die Umwelt (m/w/d)", "die Papiertonne (w/m/d)", "Grüßinnen und Grüßen").
+  The user's double space after "kostbar." is the line break the page needs
+  (the spec block splits a line at two or more spaces); the user's own break
+  after "örtlichen" stays.
+- The letter aims at Tibik alone: the circular to all tenants greets him by
+  name ("sehr geehrter Tibik,") right after the absurdly gendered tenants,
+  and says nothing of Karen's shouting, doorbell siege or phone calls: that
+  one-sidedness is the joke (user's decisions, 2026-11-05; the earlier line
+  about quarrels in the stairwell and "aus gegebenem Anlass" were dropped).
+  The 110 call is left out too: the Hausverwaltung could not know of it.
 - "Vie-len DANK." is spelled exactly so, four times on one line, as the user
   wrote it.
 - **Readable:** the reading rule for speech bubbles applies to the inserts
   (at most 17 characters per second). Insert 1 carries salutation and body
-  (about 345 characters with the 2026-11-05 wording, so at least 21 s; the
+  (about 350 characters with the 2026-11-05 wording, so at least 21 s; the
   read's length follows the text); insert 2 carries the thanks line
   and the signature (about 90 characters, at least 5 s). The letterhead, date,
   address and subject are on screen too but are not counted as must-read.

@@ -13,8 +13,12 @@ import {
   TIME_JUMPS,
   TREPPENHAUS_FRAMES,
 } from "../../timeline";
-import { KLINGELSTURM_DURATION } from "../klingelsturm/choreography";
-import { doorCues } from "../klingelsturm/doorCues";
+import { KLINGELSTURM_DURATION, LINES as KLINGELSTURM_LINES, karenStandGait } from "../klingelsturm/choreography";
+import { doorCues, stompRoomAt } from "../klingelsturm/doorCues";
+import { touchdownTimes } from "../../characters/gait";
+import { STOMP_RATE, stompFiles } from "../../Karen/KarenStomp";
+import { BUBBLE_PLUCK } from "../../sound/bubbleCues";
+import { soundSeconds } from "../../sound/soundLength";
 import { ENVELOPE_LANDS, LID_THUD, RUNDSCHREIBEN_DURATION, footstepTimes, rundschreibenTibikAt } from "./choreography";
 import { FACADE_Z } from "../../street/building";
 import { DOOR_SHUT } from "./home";
@@ -45,6 +49,18 @@ test("the time jump: no Klingelsturm cue runs past its scene, the rain starts at
   expect(Math.round(RUNDSCHREIBEN_FROM * FPS)).toBe(Math.round(KLINGELSTURM_FROM * FPS) + KLINGELSTURM_FRAMES);
   expect(rainLevel(0).outside).toBe(RAIN.volume);
   expect(rainLevel(0).inside).toBe(0);
+});
+
+test("the time jump: Karen's last stomp and the last bubble's pluck have died away before Klingelsturm ends", () => {
+  const steps = touchdownTimes(karenStandGait(), KLINGELSTURM_DURATION, FPS);
+  steps.forEach((t, i) => {
+    for (const file of Object.values(stompFiles(i, stompRoomAt(t)))) {
+      const ends = Math.round(t * FPS) / FPS + soundSeconds(file) / STOMP_RATE;
+      expect(ends, `${file} at ${t.toFixed(2)} s`).toBeLessThanOrEqual(KLINGELSTURM_DURATION);
+    }
+  });
+  for (const line of KLINGELSTURM_LINES)
+    expect(line.from + soundSeconds(BUBBLE_PLUCK), line.text).toBeLessThanOrEqual(KLINGELSTURM_DURATION);
 });
 
 test("the rain muffles once he is inside", () => {

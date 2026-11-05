@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { PUDDLES, WEATHER, type Weather } from "../weather/overcast";
 import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
-import { BackSide, DoubleSide, ExtrudeGeometry, type Texture } from "three";
+import { DoubleSide, ExtrudeGeometry, type Texture } from "three";
 import {
   Blob,
   DECAL,
@@ -289,7 +289,7 @@ const Balcony: React.FC<{
         <group position={[-0.8, rail + 0.25, d - 0.1]} rotation={[0.3, 0.4, 0]}>
           <mesh>
             <sphereGeometry args={[0.32, 24, 12, 0, Math.PI * 2, 0, 0.6]} />
-            <meshToonMaterial color="#e8e8e4" side={BackSide} />
+            <meshToonMaterial color="#e8e8e4" side={DoubleSide} />
           </mesh>
         </group>
       ) : null}

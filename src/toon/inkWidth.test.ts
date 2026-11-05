@@ -38,3 +38,25 @@ test("ink hulls, lines and things too small for an outline stay out of the id pa
   expect(skipsInkIds(fly)).toBe(true);
   expect(skipsInkIds(part)).toBe(false);
 });
+
+test("only the ink hulls are drawn from the back: every visible part shows its front, so the id pass outlines it", async () => {
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const path = await import("node:path");
+  const root = path.resolve(__dirname, "..");
+  const files = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+      entry.isDirectory()
+        ? files(path.join(dir, entry.name))
+        : /\.tsx$/.test(entry.name) && !/\.test\.tsx$/.test(entry.name)
+          ? [path.join(dir, entry.name)]
+          : [],
+    );
+  const backs: string[] = [];
+  for (const file of files(root)) {
+    for (const [material] of readFileSync(file, "utf8").matchAll(/<mesh\w*Material\b[^>]*side=\{BackSide\}[^>]*\/>/g)) {
+      if (!/^<meshBasicMaterial color=\{INK\}/.test(material))
+        backs.push(`${path.relative(root, file)}: ${material}`);
+    }
+  }
+  expect(backs).toEqual([]);
+});

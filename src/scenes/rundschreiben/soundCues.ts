@@ -1,3 +1,4 @@
+import { throughTheWalls } from "../../sound/IndoorLoop";
 import { KEY_APPROACH } from "../../props/keyRingShape";
 import type { FileCue } from "../../sound/SoundCues";
 import {
@@ -25,10 +26,7 @@ export const RAIN = { name: "Rain", file: "rain", volume: 0.35 } as const;
 export const heardIndoorsAt = (t: number) =>
   indoorsAt(t) * (1 - haustuerAt(t) / HAUSTUER_WIDE);
 
-export const rainLevel = (t: number) => {
-  const indoors = heardIndoorsAt(t);
-  return { outside: RAIN.volume * (1 - indoors), inside: RAIN.volume * indoors };
-};
+export const rainLevel = (t: number) => throughTheWalls(RAIN.volume, heardIndoorsAt(t));
 
 export const footstepsByRoom = (fps: number) => {
   const inside = (t: number) => rundschreibenTibikAt(t).position[2] < FACADE_Z;

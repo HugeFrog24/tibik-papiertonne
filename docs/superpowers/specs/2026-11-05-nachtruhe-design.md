@@ -45,10 +45,10 @@ About 29 s at 30 fps; the plan pins exact timings.
 | # | Shot | Time | What happens |
 |---|------|------|--------------|
 | 1 | Dusk wide | ~6 s | Locked-off from across the street, after sunset (around 21:45 in summer): deep blue sky warming to the horizon, no sun, no hard shadows. The street lamps come on; a few flats glow. Tibik walks home empty-handed (the parcel is posted); the entrance lamp's sensor switches it on; he goes in (the Haustür opens outward, as everywhere). The stairwell lights up on the timer, all floors at once, then his bedroom window glows behind its curtain. |
-| 2 | Bedroom, evening | ~6 s | Fixed from the doorway. Both bedside lamps are on, the ceiling dome off. He walks round the foot of the bed, switches the far lamp off, sits on the bed's edge, lies down, pulls the fleece blanket to his chest and switches his own lamp off. Dark, a faint orange streetlight glow through the curtain. |
+| 2 | Bedroom, evening | ~6 s | Fixed from the doorway. Only his own bedside lamp is on (the one on the door side, where he sleeps); the far lamp and the ceiling dome stay off. He walks along his side of the bed, hops up onto its edge (his hips are lower than the mattress), lies down, pulls the fleece blanket to his chest and switches his lamp off. Dark, a faint orange streetlight glow through the curtains. (User decision 2026-11-05: one lamp only, he hops.) |
 | 3 | Drone rise | ~8 s | Opens outside at 1. OG height on his now-dark window; across the landing Karen's window (1. OG rechts) is still lit. The camera rises slowly up the facade, past the balconies and No. 12's satellite dish, over the flat roofline: Musterstadt asleep, the lamps of the street in a line, blocks beyond as dark shapes with a few lit windows. Karen's window, small now, goes out last. |
 | 3b | Dawn | ~3 s | Still on the drone's last framing: the film's only time-lapse — the night sky greys into an overcast dawn and the first rain streaks show against it. |
-| 4 | Bedroom, morning | ~6 s | The same framing as shot 2. Grey daylight through the curtain, rain on the glass. Caption "Zwei Wochen später." He opens his eyes, switches his lamp on, pushes the blanket back, sits up, gets up, walks to the window and pulls the curtain open onto the rain (the rings slide on the rail). |
+| 4 | Bedroom, morning | ~6 s | The same framing as shot 2. Grey daylight through the curtains, rain on the glass. Caption "Zwei Wochen später." He opens his eyes, switches his lamp on, pushes the blanket back, sits up, gets up, walks round the foot of the bed to the corner by the window and pulls the near curtain panel open by its edge onto the rain (the rings slide on the rail); the far panel stays drawn. (User decision 2026-11-05: two panels; the window-side gap is too narrow for him.) |
 
 Then the epilogue's opening wide, unchanged except that its caption is gone.
 
@@ -63,16 +63,19 @@ street windows (the plan pins which).
   ceiling lamp; wood-look laminate with white skirting; a wood-veneer door at
   the near end, off his Flur.
 - **Window wall:** one big single-sash Dreh-Kipp window with the radiator
-  under it, both behind a full-width curtain in a solid warm sand colour on a
-  rail with a wood-look pelmet. The curtain is translucent enough to glow with
-  daylight.
+  under it, both behind two curtain panels in a solid warm sand colour that
+  meet at the window's middle, on a rail with a wood-look pelmet; each panel
+  stacks at its own wall. The curtains are translucent enough to glow with
+  daylight. The gap between the bed and the curtains (47 cm) is too narrow for
+  him: he reaches the window only from the corner at the bed's foot.
 - **Bed:** a 160 × 200 double, white faux-leather frame with a tall tufted
   headboard against the long wall, the window at its side. White fitted
   sheet, two pillows with patterned covers, a dark grey fleece blanket
   (summer: no duvet).
 - **Bedside:** two matching low white cabinets, a wood-look top over a drawer
   over a door, one on each side of the headboard; on each a table lamp with a
-  rocker switch on its cord or foot, warm white.
+  rocker switch on its cord or foot, warm white. He sleeps on the door side,
+  so his own lamp is the door-side one.
 - **Not in the room:** no desk, computer, printer, wall cabinet or wardrobe in
   shot.
 - **Light:** evening — the two lamps, warm (about 2700 K); night — dark, a
@@ -104,7 +107,7 @@ street windows (the plan pins which).
 - New movements: sitting on the bed's edge, lying down on his back, lying
   still (breathing stays a parked look decision), sitting up, getting up;
   pressing a lamp's rocker switch; drawing the blanket up and pushing it back;
-  pulling the curtain open by its edge.
+  pulling the near curtain panel open by its edge.
 - The blanket drapes over his lying body and the mattress; it never passes
   through him, and he never passes through the bed, the cabinets or the
   curtain.
@@ -157,8 +160,9 @@ As for every scene:
   declared time jumps; Nachtruhe's first frame continues Klingelsturm's world
   (the parcel gone from his hands), its last frame leads into the epilogue.
 - **Light order:** the entrance lamp, the stairwell and his window switch on
-  in that order at dusk; in shot 2 the far lamp goes off before his own; his
-  window is dark when shot 3 opens and Karen's goes out last.
+  in that order at dusk; in shot 2 only his own lamp is on, the far one stays
+  off all night; his window is dark when shot 3 opens and Karen's goes out
+  last.
 - **Sound:** every file exists and is credited; the rain starts with the dawn
   and runs on into the epilogue.
 - **Unchanged elsewhere:** the sunny scenes stay pixel-identical apart from

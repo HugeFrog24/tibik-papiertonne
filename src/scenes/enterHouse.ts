@@ -157,6 +157,8 @@ export const enterHouse = (unlock: number) => {
     keysInLock: [UNLOCK[0], KEY_OUT[1]] as const,
     sounds: { keyIn: INSERTED, unlocked: TURN[1], opens: BACK_STEP[0], keyOut: KEY_OUT[0], shut: DOOR_SHUT },
     doorShut: DOOR_SHUT,
+    tuckedAt: (t: number) =>
+      kf(t, [THROUGH_THE_DOORWAY[0], THROUGH_THE_DOORWAY[0] + 0.3, THROUGH_THE_DOORWAY[1] - 0.3, THROUGH_THE_DOORWAY[1]], [0, 1, 1, 0]),
     indoors: INDOORS,
     indoorsAt: (t: number) => inWindow(t, INDOORS),
   };

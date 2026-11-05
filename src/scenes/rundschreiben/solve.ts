@@ -1,13 +1,11 @@
-import { Matrix4, Quaternion, Vector3 } from "three";
+import type { Matrix4 } from "three";
 import type { Solid } from "../../physics/collision";
 import type { Hold } from "../../physics/holds";
-import { lazy } from "../../physics/lazy";
 import { memoByFrame } from "../../physics/memoSolve";
-import { BINS, worldSolids } from "../../street/layout";
-import { mailboxDoorSolid } from "../../street/mailboxDoorShape";
+import { BINS } from "../../street/layout";
 import type { TibikFrame } from "../../Tibik/character";
 import { solveTibik } from "../papiertonnen/solve";
-import { indoorSolids } from "../../building/flurShape";
+import { streetSolids, type StreetState } from "../streetSolids";
 import {
   HAUSTUER_HOLD,
   HOUSE_KEYS_IN_LOCK,
@@ -15,11 +13,7 @@ import {
   houseKeyInLock,
   indoorsAt,
 } from "./home";
-import { easeUnit } from "../../characters/scalar";
-import { handPosition } from "../../characters/skeleton";
-import { KEY_GRIP, keyRingAt } from "../../props/keyRingShape";
-import { asCharacter } from "../../Tibik/character";
-import { RIG } from "../../Tibik/rig";
+import { keysInHand, type Lock } from "../../Tibik/keysInHand";
 import {
   ENVELOPE_LEFT_HOLD,
   ENVELOPE_RIGHT_HOLD,
@@ -69,48 +63,19 @@ export const RUNDSCHREIBEN_HOLDS: readonly Hold[] = [
   HAUSTUER_HOLD,
 ];
 
-const KEYS_TO_LOCK = 0.3;
-
-
 const envelopeOf = (t: number) => {
   const matrix = envelopeAt(t);
   return matrix ? { matrix, flap: flapAt(t), ...envelopeBendAt(t) } : null;
 };
 
-const LOCKS = [
+const LOCKS: readonly Lock[] = [
   { window: KEYS_IN_LOCK, at: keysInLock, name: "mailbox", reach: KEY_HOLD.reach },
   { window: HOUSE_KEYS_IN_LOCK, at: houseKeyInLock, name: "house", reach: HAUSTUER_HOLD.reach },
-] as const;
-
-const turnOf = (m: Matrix4) => new Quaternion().setFromRotationMatrix(m);
-
-const keysAt = (t: number, tibik: TibikFrame) => {
-  const hand = handPosition(RIG, asCharacter(tibik), "leftArm");
-  const carried = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), tibik.rotationY);
-  for (const { window: [from, to], at, name, reach } of LOCKS) {
-    if (t >= from && t <= to) return at(t);
-    const lockTurn =
-      t < from
-        ? easeUnit((t - reach) / (from - reach))
-        : 1 - easeUnit((t - to) / KEYS_TO_LOCK);
-    if (lockTurn > 0)
-      return keyRingAt(hand, carried.slerp(turnOf(at(t < from ? from : to)), lockTurn), name, KEY_GRIP);
-  }
-  return keyRingAt(hand, carried, t < KEY_REGRIP ? "mailbox" : "house", KEY_GRIP);
-};
-
-const INDOORS = lazy(() => indoorSolids({ tibik: 0 }));
-
-export const rundschreibenSolids = (
-  state: Pick<
-    RundschreibenState,
-    "lids" | "haustuer" | "haustuerLever" | "mailboxDoor" | "indoors"
-  >,
-): Solid[] => [
-  ...worldSolids(state.lids, state.haustuer, state.haustuerLever),
-  mailboxDoorSolid(state.mailboxDoor),
-  ...(state.haustuer > 0 || state.indoors > 0 ? INDOORS() : []),
 ];
+
+const keysAt = (t: number, tibik: TibikFrame) => keysInHand(t, tibik, LOCKS, t < KEY_REGRIP ? "mailbox" : "house");
+
+export const rundschreibenSolids: (state: StreetState) => Solid[] = streetSolids;
 
 const solve = (t: number): RundschreibenState => {
   const scene = {

@@ -41,8 +41,8 @@ import {
 } from "../../street/mailboxDoorShape";
 import { entranceGround } from "../../street/layout";
 import { TIBIK_GAIT, tibikGaitOf, plantedTibik, type TibikFrame } from "../../Tibik/character";
-import { ARM_REST, ARM_TUCK, ARM_WALK, RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
-import { blendArm } from "../../physics/holds";
+import { ARM_REST, ARM_WALK, RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
+import { WALK_SWAY, WALK_SWING, swungArms, walkArmKeys, walkingOn } from "../../Tibik/walkingArms";
 import type { Vec3 } from "../../toon/primitives";
 
 export const ARRIVE = 0;
@@ -70,7 +70,6 @@ export const IN = ENTRY.in;
 export const RUNDSCHREIBEN_DURATION = IN[1] + 6.25;
 export const BACK_STEP = ENTRY.backStep;
 const WALKING_IN = ENTRY.walkingIn;
-const THROUGH_THE_DOORWAY = ENTRY.throughTheDoorway;
 
 const LID_OPEN = 0.3;
 const LID_LET_GO = KLOPPEN[1] + 0.1;
@@ -149,6 +148,7 @@ const tibikSteps = () => {
 };
 
 const GAIT_SPAN = [-1, RUNDSCHREIBEN_DURATION] as const;
+const WALK_LEGS = [TO_BIN, TO_DOOR, WALKING_IN] as const;
 
 export const tibikGait = tibikGaitOf(
   rootAt,
@@ -162,29 +162,15 @@ export const footstepTimes = (fps: number): number[] =>
 
 export const rundschreibenTibikAt = (t: number): TibikFrame => {
   const { x, z, yaw: rotationY, y = 0 } = rootAt(t);
-  const walking = Math.max(
-    1 - easeUnit((t - (AT_MAILBOX - 0.6)) / 0.6),
-    ...[TO_BIN, TO_DOOR, WALKING_IN].map(([a, b]) => kf(t, [a, a + 0.3, b - 0.5, b], [0, 1, 1, 0])),
-  );
+  const walking = Math.max(1 - easeUnit((t - (AT_MAILBOX - 0.6)) / 0.6), ...walkingOn(t, WALK_LEGS));
   const step = strideAt(tibikGait(), t);
-  const tucked = kf(
-    t,
-    [THROUGH_THE_DOORWAY[0], THROUGH_THE_DOORWAY[0] + 0.3, THROUGH_THE_DOORWAY[1] - 0.3, THROUGH_THE_DOORWAY[1]],
-    [0, 1, 1, 0],
-  );
-  const swing = 0.35 * walking * step * (1 - tucked);
-  const arms = armKf(
-    t,
-    [
-      AT_MAILBOX - 0.6,
-      AT_MAILBOX,
-      ...[TO_BIN, TO_DOOR, WALKING_IN].flatMap(([a, b]) => [a, a + 0.3, b - 0.5, b]),
-    ],
-    [ARM_WALK, ARM_REST, ...[TO_BIN, TO_DOOR, WALKING_IN].flatMap(() => [ARM_REST, ARM_WALK, ARM_WALK, ARM_REST])],
-  );
+  const tucked = ENTRY.tuckedAt(t);
+  const swing = WALK_SWING * walking * step * (1 - tucked);
+  const legArms = walkArmKeys(WALK_LEGS);
+  const arms = armKf(t, [AT_MAILBOX - 0.6, AT_MAILBOX, ...legArms.times], [ARM_WALK, ARM_REST, ...legArms.poses]);
   const pose: TibikPose = {
     ...TIBIK_REST,
-    sway: step * 0.05 * walking,
+    sway: step * WALK_SWAY * walking,
     lean: kf(
       t,
       [
@@ -214,8 +200,7 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
       [0, 0.12, 0.12, 0, 0, 0.3, 0.3, 0],
     ),
     blink: blinkAt(t, [1.4, 3.1, 6.6, 9.9, 17.2, 25.8, 29.95, 34.6, 38.9, 42.7]),
-    leftArm: blendArm({ ...arms, raise: arms.raise - swing }, ARM_TUCK, tucked),
-    rightArm: blendArm({ ...arms, raise: arms.raise + swing }, ARM_TUCK, tucked),
+    ...swungArms(arms, swing, tucked),
   };
   const placed = { position: [x, y, z] as Vec3, rotationY, pose };
   return plantedTibik(tibikGait(), t, placed);

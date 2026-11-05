@@ -13,7 +13,7 @@ import {
 import { expect, test } from "vitest";
 import { bodyColliders, handPosition, handSphere } from "../../characters/skeleton";
 import { headSurface } from "../../Tibik/headShape";
-import { KEY_GRIP, keyBowGrip, keyParts } from "../../props/keyRingShape";
+import { keyParts } from "../../props/keyRingShape";
 import {
   MAILBOX_DOOR,
   mailboxDoorFrame,
@@ -23,15 +23,13 @@ import {
 } from "../../street/mailboxDoorShape";
 import { BINS, ENTRANCE_LAMP, ENTRANCE_X, MAILBOXES, binByName } from "../../street/layout";
 import { DOORSTEP, FACADE_Z } from "../../street/building";
-import { FACADE_THICKNESS } from "../../street/facade";
-import { DOOR_SHUT, HOUSE_KEYS_IN_LOCK, HOUSE_KEY_INSERT, outerCylinderAt } from "./home";
-import { HAUSTUER } from "../../street/facade";
 import { entranceGround } from "../../street/layout";
 import { characterViolations } from "../../physics/guards";
 import { RIG } from "../../Tibik/rig";
 import { asCharacter } from "../../Tibik/character";
 import { FPS } from "../../timeline";
 import { TIBIK_FOOT, sunkSoles } from "../drawnSoles";
+import { expectGoesIn, expectKeyTurnsByHand, keysAwayFromFist } from "../entryChecks";
 import { lensProblems, penetrations, seconds } from "../sceneChecks";
 import { cameraAt, shotAt } from "./cameras";
 import {
@@ -39,20 +37,18 @@ import {
   BOX_SHUT,
   ENVELOPE_OUT,
   FLAP,
-  BACK_STEP,
   BIN_FLOOR,
   FOLD,
-  IN,
   KEY_IN,
   KLOPPEN,
   LID_THUD,
   LID_UP,
   TO_BIN,
-  UNLOCK,
   KEY_INSERT,
   KEY_REGRIP,
   LAMP_SENSOR,
   READ,
+  ENTRY,
   RUNDSCHREIBEN_DURATION,
   THANKS,
   UNFOLD,
@@ -527,43 +523,7 @@ test("he kloppt the envelope through the lid opening into the empty bin, where i
 });
 
 test("he unlocks the Haustür from outside with his house key and goes in; the closer shuts it behind him", { timeout: 300_000 }, () => {
-  const house = keyParts().find((k) => k.name === "house")!;
-  const turns: Vector3[] = [];
-  for (const t of window(UNLOCK[0] + 0.25, UNLOCK[1])) {
-    const state = solveRundschreiben(t);
-    const m = state.keys!;
-    const tip = house.tip.clone().applyMatrix4(m);
-    const axis = house.blade.axes[0].clone().transformDirection(m);
-    const hole = outerCylinderAt(state.haustuer);
-    const depth = tip.clone().sub(hole).dot(axis);
-    const offAxis = tip.clone().sub(hole).addScaledVector(axis, -depth).length();
-    expect(offAxis, t.toFixed(2)).toBeLessThan(0.004);
-    expect(Math.abs(depth - HOUSE_KEY_INSERT), t.toFixed(2)).toBeLessThan(0.004);
-    turns.push(house.blade.axes[1].clone().transformDirection(m));
-  }
-  expect(Math.min(...turns.map((u) => u.dot(turns[0])))).toBeLessThan(-0.95);
-  expect(solveRundschreiben(UNLOCK[0]).haustuer).toBe(0);
-  expect(solveRundschreiben(BACK_STEP[0]).haustuer).toBe(0);
-  expect(solveRundschreiben(BACK_STEP[1]).haustuer).toBeGreaterThan(0.35);
-  const hinge = new Vector3(...HAUSTUER.hinge);
-  for (const t of window(BACK_STEP[1], IN[0] + 1)) {
-    const { tibik: { position: [x, , z] }, haustuer } = solveRundschreiben(t);
-    const bearing = Math.atan2(z - hinge.z, x - hinge.x);
-    if (haustuer < bearing + 0.3)
-      expect(Math.hypot(x - hinge.x, z - hinge.z), t.toFixed(2)).toBeGreaterThan(HAUSTUER.width + 0.38);
-  }
-  expect(Math.max(...window(UNLOCK[1], RUNDSCHREIBEN_DURATION).map((t) => solveRundschreiben(t).haustuer))).toBeGreaterThan(1.4);
-  for (const t of window(DOOR_SHUT, RUNDSCHREIBEN_DURATION)) expect(solveRundschreiben(t).haustuer, t.toFixed(2)).toBe(0);
-  const end = solveRundschreiben(RUNDSCHREIBEN_DURATION - 1 / FPS);
-  expect(end.indoors).toBe(1);
-  expect(end.tibik.position[2]).toBeLessThan(FACADE_Z - FACADE_THICKNESS - 0.3);
-  let last = 0;
-  for (const t of frames) {
-    const { indoors } = solveRundschreiben(t);
-    expect(indoors, t.toFixed(2)).toBeGreaterThanOrEqual(last);
-    last = indoors;
-  }
-  expect(solveRundschreiben(IN[0]).indoors).toBe(0);
+  expectGoesIn(ENTRY, solveRundschreiben, frames);
 });
 
 const LENS = 0.05;
@@ -597,13 +557,7 @@ test(
 );
 
 test("the house key turns back no faster than a hand turns a key", { timeout: 300_000 }, () => {
-  const house = keyParts().find((k) => k.name === "house")!;
-  const upAt = (t: number) => house.blade.axes[1].clone().transformDirection(solveRundschreiben(t).keys!);
-  const frames = window(UNLOCK[0], HOUSE_KEYS_IN_LOCK[1]);
-  for (let i = 1; i < frames.length; i++) {
-    const turned = (upAt(frames[i - 1]).angleTo(upAt(frames[i])) * 180) / Math.PI;
-    expect(turned, frames[i].toFixed(2)).toBeLessThan(45);
-  }
+  expectKeyTurnsByHand(ENTRY, solveRundschreiben, frames);
 });
 
 test("his left hand goes straight from one grip to the next, never dropping to his side in between", { timeout: 300_000 }, () => {
@@ -615,13 +569,6 @@ test("his left hand goes straight from one grip to the next, never dropping to h
 });
 
 test("the key he holds stays in his fist, carried or in a lock, except while it hangs in the open box", { timeout: 300_000 }, () => {
-  const away: string[] = [];
-  for (const t of frames) {
-    if (t > BOX_OPEN[1] && t < BOX_SHUT[0] + 0.1) continue;
-    const name = t < KEY_REGRIP ? "mailbox" : "house";
-    const grip = keyBowGrip(solveRundschreiben(t).keys!, name, KEY_GRIP);
-    const miss = grip.distanceTo(handOf(t, "leftArm"));
-    if (miss > 0.03) away.push(`${t.toFixed(2)} s: ${name} key ${(miss * 100).toFixed(1)} cm from his fist`);
-  }
-  expect(away.slice(0, 8)).toEqual([]);
+  const held = (t: number) => (t > BOX_OPEN[1] && t < BOX_SHUT[0] + 0.1 ? null : t < KEY_REGRIP ? "mailbox" : "house");
+  expect(keysAwayFromFist(solveRundschreiben, frames, held).slice(0, 8)).toEqual([]);
 });

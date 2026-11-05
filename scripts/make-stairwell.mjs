@@ -1,7 +1,7 @@
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { RATE, SPEED_OF_SOUND, THROUGH_THE_DOOR, decode, muffle, pole, randomFrom, sfx, sfxPath, writeWav } from "./sfx-audio.mjs";
+import { withScratch } from "./scratch.mjs";
 
 const ROOM = { width: 2.6, lane: 1.3, depth: 7.4, storey: 2.85 };
 const RT60 = 3.0;
@@ -54,8 +54,7 @@ const convolve = (dry, ir) => {
 };
 
 
-const scratch = mkdtempSync(path.join(tmpdir(), "stairwell-"));
-try {
+withScratch("stairwell-", (scratch) => {
   mkdirSync(sfx("stairwell/"), { recursive: true });
   const ir = impulse();
   const sources = [
@@ -74,6 +73,4 @@ try {
     writeWav(sfx(`stairwell/${name}.wav`), [out]);
     console.log(`stairwell/${name}.wav: ${(out.length / RATE).toFixed(2)} s${peak > 0.98 ? `, scaled ${(0.98 / peak).toFixed(2)}` : ""}`);
   }
-} finally {
-  rmSync(scratch, { recursive: true, force: true });
-}
+});

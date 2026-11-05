@@ -1,10 +1,10 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sing, voiceOf } from "./pigeon-voice.mjs";
 import { RATE, decode, randomFrom } from "./sfx-audio.mjs";
 import { BANDS, analyse, round, syllablesOf } from "./spectral.mjs";
+import { withScratch } from "./scratch.mjs";
 
 const RECORDINGS = fileURLToPath(
   new URL("../assets/recordings/", import.meta.url),
@@ -103,8 +103,7 @@ const fitted = (voice, s, loudest) => {
 const manifest = JSON.parse(
   readFileSync(path.join(RECORDINGS, "recordings.json"), "utf8"),
 );
-const scratch = mkdtempSync(path.join(tmpdir(), "pigeons-"));
-try {
+withScratch("pigeons-", (scratch) => {
   const voice = voiceOf(randomFrom(FIT.seed), BANDS);
   const recordings = manifest["street-pigeons"].map(({ file }) => {
     const samples = decode(path.join(RECORDINGS, file), scratch);
@@ -126,6 +125,4 @@ try {
     path.join(RECORDINGS, "street-pigeons.model.json"),
     `${JSON.stringify({ bands: BANDS, recordings }, null, 2)}\n`,
   );
-} finally {
-  rmSync(scratch, { recursive: true, force: true });
-}
+});

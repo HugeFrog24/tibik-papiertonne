@@ -1,8 +1,8 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { RATE, decode, sfx, writeWav } from "./sfx-audio.mjs";
+import { withScratch } from "./scratch.mjs";
 
 const RECORDINGS = fileURLToPath(new URL("../assets/recordings/", import.meta.url));
 const LEAD = 0.02;
@@ -11,8 +11,7 @@ const FLOOR = -60;
 
 const recordings = JSON.parse(readFileSync(path.join(RECORDINGS, "recordings.json"), "utf8"));
 const [recording] = recordings.tape;
-const scratch = mkdtempSync(path.join(tmpdir(), "tape-"));
-try {
+withScratch("tape-", (scratch) => {
   const samples = decode(path.join(RECORDINGS, recording.file), scratch);
   const peak = samples.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
   const floor = peak * 10 ** (FLOOR / 20);
@@ -24,6 +23,4 @@ try {
   mkdirSync(sfx("flur/"), { recursive: true });
   writeWav(sfx("flur/tape-pull.wav"), [out]);
   console.log(`flur/tape-pull.wav: ${(out.length / RATE).toFixed(2)} s from ${recording.title}`);
-} finally {
-  rmSync(scratch, { recursive: true, force: true });
-}
+});

@@ -1,10 +1,10 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buzz, flyVoiceOf } from "./fly-voice.mjs";
 import { decode, randomFrom } from "./sfx-audio.mjs";
 import { BANDS, BUZZ, analyse, buzzOf, round } from "./spectral.mjs";
+import { withScratch } from "./scratch.mjs";
 
 const RECORDINGS = fileURLToPath(
   new URL("../assets/recordings/", import.meta.url),
@@ -67,8 +67,7 @@ const fitted = (voice, heard) => {
 const manifest = JSON.parse(
   readFileSync(path.join(RECORDINGS, "recordings.json"), "utf8"),
 );
-const scratch = mkdtempSync(path.join(tmpdir(), "flies-"));
-try {
+withScratch("flies-", (scratch) => {
   const voice = flyVoiceOf(randomFrom(FIT.seed));
   const recordings = manifest.flies.map(({ file }) => {
     const samples = decode(path.join(RECORDINGS, file), scratch);
@@ -80,6 +79,4 @@ try {
     path.join(RECORDINGS, "flies.model.json"),
     `${JSON.stringify({ bands: BANDS, recordings, flies: FLIES }, null, 2)}\n`,
   );
-} finally {
-  rmSync(scratch, { recursive: true, force: true });
-}
+});

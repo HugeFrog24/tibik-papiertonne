@@ -1,9 +1,9 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { RATE, decode } from "./sfx-audio.mjs";
 import { makeLoop, writeWithMuffled } from "./ambience-loop.mjs";
+import { withScratch } from "./scratch.mjs";
 
 const RECORDINGS = fileURLToPath(new URL("../assets/recordings/", import.meta.url));
 const STEADY = { from: 8, seconds: 30, fade: 2 };
@@ -18,12 +18,9 @@ const softened = (samples) => {
 
 const recordings = JSON.parse(readFileSync(path.join(RECORDINGS, "recordings.json"), "utf8"));
 const [recording] = recordings.rain;
-const scratch = mkdtempSync(path.join(tmpdir(), "rain-"));
-try {
+withScratch("rain-", (scratch) => {
   const samples = softened(decode(path.join(RECORDINGS, recording.file), scratch));
   const loop = makeLoop(STEADY.seconds, 1);
   loop.bed(0, STEADY.fade, (t) => samples[Math.round((STEADY.from + t) * RATE)] ?? 0);
   writeWithMuffled("rain", loop, PEAK);
-} finally {
-  rmSync(scratch, { recursive: true, force: true });
-}
+});

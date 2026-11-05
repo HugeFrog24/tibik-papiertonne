@@ -1,8 +1,8 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { RATE, decode } from "./sfx-audio.mjs";
+import { withScratch } from "./scratch.mjs";
 
 const RECORDINGS = fileURLToPath(new URL("../assets/recordings/", import.meta.url));
 const ONSET = { bright: 3000, hop: 0.001, window: 0.002, before: 0.008, rise: 10, below: 12, apart: 0.1 };
@@ -66,8 +66,7 @@ const round = (v, digits) => Math.round(v * 10 ** digits) / 10 ** digits;
 
 const recordings = JSON.parse(readFileSync(path.join(RECORDINGS, "recordings.json"), "utf8"));
 const [recording] = recordings["doorbell-rhythm"];
-const scratch = mkdtempSync(path.join(tmpdir(), "rhythm-"));
-try {
+withScratch("rhythm-", (scratch) => {
   const onsets = onsetsOf(decode(path.join(RECORDINGS, recording.file), scratch));
   const grid = gridOf(onsets);
   const model = {
@@ -79,6 +78,4 @@ try {
   };
   writeFileSync(path.join(RECORDINGS, "doorbell-rhythm.model.json"), `${JSON.stringify(model, null, 2)}\n`);
   console.log(JSON.stringify(model));
-} finally {
-  rmSync(scratch, { recursive: true, force: true });
-}
+});

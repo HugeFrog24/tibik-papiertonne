@@ -1,5 +1,6 @@
 import { Matrix4, Vector3 } from "three";
 import { random } from "remotion";
+import { obb } from "../physics/collision";
 import { textWidth } from "../dialogue/bubbleText";
 import { LETTER_LINES, type LetterRole } from "../scenes/rundschreiben/letter";
 
@@ -98,6 +99,18 @@ export const pointOnLetter = (
     .applyMatrix4(panel.matrix)
     .applyMatrix4(letter.matrix);
 };
+
+const SHEET_THICKNESS = 0.0005;
+
+export const letterSolids = (letter: { readonly matrix: Matrix4; readonly fold: number }) =>
+  letterPanels(letter.fold).map((panel, i) =>
+    obb(
+      `letter panel ${i}`,
+      letter.matrix.clone().multiply(panel.matrix),
+      [panel.size[0], panel.size[1], SHEET_THICKNESS],
+      [panel.size[0] / 2, panel.size[1] / 2, 0],
+    ),
+  );
 
 export const letterPanels = (fold: number): Panel[] => {
   const [topH, middleH, bottomH] = PANEL_HEIGHTS;

@@ -48,5 +48,14 @@
       "license": "CC0 (public domain)",
       "source": "https://bigsoundbank.com/adhesive-tape-3-s0299.html"
     }
+  ],
+  "rain": [
+    {
+      "file": "rain-ezwa.ogg",
+      "title": "Rain",
+      "author": "ezwa",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Rain_(1).ogg (from PDSounds.org)"
+    }
   ]
 }

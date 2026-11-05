@@ -40,7 +40,7 @@ import {
 } from "../../street/mailboxDoorShape";
 import { ENTRANCE_LAMP, entranceGround } from "../../street/layout";
 import { stepLift } from "../../building/stairwell";
-import { FPS } from "../../timeline";
+import { FPS } from "../../frameRate";
 import { TIBIK_GAIT, plantedTibik, type TibikFrame } from "../../Tibik/character";
 import { ARM_REST, ARM_TUCK, ARM_WALK, RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { blendArm } from "../../physics/holds";

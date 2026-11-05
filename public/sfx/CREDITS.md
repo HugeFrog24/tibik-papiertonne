@@ -29,3 +29,17 @@ not distributed).
 
 flur/tape-pull.wav is "Adhesive tape #3" by Denis Chardonnet, BigSoundBank, CC0 (public domain),
 https://bigsoundbank.com/adhesive-tape-3-s0299.html, trimmed by scripts/make-tape.mjs.
+
+The Kenney sounds used by the scenes, by file: bookFlip1.ogg, bookFlip2.ogg, bookFlip3.ogg,
+bookOpen.ogg, bookPlace1.ogg, cloth2.ogg, creak1.ogg, doorClose_1.ogg, doorClose_4.ogg,
+doorOpen_1.ogg, footstep_concrete_000.ogg to footstep_concrete_003.ogg, handleCoins.ogg,
+metalClick.ogg, metalLatch.ogg ("RPG Audio" and "Impact Sounds"), impactGeneric_light_002.ogg and
+impactSoft_heavy_000.ogg ("Impact Sounds"), pluck_001.ogg and switch_002.ogg ("Interface Sounds").
+handleCoins.ogg and metalClick.ogg were added for the Rundschreiben (keys, the mailbox lock and the
+Haustür's cylinder).
+
+rain.wav and rain-muffled.wav (heard from inside the building) are made by scripts/make-rain.mjs from
+"Rain" by ezwa, public domain (released worldwide by its author, originally on PDSounds.org),
+https://commons.wikimedia.org/wiki/File:Rain_(1).ogg, kept in assets/recordings/rain-ezwa.ogg: its
+steadiest 32 s are crossfaded into a 30 s loop, the few close drop crackles softened (4:1 above the
+99.99th percentile), and the muffled twin filtered like the street ambience.

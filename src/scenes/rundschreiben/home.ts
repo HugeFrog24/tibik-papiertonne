@@ -13,14 +13,24 @@ const TURN: readonly [number, number] = [INSERTED + 0.05, BACK_STEP[0]];
 const TURN_BACK: readonly [number, number] = [BACK_STEP[1] - 0.4, BACK_STEP[1]];
 const KEY_OUT: readonly [number, number] = [BACK_STEP[1], BACK_STEP[1] + 0.15];
 const PULLED = 0.4;
-const WIDE = 1.65;
-const SWUNG = BACK_STEP[1] + coastTime(BACK_STEP, PULLED, WIDE);
+export const HAUSTUER_WIDE = 1.65;
+const SWUNG = BACK_STEP[1] + coastTime(BACK_STEP, PULLED, HAUSTUER_WIDE);
 
 export const DOOR_SHUT = closerEnd(SWUNG);
 export const HOUSE_KEYS_IN_LOCK: readonly [number, number] = [UNLOCK[0], KEY_OUT[1]];
 
+export const HAUSTUER_SOUNDS = {
+  keyIn: INSERTED,
+  unlocked: TURN[1],
+  opens: BACK_STEP[0],
+  keyOut: KEY_OUT[0],
+  shut: DOOR_SHUT,
+} as const;
+
 export const haustuerAt = (t: number) =>
-  t < SWUNG ? pulledThenCoasting(t, BACK_STEP, PULLED, WIDE) : closerSwing(t, SWUNG, WIDE);
+  t < SWUNG
+    ? pulledThenCoasting(t, BACK_STEP, PULLED, HAUSTUER_WIDE)
+    : closerSwing(t, SWUNG, HAUSTUER_WIDE);
 
 const CYLINDER = new Vector3(
   ...fittingsOf(HAUSTUER).faces.find((f) => f.kind === "cylinder" && f.out > 0)!

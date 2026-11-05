@@ -8,6 +8,7 @@ import {
   FILM_FRAMES,
   FPS,
   KLINGELSTURM_FROM,
+  RUNDSCHREIBEN_FROM,
   TREPPENHAUS_FRAMES,
   filmIndoors,
 } from "../timeline";
@@ -26,13 +27,18 @@ test("indoors is fully muffled until the Haustür opens", () => {
     expect(treppenhausIndoors(t), `${t.toFixed(2)} s`).toBe(1);
 });
 
-test("the street is fully open from the Haustür until the Klingelsturm cut, then heard from indoors", () => {
+test("the street is fully open from the Haustür until the Klingelsturm cut, heard from indoors on the landing, open again in the rain, and muffled once the Haustür shuts behind him", () => {
   const indoorsFrom = Math.round(KLINGELSTURM_FROM * FPS);
+  const rainFrom = Math.round(RUNDSCHREIBEN_FROM * FPS);
   expect(filmIndoors(TREPPENHAUS_FRAMES - 1)).toBe(0);
   for (let f = TREPPENHAUS_FRAMES; f < indoorsFrom; f++)
     expect(filmIndoors(f)).toBe(0);
-  for (let f = indoorsFrom; f < FILM_FRAMES; f++)
+  for (let f = indoorsFrom; f < rainFrom; f++)
     expect(filmIndoors(f)).toBe(1);
+  expect(filmIndoors(rainFrom)).toBe(0);
+  expect(filmIndoors(FILM_FRAMES - 1)).toBe(1);
+  for (let f = rainFrom + 1; f < FILM_FRAMES; f++)
+    expect(Math.abs(filmIndoors(f) - filmIndoors(f - 1)), `frame ${f}`).toBeLessThanOrEqual(0.15);
 });
 
 test("indoors never jumps", () => {

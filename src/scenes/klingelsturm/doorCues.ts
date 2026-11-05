@@ -161,6 +161,7 @@ const hisSteps = (): BellCue[] => {
       at,
       sound: `stairwell/footstep_concrete_00${i % STEP_SOUNDS}`,
       volume: OUT_ON_THE_LANDING,
+      length: KLINGELSTURM_DURATION - at,
     })),
   ];
 };

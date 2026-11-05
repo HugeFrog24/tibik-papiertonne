@@ -13,6 +13,11 @@ import { AbsoluteFill, Sequence } from "remotion";
 import { Caption } from "../../dialogue/Caption";
 import { CAPTION, cameraAt, shotAt } from "./cameras";
 import { solveRundschreiben } from "./solve";
+import { rundschreibenRain } from "./rain";
+import { UNFOLD } from "./choreography";
+import { paperSpotsAt } from "../../props/letterShape";
+import { Rain } from "../../weather/Rain";
+import { RundschreibenSound } from "./RundschreibenSound";
 
 
 const Scene: React.FC = () => {
@@ -39,8 +44,13 @@ const Scene: React.FC = () => {
       )}
       {state.keys ? <KeyRing matrix={state.keys} /> : null}
       {state.letter ? (
-        <Letter matrix={state.letter.matrix} fold={state.letter.fold} />
+        <Letter
+          matrix={state.letter.matrix}
+          fold={state.letter.fold}
+          spots={paperSpotsAt(t, UNFOLD[0])}
+        />
       ) : null}
+      <Rain drops={rundschreibenRain(t, state)} />
       {state.envelope ? (
         <Envelope
           matrix={state.envelope.matrix}
@@ -53,7 +63,9 @@ const Scene: React.FC = () => {
   );
 };
 
-export const Rundschreiben: React.FC = () => {
+export const Rundschreiben: React.FC<{
+  readonly ambience?: boolean;
+}> = ({ ambience = true }) => {
   const { width, height, fps } = useVideoConfig();
   const t = useCurrentFrame() / fps;
   return (
@@ -69,6 +81,7 @@ export const Rundschreiben: React.FC = () => {
           <Caption text={CAPTION.text} />
         </AbsoluteFill>
       </Sequence>
+      <RundschreibenSound ambience={ambience} />
     </Sky>
   );
 };

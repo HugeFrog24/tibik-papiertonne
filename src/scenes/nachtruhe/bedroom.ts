@@ -245,7 +245,7 @@ const foldHold = (arm: ArmName, window: readonly [number, number], outside: numb
     exact: true,
   });
 
-const PRESS_POINT = new Vector3(CORD_SWITCH.center[0], CORD_SWITCH.center[1] + CORD_SWITCH.size[1] / 2 + HAND, CORD_SWITCH.center[2]);
+export const SWITCH_PRESS = new Vector3(CORD_SWITCH.center[0], CORD_SWITCH.center[1] + CORD_SWITCH.size[1] / 2 + HAND, CORD_SWITCH.center[2]);
 
 const switchHold = (press: (typeof PRESSES)[number]): Hold =>
   handHold({
@@ -255,7 +255,7 @@ const switchHold = (press: (typeof PRESSES)[number]): Hold =>
     lead: PRESS.lead,
     tail: PRESS.tail,
     target: cordSwitchSolid,
-    near: () => PRESS_POINT,
+    near: () => SWITCH_PRESS,
   });
 
 export const BEDROOM_HOLDS_IN_BED: readonly Hold[] = [

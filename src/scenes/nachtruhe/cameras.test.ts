@@ -12,6 +12,13 @@ import { PARAPET, roofParts } from "../../street/townShape";
 import { STREET_TREES, TREE_CROWN, TREE_POSITION } from "../../street/trees";
 import { lensProblems } from "../sceneChecks";
 import { CAPTION, KEY_MOMENTS, NACHTRUHE_DURATION, NACHTRUHE_SHOTS, cameraAt, lightingAt, shotAt } from "./cameras";
+import { SWITCH_PRESS, bedroomAt, curtainGrip } from "./bedroom";
+import { solveNachtruhe } from "./solve";
+import { CURTAIN_PULL, EYES_OPEN, LAMP_OFF, LAMP_ON, LIE_DOWN, SIT_UP } from "./timeline";
+import { allColliders } from "../../characters/skeleton";
+import { asCharacter } from "../../Tibik/character";
+import { RIG } from "../../Tibik/rig";
+import { rayObb } from "../../physics/rays";
 
 const shot = (name: string) => NACHTRUHE_SHOTS.find((s) => s.name === name)!;
 
@@ -89,8 +96,43 @@ test("the key action stays near the centre, for a later vertical crop", () => {
     }
 });
 
-test("evening and morning are filmed from the same place", () => {
-  expect(shot("Bedroom: morning").at(26)).toEqual(shot("Bedroom: evening").at(8));
+test("evening and morning are filmed from the same place, the morning panning after him to the window", () => {
+  const evening = shot("Bedroom: evening");
+  const morning = shot("Bedroom: morning");
+  expect(morning.at(morning.from).position).toEqual(evening.at(evening.from).position);
+  expect(morning.at(morning.to).position).toEqual(evening.at(evening.from).position);
+  expect(morning.at(morning.from).target).toEqual(evening.at(evening.from).target);
+  expect(morning.at(morning.to).target).not.toEqual(evening.at(evening.from).target);
+});
+
+const headAt = (t: number) => allColliders(RIG, asCharacter(bedroomAt(t))).find((c) => c.name.includes("head"))!.center.toArray();
+
+test("the bedroom's key moments are where the action is: his head as he lies down and wakes, the cord switch at each press, his head as he sits up, his hand on the curtain", () => {
+  const at = (name: string) => KEY_MOMENTS.find((m) => m.name === name)!;
+  expect(at("he lies down").at).toEqual(headAt(LIE_DOWN[1] + 0.7));
+  expect(at("he opens his eyes").at).toEqual(headAt(EYES_OPEN[1]));
+  expect(at("he switches his lamp off").at).toEqual(SWITCH_PRESS.toArray());
+  expect(at("he switches his lamp on").at).toEqual(SWITCH_PRESS.toArray());
+  expect(at("he switches his lamp off").from).toBeLessThanOrEqual(LAMP_OFF - 0.4);
+  expect(at("he switches his lamp on").to).toBeGreaterThanOrEqual(LAMP_ON);
+  expect(at("he gets up").at).toEqual(headAt(SIT_UP[1]));
+  expect(at("he opens the curtain").at).toEqual(curtainGrip((CURTAIN_PULL[0] + CURTAIN_PULL[1]) / 2).center.toArray());
+});
+
+test("nothing in the room stands between the lens and the bedroom's key action", () => {
+  const hidden: string[] = [];
+  for (const moment of KEY_MOMENTS)
+    for (let t = moment.from; t <= moment.to + 1e-9; t += 0.1) {
+      if (!shotAt(t).name.startsWith("Bedroom")) continue;
+      const lens = new Vector3(...cameraAt(t).position);
+      const point = new Vector3(...moment.at);
+      const ray = point.clone().sub(lens);
+      const length = ray.length();
+      ray.normalize();
+      for (const solid of bedroomSolids({ door: BEDROOM_DOOR.open, curtain: solveNachtruhe(t).curtains }))
+        if (solid.kind === "obb" && rayObb(lens, ray, solid) < length - 0.03) hidden.push(`${moment.name} at ${t.toFixed(2)} behind ${solid.name}`);
+    }
+  expect([...new Set(hidden)].slice(0, 8)).toEqual([]);
 });
 
 const crowns = STREET_TREES.flatMap(({ side, x }) =>

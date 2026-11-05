@@ -5,7 +5,8 @@ import { BINS, worldSolids } from "../street/layout";
 import { RAIN_SOLIDS } from "../street/rainSolids";
 import { PARAPET } from "../street/townShape";
 import type { WeatherLook } from "./overcast";
-import { RAIN_DIR, RAIN_TOP, rainGroundY, rayObb, raySphere } from "./rainDrops";
+import { rayObb, raySphere } from "../physics/rays";
+import { RAIN_DIR, RAIN_TOP, rainGroundY } from "./rainDrops";
 
 export const RAIN_SHADOW = { x: [-48, 48] as const, z: [FACADE_Z, acrossZ(FACADE_Z)] as const, step: 0.1 };
 

@@ -11,7 +11,10 @@ Items marked **(test)** are enforced by `npm test`.
   (Mietwohnungen) with a shared entrance and staircase. Nobody here owns a
   house with a lawn, porch or garage.
 - **Season and light:** summer (the street tree has leaves). The sun comes
-  from the front-left in every scene; keep it there.
+  from the front-left in every sunny scene; keep it there. The epilogue is
+  overcast with steady summer rain: soft sky light, a weak diffuse sun, rain
+  streaks slanting with the film's breeze, the entrance lamp switched on by
+  its motion sensor. **(test)**
 - **Wind:** a light breeze (Beaufort 2, leaves rustle) blows down the street
   (towards +x, slightly towards the houses), with gusts. One breeze runs on
   film time across all scenes (src/physics/wind.ts). The tree crown sways a
@@ -96,7 +99,7 @@ Items marked **(test)** are enforced by `npm test`.
 
 ## Scenes
 
-The film plays four scenes in this order (`src/Film.tsx`), each its own
+The film plays five scenes in this order (`src/Film.tsx`), each its own
 composition under "Scenes" in the Studio:
 
 1. **Treppenhaus** (`src/scenes/treppenhaus/`): Tibik leaves his flat, presses
@@ -111,6 +114,32 @@ composition under "Scenes" in the Studio:
    landing, she storms his doorbell, phones the Hausverwaltung and then 110;
    the light timer runs out, and Tibik leaves with the box packed as a
    parcel.
+5. **Rundschreiben** (`src/scenes/rundschreiben/`), the epilogue, "Zwei Wochen
+   später.": on a rainy day Tibik comes home, takes the Hausverwaltung's
+   circular to all tenants out of his mailbox, reads it (two readable inserts,
+   ending in four "Vie-len DANK."), folds it back, kloppt it into the blue
+   Papiertonne and goes in; the Haustür shuts behind him. No dialogue.
+
+## The epilogue (Rundschreiben)
+
+- The letter is the Hausverwaltung Musterstadt's circular "An alle
+  Mieterinnen und Mieter, Haus Nr. 12", DIN 5008 layout, 11 pt body, folded in
+  three into a DL envelope; its wording is the spec's, word for word.
+  **(test)** It is read only in point-of-view inserts, at least 40 px per line
+  of type, and the punchline stays out of the first insert. **(test)**
+- His mailbox is the empty one, row 3 right, in the unit left of the Haustür;
+  his key turns a quarter turn and the box door swings open on its hinge.
+  **(test)**
+- From outside he unlocks the Haustür with his house key, pulls it open by the
+  key while stepping back off the step, sidesteps round the open leaf and
+  walks in; the closer shuts it behind him, and the street and the rain
+  muffle as it does. **(test)**
+- Rain spots the paper where it lands; no drop passes through the letter or
+  ends inside Tibik. **(test)**
+- The paper is never pristine (see "Everyday imperfections"). **(test)**
+- Sound: a public-domain rain loop under the street ambience, the Kenney foley
+  for keys, locks, paper, the bin lid and the Haustür, every file credited in
+  public/sfx/CREDITS.md. **(test)**
 
 ## The staircase (Treppenhaus)
 
@@ -350,10 +379,18 @@ Ideas (proposed, not built; the user picks):
   `papiertonnenEnd()` (src/scenes/papiertonnen/solve.ts): searched bin lid
   open against the wall, the popped-open box in both of Tibik's hands,
   Papier 1 still overfull.
-- **Declared time jump:** Hausmuell → Klingelsturm is the one named exception
-  to "each scene starts where the previous one ended". Klingelsturm starts
-  with Tibik inside, his door shut and latched, Karen on the landing, her
-  shoes on her mat. **(test)**
+- **Declared time jumps:** Hausmuell → Klingelsturm and Klingelsturm →
+  Rundschreiben are the named exceptions to "each scene starts where the
+  previous one ended" (`TIME_JUMPS` in src/timeline.ts). **(test)**
+  Klingelsturm starts with Tibik inside, his door shut and latched, Karen on
+  the landing, her shoes on her mat. **(test)** The Rundschreiben starts two
+  weeks later, outside on the pavement, the Haustür and every lid shut, the
+  bins emptied. **(test)** No Klingelsturm sound runs over the cut into the
+  rain. **(test)**
+- **Hausmuell starts on the act:** Papiertonnen ends 0.35 s after the box has
+  popped open; at Hausmuell's start he turns to walk off with it and Karen
+  bursts in shouting within 0.8 s of the box opening, his found-it ding cut
+  off by the record scratch. **(test)**
 - In dialogue between Tibik and Karen, keep the camera on one side of the line
   between them (180° rule), with matching eyelines in shot/reverse-shot.
 - The street ambience runs under every scene and across cuts: two loops,

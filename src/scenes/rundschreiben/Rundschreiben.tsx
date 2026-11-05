@@ -1,4 +1,4 @@
-import { ThreeCanvas } from "@remotion/three";
+import { ToonCanvas } from "../../toon/ToonCanvas";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { StairwellSet } from "../../building/StairwellSet";
 import { Envelope } from "../../props/Envelope";
@@ -7,7 +7,6 @@ import { Letter } from "../../props/Letter";
 import { BinRow, Sky, StreetLighting } from "../../street/StreetSet";
 import { Street } from "../../street/Street";
 import { Tibik } from "../../Tibik/Tibik";
-import { InkPass } from "../../toon/InkPass";
 import { CameraRig } from "../../toon/primitives";
 import { AbsoluteFill, Sequence } from "remotion";
 import { Caption } from "../../dialogue/Caption";
@@ -66,16 +65,15 @@ const Scene: React.FC = () => {
 export const Rundschreiben: React.FC<{
   readonly ambience?: boolean;
 }> = ({ ambience = true }) => {
-  const { width, height, fps } = useVideoConfig();
+  const { fps } = useVideoConfig();
   const t = useCurrentFrame() / fps;
   return (
     <Sky weather="rain">
-      <ThreeCanvas name="Rundschreiben – 3D" width={width} height={height} shadows="percentage" flat>
+      <ToonCanvas name="Rundschreiben – 3D">
         <CameraRig {...cameraAt(t)} />
         <StreetLighting weather="rain" />
         <Scene />
-        <InkPass />
-      </ThreeCanvas>
+      </ToonCanvas>
       <Sequence from={Math.round(CAPTION.from * fps)} durationInFrames={Math.round((CAPTION.to - CAPTION.from) * fps)} layout="none">
         <AbsoluteFill>
           <Caption text={CAPTION.text} />

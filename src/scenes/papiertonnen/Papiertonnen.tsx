@@ -1,4 +1,4 @@
-import { ThreeCanvas } from "@remotion/three";
+import { ToonCanvas } from "../../toon/ToonCanvas";
 import { PAPIERTONNEN_FROM } from "../../timeline";
 import { Sequence, useCurrentFrame, useVideoConfig } from "remotion";
 import { Tibik } from "../../Tibik/Tibik";
@@ -10,7 +10,6 @@ import { solvePapiertonnen } from "./solve";
 import { FOUND_KARTON_SIZE } from "../../street/kartonShape";
 import { Street } from "../../street/Street";
 import { StairwellSet } from "../../building/StairwellSet";
-import { InkPass } from "../../toon/InkPass";
 import { Fly } from "../../street/Fly";
 import { SHOTS } from "./cameras";
 import type { Shot } from "../hausmuell/cameras";
@@ -55,17 +54,11 @@ const Characters: React.FC = () => {
 export const Papiertonnen: React.FC<{
   readonly ambience?: boolean;
 }> = ({ ambience = true }) => {
-  const { width, height, fps } = useVideoConfig();
+  const { fps } = useVideoConfig();
 
   return (
     <Sky>
-      <ThreeCanvas
-        name="Papiertonnen – 3D"
-        width={width}
-        height={height}
-        shadows="percentage"
-        flat
-      >
+      <ToonCanvas name="Papiertonnen – 3D">
         {SHOTS.map((shot) => (
           <Sequence
             key={shot.name}
@@ -80,8 +73,7 @@ export const Papiertonnen: React.FC<{
 
         <StreetLighting />
         <Characters />
-        <InkPass />
-      </ThreeCanvas>
+      </ToonCanvas>
       <PapiertonnenSound ambience={ambience} />
     </Sky>
   );

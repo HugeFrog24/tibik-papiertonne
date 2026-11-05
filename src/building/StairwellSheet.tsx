@@ -1,8 +1,6 @@
-import { ThreeCanvas } from "@remotion/three";
-import { useVideoConfig } from "remotion";
+import { ToonCanvas } from "../toon/ToonCanvas";
 import { Street } from "../street/Street";
 import { Sky } from "../street/StreetSet";
-import { InkPass } from "../toon/InkPass";
 import { CameraRig, type Vec3 } from "../toon/primitives";
 import { StairwellLighting } from "./StairwellLighting";
 import { StairwellSet } from "./StairwellSet";
@@ -39,16 +37,14 @@ export const StairwellSheet: React.FC<{
   readonly view?: keyof typeof VIEWS;
   readonly fisheye?: boolean;
 }> = ({ view = "flight", fisheye = false }) => {
-  const { width, height } = useVideoConfig();
   return (
     <Sky>
-      <ThreeCanvas width={width} height={height} shadows="percentage" flat>
+      <ToonCanvas fisheye={fisheye}>
         <CameraRig {...VIEWS[view]} />
         <StairwellLighting lights={1} />
         <Street />
         <StairwellSet tibikDoor={0} lights={1} />
-        <InkPass fisheye={fisheye} />
-      </ThreeCanvas>
+      </ToonCanvas>
     </Sky>
   );
 };

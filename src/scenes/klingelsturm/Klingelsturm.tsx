@@ -1,4 +1,4 @@
-import { ThreeCanvas } from "@remotion/three";
+import { ToonCanvas } from "../../toon/ToonCanvas";
 import { Track, useCurrentFrame, useVideoConfig } from "remotion";
 import { StairwellLighting } from "../../building/StairwellLighting";
 import { flurSpill } from "../../building/flurSpill";
@@ -11,7 +11,6 @@ import { Tibik } from "../../Tibik/Tibik";
 import { Street } from "../../street/Street";
 import { Sky } from "../../street/StreetSet";
 import { KLINGELSTURM_FROM } from "../../timeline";
-import { InkPass } from "../../toon/InkPass";
 import { ShotCameras } from "../../toon/ShotCameras";
 import { SHOTS, shotAt } from "./cameras";
 import { LINES } from "./choreography";
@@ -24,7 +23,7 @@ import { klingelsturmSprayAt } from "./spray";
 export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
   ambience = true,
 }) => {
-  const { width, height, fps } = useVideoConfig();
+  const { fps } = useVideoConfig();
   const t = useCurrentFrame() / fps;
   const {
     karen,
@@ -39,13 +38,7 @@ export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
   } = solveKlingelsturm(t);
   return (
     <Sky>
-      <ThreeCanvas
-        name="Klingelsturm – 3D"
-        width={width}
-        height={height}
-        shadows="percentage"
-        flat
-      >
+      <ToonCanvas name="Klingelsturm – 3D" fisheye={shotAt(t).name === "Spyhole"}>
         <ShotCameras
           shots={SHOTS}
           camera={(shot, sinceCut) => shot.at(shot.from + sinceCut)}
@@ -79,8 +72,7 @@ export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
           }
         />
         <SprayView frame={klingelsturmSprayAt(t)} />
-        <InkPass fisheye={shotAt(t).name === "Spyhole"} />
-      </ThreeCanvas>
+      </ToonCanvas>
       <Track name="Dialogue">
         <DialogueTrack lines={LINES} tailTo={tailTo} />
       </Track>

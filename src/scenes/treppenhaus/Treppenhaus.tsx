@@ -1,4 +1,4 @@
-import { ThreeCanvas } from "@remotion/three";
+import { ToonCanvas } from "../../toon/ToonCanvas";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { StairwellLighting } from "../../building/StairwellLighting";
 import { flurSpill } from "../../building/flurSpill";
@@ -10,7 +10,6 @@ import { ShotCameras } from "../../toon/ShotCameras";
 import { SHOTS, storyTime } from "./cameras";
 import { solveTreppenhaus } from "./solve";
 import { TreppenhausSound } from "./TreppenhausSound";
-import { InkPass } from "../../toon/InkPass";
 
 const Stairwell: React.FC = () => {
   const { fps } = useVideoConfig();
@@ -43,23 +42,15 @@ const Stairwell: React.FC = () => {
 export const Treppenhaus: React.FC<{ readonly ambience?: boolean }> = ({
   ambience = true,
 }) => {
-  const { width, height } = useVideoConfig();
   return (
     <Sky>
-      <ThreeCanvas
-        name="Treppenhaus – 3D"
-        width={width}
-        height={height}
-        shadows="percentage"
-        flat
-      >
+      <ToonCanvas name="Treppenhaus – 3D">
         <ShotCameras
           shots={SHOTS}
           camera={(shot, sinceCut) => shot.at(shot.story + sinceCut)}
         />
         <Stairwell />
-        <InkPass />
-      </ThreeCanvas>
+      </ToonCanvas>
       <TreppenhausSound ambience={ambience} />
     </Sky>
   );

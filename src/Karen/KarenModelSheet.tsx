@@ -1,6 +1,5 @@
-import { ThreeCanvas } from "@remotion/three";
-import { AbsoluteFill, useVideoConfig } from "remotion";
-import { InkPass } from "../toon/InkPass";
+import { ToonCanvas } from "../toon/ToonCanvas";
+import { AbsoluteFill } from "remotion";
 import { CameraRig, INK, type Vec3 } from "../toon/primitives";
 import { KAREN_POINTING, KAREN_REST, Karen } from "./Karen";
 
@@ -55,13 +54,7 @@ const Inset: React.FC<{
         backgroundColor: BACKGROUND,
       }}
     >
-      <ThreeCanvas
-        name={name}
-        width={width}
-        height={height}
-        shadows="percentage"
-        flat
-      >
+      <ToonCanvas name={name} width={width} height={height}>
         <CameraRig
           position={camera.position}
           target={camera.target}
@@ -69,8 +62,7 @@ const Inset: React.FC<{
         />
         <Studio />
         {children}
-        <InkPass />
-      </ThreeCanvas>
+      </ToonCanvas>
     </div>
   );
 };
@@ -82,17 +74,10 @@ const FACE_CAMERA = {
 };
 
 export const KarenModelSheet: React.FC = () => {
-  const { width, height } = useVideoConfig();
 
   return (
     <AbsoluteFill style={{ backgroundColor: BACKGROUND }}>
-      <ThreeCanvas
-        name="Karen turnaround"
-        width={width}
-        height={height}
-        shadows="percentage"
-        flat
-      >
+      <ToonCanvas name="Karen turnaround">
         <CameraRig position={[0, 1.85, 7]} target={[0, 1.7, 0]} fov={30} />
         <Studio />
         <Karen position={[-2.3, 0, 0]} rotationY={0} pose={KAREN_REST} />
@@ -103,8 +88,7 @@ export const KarenModelSheet: React.FC = () => {
           pose={KAREN_REST}
         />
         <Karen position={[2.35, 0, 0]} rotationY={Math.PI} pose={KAREN_REST} />
-        <InkPass />
-      </ThreeCanvas>
+      </ToonCanvas>
       <Inset left={24} width={290} name="Karen scowling" camera={FACE_CAMERA}>
         <Karen position={[0, 0, 0]} rotationY={0} pose={KAREN_REST} />
       </Inset>

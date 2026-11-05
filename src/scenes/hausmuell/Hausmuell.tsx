@@ -1,4 +1,4 @@
-import { ThreeCanvas } from "@remotion/three";
+import { ToonCanvas } from "../../toon/ToonCanvas";
 import { HAUSMUELL_FROM } from "../../timeline";
 import { Track, useCurrentFrame, useVideoConfig } from "remotion";
 import { DialogueTrack } from "../../dialogue/DialogueTrack";
@@ -16,7 +16,6 @@ import { HausmuellSound } from "./HausmuellSound";
 import { solveHausmuell } from "./solve";
 import { hausmuellSprayAt } from "./spray";
 import { mouthOnScreen } from "./speakers";
-import { InkPass } from "../../toon/InkPass";
 
 const Characters: React.FC = () => {
   const t = useCurrentFrame() / useVideoConfig().fps;
@@ -53,18 +52,12 @@ const Characters: React.FC = () => {
 export const Hausmuell: React.FC<{
   readonly ambience?: boolean;
 }> = ({ ambience = true }) => {
-  const { width, height, fps } = useVideoConfig();
+  const { fps } = useVideoConfig();
   const t = useCurrentFrame() / fps;
 
   return (
     <Sky>
-      <ThreeCanvas
-        name="Hausmuell – 3D"
-        width={width}
-        height={height}
-        shadows="percentage"
-        flat
-      >
+      <ToonCanvas name="Hausmuell – 3D">
         <ShotCameras
           shots={SHOTS}
           camera={(shot, sinceCut) => shot.at(shot.from + sinceCut)}
@@ -72,8 +65,7 @@ export const Hausmuell: React.FC<{
         <StreetLighting />
         <Street windAt={HAUSMUELL_FROM + t} />
         <Characters />
-        <InkPass />
-      </ThreeCanvas>
+      </ToonCanvas>
 
       <Track name="Dialogue">
         <DialogueTrack

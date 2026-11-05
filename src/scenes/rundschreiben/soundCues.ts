@@ -13,7 +13,10 @@ import {
   LID_UP,
   UNFOLD,
   UNLOCK,
+  footstepTimes,
+  rundschreibenTibikAt,
 } from "./choreography";
+import { FACADE_Z } from "../../street/building";
 import { HAUSTUER_SOUNDS, HAUSTUER_WIDE, haustuerAt, indoorsAt } from "./home";
 
 
@@ -25,6 +28,12 @@ export const heardIndoorsAt = (t: number) =>
 export const rainLevel = (t: number) => {
   const indoors = heardIndoorsAt(t);
   return { outside: RAIN.volume * (1 - indoors), inside: RAIN.volume * indoors };
+};
+
+export const footstepsByRoom = (fps: number) => {
+  const inside = (t: number) => rundschreibenTibikAt(t).position[2] < FACADE_Z;
+  const times = footstepTimes(fps);
+  return { outside: times.filter((t) => !inside(t)), inside: times.filter(inside) };
 };
 
 export const RUNDSCHREIBEN_CUES: readonly FileCue[] = [

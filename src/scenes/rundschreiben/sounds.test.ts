@@ -15,9 +15,10 @@ import {
 } from "../../timeline";
 import { KLINGELSTURM_DURATION } from "../klingelsturm/choreography";
 import { doorCues } from "../klingelsturm/doorCues";
-import { ENVELOPE_LANDS, LID_THUD, RUNDSCHREIBEN_DURATION } from "./choreography";
+import { ENVELOPE_LANDS, LID_THUD, RUNDSCHREIBEN_DURATION, footstepTimes, rundschreibenTibikAt } from "./choreography";
+import { FACADE_Z } from "../../street/building";
 import { DOOR_SHUT } from "./home";
-import { RAIN, RUNDSCHREIBEN_CUES, rainLevel } from "./soundCues";
+import { RAIN, RUNDSCHREIBEN_CUES, footstepsByRoom, rainLevel } from "./soundCues";
 
 const CREDITS = readFileSync("public/sfx/CREDITS.md", "utf8");
 
@@ -68,4 +69,13 @@ test("the declared time jumps, and the film is its five scenes end to end", () =
 test("the envelope is heard landing on the bin's floor the moment it lands", () => {
   const landing = RUNDSCHREIBEN_CUES.find((c) => c.name === "Envelope lands in the bin")!;
   expect(Math.abs(landing.at - ENVELOPE_LANDS)).toBeLessThan(1 / FPS);
+});
+
+test("his steps in the hall carry the stairwell's echo; those on the pavement and the step stay dry", () => {
+  const { outside, inside } = footstepsByRoom(FPS);
+  const all = footstepTimes(FPS);
+  expect(outside.length + inside.length).toBe(all.length);
+  expect(inside.length).toBeGreaterThanOrEqual(2);
+  for (const t of inside) expect(rundschreibenTibikAt(t).position[2], t.toFixed(2)).toBeLessThan(FACADE_Z);
+  for (const t of outside) expect(rundschreibenTibikAt(t).position[2], t.toFixed(2)).toBeGreaterThanOrEqual(FACADE_Z);
 });

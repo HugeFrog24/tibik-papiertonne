@@ -3,7 +3,7 @@ import { Object3D } from "three";
 import { floorLevel } from "../street/building";
 import { INDOOR_SHADOW_RANGE, SunLight } from "../street/StreetSet";
 import { WEATHER } from "../weather/overcast";
-import { CEILING_LAMPS, CORE, FLUR, TIBIK_DOOR } from "./stairwell";
+import { CEILING_LAMPS, CORE, FLUR, STAIRWELL_LIGHT, TIBIK_DOOR } from "./stairwell";
 
 export const DAYLIGHT = 0.35;
 
@@ -53,7 +53,7 @@ export const StairwellLighting: React.FC<{
       <pointLight
         key={i}
         position={lamp}
-        color="#fff1d6"
+        color={STAIRWELL_LIGHT}
         intensity={3.5 * lights}
         distance={8}
         decay={2}

@@ -20,16 +20,21 @@ export const WINDOW = {
   frame: [1.15, 1.4, 0.08] as Vec3,
   sill: { offset: [0, -0.74, 0.1] as Vec3, size: [1.3, 0.05, 0.2] as Vec3 },
 };
+export const WINDOW_PAINT = { frame: "#f6f5f0", glass: "#6d8ba3", shutter: "#c9c6bf" };
 export const BALCONY_DOOR = { frame: [1.0, 2.2, 0.08] as Vec3 };
 export const STAIR_WINDOW = { frame: [0.8, 1.1, 0.08] as Vec3 };
 
 export type Opening = {
   readonly x: number;
   readonly y: number;
+  readonly storey: number;
   readonly kind: "window" | "balcony" | "stairs";
   readonly shutter: number;
   readonly tilted: boolean;
+  readonly bedroom?: boolean;
 };
+
+export const CURTAIN_SAND = "#d6c09a";
 
 const COLUMNS = [-8.8, -6.6, -4.4, 0.3, 3.0, 5.2, 7.4, 9.6];
 const BALCONY_COLUMNS = [-6.6, 3.0, 7.4];
@@ -106,42 +111,53 @@ export const RESIDENTS = residentsOf(12);
 export const residentOf = (storey: number, side: Flat["side"]) =>
   FLATS.find((f) => f.storey === storey && f.side === side)!.name;
 
+const FLAT_WINDOW_X: Readonly<Record<Flat["side"], number>> = {
+  links: COLUMNS[0],
+  rechts: COLUMNS[3],
+};
+const HOME = { house: 12, ...flatsOf(12).find((f) => f.name === "Tibik")! };
+const isBedroom = (house: number, storey: number, x: number) =>
+  house === HOME.house && storey === HOME.storey && x === FLAT_WINDOW_X[HOME.side];
+const flatOpening = (house: number, storey: number, x: number, column: number, y: number): Opening =>
+  isBedroom(house, storey, x)
+    ? { x, y, storey, kind: "window", shutter: 0, tilted: false, bedroom: true }
+    : {
+        x,
+        y,
+        storey,
+        kind: "window",
+        shutter: shutterAt(column, storey, house),
+        tilted: tiltedAt(column, storey, house),
+      };
+
 export const openingsOf = (house: number): readonly Opening[] => [
-  ...COLUMNS.map((x, column) => ({
-    x,
-    y: 2.05,
-    kind: "window" as const,
-    shutter: shutterAt(column, 0, house),
-    tilted: tiltedAt(column, 0, house),
-  })),
+  ...COLUMNS.map((x, column) => flatOpening(house, 0, x, column, 2.05)),
   ...Array.from({ length: STOREYS - 1 }, (_, i) => i + 1).flatMap((storey) =>
     COLUMNS.map((x, column) =>
       BALCONY_COLUMNS.includes(x)
         ? {
             x,
             y: floorLevel(storey) + 1.15,
+            storey,
             kind: "balcony" as const,
             shutter: shutterAt(column, storey, house),
             tilted: false,
           }
-        : {
-            x,
-            y: floorLevel(storey) + 1.6,
-            kind: "window" as const,
-            shutter: shutterAt(column, storey, house),
-            tilted: tiltedAt(column, storey, house),
-          },
+        : flatOpening(house, storey, x, column, floorLevel(storey) + 1.6),
     ),
   ),
   ...Array.from({ length: STOREYS - 1 }, (_, i) => ({
     x: ENTRANCE_X,
     y: floorLevel(i + 1) + 0.15,
+    storey: i + 1,
     kind: "stairs" as const,
     shutter: 0,
     tilted: false,
   })),
 ];
 export const OPENINGS = openingsOf(12);
+export const flatWindow = (house: number, storey: number, side: Flat["side"]): Opening =>
+  openingsOf(house).find((o) => o.kind === "window" && o.storey === storey && o.x === FLAT_WINDOW_X[side])!;
 export const KERB_Z = 1.92;
 export const KERB_DEPTH = 0.24;
 export const KERB_HEIGHT = 0.16;

@@ -75,7 +75,9 @@ Items marked **(test)** are enforced by `npm test`.
   No. 12's entrance and bins. **(test)** Each mast carries its number on a
   small white plate at 2.15 m (201-213, for reporting a dark lamp) and a few
   stickers within reach (0.9-2 m), lying flat on the 12-sided pole; the one
-  behind Karen shows its plate and three stickers. **(test)**
+  behind Karen shows its plate and three stickers. **(test)** At dusk they
+  come on warm white (LED, about 3000 K) and throw a pool of light down onto
+  the pavement and the road; nothing above the head is lit. **(test)**
 - **Entrance:** a Türsprechanlage: a speaker grille and microphone above a bell
   button for every flat's surname (Tibik lives here; the handsets are in the flats),
   a mailbox unit with a "Bitte keine Werbung!" sticker (on Schulz's box; a
@@ -96,7 +98,13 @@ Items marked **(test)** are enforced by `npm test`.
   elevation 30°, its face nearly upright), on a mast clamped inside the
   railing, the LNB on its arm and the coax cable run down the mast. No. 13's
   north-facing balconies carry none: a dish there could not see the
-  satellite. **(test)**
+  satellite. **(test)** His bedroom window (No. 12, 1. OG links, the
+  westmost) is the one exception: one big single sash, no roller shutter and
+  no shutter box, and behind the glass a full-width curtain in a solid warm
+  sand colour, gathered at the window's west side by day and drawn at night.
+  Karen's window is the first one east of the stairwell on the same floor.
+  Lit windows glow warm (#ffc98a), the stairwell's in its lamps' neutral
+  white. **(test)**
 - **Also there:** a red-and-white hydrant sign "H 80" on bare wall left of the
   mailboxes. It reads 1,4 beside the stem (1.4 m to the right) and 3,2 under
   the bar (3.2 m straight out), and that is where the oval cast-iron cap of the

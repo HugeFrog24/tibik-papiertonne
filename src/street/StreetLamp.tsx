@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { Object3D } from "three";
 import {
   ToonBox,
   ToonCylinder,
@@ -7,7 +9,10 @@ import {
 } from "../toon/primitives";
 import {
   LAMP,
+  LAMP_LIGHT,
+  LAMP_POOL,
   MAST_PLATE,
+  lampGlow,
   POLE,
   mastNumber,
   stickersOn,
@@ -131,7 +136,26 @@ const plateTexture = (number: string) => {
   });
 };
 
-export const StreetLamp: React.FC<{ readonly lamp: Lamp }> = ({ lamp }) => {
+const LampLight: React.FC<{ readonly on: boolean; readonly reach: number }> = ({ on, reach }) => {
+  const target = useMemo(() => new Object3D(), []);
+  return on ? (
+    <>
+      <primitive object={target} position={[0, 0, reach]} />
+      <spotLight
+        position={[0, LAMP.height - 0.12, reach]}
+        target={target}
+        color={LAMP_LIGHT}
+        intensity={lampGlow(on).light}
+        distance={LAMP_POOL.reach}
+        angle={LAMP_POOL.angle}
+        penumbra={LAMP_POOL.penumbra}
+        decay={0}
+      />
+    </>
+  ) : null;
+};
+
+export const StreetLamp: React.FC<{ readonly lamp: Lamp; readonly on?: boolean }> = ({ lamp, on = false }) => {
   const reach = lamp.toward * LAMP.arm;
   return (
     <group position={[lamp.x, 0, lamp.z]}>
@@ -170,7 +194,9 @@ export const StreetLamp: React.FC<{ readonly lamp: Lamp }> = ({ lamp }) => {
         size={[LAMP.head[2] - 0.06, 0.012, LAMP.head[0] - 0.08]}
         color={LENS}
         outline={false}
+        glow={lampGlow(on).lens}
       />
+      <LampLight on={on} reach={reach} />
     </group>
   );
 };

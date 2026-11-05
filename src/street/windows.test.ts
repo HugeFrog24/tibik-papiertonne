@@ -10,6 +10,7 @@ import {
   TILTED,
   TILTED_BY_HOUSE,
   balconyDecor,
+  flatWindow,
   openingsOf,
   type Opening,
 } from "./building";
@@ -62,4 +63,15 @@ test("a tilted window stays in the Hausmuell wide shot from its first frame to i
     );
     expect(inFrame.length, `at ${t.toFixed(2)} s`).toBeGreaterThanOrEqual(1);
   }
+});
+
+test("his bedroom window has no roller shutter, inside or out", () => {
+  const his = flatWindow(12, 1, "links");
+  expect(his.x).toBe(-8.8);
+  expect(his.bedroom).toBe(true);
+  expect(his.shutter).toBe(0);
+  expect(his.tilted).toBe(false);
+  expect(his.kind).toBe("window");
+  const others = HOUSES.flatMap((house) => openingsOf(house)).filter((o) => o.bedroom);
+  expect(others).toEqual([his]);
 });

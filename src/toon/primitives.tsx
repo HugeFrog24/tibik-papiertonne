@@ -94,6 +94,13 @@ type MeshLook = {
   readonly userData?: Record<string, unknown>;
 };
 
+export type Glow = { readonly color: string; readonly light: number };
+
+export const glowOf = (glow?: Glow) =>
+  glow && glow.light > 0
+    ? { emissive: glow.color, emissiveIntensity: glow.light }
+    : {};
+
 const InkedMesh: React.FC<{
   readonly position?: Vec3 | Vector3;
   readonly rotation?: Vec3 | Euler;
@@ -106,6 +113,7 @@ const InkedMesh: React.FC<{
   readonly userData?: Record<string, unknown>;
   readonly shape: (grow: number) => ReactNode;
   readonly scaleOf?: (grow: number) => Vec3;
+  readonly glow?: Glow;
 }> = ({
   position,
   rotation,
@@ -118,6 +126,7 @@ const InkedMesh: React.FC<{
   userData,
   shape,
   scaleOf,
+  glow,
 }) => (
   <group position={position} rotation={rotation}>
     <mesh
@@ -127,7 +136,7 @@ const InkedMesh: React.FC<{
       userData={userData}
     >
       {shape(0)}
-      <meshToonMaterial color={color} map={map} />
+      <meshToonMaterial color={color} map={map} {...glowOf(glow)} />
     </mesh>
     {outline ? (
       <mesh scale={scaleOf?.(ink)}>
@@ -231,6 +240,7 @@ export const ToonBox: React.FC<{
   readonly outline?: boolean;
   readonly map?: Texture;
   readonly ink?: number;
+  readonly glow?: Glow;
 }> = ({
   position,
   rotation,
@@ -239,6 +249,7 @@ export const ToonBox: React.FC<{
   outline = true,
   map,
   ink = OUTLINE,
+  glow,
 }) => (
   <InkedMesh
     position={position}
@@ -247,6 +258,7 @@ export const ToonBox: React.FC<{
     map={map}
     ink={ink}
     outline={outline}
+    glow={glow}
     shape={(grow) => (
       <boxGeometry
         args={[size[0] + grow * 2, size[1] + grow * 2, size[2] + grow * 2]}

@@ -7,14 +7,12 @@ import {
   ENTRANCE_X,
   FACADE_Z,
   OPENINGS,
+  WINDOW_PAINT,
   openingFrame,
 } from "./building";
 import { HAUSTUER } from "./facade";
 
 const PIXELS_PER_METRE = 40;
-const FRAME = "#f6f5f0";
-const GLASS = "#6d8ba3";
-const SHUTTER = "#c9c6bf";
 const RAILING = "#4d5257";
 const DOOR = {
   width: HAUSTUER.width,
@@ -51,9 +49,9 @@ const facadeTexture = (number: string, plaster: string) =>
       box(0, 3.45, BLOCK_SPAN, 0.12, "#d9caa9");
       for (const opening of OPENINGS) {
         const [fw, fh] = openingFrame(opening);
-        box(opening.x, opening.y, fw, fh, FRAME);
-        box(opening.x, opening.y, fw - 0.17, fh - 0.17, GLASS);
-        box(opening.x, opening.y, 0.06, fh - 0.17, FRAME);
+        box(opening.x, opening.y, fw, fh, WINDOW_PAINT.frame);
+        box(opening.x, opening.y, fw - 0.17, fh - 0.17, WINDOW_PAINT.glass);
+        box(opening.x, opening.y, 0.06, fh - 0.17, WINDOW_PAINT.frame);
         if (opening.shutter > 0) {
           const covered = (fh - 0.17) * opening.shutter;
           box(
@@ -61,7 +59,7 @@ const facadeTexture = (number: string, plaster: string) =>
             opening.y + (fh - 0.17) / 2 - covered / 2,
             fw - 0.17,
             covered,
-            SHUTTER,
+            WINDOW_PAINT.shutter,
           );
         }
       }

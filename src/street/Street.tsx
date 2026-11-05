@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { PUDDLES, WEATHER, type Weather } from "../weather/overcast";
 import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
-import { DoubleSide, ExtrudeGeometry, type Texture } from "three";
+import { ExtrudeGeometry, type Texture } from "three";
 import {
   Blob,
   DECAL,
@@ -39,7 +39,6 @@ import {
   PARKED_CARS,
   TREE_POSITION,
   MORE_TREES,
-  WINDOW,
   BIN_Z,
   BLOCK_SPAN,
   houseNumber,
@@ -47,7 +46,6 @@ import {
   KERB_DEPTH,
   KERB_HEIGHT,
   KERB_Y,
-  openingFrame,
   type Opening,
   type Part,
   FLOOR_BAND,
@@ -92,170 +90,9 @@ import {
 import { useSignColor } from "../weather/DayLight";
 import { Dish } from "./Dish";
 import { Roof, Town } from "./Town";
+import { OpeningView } from "./OpeningView";
 
 const PLASTER = "#eadcc0";
-const FRAME = "#f6f5f0";
-const GLASS = "#6d8ba3";
-const SHUTTER = "#c9c6bf";
-const TILTED_GLASS = "#557189";
-const ROOM_DARK = "#2a2d31";
-
-const LAYER = {
-  glass: 0.02,
-  curtain: 0.03,
-  shutter: 0.04,
-  bars: 0.05,
-  frame: 0.08,
-  handle: 0.095,
-  shutterBox: 0.11,
-};
-const BORDER = 0.085;
-
-const BAR = { at: 0.28, width: 0.06 };
-const TILT = {
-  gap: 0.055,
-  mullion: BAR.width / 2,
-  transom: BAR.at - BAR.width / 2,
-};
-
-const windowPlane = (
-  z: number,
-  width: number,
-  height: number,
-  y: number,
-  color: string,
-  x = 0,
-) => (
-  <mesh position={[x, y, z]}>
-    <planeGeometry args={[width, height]} />
-    <meshToonMaterial color={color} />
-  </mesh>
-);
-
-const TiltedSash: React.FC<{
-  readonly inner: { readonly w: number; readonly h: number };
-}> = ({ inner }) => {
-  const x0 = -inner.w / 2;
-  const x1 = -TILT.mullion;
-  const y0 = -inner.h / 2;
-  const y1 = TILT.transom;
-  return (
-    <>
-      {windowPlane(
-        LAYER.glass + 0.001,
-        x1 - x0,
-        y1 - y0,
-        (y0 + y1) / 2,
-        TILTED_GLASS,
-        (x0 + x1) / 2,
-      )}
-      <mesh
-        position={[(x0 + x1) / 2, y1 - TILT.gap / 2, LAYER.curtain + 0.002]}
-      >
-        <planeGeometry args={[x1 - x0, TILT.gap]} />
-        <meshBasicMaterial color={ROOM_DARK} />
-      </mesh>
-    </>
-  );
-};
-
-const OpeningView: React.FC<{ readonly opening: Opening }> = ({ opening }) => {
-  const [w, h] = openingFrame(opening);
-  const inner = { w: w - 2 * BORDER, h: h - 2 * BORDER };
-  const shutterDrop = inner.h * opening.shutter;
-  return (
-    <group position={[opening.x, opening.y, FACADE_Z]}>
-      {opening.kind === "stairs" ? (
-        <mesh position={[0, 0, LAYER.glass]}>
-          <planeGeometry args={[inner.w, inner.h]} />
-          <meshToonMaterial
-            color={GLASS}
-            transparent
-            opacity={0.28}
-            side={DoubleSide}
-            depthWrite={false}
-          />
-        </mesh>
-      ) : (
-        windowPlane(LAYER.glass, inner.w, inner.h, 0, GLASS)
-      )}
-      {opening.kind === "window"
-        ? windowPlane(
-            LAYER.curtain,
-            inner.w,
-            0.56,
-            -inner.h / 2 + 0.28,
-            "#efeee6",
-          )
-        : null}
-      {opening.tilted ? <TiltedSash inner={inner} /> : null}
-      {shutterDrop > 0
-        ? windowPlane(
-            LAYER.shutter,
-            inner.w,
-            shutterDrop,
-            inner.h / 2 - shutterDrop / 2,
-            SHUTTER,
-          )
-        : null}
-      {opening.kind === "window" ? (
-        <>
-          <ToonBox
-            position={[0, 0, LAYER.bars]}
-            size={[BAR.width, inner.h, 0.02]}
-            color={FRAME}
-            outline={false}
-          />
-          <ToonBox
-            position={[0, BAR.at, LAYER.bars]}
-            size={[inner.w, BAR.width, 0.02]}
-            color={FRAME}
-            outline={false}
-          />
-        </>
-      ) : null}
-      <ToonBox
-        position={[0, h / 2 - BORDER / 2, LAYER.frame / 2]}
-        size={[w, BORDER, LAYER.frame]}
-        color={FRAME}
-      />
-      <ToonBox
-        position={[0, -h / 2 + BORDER / 2, LAYER.frame / 2]}
-        size={[w, BORDER, LAYER.frame]}
-        color={FRAME}
-      />
-      {[1, -1].map((side) => (
-        <ToonBox
-          key={side}
-          position={[side * (w / 2 - BORDER / 2), 0, LAYER.frame / 2]}
-          size={[BORDER, h - 2 * BORDER, LAYER.frame]}
-          color={FRAME}
-        />
-      ))}
-      <ToonBox
-        position={[w / 2 - BORDER / 2, 0, LAYER.handle]}
-        size={[0.025, 0.12, 0.02]}
-        color="#ffffff"
-        outline={false}
-      />
-      {opening.kind === "window" ? (
-        <ToonBox
-          position={WINDOW.sill.offset}
-          size={WINDOW.sill.size}
-          color="#b9b5ac"
-        />
-      ) : null}
-      {opening.kind === "stairs" ? null : (
-        <ToonBox
-          position={[0, h / 2 + 0.12, LAYER.shutterBox / 2]}
-          size={[w + 0.06, 0.22, LAYER.shutterBox]}
-          color={SHUTTER}
-        />
-      )}
-    </group>
-  );
-};
-
 const Balcony: React.FC<{
   readonly x: number;
   readonly y: number;
@@ -622,6 +459,11 @@ const FacadeWall: React.FC<{ readonly plaster: string }> = ({ plaster }) => {
   );
 };
 
+type WindowLights = {
+  readonly light?: (house: number, opening: Opening) => number;
+  readonly curtain: number;
+};
+
 const ACROSS = { ...ACROSS_STREET, plaster: "#ddd5c6" };
 
 const Block: React.FC<{
@@ -631,7 +473,8 @@ const Block: React.FC<{
   readonly plaster: string;
   readonly lampOn: boolean;
   readonly mailboxDoor?: number;
-}> = ({ haustuer, haustuerLever, number, plaster, lampOn, mailboxDoor }) => (
+  readonly windows: WindowLights;
+}> = ({ haustuer, haustuerLever, number, plaster, lampOn, mailboxDoor, windows }) => (
   <>
     <FacadeWall plaster={plaster} />
     <ToonBox
@@ -645,6 +488,8 @@ const Block: React.FC<{
       <OpeningView
         key={`${opening.kind}-${opening.x}-${opening.y}`}
         opening={opening}
+        light={windows.light?.(Number(number), opening)}
+        curtain={windows.curtain}
       />
     ))}
     {BALCONIES.map(({ x, y }, i) => (
@@ -692,6 +537,7 @@ const Side: React.FC<{
   readonly lampOn?: boolean;
   readonly mailboxDoor?: number;
   readonly roofs?: boolean;
+  readonly windows: WindowLights;
 }> = ({
   haustuer,
   haustuerLever,
@@ -707,6 +553,7 @@ const Side: React.FC<{
   lampOn = false,
   mailboxDoor,
   roofs = false,
+  windows,
 }) => (
   <>
     {roofs
@@ -723,6 +570,7 @@ const Side: React.FC<{
       plaster={plaster}
       lampOn={lampOn}
       mailboxDoor={mailboxDoor}
+      windows={windows}
     />
     {NEIGHBOURS.flatMap((n) =>
       NEIGHBOUR_BINS.map((kind, k) => (
@@ -776,6 +624,9 @@ export const Street: React.FC<{
   readonly mailboxDoor?: number;
   readonly roofs?: boolean;
   readonly town?: { readonly lit: number };
+  readonly windowLight?: (house: number, opening: Opening) => number;
+  readonly bedroomCurtain?: number;
+  readonly lampsOn?: boolean;
 }> = ({
   haustuer = 0,
   haustuerLever = 0,
@@ -785,7 +636,11 @@ export const Street: React.FC<{
   mailboxDoor,
   roofs = false,
   town,
+  windowLight,
+  bedroomCurtain = 0,
+  lampsOn = false,
 }) => {
+  const windows = { light: windowLight, curtain: bedroomCurtain };
   const paving = usePavingTexture((25 * STREET_LENGTH) / 30, 3.33);
   const wetTint = WEATHER[weather].wetTint ?? undefined;
 
@@ -806,6 +661,7 @@ export const Street: React.FC<{
         lampOn={lampOn}
         mailboxDoor={mailboxDoor}
         roofs={roofs}
+        windows={windows}
       />
       {town ? <Town lit={town.lit} /> : null}
       <group
@@ -825,6 +681,7 @@ export const Street: React.FC<{
           trees="far"
           wetTint={wetTint}
           roofs={roofs}
+          windows={windows}
         />
       </group>
       {[1, -1].map((end) => (
@@ -855,7 +712,7 @@ export const Street: React.FC<{
       <TreePit x={TREE_POSITION[0]} />
       <BikeStands />
       {STREET_LAMPS.map((lamp) => (
-        <StreetLamp key={`${lamp.x}-${lamp.z}`} lamp={lamp} />
+        <StreetLamp key={`${lamp.x}-${lamp.z}`} lamp={lamp} on={lampsOn} />
       ))}
     </>
   );

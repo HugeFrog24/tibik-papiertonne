@@ -18,6 +18,8 @@ import {
 import type { Vec3 } from "../toon/primitives";
 import { PLATE, doorFrame, doorSolids, leverGrip, type Door } from "./doors";
 
+export const STAIRWELL_LIGHT = "#fff1d6";
+
 export const CORE = {
   x0: -3.2,
   x1: -0.6,

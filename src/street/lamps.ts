@@ -10,6 +10,14 @@ export const LAMP = {
   kerbSetback: 0.45,
 };
 
+export const LAMP_LIGHT = "#ffb46b";
+export const LAMP_POOL = { reach: 9, angle: 1.0, penumbra: 0.7 };
+const GLOW = { lens: 1.5, light: 0.7 };
+export const lampGlow = (on: boolean) => ({
+  lens: { color: LAMP_LIGHT, light: on ? GLOW.lens : 0 },
+  light: on ? GLOW.light : 0,
+});
+
 export type StreetLamp = {
   readonly x: number;
   readonly z: number;

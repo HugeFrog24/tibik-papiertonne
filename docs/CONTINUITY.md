@@ -256,6 +256,17 @@ composition under "Scenes" in the Studio:
 - **Getting round the bed:** with his arms out as he walks he is 1.5 m wide;
   past the bed's foot he tucks them in (1.05 m) — the passage is 1.155 m.
   **(test)**
+- **Sound:** at dusk a blackbird sings (it falls silent before his lamp goes
+  off, as blackbirds stop some 20 minutes after sunset) and the town is
+  quieter than by day; the Haustür sounds as in the epilogue, as far off as
+  the dusk wide stands (inverse distance from the epilogue's camera), and its
+  closing is not heard from his bedroom. In the bedroom the street comes
+  muffled through the window; his lamp clicks on the frame his fingers press
+  the cord switch, the fleece rustles under each hand, the bed creaks as he
+  sits on it and gets up, his bare steps patter on the laminate. At night the
+  town hushes to a faint hum (the wind in the leaves does not hush); it wakes
+  with the rain at the dawn. The curtain's gliders run along the ceiling rail
+  while he draws it. **(test)**
 
 ## Doors
 
@@ -562,7 +573,8 @@ Ideas (proposed, not built; the user picks):
   epilogue's rainy day. **(test)** The Rundschreiben starts on that morning,
   outside on the pavement, the Haustür and every lid shut, the
   bins emptied. **(test)** No Klingelsturm sound runs over the cut into the
-  rain. **(test)**
+  rain. **(test)** The rain that sets in at Nachtruhe's dawn runs on over the
+  cut into the epilogue without a jump. **(test)**
 - **Hausmuell starts on the act:** Papiertonnen ends 0.35 s after the box has
   popped open; at Hausmuell's start he turns to walk off with it and Karen
   bursts in shouting within 0.8 s of the box opening, his found-it ding cut

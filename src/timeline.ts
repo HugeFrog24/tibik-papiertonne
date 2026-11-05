@@ -1,6 +1,7 @@
 import { HAUSMUELL_DURATION } from "./scenes/hausmuell/choreography";
 import { KLINGELSTURM_DURATION } from "./scenes/klingelsturm/choreography";
 import { inTheBedroom } from "./scenes/nachtruhe/cameras";
+import { hushAt } from "./scenes/nachtruhe/soundCues";
 import { NACHTRUHE_DURATION } from "./scenes/nachtruhe/timeline";
 import { PAPIERTONNEN_DURATION } from "./scenes/papiertonnen/choreography";
 import { RUNDSCHREIBEN_DURATION } from "./scenes/rundschreiben/choreography";
@@ -53,3 +54,6 @@ export const filmIndoors = (frame: number) =>
         : frame >= KLINGELSTURM_START
           ? 1
           : 0;
+
+export const filmHush = (frame: number) =>
+  frame >= NACHTRUHE_START && frame < RUNDSCHREIBEN_START ? hushAt((frame - NACHTRUHE_START) / FPS) : 1;

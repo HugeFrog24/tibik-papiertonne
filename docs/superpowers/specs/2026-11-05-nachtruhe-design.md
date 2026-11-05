@@ -120,8 +120,8 @@ street windows (the plan pins which).
 - **Night:** a distant traffic hum, near silence.
 - **Bedroom:** the street muffled through the window (the shared indoor
   loops), the lamp switches' clicks, the fleece's rustle; morning: the rain on
-  the glass (the shared rain, its indoor twin) and the curtain rings on the
-  rail. The rain carries over the cut into the epilogue.
+  the glass (the shared rain, its indoor twin) and the curtain's gliders on
+  the ceiling rail. The rain carries over the cut into the epilogue.
 - Every file credited in public/sfx/CREDITS.md, as the existing test demands.
 
 ## Timeline and continuity

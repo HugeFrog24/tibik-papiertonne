@@ -25,7 +25,8 @@ import { ENVELOPE_LANDS, LID_THUD, RUNDSCHREIBEN_DURATION, footstepTimes, rundsc
 import { FACADE_Z } from "../../street/building";
 import { NACHTRUHE_DURATION } from "../nachtruhe/timeline";
 import { DOOR_SHUT } from "./home";
-import { RAIN, RUNDSCHREIBEN_CUES, footstepsByRoom, rainLevel } from "./soundCues";
+import { RAIN } from "../../sound/rain";
+import { RUNDSCHREIBEN_CUES, footstepsByRoom, rainLevel } from "./soundCues";
 
 const CREDITS = readFileSync("public/sfx/CREDITS.md", "utf8");
 

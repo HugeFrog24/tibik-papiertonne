@@ -57,5 +57,14 @@
       "license": "Public domain",
       "source": "https://commons.wikimedia.org/wiki/File:Rain_(1).ogg (from PDSounds.org)"
     }
+  ],
+  "blackbird": [
+    {
+      "file": "blackbirds-at-dawn-squashy555.ogg",
+      "title": "blackbirds at dawn.wav (its first 30 s)",
+      "author": "squashy555 (Freesound)",
+      "license": "CC0 1.0 (public domain)",
+      "source": "https://freesound.org/people/squashy555/sounds/341675/"
+    }
   ]
 }

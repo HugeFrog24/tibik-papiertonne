@@ -48,6 +48,9 @@ metalClick.ogg, metalLatch.ogg ("RPG Audio" and "Impact Sounds"), impactGeneric_
 impactSoft_heavy_000.ogg ("Impact Sounds"), pluck_001.ogg and switch_002.ogg ("Interface Sounds").
 handleCoins.ogg and metalClick.ogg were added for the Rundschreiben (keys, the mailbox lock and the
 Haustür's cylinder).
+cloth1.ogg, cloth3.ogg, cloth4.ogg, creak2.ogg and creak3.ogg ("RPG Audio") and footstep_wood_000.ogg,
+footstep_wood_001.ogg, footstep_wood_002.ogg and footstep_wood_003.ogg ("Impact Sounds") were added for
+Nachtruhe (the fleece, the curtain's fabric, the bed and his steps on the bedroom's laminate).
 
 rain.wav and rain-muffled.wav (heard from inside the building) are made by scripts/make-rain.mjs from
 "Rain" by ezwa, public domain (released worldwide by its author, originally on PDSounds.org),
@@ -58,3 +61,14 @@ steadiest 32 s are crossfaded into a 30 s loop, the few close drop crackles soft
 Music: public/music/mainstreet.flac ("mainstreet", 2:24, stereo FLAC 44.1 kHz / 24 bit), supplied by
 the film's author for this film and vendored as is. It plays under Treppenhaus, Papiertonnen and the
 start of Hausmuell (src/sound/music.ts).
+
+blackbird.wav and blackbird-muffled.wav (heard through his bedroom window) are made by
+scripts/make-blackbird.mjs from "blackbirds at dawn.wav" by squashy555, CC0 1.0 (public domain),
+https://freesound.org/people/squashy555/sounds/341675/ (a Tascam DR-07 recording of a blackbird singing
+in the dawn chorus, UK, March 2016); its first 30 s are kept in
+assets/recordings/blackbirds-at-dawn-squashy555.ogg, and 17.5 s of them (one blackbird's phrases and
+pauses, a few distant birds behind) are faded in and out for the dusk.
+
+curtain-gliders.wav is synthesised for this project by scripts/make-curtain.mjs (no third-party
+material): the plastic gliders of his curtain's ceiling track running along the rail and clicking
+into one another as the panel gathers, over the 1.2 s he draws it.

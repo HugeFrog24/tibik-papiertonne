@@ -3,6 +3,7 @@ import { KEY_APPROACH } from "../../props/keyRingShape";
 import type { FileCue } from "../../sound/SoundCues";
 import {
   BOX_OPEN,
+  ENTRY,
   BOX_SHUT,
   ENVELOPE_LANDS,
   ENVELOPE_OUT,
@@ -13,15 +14,15 @@ import {
   LID_THUD,
   LID_UP,
   UNFOLD,
-  UNLOCK,
   footstepTimes,
   rundschreibenTibikAt,
 } from "./choreography";
 import { FACADE_Z } from "../../street/building";
-import { HAUSTUER_SOUNDS, HAUSTUER_WIDE, haustuerAt, indoorsAt } from "./home";
+import { HAUSTUER_WIDE, haustuerAt, indoorsAt } from "./home";
+import { entryCues } from "../entrySounds";
+import { RAIN } from "../../sound/rain";
 
 
-export const RAIN = { name: "Rain", file: "rain", volume: 0.35 } as const;
 
 export const heardIndoorsAt = (t: number) =>
   indoorsAt(t) * (1 - haustuerAt(t) / HAUSTUER_WIDE);
@@ -49,10 +50,5 @@ export const RUNDSCHREIBEN_CUES: readonly FileCue[] = [
   { name: "Lid lifted", at: LID_UP[0], file: "creak1.ogg", volume: 0.25 },
   { name: "Envelope lands in the bin", at: ENVELOPE_LANDS, file: "bookPlace1.ogg", volume: 0.4 },
   { name: "Lid thuds shut", at: LID_THUD, file: "impactSoft_heavy_000.ogg", volume: 0.9 },
-  { name: "Keys jingle up to the Haustür", at: UNLOCK[0] - 0.3, file: "handleCoins.ogg", volume: 0.3 },
-  { name: "House key into the cylinder", at: HAUSTUER_SOUNDS.keyIn, file: "metalClick.ogg", volume: 0.35 },
-  { name: "Haustür lock turns", at: HAUSTUER_SOUNDS.unlocked, file: "metalClick.ogg", volume: 0.35 },
-  { name: "Haustür opens", at: HAUSTUER_SOUNDS.opens, file: "doorOpen_1.ogg", volume: 0.5 },
-  { name: "Haustür swings shut on its closer", at: HAUSTUER_SOUNDS.shut - 0.08, file: "doorClose_4.ogg", volume: 0.55 },
-  { name: "Haustür latch catches", at: HAUSTUER_SOUNDS.shut, file: "metalLatch.ogg", volume: 0.5 },
+  ...entryCues(ENTRY),
 ];

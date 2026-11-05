@@ -11,7 +11,7 @@ import {
   type Solid,
 } from "../physics/collision";
 import { insideKarenHead, toKarenHead } from "./mouthEmitter";
-import { atFrame } from "./sceneSpray";
+import { atFrame } from "../frameRate";
 import { SPITTLE, type Spike } from "./spittle";
 import {
   SPRAY,

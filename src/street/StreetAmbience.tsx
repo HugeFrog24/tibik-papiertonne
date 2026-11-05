@@ -1,13 +1,15 @@
 import { useVideoConfig } from "remotion";
 import { IndoorLoop } from "../sound/IndoorLoop";
-import { STREET_LOOPS, loopVolume } from "./ambienceLoops";
+import { STREET_LOOPS, hushedVolume } from "./ambienceLoops";
 
 const OUTSIDE = () => 0;
+const AWAKE = () => 1;
 
 export const StreetAmbience: React.FC<{
   readonly indoors?: (frame: number) => number;
   readonly windFrom?: number;
-}> = ({ indoors = OUTSIDE, windFrom = 0 }) => {
+  readonly hush?: (frame: number) => number;
+}> = ({ indoors = OUTSIDE, windFrom = 0, hush = AWAKE }) => {
   const { fps } = useVideoConfig();
   return (
     <>
@@ -16,7 +18,7 @@ export const StreetAmbience: React.FC<{
           key={loop.file}
           name={loop.name}
           file={loop.file}
-          level={(f) => loopVolume(loop, windFrom + f / fps)}
+          level={(f) => hushedVolume(loop, windFrom + f / fps, hush(f))}
           indoors={indoors}
         />
       ))}

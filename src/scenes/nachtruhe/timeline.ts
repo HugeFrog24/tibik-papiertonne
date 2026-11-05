@@ -1,4 +1,5 @@
 import { after } from "../../characters/scalar";
+import { atFrame } from "../../frameRate";
 import { enterHouse } from "../enterHouse";
 
 export const WALK_HOME = [-1, 4.2] as const;
@@ -14,7 +15,7 @@ export const SWING_IN = after(HOP_UP[1] + 0.3, 1);
 export const LIE_DOWN = after(SWING_IN[1] + 0.2, 1.3);
 export const PULL_OVER = after(LIE_DOWN[1] + 0.2, 1.4);
 export const BLANKET_UP = PULL_OVER;
-export const LAMP_OFF = PULL_OVER[1] + 0.8;
+export const LAMP_OFF = atFrame(PULL_OVER[1] + 0.8);
 export const EVENING = [DUSK[1], LAMP_OFF + 1.6] as const;
 
 export const DRONE = after(EVENING[1], 8);
@@ -22,7 +23,7 @@ export const KAREN_OUT = DRONE[0] + 6.5;
 export const DAWN = after(DRONE[1], 3);
 
 export const EYES_OPEN = after(DAWN[1] + 1, 0.3);
-export const LAMP_ON = EYES_OPEN[1] + 0.7;
+export const LAMP_ON = atFrame(EYES_OPEN[1] + 0.7);
 export const BLANKET_BACK = after(LAMP_ON + 0.5, 1.2);
 export const SIT_UP = after(BLANKET_BACK[1] + 0.2, 1.3);
 export const SWING_OUT = after(SIT_UP[1] + 0.1, 1);

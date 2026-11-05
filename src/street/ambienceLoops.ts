@@ -33,3 +33,5 @@ export const rustle = (t: number) => Math.min(1, Math.max(0, breeze(t))) ** 1.5;
 
 export const loopVolume = (loop: StreetLoop, windTime: number) =>
   loop.volume * (loop.breezy ? rustle(windTime) : 1);
+
+export const hushedVolume = (loop: StreetLoop, windTime: number, hush: number) => loopVolume(loop, windTime) * (loop.breezy ? 1 : hush);

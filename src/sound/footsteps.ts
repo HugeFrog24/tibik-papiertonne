@@ -1,0 +1,6 @@
+export type Surface = "concrete" | "wood";
+
+export const footstepTake = (i: number, { surface = "concrete", room, variant = 0 }: { readonly surface?: Surface; readonly room?: "stairwell"; readonly variant?: number } = {}) => {
+  const take = `footstep_${surface}_00${(i + variant) % 4}`;
+  return room ? `${room}/${take}.wav` : `${take}.ogg`;
+};

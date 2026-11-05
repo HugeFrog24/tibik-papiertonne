@@ -5,9 +5,10 @@ import {
   haustuerAt,
   treppenhausIndoors,
 } from "../scenes/treppenhaus/choreography";
-import { FILM_FRAMES, FPS, KLINGELSTURM_FROM, RUNDSCHREIBEN_FROM, TREPPENHAUS_FRAMES, filmIndoors, NACHTRUHE_FROM } from "../timeline";
+import { hushAt } from "../scenes/nachtruhe/soundCues";
+import { FILM_FRAMES, FPS, KLINGELSTURM_FROM, RUNDSCHREIBEN_FROM, TREPPENHAUS_FRAMES, filmHush, filmIndoors, NACHTRUHE_FROM } from "../timeline";
 import { breeze } from "../physics/wind";
-import { STREET_LOOPS, loopVolume } from "./ambienceLoops";
+import { STREET_LOOPS, hushedVolume, loopVolume } from "./ambienceLoops";
 
 const storyFrames = Array.from(
   { length: Math.floor(STORY_END * FPS) + 1 },
@@ -66,4 +67,17 @@ test("the street bed and the traffic keep their own steady volume", () => {
   for (const loop of STREET_LOOPS.filter((l) => !l.breezy)) {
     for (const t of filmSeconds) expect(loopVolume(loop, t)).toBe(loop.volume);
   }
+});
+
+test("the film's street hushes through Nachtruhe as the scene does, and nowhere else", () => {
+  const night = Math.round(NACHTRUHE_FROM * FPS);
+  const rain = Math.round(RUNDSCHREIBEN_FROM * FPS);
+  for (let f = 0; f < FILM_FRAMES; f += 7)
+    expect(filmHush(f), `frame ${f}`).toBe(f >= night && f < rain ? hushAt((f - night) / FPS) : 1);
+  expect(filmHush(night + Math.round(22 * FPS))).toBeLessThan(0.2);
+});
+
+test("the town hushes for the night, the wind in the leaves does not", () => {
+  const hushed = (loop: (typeof STREET_LOOPS)[number]) => hushedVolume(loop, 0, 0.1);
+  for (const loop of STREET_LOOPS) expect(hushed(loop), loop.name).toBeCloseTo(loopVolume(loop, 0) * (loop.breezy ? 1 : 0.1), 12);
 });

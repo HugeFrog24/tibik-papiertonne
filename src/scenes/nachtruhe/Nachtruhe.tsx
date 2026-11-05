@@ -23,6 +23,7 @@ import { rainAt } from "../../weather/rainDrops";
 import { streetSolids } from "../streetSolids";
 import { blanketLie } from "./bedroom";
 import { CAPTION, cameraAt, inTheBedroom, lightingAt } from "./cameras";
+import { NachtruheSound } from "./NachtruheSound";
 import { solveNachtruhe, type NachtruheState } from "./solve";
 import { DAWN, DUSK } from "./timeline";
 
@@ -80,7 +81,7 @@ const Lighting: React.FC<{ readonly t: number }> = ({ t }) => {
   );
 };
 
-export const Nachtruhe: React.FC<{ readonly ambience?: boolean }> = () => {
+export const Nachtruhe: React.FC<{ readonly ambience?: boolean }> = ({ ambience = true }) => {
   const { fps } = useVideoConfig();
   const t = useSeconds();
   const { look } = solveNachtruhe(t);
@@ -98,6 +99,7 @@ export const Nachtruhe: React.FC<{ readonly ambience?: boolean }> = () => {
           <Caption text={CAPTION.text} />
         </AbsoluteFill>
       </Sequence>
+      <NachtruheSound ambience={ambience} />
     </Sky>
   );
 };

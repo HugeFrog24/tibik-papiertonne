@@ -4,7 +4,7 @@ import {
   type Placement,
 } from "../characters/skeleton";
 import type { Line } from "../dialogue/line";
-import { FPS } from "../frameRate";
+import { atFrame } from "../frameRate";
 import type { Obb, Solid } from "../physics/collision";
 import { lazy } from "../physics/lazy";
 import { memoByFrame } from "../physics/memoSolve";
@@ -33,8 +33,6 @@ export type SprayScene = {
 };
 
 const isObb = (s: Solid): s is Obb => s.kind === "obb";
-
-export const atFrame = (t: number) => Math.round(t * FPS) / FPS;
 
 export const bothOf = (tibik: TibikFrame, karen: KarenFrame): Solid[] => {
   const her = bodyColliders(KAREN_SKELETON, asKaren(karen));

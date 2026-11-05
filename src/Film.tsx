@@ -8,7 +8,7 @@ import { Treppenhaus } from "./scenes/treppenhaus/Treppenhaus";
 import { Klingelsturm } from "./scenes/klingelsturm/Klingelsturm";
 import { Nachtruhe } from "./scenes/nachtruhe/Nachtruhe";
 import { Rundschreiben } from "./scenes/rundschreiben/Rundschreiben";
-import { HAUSMUELL_FRAMES, KLINGELSTURM_FRAMES, NACHTRUHE_FRAMES, PAPIERTONNEN_FRAMES, RUNDSCHREIBEN_FRAMES, TREPPENHAUS_FRAMES, filmIndoors } from "./timeline";
+import { HAUSMUELL_FRAMES, KLINGELSTURM_FRAMES, NACHTRUHE_FRAMES, PAPIERTONNEN_FRAMES, RUNDSCHREIBEN_FRAMES, TREPPENHAUS_FRAMES, filmHush, filmIndoors } from "./timeline";
 
 export const Film: React.FC = () => (
   <AbsoluteFill>
@@ -32,7 +32,7 @@ export const Film: React.FC = () => (
         <Rundschreiben ambience={false} />
       </Series.Sequence>
     </Series>
-    <StreetAmbience indoors={filmIndoors} />
+    <StreetAmbience indoors={filmIndoors} hush={filmHush} />
     <Score music={MAIN_STREET} offset={0} />
   </AbsoluteFill>
 );

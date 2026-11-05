@@ -4,7 +4,7 @@ import type { Solid } from "../physics/collision";
 import type { CameraSetup } from "../scenes/hausmuell/cameras";
 import type { Burst, Flight, SprayFrame } from "./spray";
 import { SPITTLE, type Spike } from "./spittle";
-import { atFrame } from "./sceneSpray";
+import { atFrame } from "../frameRate";
 import {
   dropWidthsOnScreen,
   median,

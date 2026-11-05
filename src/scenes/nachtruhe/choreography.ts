@@ -1,6 +1,6 @@
 import { BEDROOM_DOOR, type CurtainOpen } from "../../building/bedroomShape";
 import { blinkAt, kf } from "../../characters/animate";
-import { STEP_OVERLAP, offTheEdges, opposite, rhythmicSteps, strideAt, walkCadence } from "../../characters/gait";
+import { STEP_OVERLAP, offTheEdges, opposite, rhythmicSteps, strideAt, touchdownTimes, walkCadence } from "../../characters/gait";
 import { inWindow } from "../../characters/scalar";
 import type { Walk } from "../../characters/walkPath";
 import { ENTRANCE_X, flatWindow, type Opening } from "../../street/building";
@@ -127,3 +127,5 @@ export const nachtruheWorldAt = (t: number) => {
 };
 
 export type NachtruheWorld = ReturnType<typeof nachtruheWorldAt>;
+
+export const duskStepTimes = (fps: number) => touchdownTimes(duskGait(), DUSK[1], fps);

@@ -3,7 +3,7 @@ import { DOOR_FRAME } from "../../building/doorwayFrame";
 import { ROOM_DOOR } from "../../building/doors";
 import { Euler, Matrix4, Vector3 } from "three";
 import { blinkAt, kf } from "../../characters/animate";
-import { STEP_OVERLAP, rhythmicSteps, strideAt, walkCadence, type RootAt } from "../../characters/gait";
+import { STEP_OVERLAP, rhythmicSteps, strideAt, touchdownTimes, walkCadence, type RootAt } from "../../characters/gait";
 import { blendPose } from "../../characters/poseBlend";
 import { easeUnit, inWindow, lerp, windowUnit } from "../../characters/scalar";
 import { allColliders, armColliders, type ArmName } from "../../characters/skeleton";
@@ -292,3 +292,5 @@ export const MORNING_HOLDS: readonly Hold[] = [
     near: (t) => curtainGrip(t).center.clone().add(new Vector3(0, 0, -(GRIP.size[2] / 2 + HAND))),
   }),
 ];
+
+export const bedroomStepTimes = (fps: number) => [...touchdownTimes(toBedGait(), HOP_UP[0], fps), ...touchdownTimes(toWindowGait(), MORNING[1], fps)];

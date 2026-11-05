@@ -1,6 +1,5 @@
 import {
   DoubleSide,
-  PlaneGeometry,
   Shape,
   ShapeGeometry,
   type Matrix4,
@@ -11,6 +10,7 @@ import { LETTER_FAMILY, useLetterTexture } from "./letterFont";
 import { DL, ENVELOPE, envelopeFlap, envelopeSag, flapPieces } from "./letterShape";
 import { PAPER } from "./Letter";
 import { paperRamp } from "../toon/paperRamp";
+import { bentPlane } from "./bentPlane";
 
 const WHITE = "#f6f5f0";
 const PX = 5000;
@@ -26,15 +26,8 @@ const paintEnvelope = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
   ctx.fillText(ENVELOPE_TEXT.to, 0.02 * PX, 0.05 * PX);
 };
 
-const bentSheet = (bow: number, twist: number, z: number) => {
-  const g = new PlaneGeometry(DL[0], DL[1], 16, 8);
-  g.translate(DL[0] / 2, DL[1] / 2, 0);
-  const p = g.getAttribute("position");
-  for (let i = 0; i < p.count; i++)
-    p.setZ(i, z + envelopeSag(p.getX(i), p.getY(i), bow, twist));
-  g.computeVertexNormals();
-  return g;
-};
+const bentSheet = (bow: number, twist: number, z: number) =>
+  bentPlane(DL, [16, 8], (x, y) => z + envelopeSag(x, y, bow, twist));
 
 const shapeOf = (outline: readonly (readonly [number, number])[]) => {
   const s = new Shape();

@@ -1,7 +1,6 @@
 import {
   CircleGeometry,
   Float32BufferAttribute,
-  PlaneGeometry,
   type Matrix4,
   type Texture,
 } from "three";
@@ -12,6 +11,7 @@ import { useDisposable } from "../toon/useDisposable";
 import { LETTER_FAMILY, useLetterTexture } from "./letterFont";
 import { A4, CREASES, LETTER_LAYOUT, PT, letterPanels, sheetBow, type Panel } from "./letterShape";
 import { paperRamp } from "../toon/paperRamp";
+import { bentPlane } from "./bentPlane";
 
 export const PAPER = {
   pxPerMetre: 10_000,
@@ -61,21 +61,8 @@ const OPENED_OUT = 0.8;
 export const bowOf = (fold: number) => Math.max(0, (fold - OPENED_OUT) / (1 - OPENED_OUT));
 
 export const panelGeometry = (panel: Panel, face: number, back: boolean, bow = 1) => {
-  const [w, h] = panel.size;
-  const g = new PlaneGeometry(w, h, SEGMENTS.across, SEGMENTS.down);
-  g.translate(w / 2, h / 2, 0);
-  const p = g.getAttribute("position");
-  for (let i = 0; i < p.count; i++) p.setZ(i, face + bow * sheetBow(p.getX(i)));
-  if (back) {
-    const index = g.getIndex()!;
-    for (let k = 0; k < index.count; k += 3) {
-      const second = index.getX(k + 1);
-      index.setX(k + 1, index.getX(k + 2));
-      index.setX(k + 2, second);
-    }
-    index.needsUpdate = true;
-  }
-  g.computeVertexNormals();
+  const g = bentPlane(panel.size, [SEGMENTS.across, SEGMENTS.down], (x) => face + bow * sheetBow(x), back);
+  const h = panel.size[1];
   const top = 1 - panel.fromTop / A4[1];
   const bottom = 1 - (panel.fromTop + h) / A4[1];
   const uv = g.getAttribute("uv");

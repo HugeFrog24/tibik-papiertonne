@@ -1,3 +1,4 @@
+import { SENSOR, sensorLampOn } from "../../street/entranceSensor";
 import { mustReadSeconds } from "./letter";
 import { Euler, Matrix4, Vector3 } from "three";
 import { armKf, blinkAt, kf } from "../../characters/animate";
@@ -29,7 +30,6 @@ import { asCharacter } from "../../Tibik/character";
 import { blendMatrices } from "../../toon/orient";
 import { walkAt, type Walk } from "../../characters/walkPath";
 import type { Hold } from "../../physics/holds";
-import { lazy } from "../../physics/lazy";
 import { KEY_APPROACH, KEY_GRIP, keyBowGrip, keyDepthAt, keyInLock } from "../../props/keyRingShape";
 import { MAILBOXES, binByName } from "../../street/layout";
 import {
@@ -39,9 +39,8 @@ import {
   mailboxInside,
   mailboxLockLocal,
 } from "../../street/mailboxDoorShape";
-import { ENTRANCE_LAMP, entranceGround } from "../../street/layout";
+import { entranceGround } from "../../street/layout";
 import { stepLift } from "../../building/stairwell";
-import { FPS } from "../../frameRate";
 import { TIBIK_GAIT, tibikGaitOf, plantedTibik, type TibikFrame } from "../../Tibik/character";
 import { ARM_REST, ARM_TUCK, ARM_WALK, RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { blendArm } from "../../physics/holds";
@@ -315,18 +314,11 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
 
 export const KEY_REGRIP = READ[0] + 1;
 
-export const LAMP_SENSOR = { range: 2.5 };
+export const LAMP_SENSOR = SENSOR;
 
-const lampSwitchesOn = lazy(() => {
-  const [lx, , lz] = ENTRANCE_LAMP.center;
-  for (let f = 0; f <= RUNDSCHREIBEN_DURATION * FPS; f++) {
-    const [x, , z] = rundschreibenTibikAt(f / FPS).position;
-    if (Math.hypot(x - lx, z - lz) <= LAMP_SENSOR.range) return f / FPS;
-  }
-  return Infinity;
-});
+const tibikRootAt = (t: number) => rundschreibenTibikAt(t).position;
 
-export const lampOnAt = (t: number) => t >= lampSwitchesOn();
+export const lampOnAt = (t: number) => sensorLampOn(tibikRootAt, LAMP_SENSOR.range, t);
 
 export const KEY_INSERT = 0.016;
 

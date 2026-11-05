@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import {
   Color,
   FloatType,
+  FogExp2,
   HalfFloatType,
   Mesh,
   NearestFilter,
@@ -48,6 +49,8 @@ const COMPOSITE = [
   "uniform float maxRadius;",
   "uniform float jump;",
   "uniform vec3 ink;",
+  "uniform vec3 haze;",
+  "uniform float hazeDensity;",
   "uniform bool fisheye;",
   "uniform float strength;",
   "uniform float vignette;",
@@ -69,6 +72,7 @@ const COMPOSITE = [
   "  vec4 here = texture2D(idMap, uv);",
   "  float depth = here.r > 0.5 ? here.g : 1.0e9;",
   "  float inked = 0.0;",
+  "  float inkDepth = 1.0e9;",
   "  for (int ring = 0; ring < RINGS; ring++) {",
   "    float reach = RING[ring] * maxRadius;",
   "    for (int k = 0; k < TURNS; k++) {",
@@ -76,11 +80,15 @@ const COMPOSITE = [
   "      vec4 there = texture2D(idMap, uv + vec2(cos(a), sin(a)) * reach * texel);",
   "      if (there.r < 0.5 || abs(there.r - here.r) < 0.5) continue;",
   "      if (there.g > depth - jump) continue;",
-  "      if (reach <= min(maxRadius, inkPerDepth / there.g)) inked = 1.0;",
+  "      if (reach <= min(maxRadius, inkPerDepth / there.g)) {",
+  "        inked = 1.0;",
+  "        inkDepth = min(inkDepth, there.g);",
+  "      }",
   "    }",
   "  }",
   "  vec4 base = texture2D(colourMap, uv);",
-  "  vec3 colour = mix(base.rgb, ink, inked);",
+  "  float hazed = 1.0 - exp(-hazeDensity * hazeDensity * inkDepth * inkDepth);",
+  "  vec3 colour = mix(base.rgb, mix(ink, haze, hazed), inked);",
   "  gl_FragColor = vec4(colour * rim, fisheye ? 1.0 : max(base.a, inked));",
   "#include <colorspace_fragment>",
   "}",
@@ -133,6 +141,8 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
         maxRadius: { value: INK_PASS.maxRadius },
         jump: { value: INK_PASS.jump },
         ink: { value: new Color(INK_PASS.ink) },
+        haze: { value: new Color() },
+        hazeDensity: { value: 0 },
         fisheye: { value: false },
         strength: { value: FISHEYE.strength },
         vignette: { value: FISHEYE.vignette },
@@ -212,6 +222,9 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
     material.uniforms.texel.value = [1 / width, 1 / height];
     material.uniforms.inkPerDepth.value = inkRadius(OUTLINE, height, fov, 1);
     material.uniforms.fisheye.value = fisheye;
+    const fog = scene.fog;
+    material.uniforms.hazeDensity.value = fog instanceof FogExp2 ? fog.density : 0;
+    if (fog instanceof FogExp2) material.uniforms.haze.value.copy(fog.color);
     material.uniforms.aspect.value = size.width / size.height;
     gl.render(quad, view);
   }, 1);

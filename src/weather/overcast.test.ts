@@ -20,7 +20,7 @@ import {
   manholeFootprint,
 } from "../street/drainShape";
 import { PATCHES, jointFootprint } from "../street/roadShape";
-import { PUDDLES, SIGN_LIGHT, WEATHER, facadeLight } from "./overcast";
+import { HAZE, PUDDLES, RAIN_VISIBILITY, SIGN_LIGHT, WEATHER, facadeLight, hazeAt } from "./overcast";
 import { luminance } from "../toon/colourChecks";
 
 const hsl = (hex: string) => {
@@ -97,4 +97,17 @@ test("printed signs and plates are lit like the wall they hang on: full in the s
   expect(SIGN_LIGHT.rain).toBeCloseTo(facadeLight(WEATHER.rain) / facadeLight(WEATHER.sunny), 12);
   expect(SIGN_LIGHT.rain).toBeGreaterThan(0.3);
   expect(SIGN_LIGHT.rain).toBeLessThan(0.6);
+});
+
+test("in the rain the distance hazes towards the horizon like air with 3 km visibility; the sun leaves it clear", () => {
+  const koschmieder = (d: number) => 1 - Math.exp((-Math.log(50) * d) / RAIN_VISIBILITY);
+  const rain = HAZE.rain!;
+  expect(HAZE.sunny).toBeNull();
+  expect(RAIN_VISIBILITY).toBe(3000);
+  expect(rain.colour).toBe(WEATHER.rain.sky[1]);
+  expect(hazeAt(150, rain.density)).toBeCloseTo(koschmieder(150), 12);
+  expect(hazeAt(0, rain.density)).toBe(0);
+  expect(hazeAt(20, rain.density)).toBeLessThan(0.01);
+  expect(hazeAt(100, rain.density)).toBeGreaterThan(0.05);
+  expect(hazeAt(100, rain.density)).toBeLessThan(0.15);
 });

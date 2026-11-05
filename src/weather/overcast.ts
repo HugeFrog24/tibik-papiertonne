@@ -41,6 +41,16 @@ export const SIGN_LIGHT = Object.fromEntries(
   (Object.keys(WEATHER) as Weather[]).map((w) => [w, facadeLight(WEATHER[w]) / facadeLight(WEATHER.sunny)]),
 ) as Readonly<Record<Weather, number>>;
 
+export const RAIN_VISIBILITY = 3000;
+const MATCHED_AT = 150;
+
+export const hazeAt = (depth: number, density: number) => 1 - Math.exp(-((density * depth) ** 2));
+
+export const HAZE: Readonly<Record<Weather, { readonly colour: string; readonly density: number } | null>> = {
+  sunny: null,
+  rain: { colour: WEATHER.rain.sky[1], density: Math.sqrt(Math.log(50) / (RAIN_VISIBILITY * MATCHED_AT)) },
+};
+
 export const PUDDLES: readonly {
   readonly x: number;
   readonly z: number;

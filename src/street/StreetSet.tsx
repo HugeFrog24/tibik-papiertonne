@@ -4,7 +4,7 @@ import { FOUND_KARTON_SIZE } from "./kartonShape";
 import { Karton, Sheet } from "./Karton";
 import { BINS, FOUND_SHEET } from "./layout";
 import { Tonne } from "./Tonne";
-import { WEATHER, type Weather } from "../weather/overcast";
+import { HAZE, WEATHER, type Weather } from "../weather/overcast";
 
 export const INDOOR_SHADOW_RANGE = 150;
 export const SUN = {
@@ -53,12 +53,14 @@ export const StreetLighting: React.FC<{ readonly weather?: Weather }> = ({
   weather = "sunny",
 }) => {
   const { hemisphere, sun } = WEATHER[weather];
+  const haze = HAZE[weather];
   return (
     <>
       <hemisphereLight
         args={[hemisphere.sky, hemisphere.ground, hemisphere.intensity]}
       />
       <SunLight intensity={sun.intensity} shadows={sun.shadows} />
+      {haze ? <fogExp2 attach="fog" args={[haze.colour, haze.density]} /> : null}
     </>
   );
 };

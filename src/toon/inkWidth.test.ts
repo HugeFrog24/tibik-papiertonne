@@ -60,3 +60,11 @@ test("only the ink hulls are drawn from the back: every visible part shows its f
   }
   expect(backs).toEqual([]);
 });
+
+test("the ink fades into the haze with three's own exponential fog, at the depth of the surface it outlines", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(`${__dirname}/InkPass.tsx`, "utf8");
+  expect(source).toContain("1.0 - exp(-hazeDensity * hazeDensity * inkDepth * inkDepth)");
+  expect(source).toContain("inkDepth = min(inkDepth, there.g)");
+  expect(source).toMatch(/instanceof FogExp2/);
+});

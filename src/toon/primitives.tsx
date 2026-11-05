@@ -101,6 +101,9 @@ export const glowOf = (glow?: Glow) =>
     ? { emissive: glow.color, emissiveIntensity: glow.light }
     : {};
 
+export const glowMapOf = (map?: Texture) =>
+  map ? { emissive: "#ffffff", emissiveMap: map, emissiveIntensity: 1 } : {};
+
 const InkedMesh: React.FC<{
   readonly position?: Vec3 | Vector3;
   readonly rotation?: Vec3 | Euler;

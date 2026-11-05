@@ -3,7 +3,7 @@ import path from "node:path";
 import { expect, test } from "vitest";
 import { selfClosingTags, sourceFiles } from "../tooling/sourceFiles";
 
-const NOT_PRINTS = new Set(["Fly.tsx", "Town.tsx"]);
+const NOT_PRINTS = new Set(["Fly.tsx"]);
 
 test("every printed surface on the street takes the day's light, so nothing glows under a grey sky", () => {
   const unlit = sourceFiles(path.resolve(__dirname), /\.tsx$/)

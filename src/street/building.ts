@@ -1,3 +1,4 @@
+import { clamp, lerp } from "../characters/scalar";
 import type { Vec3 } from "../toon/primitives";
 import type { Footprint } from "./footprint";
 
@@ -20,7 +21,7 @@ export const WINDOW = {
   frame: [1.15, 1.4, 0.08] as Vec3,
   sill: { offset: [0, -0.74, 0.1] as Vec3, size: [1.3, 0.05, 0.2] as Vec3 },
 };
-export const WINDOW_PAINT = { frame: "#f6f5f0", glass: "#6d8ba3", shutter: "#c9c6bf" };
+export const WINDOW_PAINT = { frame: "#f6f5f0", glass: "#6d8ba3", shutter: "#c9c6bf", lit: "#ffc98a" };
 export const BALCONY_DOOR = { frame: [1.0, 2.2, 0.08] as Vec3 };
 export const STAIR_WINDOW = { frame: [0.8, 1.1, 0.08] as Vec3 };
 
@@ -35,6 +36,11 @@ export type Opening = {
 };
 
 export const CURTAIN_SAND = "#d6c09a";
+const CURTAIN_GATHERED = 0.18;
+export const curtainSpan = (inner: number, drawn: number) => ({
+  x0: -inner / 2,
+  x1: -inner / 2 + lerp(CURTAIN_GATHERED, inner, clamp(drawn, 0, 1)),
+});
 
 const COLUMNS = [-8.8, -6.6, -4.4, 0.3, 3.0, 5.2, 7.4, 9.6];
 const BALCONY_COLUMNS = [-6.6, 3.0, 7.4];
@@ -169,6 +175,12 @@ export const acrossFootprint = (fp: Footprint): Footprint => ({
   z: [acrossZ(fp.z[1]), acrossZ(fp.z[0])],
 });
 export const BLOCK_SPAN = 30;
+export const COPING = "#b9b2a3";
+export const CORNICE: Part = {
+  name: "cornice",
+  center: [0, BUILDING_HEIGHT + 0.1, FACADE_Z - 0.15],
+  size: [BLOCK_SPAN, 0.2, 0.5],
+};
 export const houseNumber = (base: number, block: number, numbering: 1 | -1) =>
   base + 2 * block * numbering;
 

@@ -4,6 +4,7 @@ import { ToonBox, drawnTexture, glowOf, type Glow } from "../toon/primitives";
 import {
   CURTAIN_SAND,
   FACADE_Z,
+  curtainSpan,
   WINDOW,
   WINDOW_PAINT,
   openingFrame,
@@ -13,7 +14,6 @@ import {
 const TILTED_GLASS = "#557189";
 const ROOM_DARK = "#2a2d31";
 const CAFE_CURTAIN = "#efeee6";
-export const WINDOW_LIT = "#ffc98a";
 
 const LAYER = {
   glass: 0.02,
@@ -33,7 +33,6 @@ const TILT = {
   transom: BAR.at - BAR.width / 2,
 };
 const STAIR_GLASS = { dark: 0.28, lit: 0.85 };
-const GATHERED = 0.18;
 const FOLDS = 7;
 
 const windowPlane = (
@@ -68,11 +67,11 @@ const BedroomCurtain: React.FC<{
   readonly drawn: number;
   readonly light: number;
 }> = ({ inner, drawn, light }) => {
-  const width = GATHERED + (inner.w - GATHERED) * drawn;
+  const span = curtainSpan(inner.w, drawn);
   const folds = curtainFolds();
   return (
-    <mesh position={[-inner.w / 2 + width / 2, 0, LAYER.curtain]}>
-      <planeGeometry args={[width, inner.h]} />
+    <mesh position={[(span.x0 + span.x1) / 2, 0, LAYER.curtain]}>
+      <planeGeometry args={[span.x1 - span.x0, inner.h]} />
       <meshToonMaterial
         color={CURTAIN_SAND}
         map={folds}
@@ -140,7 +139,7 @@ export const OpeningView: React.FC<{
   const [w, h] = openingFrame(opening);
   const inner = { w: w - 2 * BORDER, h: h - 2 * BORDER };
   const shutterDrop = inner.h * opening.shutter;
-  const lit = { color: WINDOW_LIT, light };
+  const lit = { color: WINDOW_PAINT.lit, light };
   const casement = opening.kind === "window" && !opening.bedroom;
   return (
     <group position={[opening.x, opening.y, FACADE_Z]}>

@@ -1,6 +1,7 @@
 import { Color, SRGBColorSpace } from "three";
 import { expect, test } from "vitest";
-import { FACADE_Z, flatWindow, floorLevel } from "./building";
+import { FACADE_Z, OPENINGS, acrossZ, curtainSpan, flatWindow, floorLevel } from "./building";
+import { neighbourWindowsOn } from "./lightsOn";
 import { LAMP, LAMP_LIGHT, LAMP_POOL, STREET_LAMPS, lampGlow } from "./lamps";
 
 test("Karen's window is across the landing from his", () => {
@@ -38,10 +39,48 @@ test("a street lamp lights only downward, nothing above its head (ULOR 0, as Ger
   expect(LAMP_POOL.penumbra).toBeLessThanOrEqual(1);
 });
 
-test("a lamp's pool reaches across the pavement to the foot of No. 12, so whoever walks home is lit", () => {
-  const head = STREET_LAMPS[0].z + STREET_LAMPS[0].toward * LAMP.arm;
-  const across = head - FACADE_Z;
+test("every lamp's pool reaches across its pavement to the foot of the houses behind it, so whoever walks home is lit", () => {
   const drop = LAMP.height - 1.0;
-  expect(drop * Math.tan(LAMP_POOL.angle)).toBeGreaterThan(across);
-  expect(Math.hypot(drop, across)).toBeLessThan(LAMP_POOL.reach);
+  for (const lamp of STREET_LAMPS) {
+    const head = lamp.z + lamp.toward * LAMP.arm;
+    const across = Math.abs(head - (lamp.toward > 0 ? FACADE_Z : acrossZ(FACADE_Z)));
+    expect(drop * Math.tan(LAMP_POOL.angle), `lamp at ${lamp.x}`).toBeGreaterThan(across);
+    expect(Math.hypot(drop, across), `lamp at ${lamp.x}`).toBeLessThan(LAMP_POOL.reach);
+  }
+});
+
+test("his curtain hangs from the window's west edge: a gathered strip when open, the whole pane when drawn, never past the frame", () => {
+  const inner = 1.0;
+  const open = curtainSpan(inner, 0);
+  const half = curtainSpan(inner, 0.5);
+  const drawn = curtainSpan(inner, 1);
+  for (const span of [open, half, drawn, curtainSpan(inner, -0.4), curtainSpan(inner, 1.7)]) {
+    expect(span.x0).toBeCloseTo(-inner / 2, 9);
+    expect(span.x1).toBeLessThanOrEqual(inner / 2 + 1e-9);
+    expect(span.x1).toBeGreaterThan(span.x0);
+  }
+  expect(drawn.x1).toBeCloseTo(inner / 2, 9);
+  expect(open.x1 - open.x0).toBeLessThan(0.25);
+  expect(half.x1).toBeGreaterThan(open.x1);
+  expect(half.x1).toBeLessThan(drawn.x1);
+  expect(curtainSpan(inner, -0.4)).toEqual(open);
+  expect(curtainSpan(inner, 1.7)).toEqual(drawn);
+});
+
+test("the neighbours' windows light up at night too, a few per house, going out one by one; the stairwells stay on their timers", () => {
+  const houses = ["6", "8", "10", "14", "16", "18"];
+  let before = houses.map((house) => new Set(neighbourWindowsOn(house, 1)));
+  const lit = before.reduce((n, on) => n + on.size, 0) / (houses.length * OPENINGS.length);
+  expect(lit).toBeGreaterThan(0.1);
+  expect(lit).toBeLessThan(0.35);
+  for (const on of before) for (const k of on) expect(OPENINGS[k].kind).not.toBe("stairs");
+  expect(JSON.stringify([...before[0]])).not.toBe(JSON.stringify([...before[1]]));
+  for (const share of [0.6, 0.2, 0]) {
+    const now = houses.map((house) => new Set(neighbourWindowsOn(house, share)));
+    now.forEach((on, i) => {
+      for (const k of on) expect(before[i].has(k)).toBe(true);
+    });
+    before = now;
+  }
+  expect(before.every((on) => on.size === 0)).toBe(true);
 });

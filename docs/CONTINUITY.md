@@ -418,6 +418,36 @@ Ideas (proposed, not built; the user picks):
   discs: water wicks unevenly along the fibres, so a rim wobbles a few
   percent of its radius, and wet paper turns translucent and greyer, with a
   faint darker tide line where an early spot starts to dry.
+- Each block's roof plumbing differs: two to four vent pipes in other places,
+  round, their rain caps a few degrees askew (each house's stacks run where
+  its bathrooms are).
+- One roof keeps the stub of an old antenna mast (left from before the
+  satellite dishes).
+- A darker, newer patch of roofing membrane where a leak was repaired.
+- Dark dirt and a little moss along the foot of the parapets (water stands
+  there and leaves collect).
+- A lightning-conductor wire along the parapet coping (standard on German
+  flat roofs).
+- The smoke vent's dome slightly yellowed and grey (sun and dust); it could
+  glow faintly while the Treppenlicht is on.
+- Faint run-off streaks below the joints of the parapet coping.
+- Town windows in mixed colour temperatures (a 2700 K lamp, a cool kitchen
+  LED, a bluish TV); dark ones often show closed roller shutters rather than
+  black glass, as German bedrooms do at night; a stairwell lit floor by floor
+  on its timer.
+- The town's blocks from different decades: storey heights 2.75-3.2 m, now
+  and then a pitched roof, plaster repainted in slightly different years.
+- His curtain hand-hung: the hem a centimetre or two off straight, a tuck at
+  one end where it was pulled shut in a hurry, a gap of a few millimetres at
+  the rail's end (the gliders snag).
+- One lit flat a little cooler than the rest (a swapped bulb or an LED strip);
+  a kitchen light left on after the family has gone to bed.
+- Curtains differ from flat to flat: some blinds half down, a plant on a sill.
+- A lamp's pool slightly off centre (the arm has sagged with age); lenses
+  glowing a shade differently (dust); one lamp switching on a few seconds
+  late (a cheap photocell).
+- A wipe mark at hand height on the stairwell panes; a small stain on his
+  sill under the tilt gap, where condensation runs.
 
 ## Continuity between scenes
 

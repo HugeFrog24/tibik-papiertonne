@@ -9,6 +9,7 @@ import {
   drawnTexture,
   fitText,
   framedCard,
+  glowOf,
   useLabelTexture,
   usePavingTexture,
   type Vec3,
@@ -47,7 +48,8 @@ import {
   KERB_HEIGHT,
   KERB_Y,
   type Opening,
-  type Part,
+  CORNICE,
+  COPING,
   FLOOR_BAND,
   NO_ADS,
   residentsOf,
@@ -66,7 +68,7 @@ import {
 } from "./mailboxFace";
 import { BikeStands } from "./BikeStands";
 import { Asphalt } from "./Asphalt";
-import { STREET_END } from "./roadShape";
+import { STREET_END, STREET_MIDDLE } from "./roadShape";
 import { Car } from "./Car";
 import { Tonne } from "./Tonne";
 import type { TonneKind } from "./tonneShape";
@@ -91,6 +93,7 @@ import { useSignColor } from "../weather/DayLight";
 import { Dish } from "./Dish";
 import { Roof, Town } from "./Town";
 import { OpeningView } from "./OpeningView";
+import { PartBoxes } from "./PartBoxes";
 
 const PLASTER = "#eadcc0";
 const Balcony: React.FC<{
@@ -104,14 +107,10 @@ const Balcony: React.FC<{
   const rail = railingHeightFor(y);
   return (
     <group position={[x, y, FACADE_Z]}>
-      {balconyParts(y).map((part, i) => (
-        <ToonBox
-          key={i}
-          position={part.center}
-          size={part.size}
-          color={part.name === "slab" ? "#d8d2c4" : "#8e9399"}
-        />
-      ))}
+      <PartBoxes
+        parts={balconyParts(y)}
+        color={(part) => (part.name === "slab" ? "#d8d2c4" : "#8e9399")}
+      />
       {decor.box ? (
         <group position={[0.4, rail - 0.05, d + 0.08]}>
           <ToonBox size={[0.9, 0.2, 0.18]} color="#a0522d" />
@@ -297,15 +296,10 @@ const EntranceLamp: React.FC<{ readonly on: boolean }> = ({ on }) => (
   >
     <mesh position={[0, 0.02, 0]}>
       <planeGeometry args={[0.08, 0.15]} />
-      {on ? (
-        <meshToonMaterial
-          color="#fff6dc"
-          emissive={LAMP_GLOW}
-          emissiveIntensity={1.4}
-        />
-      ) : (
-        <meshToonMaterial color="#e7e3d8" />
-      )}
+      <meshToonMaterial
+        color={on ? "#fff6dc" : "#e7e3d8"}
+        {...glowOf({ color: LAMP_GLOW, light: on ? 1.4 : 0 })}
+      />
     </mesh>
     {on ? (
       <pointLight
@@ -362,24 +356,6 @@ const CROWN = [
     spring: { hertz: 0.5, damping: 0.35 },
   },
 ];
-
-const PartBoxes: React.FC<{
-  readonly parts: readonly Part[];
-  readonly color: string;
-  readonly outline?: boolean;
-}> = ({ parts, color, outline }) => (
-  <>
-    {parts.map((part, i) => (
-      <ToonBox
-        key={i}
-        position={part.center}
-        size={part.size}
-        color={color}
-        outline={outline}
-      />
-    ))}
-  </>
-);
 
 const TAG_PX_PER_M = 1600;
 
@@ -477,11 +453,7 @@ const Block: React.FC<{
 }> = ({ haustuer, haustuerLever, number, plaster, lampOn, mailboxDoor, windows }) => (
   <>
     <FacadeWall plaster={plaster} />
-    <ToonBox
-      position={[0, BUILDING_HEIGHT + 0.1, FACADE_Z - 0.15]}
-      size={[BLOCK_SPAN, 0.2, 0.5]}
-      color="#b9b2a3"
-    />
+    <PartBoxes parts={[CORNICE]} color={COPING} />
     <PartBoxes parts={PLINTH} color="#8f877b" outline={false} />
     <PartBoxes parts={FLOOR_BAND} color="#d9caa9" outline={false} />
     {openingsOf(Number(number)).map((opening) => (
@@ -520,7 +492,6 @@ const NEIGHBOUR_PLASTERS = [
   "#e6d9c9",
   "#d2d6d8",
 ];
-const STREET_MIDDLE = (FACADE_Z + ACROSS.facade) / 2;
 
 const Side: React.FC<{
   readonly haustuer: number;
@@ -538,6 +509,7 @@ const Side: React.FC<{
   readonly mailboxDoor?: number;
   readonly roofs?: boolean;
   readonly windows: WindowLights;
+  readonly nightLit?: number;
 }> = ({
   haustuer,
   haustuerLever,
@@ -554,6 +526,7 @@ const Side: React.FC<{
   mailboxDoor,
   roofs = false,
   windows,
+  nightLit,
 }) => (
   <>
     {roofs
@@ -589,6 +562,7 @@ const Side: React.FC<{
         x={n * BLOCK_SPAN}
         number={String(houseNumber(number, n, numbering))}
         plaster={NEIGHBOUR_PLASTERS[(i + palette) % NEIGHBOUR_PLASTERS.length]}
+        lit={nightLit}
       />
     ))}
     <mesh position={[0, 0, -0.2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -662,6 +636,7 @@ export const Street: React.FC<{
         mailboxDoor={mailboxDoor}
         roofs={roofs}
         windows={windows}
+        nightLit={town?.lit}
       />
       {town ? <Town lit={town.lit} /> : null}
       <group
@@ -682,6 +657,7 @@ export const Street: React.FC<{
           wetTint={wetTint}
           roofs={roofs}
           windows={windows}
+          nightLit={town?.lit}
         />
       </group>
       {[1, -1].map((end) => (
@@ -694,6 +670,7 @@ export const Street: React.FC<{
             x={0}
             number={end > 0 ? "2" : "1"}
             plaster={NEIGHBOUR_PLASTERS[end > 0 ? 4 : 1]}
+            lit={town?.lit}
           />
           {roofs ? <Roof /> : null}
         </group>

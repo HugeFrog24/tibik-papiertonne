@@ -1,9 +1,11 @@
-import { ToonBox, drawnTexture } from "../toon/primitives";
+import { ToonBox, drawnTexture, glowMapOf } from "../toon/primitives";
 import {
   BALCONIES,
   balconyParts,
   BLOCK_SPAN,
   BUILDING_HEIGHT,
+  CORNICE,
+  COPING,
   ENTRANCE_X,
   FACADE_Z,
   OPENINGS,
@@ -11,6 +13,8 @@ import {
   openingFrame,
 } from "./building";
 import { HAUSTUER } from "./facade";
+import { neighbourWindowsOn } from "./lightsOn";
+import { PartBoxes } from "./PartBoxes";
 
 const PIXELS_PER_METRE = 40;
 const RAILING = "#4d5257";
@@ -20,29 +24,43 @@ const DOOR = {
   bottom: HAUSTUER.hinge[1],
 };
 
+const TEXTURE = [BLOCK_SPAN * PIXELS_PER_METRE, Math.round(BUILDING_HEIGHT * PIXELS_PER_METRE)] as const;
+
+const boxPainter = (ctx: CanvasRenderingContext2D, h: number) => (
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  color: string,
+) => {
+  ctx.fillStyle = color;
+  ctx.fillRect(
+    (x - width / 2 + BLOCK_SPAN / 2) * PIXELS_PER_METRE,
+    h - (y + height / 2) * PIXELS_PER_METRE,
+    width * PIXELS_PER_METRE,
+    height * PIXELS_PER_METRE,
+  );
+};
+
+const litTexture = (number: string, on: readonly number[]) =>
+  drawnTexture(`distant-lit-${number}-${on.length}`, ...TEXTURE, (ctx, w, h) => {
+    const box = boxPainter(ctx, h);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, w, h);
+    for (const k of on) {
+      const [fw, fh] = openingFrame(OPENINGS[k]);
+      box(OPENINGS[k].x, OPENINGS[k].y, fw - 0.17, fh - 0.17, WINDOW_PAINT.lit);
+    }
+  });
+
 const facadeTexture = (number: string, plaster: string) =>
   drawnTexture(
     `distant-facade-${number}-${plaster}`,
-    BLOCK_SPAN * PIXELS_PER_METRE,
-    Math.round(BUILDING_HEIGHT * PIXELS_PER_METRE),
+    ...TEXTURE,
     (ctx, w, h) => {
       const px = (x: number) => (x + BLOCK_SPAN / 2) * PIXELS_PER_METRE;
       const py = (y: number) => h - y * PIXELS_PER_METRE;
-      const box = (
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        color: string,
-      ) => {
-        ctx.fillStyle = color;
-        ctx.fillRect(
-          px(x - width / 2),
-          py(y + height / 2),
-          width * PIXELS_PER_METRE,
-          height * PIXELS_PER_METRE,
-        );
-      };
+      const box = boxPainter(ctx, h);
       ctx.fillStyle = plaster;
       ctx.fillRect(0, 0, w, h);
       box(0, 0.275, BLOCK_SPAN, 0.55, "#8f877b");
@@ -90,7 +108,10 @@ export const DistantBlock: React.FC<{
   readonly x: number;
   readonly number: string;
   readonly plaster: string;
-}> = ({ x, number, plaster }) => (
+  readonly lit?: number;
+}> = ({ x, number, plaster, lit = 0 }) => {
+  const on = neighbourWindowsOn(number, lit);
+  return (
   <group position={[x, 0, 0]}>
     <ToonBox
       position={[0, BUILDING_HEIGHT / 2, FACADE_Z - 0.2]}
@@ -99,24 +120,20 @@ export const DistantBlock: React.FC<{
     />
     <mesh position={[0, BUILDING_HEIGHT / 2, FACADE_Z + 0.003]}>
       <planeGeometry args={[BLOCK_SPAN, BUILDING_HEIGHT]} />
-      <meshToonMaterial map={facadeTexture(number, plaster)} />
+      <meshToonMaterial
+        map={facadeTexture(number, plaster)}
+        {...glowMapOf(on.length > 0 ? litTexture(number, on) : undefined)}
+      />
     </mesh>
-    <ToonBox
-      position={[0, BUILDING_HEIGHT + 0.1, FACADE_Z - 0.15]}
-      size={[BLOCK_SPAN, 0.2, 0.5]}
-      color="#b9b2a3"
-    />
+    <PartBoxes parts={[CORNICE]} color={COPING} />
     {BALCONIES.map((b) => (
       <group key={`${b.x}-${b.y}`} position={[b.x, b.y, FACADE_Z]}>
-        {balconyParts(b.y).map((part, i) => (
-          <ToonBox
-            key={i}
-            position={part.center}
-            size={part.size}
-            color={part.name === "slab" ? "#a9a59c" : RAILING}
-          />
-        ))}
+        <PartBoxes
+          parts={balconyParts(b.y)}
+          color={(part) => (part.name === "slab" ? "#a9a59c" : RAILING)}
+        />
       </group>
     ))}
   </group>
-);
+  );
+};

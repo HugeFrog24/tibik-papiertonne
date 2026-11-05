@@ -1,4 +1,5 @@
 import { kf } from "../../characters/animate";
+import { easeUnit, lerpVec3 } from "../../characters/scalar";
 import type { Vec3 } from "../../toon/primitives";
 import {
   KAREN_SPOT,
@@ -35,6 +36,17 @@ export const fixed =
     target,
     fov,
   });
+
+export const dolly =
+  (from: CameraSetup, to: CameraSetup, start: number, end: number) =>
+  (t: number): CameraSetup => {
+    const k = easeUnit((t - start) / (end - start));
+    return {
+      position: lerpVec3(from.position, to.position, k),
+      target: lerpVec3(from.target, to.target, k),
+      fov: from.fov + (to.fov - from.fov) * k,
+    };
+  };
 
 export const findShot = <
   S extends { readonly from: number; readonly to: number },

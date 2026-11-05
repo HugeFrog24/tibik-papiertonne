@@ -39,3 +39,24 @@ export const STREET_TREES: readonly {
 }[] = (["near", "far"] as const).flatMap((side) =>
   ALONG[side].map((x) => ({ side, x, number: treeNumber(side, x) })),
 );
+
+export const TREE_CROWN = [
+  {
+    at: [0, 3.6, 0] as Vec3,
+    scale: [1.2, 0.9, 1.1] as Vec3,
+    reach: 0.05,
+    spring: { hertz: 0.42, damping: 0.35 },
+  },
+  {
+    at: [0.7, 3.2, 0.2] as Vec3,
+    scale: [0.8, 0.7, 0.8] as Vec3,
+    reach: 0.035,
+    spring: { hertz: 0.55, damping: 0.35 },
+  },
+  {
+    at: [-0.7, 3.3, -0.1] as Vec3,
+    scale: [0.8, 0.7, 0.8] as Vec3,
+    reach: 0.035,
+    spring: { hertz: 0.5, damping: 0.35 },
+  },
+];

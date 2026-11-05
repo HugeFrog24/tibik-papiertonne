@@ -78,7 +78,7 @@ import { TreePit } from "./TreePit";
 import { Hydrant } from "./Hydrant";
 import { EntranceMat } from "./EntranceMat";
 import { PoleWrap } from "./PoleWrap";
-import { TREE_TAG, TRUNK, treeNumber, type TreeSide } from "./trees";
+import { TREE_CROWN, TREE_TAG, TRUNK, treeNumber, type TreeSide } from "./trees";
 import { wrapPixels } from "./wraps";
 import { swayOf, windIn } from "../physics/wind";
 import {
@@ -336,27 +336,6 @@ const Puddles: React.FC = () => (
   </>
 );
 
-const CROWN = [
-  {
-    at: [0, 3.6, 0] as Vec3,
-    scale: [1.2, 0.9, 1.1] as Vec3,
-    reach: 0.05,
-    spring: { hertz: 0.42, damping: 0.35 },
-  },
-  {
-    at: [0.7, 3.2, 0.2] as Vec3,
-    scale: [0.8, 0.7, 0.8] as Vec3,
-    reach: 0.035,
-    spring: { hertz: 0.55, damping: 0.35 },
-  },
-  {
-    at: [-0.7, 3.3, -0.1] as Vec3,
-    scale: [0.8, 0.7, 0.8] as Vec3,
-    reach: 0.035,
-    spring: { hertz: 0.5, damping: 0.35 },
-  },
-];
-
 const TAG_PX_PER_M = 1600;
 
 const treeTagTexture = (number: string) => {
@@ -393,7 +372,7 @@ const StreetTree: React.FC<{
         capped={false}
       />
       <PoleWrap pole={TRUNK} wrap={TREE_TAG} map={treeTagTexture(number)} />
-      {CROWN.map(({ at, scale, reach, spring }, i) => {
+      {TREE_CROWN.map(({ at, scale, reach, spring }, i) => {
         const push = windAt === undefined ? 0 : reach * swayOf(windAt, spring);
         return (
           <Blob

@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import { easeUnit, lerpVec3 } from "../../characters/scalar";
+import { easeUnit } from "../../characters/scalar";
 import {
   LETTER_LAYOUT,
   PT,
@@ -9,7 +9,7 @@ import {
 } from "../../props/letterShape";
 import { FRAME_SIZE } from "../../dialogue/screen";
 import type { Vec3 } from "../../toon/primitives";
-import { camerasOf, fixed, type CameraSetup, type Shot } from "../hausmuell/cameras";
+import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../hausmuell/cameras";
 import {
   AT_MAILBOX,
   FLAP,
@@ -28,17 +28,6 @@ const MARGIN = 0.006;
 const HIDDEN_BELOW = 0.002;
 const READABLE = 40;
 const ASPECT = FRAME_SIZE.width / FRAME_SIZE.height;
-
-const dolly =
-  (from: CameraSetup, to: CameraSetup, start: number, end: number) =>
-  (t: number): CameraSetup => {
-    const k = easeUnit((t - start) / (end - start));
-    return {
-      position: lerpVec3(from.position, to.position, k),
-      target: lerpVec3(from.target, to.target, k),
-      fov: from.fov + (to.fov - from.fov) * k,
-    };
-  };
 
 const insert = (
   lines: readonly LetterLine[],

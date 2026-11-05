@@ -29,6 +29,13 @@ export type Shot = {
   readonly at: (t: number) => CameraSetup;
 };
 
+export const fixed =
+  (position: Vec3, target: Vec3, fov: number) => (): CameraSetup => ({
+    position,
+    target,
+    fov,
+  });
+
 export const findShot = <
   S extends { readonly from: number; readonly to: number },
 >(
@@ -101,11 +108,7 @@ export const SHOTS: readonly Shot[] = [
     name: "Wide: Karen comes running",
     from: 0,
     to: SHOT_KAREN_YELLS,
-    at: () => ({
-      position: [2.4, 1.5, 4.4],
-      target: [2.4, 1.0, -0.6],
-      fov: 40,
-    }),
+    at: fixed([2.4, 1.5, 4.4], [2.4, 1.0, -0.6], 40),
   },
   {
     name: "Karen: Das dürfen Sie nicht",
@@ -172,11 +175,7 @@ export const SHOTS: readonly Shot[] = [
     name: "Wide: Schönen Tag noch",
     from: SHOT_EXIT,
     to: HAUSMUELL_DURATION,
-    at: () => ({
-      position: [0.9, 1.6, 5.2],
-      target: [0.6, 1.1, -1.0],
-      fov: 46,
-    }),
+    at: fixed([0.9, 1.6, 5.2], [0.6, 1.1, -1.0], 46),
   },
 ];
 

@@ -9,7 +9,7 @@ import {
 } from "../../props/letterShape";
 import { FRAME_SIZE } from "../../dialogue/screen";
 import type { Vec3 } from "../../toon/primitives";
-import { camerasOf, type CameraSetup, type Shot } from "../hausmuell/cameras";
+import { camerasOf, fixed, type CameraSetup, type Shot } from "../hausmuell/cameras";
 import {
   AT_MAILBOX,
   FLAP,
@@ -28,13 +28,6 @@ const MARGIN = 0.006;
 const HIDDEN_BELOW = 0.002;
 const READABLE = 40;
 const ASPECT = FRAME_SIZE.width / FRAME_SIZE.height;
-
-const fixed =
-  (position: Vec3, target: Vec3, fov: number) => (): CameraSetup => ({
-    position,
-    target,
-    fov,
-  });
 
 const dolly =
   (from: CameraSetup, to: CameraSetup, start: number, end: number) =>

@@ -62,9 +62,10 @@ test(
       const [cx, , cz] = cameraAt(frame / FPS).position;
       return Math.sign((kx - tx) * (cz - tz) - (kz - tz) * (cx - tx));
     };
-    const first = side(SHOT_KAREN_YELLS * FPS);
+    const cut = Math.ceil(SHOT_KAREN_YELLS * FPS);
+    const first = side(cut);
     for (
-      let frame = SHOT_KAREN_YELLS * FPS;
+      let frame = cut;
       frame < HAUSMUELL_DURATION * FPS;
       frame++
     ) {

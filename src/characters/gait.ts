@@ -278,10 +278,12 @@ const groundNeed = (plan: GaitPlan, from: Plant, to: Plant, u: number) => {
   for (let i = 0; i <= 12; i++) {
     const along = heel[2] - radius + ((toe[2] - heel[2] + 2 * radius) * i) / 12;
     const onAxis = clamp(along, heel[2], toe[2]);
+    const beyond = along - onAxis;
+    const rounded = radius - Math.sqrt(Math.max(0, radius * radius - beyond * beyond));
     const axis = heel[1] * Math.cos(pitch) - onAxis * Math.sin(pitch);
     const reach = heel[1] * Math.sin(pitch) + along * Math.cos(pitch);
     const required =
-      plan.ground(ankle.x + fx * reach, ankle.z + fz * reach) + above - axis;
+      plan.ground(ankle.x + fx * reach, ankle.z + fz * reach) + above - axis - rounded;
     need = Math.max(need, required - base);
   }
   return need;
@@ -471,6 +473,50 @@ const unevenSpans = (plan: GaitPlan): (readonly [number, number])[] => {
     }),
   );
 };
+
+const EDGE_SHIFT = { step: 0.005, most: 0.4, clear: 0.05 };
+
+const straddles = (ground: Ground, skeleton: Skeleton, side: Side, x: number, z: number, yaw: number) => {
+  const fx = Math.sin(yaw);
+  const fz = Math.cos(yaw);
+  const heights = soleSamples(skeleton, side).flatMap(({ along, across }) =>
+    [-EDGE_SHIFT.clear, 0, EDGE_SHIFT.clear].map((more) =>
+      ground(x + fx * (along + more) + fz * across, z + fz * (along + more) - fx * across),
+    ),
+  );
+  return Math.max(...heights) - Math.min(...heights) > MAX_LIFT;
+};
+
+export const offTheEdges = (
+  skeleton: Skeleton,
+  style: GaitStyle,
+  root: RootAt,
+  steps: readonly Step[],
+  span: readonly [number, number],
+  ground: Ground,
+): Step[] =>
+  steps.map((step) => {
+    if (step.at) return step;
+    const next = steps
+      .filter((s) => s.side === step.side && s.lift > step.land)
+      .sort((a, b) => a.lift - b.lift)[0];
+    const when = next ? step.land + (next.lift - step.land) * style.plantAt : span[1];
+    const r = root(when);
+    const local = restAnkle(skeleton, step.side);
+    if (step.width !== undefined) local.x = step.side * step.width;
+    const ankle = local.applyAxisAngle(Y_AXIS, r.yaw).add(new Vector3(r.x, 0, r.z));
+    if (!straddles(ground, skeleton, step.side, ankle.x, ankle.z, r.yaw)) return step;
+    const fx = Math.sin(r.yaw);
+    const fz = Math.cos(r.yaw);
+    for (let d = EDGE_SHIFT.step; d <= EDGE_SHIFT.most; d += EDGE_SHIFT.step) {
+      for (const shift of [d, -d]) {
+        const x = ankle.x + fx * shift;
+        const z = ankle.z + fz * shift;
+        if (!straddles(ground, skeleton, step.side, x, z, r.yaw)) return { ...step, at: { x, z } };
+      }
+    }
+    return step;
+  });
 
 export const planGait = (
   skeleton: Skeleton,

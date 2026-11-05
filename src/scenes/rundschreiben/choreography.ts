@@ -2,6 +2,8 @@ import { Euler, Matrix4, Vector3 } from "three";
 import { armKf, blinkAt, kf } from "../../characters/animate";
 import {
   STEP_OVERLAP,
+  offTheEdges,
+  opposite,
   planGait,
   rhythmicSteps,
   strideAt,
@@ -11,7 +13,7 @@ import {
   type Step,
 } from "../../characters/gait";
 import { easeUnit } from "../../characters/scalar";
-import { armColliders } from "../../characters/skeleton";
+import { armColliders, type Side } from "../../characters/skeleton";
 import { frame, obb } from "../../physics/collision";
 import { TONNE, TONNE_FLOOR, tonneLidParts } from "../../street/tonneShape";
 import {
@@ -64,9 +66,11 @@ export const TO_DOOR = [36.3, 38.3] as const;
 export const UNLOCK = [38.3, 39.35] as const;
 export const IN = [39.35, 40.75] as const;
 export const RUNDSCHREIBEN_DURATION = 47;
-const IN_WALK: readonly [number, number] = [IN[0] + 0.45, IN[0] + 3.85];
-const SIDESTEPPED = IN_WALK[0] + 1.2;
-const THROUGH_THE_DOORWAY: readonly [number, number] = [SIDESTEPPED - 0.3, IN_WALK[1] + 0.3];
+export const BACK_STEP: readonly [number, number] = [UNLOCK[0] + 0.6, UNLOCK[1] + 0.15];
+const ROUND_THE_LEAF: readonly [number, number] = [IN[0] + 0.5, IN[0] + 1.9];
+const IN_WALK: readonly [number, number] = [ROUND_THE_LEAF[1], IN[0] + 4.4];
+const WALKING_IN: readonly [number, number] = [ROUND_THE_LEAF[0], IN_WALK[1]];
+const THROUGH_THE_DOORWAY: readonly [number, number] = [ROUND_THE_LEAF[0] + 0.5, IN_WALK[1] + 0.3];
 
 const LID_OPEN = 0.3;
 const LID_LET_GO = KLOPPEN[1] + 0.1;
@@ -108,8 +112,11 @@ const walkToBin: Walk = {
   ],
 };
 
-const DOOR_STAND = { x: -1.25, z: -1.8 };
-const INSIDE = { x: -1.45, z: -3.5 };
+type Stand = { readonly x: number; readonly z: number };
+
+const DOOR_STAND: Stand = { x: -1.25, z: -1.8 };
+const ONTO_THE_STEP = [0.26, 0.3] as const;
+const INSIDE = { x: -1.45, z: -3.4 };
 const SETTLE = 0.45;
 
 const walkToDoor: Walk = {
@@ -123,23 +130,29 @@ const walkToDoor: Walk = {
   ],
 };
 
-const BEFORE_THE_DOORWAY = { x: -1.85, z: DOOR_STAND.z };
+const STANCE = 0.17;
+const ON_THE_PAVEMENT = -1.42;
+const ON_THE_STEP = DOOR_STAND.z - 0.05;
+const BACK_STAND = { x: -1.15, z: ON_THE_PAVEMENT };
+const BEFORE_THE_DOORWAY = { x: -1.875, z: ON_THE_PAVEMENT };
+const IN_THE_DOORWAY = { x: BEFORE_THE_DOORWAY.x, z: ON_THE_STEP };
 
 const walkIn: Walk = {
-  from: SIDESTEPPED,
+  from: IN_WALK[0],
   to: IN_WALK[1] - 0.3,
   via: [
     [BEFORE_THE_DOORWAY.x, BEFORE_THE_DOORWAY.z],
     [BEFORE_THE_DOORWAY.x, -2.6],
-    [-1.8, -3.25],
+    [-1.8, -3.4],
     [INSIDE.x, INSIDE.z],
   ],
 };
 
-const sidestep = (t: number) => {
-  const k = progress(t, [IN_WALK[0], SIDESTEPPED]);
-  const x = DOOR_STAND.x + (BEFORE_THE_DOORWAY.x - DOOR_STAND.x) * k;
-  return { x, z: DOOR_STAND.z, yaw: FACING_THE_WALL, y: stepLift(DOOR_STAND.z, 0.2, 0.3) };
+const shuffle = (t: number, span: readonly [number, number], from: Stand, to: Stand) => {
+  const k = progress(t, span);
+  const x = from.x + (to.x - from.x) * k;
+  const z = from.z + (to.z - from.z) * k;
+  return { x, z, yaw: FACING_THE_WALL, y: stepLift(z, ...ONTO_THE_STEP) };
 };
 
 const walkLeg = (walk: Walk, t: number, settle = true) => {
@@ -154,13 +167,14 @@ const walkLeg = (walk: Walk, t: number, settle = true) => {
     x,
     z,
     yaw: FACING_THE_WALL + (near - FACING_THE_WALL) * away,
-    y: stepLift(z, 0.2, 0.3),
+    y: stepLift(z, ...ONTO_THE_STEP),
   };
 };
 
 const rootAt: RootAt = (t) => {
-  if (t >= SIDESTEPPED) return walkLeg(walkIn, t, false);
-  if (t >= IN_WALK[0]) return sidestep(t);
+  if (t >= IN_WALK[0]) return walkLeg(walkIn, t, false);
+  if (t >= ROUND_THE_LEAF[0]) return shuffle(t, ROUND_THE_LEAF, BACK_STAND, BEFORE_THE_DOORWAY);
+  if (t >= BACK_STEP[0]) return shuffle(t, BACK_STEP, DOOR_STAND, BACK_STAND);
   if (t >= TO_DOOR[0]) return walkLeg(walkToDoor, t);
   if (t >= TO_BIN[0]) return walkLeg(walkToBin, t);
   const { x, z, heading } = walkAt(walkHome, t);
@@ -169,17 +183,37 @@ const rootAt: RootAt = (t) => {
   return { x, z, yaw, y: 0 };
 };
 
-const STANCE = 0.17;
-const ON_THE_PAVEMENT = -1.42;
-const ON_THE_STEP = DOOR_STAND.z - 0.05;
+const squareAt =
+  (stand: Stand) =>
+  (s: Step): Step => ({ ...s, at: { x: stand.x - s.side * STANCE, z: stand.z } });
 
-const upTheStep = (steps: readonly Step[]): Step[] =>
+const pinEnd = (steps: readonly Step[], stands: readonly Stand[]): Step[] =>
   steps.map((s, i) => {
-    const fromEnd = steps.length - i;
-    if (fromEnd > 3) return s;
-    const z = fromEnd === 3 ? ON_THE_PAVEMENT : ON_THE_STEP;
-    return { ...s, at: { x: DOOR_STAND.x - s.side * STANCE, z } };
+    const k = i - (steps.length - stands.length);
+    return k < 0 ? s : squareAt(stands[k])(s);
   });
+
+const pinStart = (steps: readonly Step[], stands: readonly Stand[]): Step[] =>
+  steps.map((s, i) => (i < stands.length ? squareAt(stands[i])(s) : s));
+
+const ON_THE_DOORSTEP = { x: DOOR_STAND.x, z: ON_THE_STEP };
+
+const pinned = (from: number, steps: readonly Step[]): Step[] => {
+  if (from === TO_DOOR[0])
+    return pinEnd(steps, [{ x: DOOR_STAND.x, z: ON_THE_PAVEMENT }, ON_THE_DOORSTEP, ON_THE_DOORSTEP]);
+  if (from === ROUND_THE_LEAF[0]) return pinEnd(steps, [BEFORE_THE_DOORWAY, BEFORE_THE_DOORWAY]);
+  if (from === IN_WALK[0]) return pinStart(steps, [IN_THE_DOORWAY]);
+  return [...steps];
+};
+
+const stepBack = (first: Side): Step[] => {
+  const [from, to] = BACK_STEP;
+  const half = (from + to) / 2;
+  return [
+    { side: first, lift: from, land: half + STEP_OVERLAP / 2 },
+    { side: opposite(first), lift: half - STEP_OVERLAP / 2, land: to },
+  ].map(squareAt(BACK_STAND));
+};
 
 const tibikSteps = () => {
   const cadence = walkCadence(rootAt);
@@ -193,28 +227,27 @@ const tibikSteps = () => {
   const legs: readonly (readonly [number, number])[] = [
     TO_BIN,
     TO_DOOR,
-    [IN_WALK[0], SIDESTEPPED],
-    [SIDESTEPPED, IN_WALK[1]],
+    BACK_STEP,
+    ROUND_THE_LEAF,
+    IN_WALK,
   ];
   return legs.reduce((steps, [from, to]) => {
-    const next = rhythmicSteps({
-      from,
-      to,
-      first: steps[steps.length - 1].side === 1 ? -1 : 1,
-      cadence,
-      overlap: STEP_OVERLAP,
-    });
-    return [...steps, ...(from === TO_DOOR[0] ? upTheStep(next) : next)];
+    const first = opposite(steps[steps.length - 1].side);
+    if (from === BACK_STEP[0]) return [...steps, ...stepBack(first)];
+    const next = rhythmicSteps({ from, to, first, cadence, overlap: STEP_OVERLAP });
+    return [...steps, ...pinned(from, next)];
   }, home);
 };
+
+const GAIT_SPAN = [-1, RUNDSCHREIBEN_DURATION] as const;
 
 export const tibikGait = lazy(() =>
   planGait(
     RIG,
     TIBIK_GAIT,
     rootAt,
-    tibikSteps(),
-    [-1, RUNDSCHREIBEN_DURATION],
+    offTheEdges(RIG, TIBIK_GAIT, rootAt, tibikSteps(), GAIT_SPAN, entranceGround),
+    GAIT_SPAN,
     entranceGround,
   ),
 );
@@ -226,7 +259,7 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
   const { x, z, yaw: rotationY, y = 0 } = rootAt(t);
   const walking = Math.max(
     1 - easeUnit((t - (AT_MAILBOX - 0.6)) / 0.6),
-    ...[TO_BIN, TO_DOOR, IN_WALK].map(([a, b]) => kf(t, [a, a + 0.3, b - 0.5, b], [0, 1, 1, 0])),
+    ...[TO_BIN, TO_DOOR, WALKING_IN].map(([a, b]) => kf(t, [a, a + 0.3, b - 0.5, b], [0, 1, 1, 0])),
   );
   const step = strideAt(tibikGait(), t);
   const tucked = kf(
@@ -240,9 +273,9 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
     [
       AT_MAILBOX - 0.6,
       AT_MAILBOX,
-      ...[TO_BIN, TO_DOOR, IN_WALK].flatMap(([a, b]) => [a, a + 0.3, b - 0.5, b]),
+      ...[TO_BIN, TO_DOOR, WALKING_IN].flatMap(([a, b]) => [a, a + 0.3, b - 0.5, b]),
     ],
-    [ARM_WALK, ARM_REST, ...[TO_BIN, TO_DOOR, IN_WALK].flatMap(() => [ARM_REST, ARM_WALK, ARM_WALK, ARM_REST])],
+    [ARM_WALK, ARM_REST, ...[TO_BIN, TO_DOOR, WALKING_IN].flatMap(() => [ARM_REST, ARM_WALK, ARM_WALK, ARM_REST])],
   );
   const pose: TibikPose = {
     ...TIBIK_REST,

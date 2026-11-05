@@ -154,7 +154,7 @@ export const HAUSTUER: Door = {
   height: 2.26,
   thickness: 0.05,
   closedYaw: 0,
-  swing: 1,
+  swing: -1,
   grips: [
     leverGrip(0.98, 1.08, -0.025),
     {
@@ -169,8 +169,8 @@ export const HAUSTUER: Door = {
 export const haustuerSolids = (angle: number, lever = 0): Obb[] =>
   doorSolids(HAUSTUER, angle, lever);
 
-const INSIDE_FACE = FACADE_Z - FACADE_THICKNESS;
-export const CLOSER_TIME = 2.2;
+export const CLOSER_TIME = 4;
+export const CLOSER_DELAY = 1.2;
 
 export const closerSwing = (
   t: number,
@@ -179,27 +179,30 @@ export const closerSwing = (
   time = CLOSER_TIME,
 ) => {
   const k = time / CLOSER_TIME;
+  const start = release + CLOSER_DELAY;
   return kf(
     t,
-    [release, release + 0.3 * k, release + 1.9 * k, release + time],
+    [start, start + 0.55 * k, start + 3.45 * k, start + time],
     [held, held - 0.1, 0.26, 0],
     Easing.linear,
   );
 };
 
+const BEHIND_THE_LEAF = HAUSTUER.hinge[2] - HAUSTUER.thickness / 2 - 0.05;
+
 export const HAUSTUER_CLOSER = {
   body: {
     center: [
       HAUSTUER.hinge[0] + 0.22,
-      DOORWAY.y1 + 0.075,
-      INSIDE_FACE - 0.035,
+      DOORWAY.y1 - 0.035,
+      BEHIND_THE_LEAF,
     ] as [number, number, number],
     size: [0.3, 0.07, 0.07] as [number, number, number],
   },
   spindle: [
     HAUSTUER.hinge[0] + 0.1,
-    DOORWAY.y1 - 0.01,
-    INSIDE_FACE - 0.035,
+    DOORWAY.y1 - 0.08,
+    BEHIND_THE_LEAF,
   ] as [number, number, number],
   armLength: 0.4,
   rail: {

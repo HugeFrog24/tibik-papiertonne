@@ -23,7 +23,8 @@ import {
 import { BINS, ENTRANCE_LAMP, ENTRANCE_X, MAILBOXES, binByName } from "../../street/layout";
 import { DOORSTEP, FACADE_Z } from "../../street/building";
 import { FACADE_THICKNESS } from "../../street/facade";
-import { DOOR_SHUT, HOUSE_KEYS_IN_LOCK, HOUSE_KEY_INSERT, PUSHED, haustuerLeafGripAt, outerCylinderAt } from "./home";
+import { DOOR_SHUT, HOUSE_KEYS_IN_LOCK, HOUSE_KEY_INSERT, outerCylinderAt } from "./home";
+import { HAUSTUER } from "../../street/facade";
 import { entranceGround } from "../../street/layout";
 import { characterViolations } from "../../physics/guards";
 import { RIG } from "../../Tibik/rig";
@@ -37,6 +38,7 @@ import {
   BOX_SHUT,
   ENVELOPE_OUT,
   FLAP,
+  BACK_STEP,
   BIN_FLOOR,
   FOLD,
   IN,
@@ -514,12 +516,16 @@ test("he unlocks the Haustür from outside with his house key and goes in; the c
   }
   expect(Math.min(...turns.map((u) => u.dot(turns[0])))).toBeLessThan(-0.95);
   expect(solveRundschreiben(UNLOCK[0]).haustuer).toBe(0);
-  const flick = window(PUSHED[0], PUSHED[1]);
-  expect(flick.length).toBeGreaterThanOrEqual(1);
-  expect(solveRundschreiben(PUSHED[1]).haustuer).toBeGreaterThan(solveRundschreiben(PUSHED[0]).haustuer);
+  expect(solveRundschreiben(BACK_STEP[0]).haustuer).toBe(0);
+  expect(solveRundschreiben(BACK_STEP[1]).haustuer).toBeGreaterThan(0.35);
+  const hinge = new Vector3(...HAUSTUER.hinge);
+  for (const t of window(BACK_STEP[1], IN[0] + 1)) {
+    const { tibik: { position: [x, , z] }, haustuer } = solveRundschreiben(t);
+    const bearing = Math.atan2(z - hinge.z, x - hinge.x);
+    if (haustuer < bearing + 0.3)
+      expect(Math.hypot(x - hinge.x, z - hinge.z), t.toFixed(2)).toBeGreaterThan(HAUSTUER.width + 0.38);
+  }
   expect(Math.max(...window(UNLOCK[1], RUNDSCHREIBEN_DURATION).map((t) => solveRundschreiben(t).haustuer))).toBeGreaterThan(1.4);
-  for (const t of flick)
-    expect(handOf(t, "leftArm").distanceTo(haustuerLeafGripAt(t)), t.toFixed(2)).toBeLessThan(0.02);
   for (const t of window(DOOR_SHUT, RUNDSCHREIBEN_DURATION)) expect(solveRundschreiben(t).haustuer, t.toFixed(2)).toBe(0);
   const end = solveRundschreiben(RUNDSCHREIBEN_DURATION - 1 / FPS);
   expect(end.indoors).toBe(1);

@@ -90,12 +90,11 @@ const FOLLOW_X = [
 const STAIR_FOOT: Point = [STAIR_X, -3.62];
 const TURN_SPOT: Point = [-1.25, -3.18];
 const BY_THE_HAUSTUER: Point = [-1.2, -3.1];
-const CATCHING_IT: Point = [-1.6, -3.05];
+const CATCHING_IT: Point = [-1.6, -2.95];
 const IN_THE_DOORWAY: Point = [-1.85, -2.35];
 
-const HAUSTUER_CRACKED = 0.35;
-const HAUSTUER_PEAK = 1.2;
-const HAUSTUER_HELD = 1.35;
+const HAUSTUER_CRACKED = 0.09;
+const HAUSTUER_HELD = 1.5;
 const ARRIVE: Walk = {
   from: 15.8,
   to: 17.4,
@@ -103,12 +102,12 @@ const ARRIVE: Walk = {
   ramps: [0.4, 0.2],
 };
 const PIVOT_END = 18.0;
-const HAUSTUER_PULL: readonly [number, number] = [18.25, 18.5];
+const HAUSTUER_PUSH: readonly [number, number] = [18.25, 18.4];
+const HAUSTUER_LEVER_UP = HAUSTUER_PUSH[1] - 0.05;
 export const HAUSTUER_SWUNG_AT =
-  HAUSTUER_PULL[1] + coastTime(HAUSTUER_PULL, HAUSTUER_CRACKED, HAUSTUER_PEAK);
-const CATCH_STEP: readonly [number, number] = [18.85, 19.2];
-const HAUSTUER_CAUGHT = 19.15;
-const HAUSTUER_PUSHED = 19.55;
+  HAUSTUER_PUSH[1] + coastTime(HAUSTUER_PUSH, HAUSTUER_CRACKED, HAUSTUER_HELD);
+const CATCH_STEP: readonly [number, number] = [18.6, 19.2];
+const HAUSTUER_CAUGHT = 19.95;
 const LEAVE: Walk = {
   from: 19.3,
   to: LEAVE_END,
@@ -125,7 +124,7 @@ const TURN_STEPS: readonly (readonly [number, number])[] = [
 const ARMS_IN = 5.35;
 const RIGHT_HAND_ON_RAIL: readonly [number, number] = [5.55, 14.85];
 const RIGHT_ARM_DOWN = 15.2;
-const REACH_FOR_THE_LEAF = 18.9;
+const REACH_FOR_THE_LEAF = 19.2;
 
 const DESCENT_ROOT: readonly [number, number] = [5.4, 15.4];
 
@@ -207,20 +206,15 @@ const leverAt = (t: number, pull: readonly [number, number]) => {
 };
 
 export const tibikLeverAt = (t: number) => leverAt(t, LEVER_PULL);
-export const haustuerLeverAt = (t: number) => leverAt(t, HAUSTUER_PULL);
+export const haustuerLeverAt = (t: number) =>
+  leverAt(t, [HAUSTUER_PUSH[0], HAUSTUER_LEVER_UP]);
 
 export const tibikDoorAt = (t: number) =>
   t < SHUT[0]
     ? pulledThenCoasting(t, LEVER_PULL, CRACKED, SWUNG)
     : kf(t, SHUT, [SWUNG, 0]);
 export const haustuerAt = (t: number) =>
-  t < HAUSTUER_CAUGHT
-    ? pulledThenCoasting(t, HAUSTUER_PULL, HAUSTUER_CRACKED, HAUSTUER_PEAK)
-    : kf(
-        t,
-        [HAUSTUER_CAUGHT + 0.05, HAUSTUER_PUSHED],
-        [HAUSTUER_PEAK, HAUSTUER_HELD],
-      );
+  pulledThenCoasting(t, HAUSTUER_PUSH, HAUSTUER_CRACKED, HAUSTUER_HELD);
 const LIGHT_PRESS = 4.47;
 const BUTTON_HOLD = { reach: 4.1, grip: 4.45, release: 4.65, done: 4.95 };
 export const lightsAt = (t: number) => kf(t, LIGHTS_UP, [0, 1]);
@@ -231,7 +225,7 @@ export const SOUND_CUES = {
   hisDoorOpens: LEVER_PULL[0],
   hisDoorShuts: SHUT[1],
   lightSwitch: LIGHT_PRESS,
-  haustuerOpens: HAUSTUER_PULL[0],
+  haustuerOpens: HAUSTUER_PUSH[0],
 } as const;
 
 export const HOLDS: readonly Hold[] = [
@@ -265,7 +259,7 @@ export const HOLDS: readonly Hold[] = [
     arm: "leftArm",
     reach: HAUSTUER_REACH,
     grip: HAUSTUER_GRIP,
-    release: HAUSTUER_PULL[1],
+    release: HAUSTUER_LEVER_UP,
     done: HAUSTUER_LET_GO,
     target: (t) =>
       gripSolid(HAUSTUER, haustuerAt(t), "inner", haustuerLeverAt(t)),
@@ -387,9 +381,9 @@ export const treppenhausSteps = (): Step[] => {
     {
       side: other(arrival),
       lift: CATCH_STEP[0] + 0.02,
-      land: CATCH_STEP[0] + 0.18,
+      land: CATCH_STEP[0] + 0.28,
     },
-    { side: last(arrival), lift: CATCH_STEP[0] + 0.2, land: CATCH_STEP[1] },
+    { side: last(arrival), lift: CATCH_STEP[0] + 0.3, land: CATCH_STEP[1] },
     ...rhythmicSteps({
       from: LEAVE.from + 0.05,
       to: LEAVE.to,

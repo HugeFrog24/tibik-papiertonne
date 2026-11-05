@@ -1,7 +1,7 @@
-import { ShapeGeometry, Vector3 } from "three";
+import { Matrix4, ShapeGeometry, Vector3 } from "three";
 import { describe, expect, test } from "vitest";
 import { doorLeaf } from "../building/doors";
-import { collide, sphere } from "../physics/collision";
+import { boxGap, collide, obb, sphere } from "../physics/collision";
 import {
   DOORWAY,
   FACADE_THICKNESS,
@@ -72,10 +72,8 @@ describe("facade", () => {
     expect(blocking.map((s) => s.name)).toEqual([]);
   });
 
-  test("the Haustür opens inwards", () => {
-    expect(doorLeaf(HAUSTUER, 1.0).center.z).toBeLessThan(
-      FACADE_Z - FACADE_THICKNESS,
-    );
+  test("the Haustür opens outwards, towards the street, as German entrance doors do (escape route)", () => {
+    expect(doorLeaf(HAUSTUER, 1.0).center.z).toBeGreaterThan(FACADE_Z);
   });
 
   test("the doorway is the inside of the door frame", () => {
@@ -129,11 +127,11 @@ describe("the Haustür closer", () => {
     }
   });
 
-  test("its body hangs on the inside wall, above the opening", () => {
+  test("its body sits on the push side, under the head of the opening, just behind the shut leaf", () => {
     const { center, size } = HAUSTUER_CLOSER.body;
-    expect(center[1] - size[1] / 2).toBeGreaterThan(DOORWAY.y1);
-    expect(center[2] + size[2] / 2).toBeLessThanOrEqual(
-      FACADE_Z - FACADE_THICKNESS + 1e-9,
-    );
+    expect(center[1] + size[1] / 2).toBeLessThanOrEqual(DOORWAY.y1 + 1e-9);
+    expect(center[2] + size[2] / 2).toBeLessThan(HAUSTUER.hinge[2] - HAUSTUER.thickness / 2);
+    expect(center[2] - size[2] / 2).toBeGreaterThan(FACADE_Z - FACADE_THICKNESS);
+    expect(boxGap(obb("closer", new Matrix4(), size, center), doorLeaf(HAUSTUER, 0))).toBeGreaterThan(0);
   });
 });

@@ -4,43 +4,36 @@ import { easeUnit } from "../../characters/scalar";
 import { doorFrame, fittingsOf, gripSolid } from "../../building/doors";
 import type { Hold } from "../../physics/holds";
 import { KEY_GRIP, keyBowGrip, keyInLock } from "../../props/keyRingShape";
-import { HAUSTUER, closerSwing } from "../../street/facade";
-import { HAND_TOUCH, IN, UNLOCK } from "./choreography";
+import { CLOSER_DELAY, CLOSER_TIME, HAUSTUER, closerSwing } from "../../street/facade";
+import { BACK_STEP, UNLOCK } from "./choreography";
 
 export const HOUSE_KEY_INSERT = 0.026;
 const KEY_APPROACH = 0.25;
 const KEY_SLIDE = 0.02;
 const INSERTED = UNLOCK[0] + KEY_APPROACH;
-const TURN: readonly [number, number] = [INSERTED + 0.05, INSERTED + 0.35];
-const CRACK: readonly [number, number] = [TURN[1], TURN[1] + 0.15];
-const TURN_BACK: readonly [number, number] = [CRACK[1], UNLOCK[1]];
-const KEY_OUT: readonly [number, number] = [UNLOCK[1], UNLOCK[1] + 0.2];
-const TO_THE_LEAF: readonly [number, number] = [KEY_OUT[1], IN[0] + 0.4];
-export const PUSHED: readonly [number, number] = [TO_THE_LEAF[1], TO_THE_LEAF[1] + 0.02];
-const AJAR = 0.015;
-const SHOVED = 0.032;
-const WIDE = 1.5;
-const LET_GO = PUSHED[1];
-const COAST = ((WIDE - SHOVED) * (PUSHED[1] - PUSHED[0])) / (SHOVED - AJAR);
+const TURN: readonly [number, number] = [INSERTED + 0.05, BACK_STEP[0]];
+const TURN_BACK: readonly [number, number] = [BACK_STEP[1] - 0.4, BACK_STEP[1]];
+const KEY_OUT: readonly [number, number] = [BACK_STEP[1], BACK_STEP[1] + 0.15];
+const PULLED = 0.4;
+const WIDE = 1.65;
+const LET_GO = BACK_STEP[1];
+const COAST = ((WIDE - PULLED) * (BACK_STEP[1] - BACK_STEP[0])) / PULLED;
 const SWUNG = LET_GO + COAST;
-const DWELL = 0.3;
-const CLOSING = 4;
-const LEAF_GRIP = { x: 1.02, y: 1.15 };
 
-export const DOOR_SHUT = SWUNG + DWELL + CLOSING;
+export const DOOR_SHUT = SWUNG + CLOSER_DELAY + CLOSER_TIME;
 export const HOUSE_KEYS_IN_LOCK: readonly [number, number] = [UNLOCK[0], KEY_OUT[1]];
 
 export const haustuerAt = (t: number) => {
-  if (t < PUSHED[0]) return kf(t, [...CRACK], [0, AJAR]);
+  if (t <= BACK_STEP[0]) return 0;
   if (t < LET_GO) {
-    const k = (t - PUSHED[0]) / (PUSHED[1] - PUSHED[0]);
-    return AJAR + (SHOVED - AJAR) * k * k;
+    const k = (t - BACK_STEP[0]) / (BACK_STEP[1] - BACK_STEP[0]);
+    return PULLED * k * k;
   }
   if (t < SWUNG) {
     const u = 1 - (t - LET_GO) / COAST;
-    return WIDE - (WIDE - SHOVED) * u * u;
+    return WIDE - (WIDE - PULLED) * u * u;
   }
-  return closerSwing(t, SWUNG + DWELL, WIDE, CLOSING);
+  return closerSwing(t, SWUNG, WIDE);
 };
 
 const CYLINDER = new Vector3(
@@ -72,36 +65,19 @@ export const houseKeyInLock = (t: number) =>
     keyTurn(t),
   );
 
-export const haustuerLeafGripAt = (t: number) =>
-  new Vector3(
-    LEAF_GRIP.x,
-    LEAF_GRIP.y,
-    HAUSTUER.thickness / 2 + HAND_TOUCH,
-  ).applyMatrix4(doorFrame(HAUSTUER, haustuerAt(t)));
-
-const leftHandAt = (t: number) => {
-  const onKey = keyBowGrip(
-    houseKeyInLock(Math.min(t, TO_THE_LEAF[0])),
-    "house",
-    KEY_GRIP,
-  );
-  if (t <= TO_THE_LEAF[0]) return onKey;
-  return onKey.lerp(
-    haustuerLeafGripAt(t),
-    easeUnit((t - TO_THE_LEAF[0]) / (TO_THE_LEAF[1] - TO_THE_LEAF[0])),
-  );
-};
+const leftHandAt = (t: number) =>
+  keyBowGrip(houseKeyInLock(Math.min(t, KEY_OUT[1])), "house", KEY_GRIP);
 
 export const HAUSTUER_HOLD: Hold = {
-  name: "his house key, then a flick on the Haustür's leaf",
+  name: "his house key, turned to pull the Haustür open",
   arm: "leftArm",
   reach: UNLOCK[0] - 0.4,
   grip: UNLOCK[0],
-  release: LET_GO,
-  done: LET_GO + 0.3,
+  release: KEY_OUT[1],
+  done: KEY_OUT[1] + 0.3,
   target: (t) => gripSolid(HAUSTUER, haustuerAt(t), "outer"),
   near: leftHandAt,
   exact: true,
 };
 
-export const indoorsAt = (t: number) => easeUnit((t - (LET_GO + 0.5)) / 0.8);
+export const indoorsAt = (t: number) => easeUnit((t - (LET_GO + 1.2)) / 0.8);

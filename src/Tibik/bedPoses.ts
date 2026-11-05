@@ -7,7 +7,7 @@ import { allColliders, bodyColliders, lowestPoint, type Pose, type Side } from "
 import { ARM_REST, ARM_TUCK, RIG, TIBIK_REST } from "./rig";
 
 
-const backDepth = (() => {
+export const BACK_DEPTH = (() => {
   const torso = bodyColliders(RIG, { position: [0, 0, 0], rotationY: 0, pose: TIBIK_REST }).torso;
   return -Math.min(...torso.map((s) => s.center.z - s.radius));
 })();
@@ -25,7 +25,7 @@ const sittingLeg = (side: Side) =>
   leg(side, new Vector3(side * (RIG.hipX + SIT_LEG.splay), RIG.hipHeight - SIT_LEG.drop, SIT_LEG.reach));
 
 const lyingLeg = (side: Side) =>
-  leg(side, new Vector3(side * (RIG.hipX + LIE_LEG.splay), RIG.hipHeight - LIE_LEG.along, LIE_LEG.heel - backDepth));
+  leg(side, new Vector3(side * (RIG.hipX + LIE_LEG.splay), RIG.hipHeight - LIE_LEG.along, LIE_LEG.heel - BACK_DEPTH));
 
 export const SITTING: Pose = {
   ...TIBIK_REST,

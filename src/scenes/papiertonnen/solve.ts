@@ -156,12 +156,14 @@ export const solveTibik = (
   solids: readonly Solid[],
   t = 0,
   holds: readonly Hold[] = [],
+  ground: Solid | readonly Solid[] = GROUND,
 ): TibikFrame => {
+  const grounds: readonly Solid[] = Array.isArray(ground) ? ground : [ground];
   let tibik = asCharacter(authored);
-  tibik = guardGround(tibik, GROUND);
+  tibik = guardGround(tibik, ground);
   tibik = guardBody(
     tibik,
-    solids.filter((s) => s !== GROUND),
+    solids.filter((s) => !grounds.includes(s)),
   );
   tibik = guardLean(tibik, solids);
   tibik = workArm(tibik, "leftArm", t, solids, holds);

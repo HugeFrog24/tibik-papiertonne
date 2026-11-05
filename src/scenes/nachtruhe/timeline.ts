@@ -8,7 +8,7 @@ export const STAIRWELL_ON = ENTRY.indoors[0] + 0.3;
 export const LAMP_ON_AT_DUSK = STAIRWELL_ON + 2.6;
 export const DUSK = [0, LAMP_ON_AT_DUSK + 1] as const;
 
-export const WALK_TO_BED = after(DUSK[1] - 0.6, 2.4);
+export const WALK_TO_BED = after(DUSK[1] - 1.2, 3);
 export const HOP_UP = after(WALK_TO_BED[1] + 0.2, 0.5);
 export const LIE_DOWN = after(HOP_UP[1] + 0.6, 1.3);
 export const BLANKET_UP = [LIE_DOWN[0] + 0.3, LIE_DOWN[1] + 0.7] as const;

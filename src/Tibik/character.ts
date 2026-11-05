@@ -17,6 +17,7 @@ export type TibikFrame = {
   readonly rotationY: number;
   readonly pose: TibikPose;
   readonly holdingBox: boolean;
+  readonly tilt?: number;
 };
 
 export const TIBIK_GAIT: GaitStyle = { stride: 0.72, plantAt: 0.4, lift: 0.06, heelStrike: 0.42, heelRoll: 0.06, toeOff: 0.6, toeRoll: 0.12 };

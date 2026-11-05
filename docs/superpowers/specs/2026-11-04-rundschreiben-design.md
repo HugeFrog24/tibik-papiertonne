@@ -88,6 +88,8 @@ Sehr geehrte Mieterinnen und Mieter,
 aus gegebenem Anlass:
 Wir sind stets bemüht, die Umwelt zu schonen. Deshalb bitten wir Sie:
 Das Entnehmen aus der Papiertonne ist nicht gestattet.
+Ressourcen sind kostbar. Verschwenden Sie diese bitte nicht
+durch Wiederverwendung.
 Bitte wenden Sie sich an den örtlichen Baumarkt, um einen Karton
 käuflich zu erwerben.
 
@@ -100,7 +102,9 @@ Ihre Hausverwaltung Musterstadt
 - The Hausverwaltung contradicts itself (user's idea, 2026-11-05): it is "stets
   bemüht", as a German reference puts a failure kindly, to spare the
   environment, and for that reason forbids taking a box out of the Papiertonne
-  and sends the tenants to the Baumarkt to buy a new one.
+  and sends the tenants to the Baumarkt to buy a new one. Between the two it
+  turns mockingly stern: resources are precious, so do not waste them by
+  reusing them (the user's pick of the offered lines, 2026-11-05).
 - The letter aims at Tibik alone, passive-aggressively and without naming
   him, and says nothing of Karen's shouting, doorbell siege or phone calls:
   that one-sidedness is the joke (user's decision, 2026-11-05, which dropped
@@ -110,7 +114,7 @@ Ihre Hausverwaltung Musterstadt
   wrote it.
 - **Readable:** the reading rule for speech bubbles applies to the inserts
   (at most 17 characters per second). Insert 1 carries salutation and body
-  (about 265 characters with the 2026-11-05 wording, so at least 16 s; the
+  (about 345 characters with the 2026-11-05 wording, so at least 21 s; the
   read's length follows the text); insert 2 carries the thanks line
   and the signature (about 90 characters, at least 5 s). The letterhead, date,
   address and subject are on screen too but are not counted as must-read.

@@ -21,6 +21,8 @@ export const LETTER_LINES: readonly {
   { text: "aus gegebenem Anlass:", role: "body" },
   { text: "Wir sind stets bemüht, die Umwelt zu schonen. Deshalb bitten wir Sie:", role: "body" },
   { text: "Das Entnehmen aus der Papiertonne ist nicht gestattet.", role: "body" },
+  { text: "Ressourcen sind kostbar. Verschwenden Sie diese bitte nicht", role: "body" },
+  { text: "durch Wiederverwendung.", role: "body" },
   { text: "Bitte wenden Sie sich an den örtlichen Baumarkt, um einen Karton", role: "body" },
   { text: "käuflich zu erwerben.", role: "body" },
   {

@@ -1,4 +1,6 @@
 import type { Matrix4 } from "three";
+import { bedroomSolids, type CurtainOpen } from "../../building/bedroomShape";
+import type { Solid } from "../../physics/collision";
 import type { Hold } from "../../physics/holds";
 import { memoByFrame } from "../../physics/memoSolve";
 import { BINS } from "../../street/layout";
@@ -20,15 +22,29 @@ export const NACHTRUHE_HOLDS: readonly Hold[] = [ENTRY.hold];
 const HOUSE_LOCK: Lock = { window: ENTRY.keysInLock, at: ENTRY.houseKeyInLock, name: "house", reach: ENTRY.hold.reach };
 const SHUT_LIDS = BINS.map(() => 0);
 
+const RESTS_ON = new Set(["floor", "mattress", "pillow"]);
+const rooms = new Map<string, { readonly solids: readonly Solid[]; readonly ground: readonly Solid[] }>();
+
+const roomAt = (door: number, curtain: CurtainOpen) => {
+  const key = `${door}/${curtain.join("/")}`;
+  const known = rooms.get(key);
+  if (known) return known;
+  const solids = bedroomSolids({ door, curtain });
+  const room = { solids, ground: solids.filter((s) => RESTS_ON.has(s.name)) };
+  rooms.set(key, room);
+  return room;
+};
+
 const solve = (t: number): NachtruheState => {
+  const world = nachtruheWorldAt(t);
   const street: StreetState = { lids: SHUT_LIDS, haustuer: ENTRY.haustuerAt(t), haustuerLever: 0, mailboxDoor: 0, indoors: ENTRY.indoorsAt(t) };
-  const tibik = solveTibik(nachtruheTibikAt(t), streetSolids(street), t, NACHTRUHE_HOLDS);
-  return {
-    ...nachtruheWorldAt(t),
-    ...street,
-    tibik,
-    keys: t < DUSK[1] ? keysInHand(t, tibik, [HOUSE_LOCK], "house") : null,
-  };
+  if (t < DUSK[1]) {
+    const tibik = solveTibik(nachtruheTibikAt(t), streetSolids(street), t, NACHTRUHE_HOLDS);
+    return { ...world, ...street, tibik, keys: keysInHand(t, tibik, [HOUSE_LOCK], "house") };
+  }
+  const room = roomAt(world.bedroomDoor, world.curtains);
+  const tibik = solveTibik(nachtruheTibikAt(t), room.solids, t, NACHTRUHE_HOLDS, room.ground);
+  return { ...world, ...street, tibik, keys: null };
 };
 
 export const solveNachtruhe = memoByFrame(solve);

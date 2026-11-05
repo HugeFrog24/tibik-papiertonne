@@ -1,3 +1,5 @@
+import { inWindow } from "./scalar";
+
 export type Point = readonly [number, number];
 
 export type Walk = {
@@ -66,4 +68,16 @@ export const walkAt = (walk: Walk, t: number) => {
   const u = parameterAt(walk, fraction);
   const [x, z] = bezier(walk.via, u);
   return { x, z, heading: headingAt(walk, u) };
+};
+
+export const SETTLE = 0.45;
+
+const nearest = (angle: number, to: number) => angle + 2 * Math.PI * Math.round((to - angle) / (2 * Math.PI));
+
+export const walkFacing = (walk: Walk, t: number, facing: number, settle = true, start = facing) => {
+  const { x, z, heading } = walkAt(walk, t);
+  const setOff = inWindow(t, [walk.from, walk.from + SETTLE]);
+  const away = setOff * (settle ? 1 - inWindow(t, [walk.to - SETTLE, walk.to]) : 1);
+  const turned = start === facing ? 0 : (nearest(start, facing) - facing) * (1 - setOff);
+  return { x, z, yaw: facing + (nearest(heading, facing) - facing) * away + turned };
 };

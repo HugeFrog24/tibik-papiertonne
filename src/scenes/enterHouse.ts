@@ -3,7 +3,7 @@ import { kf } from "../characters/animate";
 import { STEP_OVERLAP, opposite, rhythmicSteps, type Step } from "../characters/gait";
 import { inWindow } from "../characters/scalar";
 import type { Side } from "../characters/skeleton";
-import { walkAt, type Walk } from "../characters/walkPath";
+import { walkFacing, type Walk } from "../characters/walkPath";
 import { coastTime, doorFrame, fittingsOf, gripSolid, pulledThenCoasting } from "../building/doors";
 import { stepLift } from "../building/stairwell";
 import type { Hold } from "../physics/holds";
@@ -15,7 +15,6 @@ export type Root = { readonly x: number; readonly z: number; readonly yaw: numbe
 
 export const FACING_THE_WALL = Math.PI;
 const ONTO_THE_STEP = [0.26, 0.3] as const;
-const SETTLE = 0.45;
 const STANCE = 0.17;
 
 export const DOOR_STAND: Stand = { x: -1.25, z: -1.8 };
@@ -32,10 +31,8 @@ export const HAUSTUER_WIDE = 1.65;
 const PULLED = 0.4;
 
 export const walkLeg = (walk: Walk, t: number, settle = true): Root => {
-  const { x, z, heading } = walkAt(walk, t);
-  const near = heading + 2 * Math.PI * Math.round((FACING_THE_WALL - heading) / (2 * Math.PI));
-  const away = inWindow(t, [walk.from, walk.from + SETTLE]) * (settle ? 1 - inWindow(t, [walk.to - SETTLE, walk.to]) : 1);
-  return { x, z, yaw: FACING_THE_WALL + (near - FACING_THE_WALL) * away, y: stepLift(z, ...ONTO_THE_STEP) };
+  const { x, z, yaw } = walkFacing(walk, t, FACING_THE_WALL, settle);
+  return { x, z, yaw, y: stepLift(z, ...ONTO_THE_STEP) };
 };
 
 const shuffle = (t: number, span: readonly [number, number], from: Stand, to: Stand): Root => {
@@ -44,11 +41,11 @@ const shuffle = (t: number, span: readonly [number, number], from: Stand, to: St
   return { x: from.x + (to.x - from.x) * k, z, yaw: FACING_THE_WALL, y: stepLift(z, ...ONTO_THE_STEP) };
 };
 
-const squareAt =
+export const squareAt =
   (stand: Stand) =>
   (s: Step): Step => ({ ...s, at: { x: stand.x - s.side * STANCE, z: stand.z } });
 
-const pinEnd = (steps: readonly Step[], stands: readonly Stand[]): Step[] =>
+export const pinEnd = (steps: readonly Step[], stands: readonly Stand[]): Step[] =>
   steps.map((s, i) => {
     const k = i - (steps.length - stands.length);
     return k < 0 ? s : squareAt(stands[k])(s);

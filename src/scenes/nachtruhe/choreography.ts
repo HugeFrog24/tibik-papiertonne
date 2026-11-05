@@ -13,6 +13,7 @@ import { WALK_SWAY, WALK_SWING, swungArms, walkArmKeys, walkingOn } from "../../
 import type { Vec3 } from "../../toon/primitives";
 import { mixLooks, WEATHER, type WeatherLook } from "../../weather/overcast";
 import { DOOR_STAND, pinApproach, walkLeg, type Root } from "../enterHouse";
+import { bedroomEveningAt } from "./bedroom";
 import {
   BLANKET_BACK,
   BLANKET_UP,
@@ -99,7 +100,9 @@ const duskTibikAt = (t: number): TibikFrame => {
   return plantedTibik(duskGait(), t, { position: [x, y, z], rotationY: yaw, pose });
 };
 
-export const nachtruheTibikAt = (t: number): TibikFrame => duskTibikAt(Math.min(t, DUSK[1]));
+export { BED_SEAT } from "./bedroom";
+
+export const nachtruheTibikAt = (t: number): TibikFrame => (t < DUSK[1] ? duskTibikAt(t) : bedroomEveningAt(t));
 
 const his = flatWindow(12, 1, "links");
 const hers = flatWindow(12, 1, "rechts");

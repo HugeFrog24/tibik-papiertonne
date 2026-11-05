@@ -13,7 +13,7 @@ import {
   walkCadence,
   type RootAt,
 } from "../../characters/gait";
-import { easeUnit, inWindow } from "../../characters/scalar";
+import { after, easeUnit, inWindow } from "../../characters/scalar";
 import { armColliders } from "../../characters/skeleton";
 import { frame, obb } from "../../physics/collision";
 import { TONNE, TONNE_FLOOR, tonneLidParts } from "../../street/tonneShape";
@@ -56,7 +56,6 @@ export const UNFOLD = [10.4, 11.6] as const;
 const READ_FROM = 12;
 const READ_SPARE = 0.5;
 export const READ = [READ_FROM, READ_FROM + Math.ceil((mustReadSeconds(["body"]) + READ_SPARE) * 2) / 2] as const;
-const after = (from: number, length: number) => [from, from + length] as const;
 export const THANKS = after(READ[1], 5);
 export const REACT = after(THANKS[1], 2);
 export const FOLD = after(REACT[1], 1.5);

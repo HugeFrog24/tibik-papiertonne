@@ -38,15 +38,18 @@ const indoor = door.flatMap((angle) => bedroomSolids({ door: angle, curtain: [0,
 
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
 
-test("the shots run back to back, with the plan's names and lengths", () => {
-  expect(NACHTRUHE_SHOTS.map((s) => [s.name, s.from, s.to])).toEqual([
-    ["Dusk wide", 0, 6],
-    ["Bedroom: evening", 6, 12],
-    ["Drone rise", 12, 20],
-    ["Dawn", 20, 23],
-    ["Bedroom: morning", 23, 29],
-  ]);
-  expect(NACHTRUHE_DURATION).toBe(29);
+test("the shots run back to back with the plan's names; the drone and the dawn keep the plan's lengths, the others are as long as their beats need", () => {
+  expect(NACHTRUHE_SHOTS.map((s) => s.name)).toEqual(["Dusk wide", "Bedroom: evening", "Drone rise", "Dawn", "Bedroom: morning"]);
+  expect(NACHTRUHE_SHOTS[0].from).toBe(0);
+  NACHTRUHE_SHOTS.slice(1).forEach((s, i) => expect(s.from).toBe(NACHTRUHE_SHOTS[i].to));
+  expect(NACHTRUHE_SHOTS[NACHTRUHE_SHOTS.length - 1].to).toBe(NACHTRUHE_DURATION);
+  const length = (name: string) => shot(name).to - shot(name).from;
+  expect(length("Drone rise")).toBeCloseTo(8, 9);
+  expect(length("Dawn")).toBeCloseTo(3, 9);
+  for (const name of ["Dusk wide", "Bedroom: evening", "Bedroom: morning"]) {
+    expect(length(name), name).toBeGreaterThanOrEqual(6);
+    expect(length(name), name).toBeLessThan(13);
+  }
 });
 
 test("the lens is never inside or against a solid, the bedroom door at every angle included", { timeout: 120_000 }, () => {

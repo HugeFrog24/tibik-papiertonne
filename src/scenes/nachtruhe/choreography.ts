@@ -1,0 +1,100 @@
+import { BEDROOM_DOOR, type CurtainOpen } from "../../building/bedroomShape";
+import { kf } from "../../characters/animate";
+import { inWindow } from "../../characters/scalar";
+import type { Walk } from "../../characters/walkPath";
+import { ENTRANCE_X, flatWindow, type Opening } from "../../street/building";
+import { SENSOR, sensorLampOn } from "../../street/entranceSensor";
+import { switchedOn } from "../../street/lightsOn";
+import type { Vec3 } from "../../toon/primitives";
+import { mixLooks, WEATHER, type WeatherLook } from "../../weather/overcast";
+import { DOOR_STAND, walkLeg, type Root } from "../enterHouse";
+import {
+  BLANKET_BACK,
+  BLANKET_UP,
+  CURTAIN_PULL,
+  DAWN,
+  DRONE,
+  DUSK,
+  ENTRY,
+  KAREN_OUT,
+  LAMP_OFF,
+  LAMP_ON,
+  LAMP_ON_AT_DUSK,
+  STAIRWELL_ON,
+  STREET_LAMPS_ON,
+  WALK_HOME,
+} from "./timeline";
+
+export const FAR = 0;
+export const HIS = 1;
+
+export const LIGHTS = {
+  streetLamps: [STREET_LAMPS_ON, DAWN[0] + 1.6],
+  stairwell: [STAIRWELL_ON, DUSK[1]],
+  hisLamp: [
+    [LAMP_ON_AT_DUSK, LAMP_OFF],
+    [LAMP_ON, Infinity],
+  ],
+  karen: [-Infinity, KAREN_OUT],
+} as const;
+
+const NEIGHBOURS = { times: [0, DUSK[1], DRONE[0], KAREN_OUT - 1], shares: [0.8, 1, 0.7, 0] } as const;
+const TOWN = { times: [0, DUSK[1], DRONE[1], DAWN[1]], shares: [0.8, 1, 0.3, 0] } as const;
+const GLOW = 1;
+
+const during = (t: number, [from, to]: readonly [number, number]) => t >= from && t < to;
+
+const walkHome: Walk = {
+  from: WALK_HOME[0],
+  to: WALK_HOME[1],
+  via: [
+    [-7.2, -0.85],
+    [-2.6, -0.85],
+    [DOOR_STAND.x, -1.05],
+    [DOOR_STAND.x, DOOR_STAND.z],
+  ],
+};
+
+export const duskRootAt = (t: number): Root => ENTRY.rootAt(t) ?? walkLeg(walkHome, t);
+
+const duskRoot = (t: number): Vec3 => {
+  const { x, y, z } = duskRootAt(t);
+  return [x, y, z];
+};
+
+const his = flatWindow(12, 1, "links");
+const hers = flatWindow(12, 1, "rechts");
+const same = (a: Opening, b: Opening) => a.kind === b.kind && a.x === b.x && a.storey === b.storey;
+const inHisFlat = (house: number, o: Opening) => house === 12 && o.storey === his.storey && o.x < ENTRANCE_X && o.kind !== "stairs";
+
+const lookAt = (t: number): WeatherLook => (t < DUSK[1] ? WEATHER.dusk : mixLooks(WEATHER.night, WEATHER.rain, inWindow(t, DAWN)));
+
+export const nachtruheWorldAt = (t: number) => {
+  const lamps: readonly [boolean, boolean] = [false, LIGHTS.hisLamp.some((span) => during(t, span))];
+  const stairwellLit = during(t, LIGHTS.stairwell);
+  const karenLit = during(t, LIGHTS.karen);
+  const neighbours = kf(t, NEIGHBOURS.times, NEIGHBOURS.shares);
+  const windowLight = (house: number, o: Opening) => {
+    if (house === 12 && same(o, his)) return lamps[HIS] ? GLOW : 0;
+    if (house === 12 && same(o, hers)) return karenLit ? GLOW : 0;
+    if (inHisFlat(house, o)) return 0;
+    if (o.kind === "stairs") return house === 12 && stairwellLit ? GLOW : 0;
+    return switchedOn(`nachtruhe/${house}/${o.kind}/${o.x}/${o.storey}`, neighbours) ? GLOW : 0;
+  };
+  const curtains: CurtainOpen = [0, inWindow(t, CURTAIN_PULL)];
+  return {
+    look: lookAt(t),
+    rain: t >= DAWN[0],
+    lampsOn: during(t, LIGHTS.streetLamps),
+    entranceLamp: t < DUSK[1] && sensorLampOn(duskRoot, SENSOR.range, t),
+    town: kf(t, TOWN.times, TOWN.shares),
+    lamps,
+    stairwellLit,
+    windowLight,
+    curtains,
+    blanket: kf(t, [BLANKET_UP[0], BLANKET_UP[1], BLANKET_BACK[0], BLANKET_BACK[1]], [0, 1, 1, 0]),
+    bedroomDoor: BEDROOM_DOOR.open,
+  };
+};
+
+export type NachtruheWorld = ReturnType<typeof nachtruheWorldAt>;

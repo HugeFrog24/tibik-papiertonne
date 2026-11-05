@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
 import { kf } from "../characters/animate";
 import { STEP_OVERLAP, opposite, rhythmicSteps, type Step } from "../characters/gait";
-import { easeUnit, inWindow } from "../characters/scalar";
+import { inWindow } from "../characters/scalar";
 import type { Side } from "../characters/skeleton";
 import { walkAt, type Walk } from "../characters/walkPath";
 import { coastTime, doorFrame, fittingsOf, gripSolid, pulledThenCoasting } from "../building/doors";
@@ -72,6 +72,7 @@ export const enterHouse = (unlock: number) => {
   const IN_WALK: readonly [number, number] = [ROUND_THE_LEAF[1], IN[0] + 4.4];
   const WALKING_IN: readonly [number, number] = [ROUND_THE_LEAF[0], IN_WALK[1]];
   const THROUGH_THE_DOORWAY: readonly [number, number] = [ROUND_THE_LEAF[0] + 0.5, IN_WALK[1] + 0.3];
+  const INDOORS: readonly [number, number] = [BACK_STEP[1] + 1.2, BACK_STEP[1] + 2.0];
 
   const walkIn: Walk = {
     from: IN_WALK[0],
@@ -156,7 +157,8 @@ export const enterHouse = (unlock: number) => {
     keysInLock: [UNLOCK[0], KEY_OUT[1]] as const,
     sounds: { keyIn: INSERTED, unlocked: TURN[1], opens: BACK_STEP[0], keyOut: KEY_OUT[0], shut: DOOR_SHUT },
     doorShut: DOOR_SHUT,
-    indoorsAt: (t: number) => easeUnit((t - (BACK_STEP[1] + 1.2)) / 0.8),
+    indoors: INDOORS,
+    indoorsAt: (t: number) => inWindow(t, INDOORS),
   };
 };
 

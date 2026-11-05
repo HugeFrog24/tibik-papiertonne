@@ -10,6 +10,8 @@ export const inWindow = (t: number, [a, b]: readonly [number, number]) =>
 
 export const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
+export const after = (from: number, length: number) => [from, from + length] as const;
+
 export const lerpVec3 = (
   a: readonly [number, number, number],
   b: readonly [number, number, number],

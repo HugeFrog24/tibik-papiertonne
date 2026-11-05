@@ -371,9 +371,9 @@ test("his hands hold the envelope, its flap and the letter by their edges, never
   expect(found.slice(0, 900)).toEqual([]);
 });
 
-test("while he takes out, opens, unfolds, reads and folds back the letter, the envelope and the letter keep an ink outline clear of his head and body, so his outline never shows across the paper", { timeout: 300_000 }, () => {
+test("from the mailbox to the throw, the envelope and the letter keep an ink outline clear of his head and body, so his outline never shows across the paper", { timeout: 300_000 }, () => {
   const found: string[] = [];
-  for (const t of window(BOX_OPEN[0], TO_BIN[1] - 0.4)) {
+  for (const t of window(BOX_OPEN[0], KLOPPEN[0])) {
     const character = asCharacter(solveRundschreiben(t).tibik);
     const head = headSurface(character, 16, 32);
     const torso = bodyColliders(RIG, character).torso;

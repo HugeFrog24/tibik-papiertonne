@@ -96,8 +96,8 @@ const walkHome: Walk = {
 
 export const PAPER_BIN = binByName("Papier 1");
 export const BIN_FLOOR = PAPER_BIN.position[1] + TONNE_FLOOR;
-const BIN_STAND = { x: PAPER_BIN.position[0] + 0.15, z: -0.8 };
-const BIN_LEAN = 0.3;
+const BIN_STAND = { x: PAPER_BIN.position[0] + 0.15, z: -0.85 };
+const BIN_LEAN = 0.12;
 
 const walkToBin: Walk = {
   from: TO_BIN[0],
@@ -494,7 +494,7 @@ const heldPose = (t: number) => {
 const READY = {
   x: PAPER_BIN.position[0] + 0.316,
   y: 1.1,
-  z: PAPER_BIN.position[2] + 0.52,
+  z: PAPER_BIN.position[2] + 0.47,
 };
 const FLIGHT = 0.42;
 const THROW = 3.4;
@@ -611,8 +611,14 @@ export const ENVELOPE_RIGHT_HOLD: Hold = {
   exact: true,
 };
 
+const SPRUNG_BACK = 0.3;
+
 export const flapAt = (t: number) =>
-  kf(t, [FLAP[0], FLAP[1], FLAP[1] + 0.4], [0, 1, FLAP_FLOP]);
+  kf(
+    t,
+    [FLAP[0], FLAP[1], FLAP[1] + 0.4, FOLD[1], FOLD[1] + 0.5],
+    [0, 1, FLAP_FLOP, FLAP_FLOP, SPRUNG_BACK],
+  );
 
 export const envelopeBendAt = (t: number) => {
   const held = inWindow(t, ENVELOPE_LIFT) * (1 - inWindow(t, KLOPPEN));

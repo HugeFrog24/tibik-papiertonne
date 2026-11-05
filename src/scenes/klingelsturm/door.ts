@@ -2,7 +2,6 @@ import { gripSolid } from "../../building/doors";
 import { groundWithMats } from "../../building/ground";
 import { TIBIK_DOOR, stairwellGround } from "../../building/stairwell";
 import {
-  planGait,
   shiftSteps,
   type RootAt,
   type Step,
@@ -19,10 +18,9 @@ import {
 } from "./exit";
 import { inWindow } from "../../characters/scalar";
 import type { Hold } from "../../physics/holds";
-import { lazy } from "../../physics/lazy";
 import { floorLevel } from "../../street/building";
-import { TIBIK_GAIT, plantedTibik, type TibikFrame } from "../../Tibik/character";
-import { RIG, TIBIK_REST } from "../../Tibik/rig";
+import { tibikGaitOf, plantedTibik, type TibikFrame } from "../../Tibik/character";
+import { TIBIK_REST } from "../../Tibik/rig";
 
 export const AJAR = { slit: 0.12 };
 export const AJAR_ANGLE = Math.acos(1 - AJAR.slit / TIBIK_DOOR.width);
@@ -88,17 +86,7 @@ const STEPS: readonly Step[] = [
   ...exitSteps(OUT, TURN[0]),
 ];
 
-export const tibikGait = lazy(() =>
-  planGait(
-    RIG,
-    TIBIK_GAIT,
-    tibikRoot,
-    STEPS,
-    [-1, 60],
-    stairwellGround,
-    groundWithMats,
-  ),
-);
+export const tibikGait = tibikGaitOf(tibikRoot, () => STEPS, 60, stairwellGround, groundWithMats);
 
 export const tibikAt = (t: number): TibikFrame => {
   const { x, z, yaw, y = floorLevel(1) } = tibikRoot(t);

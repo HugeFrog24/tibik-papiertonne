@@ -1,7 +1,6 @@
 import { Easing } from "remotion";
 import { armKf, blinkAt, kf } from "../../characters/animate";
 import {
-  planGait,
   rhythmicSteps,
   shiftSteps,
   STEP_OVERLAP,
@@ -25,13 +24,12 @@ import {
   ARM_REST,
   ARM_TUCK,
   ARM_WALK,
-  RIG,
   TIBIK_REST,
   type ArmPose,
   type TibikPose,
 } from "../../Tibik/rig";
 import type { Vec3 } from "../../toon/primitives";
-import { TIBIK_GAIT, plantedTibik, type TibikFrame } from "../../Tibik/character";
+import { tibikGaitOf, plantedTibik, type TibikFrame } from "../../Tibik/character";
 import { treppenhausEnd } from "../treppenhaus/solve";
 
 export const OPENING = 1.5;
@@ -181,16 +179,7 @@ const tibikSteps = (): Step[] => {
   return [...alternating, ...AT_THE_BIN];
 };
 
-export const tibikGait = lazy(() =>
-  planGait(
-    RIG,
-    TIBIK_GAIT,
-    rootAt,
-    tibikSteps(),
-    [-1, PAPIERTONNEN_DURATION],
-    stairwellGround,
-  ),
-);
+export const tibikGait = tibikGaitOf(rootAt, tibikSteps, PAPIERTONNEN_DURATION, stairwellGround);
 
 export const footstepTimes = (fps: number): number[] =>
   touchdownTimes(tibikGait(), PAPIERTONNEN_DURATION, fps);

@@ -16,7 +16,6 @@ import {
   STEP_OVERLAP,
   ankleOnTread,
   opposite,
-  planGait,
   plantFeet,
   rhythmicSteps,
   strideAt,
@@ -24,7 +23,6 @@ import {
   type RootAt,
   type Step,
 } from "../../characters/gait";
-import { lazy } from "../../physics/lazy";
 import { easeUnit, smoothstep } from "../../characters/scalar";
 import type { Side } from "../../characters/skeleton";
 import {
@@ -36,7 +34,7 @@ import {
   type TibikPose,
 } from "../../Tibik/rig";
 import type { Vec3 } from "../../toon/primitives";
-import { TIBIK_GAIT, type TibikFrame } from "../../Tibik/character";
+import { tibikGaitOf, type TibikFrame } from "../../Tibik/character";
 import {
   headingAt,
   walkAt,
@@ -380,16 +378,12 @@ export const treppenhausSteps = (): Step[] => {
   ];
 };
 
-export const treppenhausTibikGait = lazy(() =>
-  planGait(
-    RIG,
-    TIBIK_GAIT,
-    treppenhausRoot,
-    treppenhausSteps(),
-    [-1, STORY_END + 0.5],
-    stairwellGround,
-    groundWithMats,
-  ),
+export const treppenhausTibikGait = tibikGaitOf(
+  treppenhausRoot,
+  treppenhausSteps,
+  STORY_END + 0.5,
+  stairwellGround,
+  groundWithMats,
 );
 
 export const footstepStoryTimes = (): number[] =>

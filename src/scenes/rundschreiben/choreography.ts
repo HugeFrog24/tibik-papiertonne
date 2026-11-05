@@ -4,7 +4,6 @@ import {
   STEP_OVERLAP,
   offTheEdges,
   opposite,
-  planGait,
   rhythmicSteps,
   strideAt,
   touchdownTimes,
@@ -42,7 +41,7 @@ import {
 import { ENTRANCE_LAMP, entranceGround } from "../../street/layout";
 import { stepLift } from "../../building/stairwell";
 import { FPS } from "../../frameRate";
-import { TIBIK_GAIT, plantedTibik, type TibikFrame } from "../../Tibik/character";
+import { TIBIK_GAIT, tibikGaitOf, plantedTibik, type TibikFrame } from "../../Tibik/character";
 import { ARM_REST, ARM_TUCK, ARM_WALK, RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { blendArm } from "../../physics/holds";
 import type { Vec3 } from "../../toon/primitives";
@@ -239,15 +238,11 @@ const tibikSteps = () => {
 
 const GAIT_SPAN = [-1, RUNDSCHREIBEN_DURATION] as const;
 
-export const tibikGait = lazy(() =>
-  planGait(
-    RIG,
-    TIBIK_GAIT,
-    rootAt,
-    offTheEdges(RIG, TIBIK_GAIT, rootAt, tibikSteps(), GAIT_SPAN, entranceGround),
-    GAIT_SPAN,
-    entranceGround,
-  ),
+export const tibikGait = tibikGaitOf(
+  rootAt,
+  () => offTheEdges(RIG, TIBIK_GAIT, rootAt, tibikSteps(), GAIT_SPAN, entranceGround),
+  RUNDSCHREIBEN_DURATION,
+  entranceGround,
 );
 
 export const footstepTimes = (fps: number): number[] =>

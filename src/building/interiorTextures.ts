@@ -41,6 +41,8 @@ const grain = (
   }
 };
 
+export const WALL_WHITE = "#f3f1ec";
+
 export const WOOD = {
   oak: { base: "#a8682f", dark: "#5e3713", light: "#c98a4c" },
   alder: { base: "#d08a45", dark: "#a8642a", light: "#e3a565" },

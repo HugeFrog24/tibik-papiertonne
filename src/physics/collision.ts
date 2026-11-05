@@ -81,6 +81,12 @@ export const obb = (
   };
 };
 
+export const partObb = (part: {
+  readonly name: string;
+  readonly center: readonly [number, number, number];
+  readonly size: readonly [number, number, number];
+}): Obb => obb(part.name, frame(new Matrix4(), part.center), part.size);
+
 export const obbCorners = (o: Obb): Vector3[] =>
   [-1, 1].flatMap((sx) =>
     [-1, 1].flatMap((sy) =>

@@ -1,6 +1,7 @@
 import { Color, SRGBColorSpace } from "three";
 import { expect, test } from "vitest";
-import { FACADE_Z, OPENINGS, acrossZ, curtainSpan, flatWindow, floorLevel } from "./building";
+import { curtainOverPane, curtainShape } from "../building/bedroomShape";
+import { FACADE_Z, OPENINGS, acrossZ, flatWindow, floorLevel } from "./building";
 import { neighbourWindowsOn } from "./lightsOn";
 import { LAMP, LAMP_LIGHT, LAMP_POOL, STREET_LAMPS, lampGlow } from "./lamps";
 
@@ -49,22 +50,17 @@ test("every lamp's pool reaches across its pavement to the foot of the houses be
   }
 });
 
-test("his curtain hangs from the window's west edge: a gathered strip when open, the whole pane when drawn, never past the frame", () => {
-  const inner = 1.0;
-  const open = curtainSpan(inner, 0);
-  const half = curtainSpan(inner, 0.5);
-  const drawn = curtainSpan(inner, 1);
-  for (const span of [open, half, drawn, curtainSpan(inner, -0.4), curtainSpan(inner, 1.7)]) {
-    expect(span.x0).toBeCloseTo(-inner / 2, 9);
-    expect(span.x1).toBeLessThanOrEqual(inner / 2 + 1e-9);
-    expect(span.x1).toBeGreaterThan(span.x0);
+test("from the street his curtain shows exactly where the room's curtain hangs behind the pane", () => {
+  const his = flatWindow(12, 1, "links");
+  const pane = { x0: his.x - 0.45, x1: his.x + 0.45 };
+  expect(curtainOverPane(1, pane)).toBeNull();
+  expect(curtainOverPane(0, pane)).toEqual(pane);
+  for (const open of [0.2, 0.5, 0.8]) {
+    const shape = curtainShape(open);
+    const seen = curtainOverPane(open, pane);
+    if (shape.x1 <= pane.x0) expect(seen).toBeNull();
+    else expect(seen).toEqual({ x0: pane.x0, x1: Math.min(pane.x1, shape.x1) });
   }
-  expect(drawn.x1).toBeCloseTo(inner / 2, 9);
-  expect(open.x1 - open.x0).toBeLessThan(0.25);
-  expect(half.x1).toBeGreaterThan(open.x1);
-  expect(half.x1).toBeLessThan(drawn.x1);
-  expect(curtainSpan(inner, -0.4)).toEqual(open);
-  expect(curtainSpan(inner, 1.7)).toEqual(drawn);
 });
 
 test("the neighbours' windows light up at night too, a few per house, going out one by one; the stairwells stay on their timers", () => {

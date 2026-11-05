@@ -211,6 +211,35 @@ composition under "Scenes" in the Studio:
   shoulder height: his arms are too short to hold it at the hip. **(test)**
   Karen stands aside at her door and turns to watch him go.
 
+## His bedroom (Nachtruhe)
+
+- **The room:** 3.3 × 4.0 m in his flat (1. OG links), its short wall on the
+  street facade with his single-sash window (no roller shutter) and the
+  radiator under it, 4 cm off the wall and 18 cm below the sill. White walls,
+  a white woodchip ceiling with a round glass dome lamp in the middle and a
+  smoke alarm on the ceiling at least 50 cm from every wall and from the lamp
+  (DIN 14676), wood-look laminate with white skirting, a wood-veneer door at
+  the near end that opens into the room and folds back along the east wall.
+  The light switch is beside the door on the latch side at 1.05 m (DIN
+  18015-3). **(test)**
+- **Bed:** a 160 × 200 double in a white faux-leather frame with a tufted
+  headboard against the west wall, its long side 70 cm from the window wall;
+  1.15 m stay free at its foot, enough for him (1.05 m wide, arms included) to
+  walk round it. Two 80 × 80 pillows in patterned covers, each a little askew.
+  **(test)**
+- **Bedside:** a low white cabinet on each side of the headboard (wood-look
+  top, a drawer over a door) with a table lamp on each (warm, about 2700 K,
+  a rocker switch on the foot) and a socket above it on the wall. **(test)**
+- **Curtain:** one full-width sand panel on a ceiling rail behind a
+  wood-look pelmet, 20 cm in front of the window wall, 1.5 times the rail's
+  width in fabric; drawn, it covers the window with room to spare; opened, it
+  bunches at the west wall, so from the street the window shows no curtain.
+  Its folds deepen as it bunches but never touch the radiator or the
+  cabinet. From the street he sees exactly what hangs behind the pane.
+  **(test)**
+- **Light:** evening: the two lamps; night: dark, a faint orange street glow
+  through the curtain; morning: grey daylight through the window.
+
 ## Doors
 
 - **Flat doors** open into the flat, with a lever inside and a fixed brass

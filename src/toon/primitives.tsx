@@ -310,6 +310,7 @@ export const ToonCylinder: React.FC<{
   readonly color: Paint;
   readonly capped?: boolean;
   readonly ink?: number;
+  readonly glow?: Glow;
 }> = ({
   position,
   rotation,
@@ -319,6 +320,7 @@ export const ToonCylinder: React.FC<{
   color,
   capped = true,
   ink = OUTLINE,
+  glow,
 }) => {
   const [top, bottom] = typeof radius === "number" ? [radius, radius] : radius;
   return (
@@ -327,6 +329,7 @@ export const ToonCylinder: React.FC<{
       rotation={rotation}
       color={color}
       ink={ink}
+      glow={glow}
       receiveShadow={false}
       shape={(grow) => (
         <cylinderGeometry

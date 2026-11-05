@@ -1,10 +1,10 @@
 import { DoubleSide } from "three";
+import { curtainOverPane } from "../building/bedroomShape";
 import { STAIRWELL_LIGHT } from "../building/stairwell";
 import { ToonBox, drawnTexture, glowOf, type Glow } from "../toon/primitives";
 import {
   CURTAIN_SAND,
   FACADE_Z,
-  curtainSpan,
   WINDOW,
   WINDOW_PAINT,
   openingFrame,
@@ -63,15 +63,17 @@ const curtainFolds = () =>
   });
 
 const BedroomCurtain: React.FC<{
+  readonly x: number;
   readonly inner: { readonly w: number; readonly h: number };
-  readonly drawn: number;
+  readonly open: number;
   readonly light: number;
-}> = ({ inner, drawn, light }) => {
-  const span = curtainSpan(inner.w, drawn);
+}> = ({ x, inner, open, light }) => {
+  const seen = curtainOverPane(open, { x0: x - inner.w / 2, x1: x + inner.w / 2 });
+  if (!seen) return null;
   const folds = curtainFolds();
   return (
-    <mesh position={[(span.x0 + span.x1) / 2, 0, LAYER.curtain]}>
-      <planeGeometry args={[span.x1 - span.x0, inner.h]} />
+    <mesh position={[(seen.x0 + seen.x1) / 2 - x, 0, LAYER.curtain]}>
+      <planeGeometry args={[seen.x1 - seen.x0, inner.h]} />
       <meshToonMaterial
         color={CURTAIN_SAND}
         map={folds}
@@ -134,8 +136,8 @@ const StairGlass: React.FC<{
 export const OpeningView: React.FC<{
   readonly opening: Opening;
   readonly light?: number;
-  readonly curtain?: number;
-}> = ({ opening, light = 0, curtain = 0 }) => {
+  readonly curtainOpen?: number;
+}> = ({ opening, light = 0, curtainOpen = 1 }) => {
   const [w, h] = openingFrame(opening);
   const inner = { w: w - 2 * BORDER, h: h - 2 * BORDER };
   const shutterDrop = inner.h * opening.shutter;
@@ -160,7 +162,7 @@ export const OpeningView: React.FC<{
           )
         : null}
       {opening.bedroom ? (
-        <BedroomCurtain inner={inner} drawn={curtain} light={light} />
+        <BedroomCurtain x={opening.x} inner={inner} open={curtainOpen} light={light} />
       ) : null}
       {opening.tilted ? <TiltedSash inner={inner} /> : null}
       {shutterDrop > 0

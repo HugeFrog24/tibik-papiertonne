@@ -1,5 +1,6 @@
 import { doorFrame, doorLeaf, leverGrip, type Door } from "./doors";
 import { floorLevel, type Part } from "../street/building";
+import { DOOR_FRAME, doorwayFrameParts } from "./doorwayFrame";
 import { FLUR, LIVING_DOORWAY } from "./stairwell";
 
 const floor = floorLevel(1);
@@ -106,56 +107,10 @@ export const LIVING_FURNITURE: readonly Part[] = [
   size: [...size],
 }));
 
-export const LIVING_FRAME = {
-  lining: 0.022,
-  head: 0.038,
-  casing: 0.06,
-  trim: 0.01,
-};
+export const LIVING_FRAME = DOOR_FRAME;
 
-const partFromBounds = (
-  name: string,
-  [ax, bx]: readonly [number, number],
-  [ay, by]: readonly [number, number],
-  [az, bz]: readonly [number, number],
-): Part => ({
-  name,
-  center: [(ax + bx) / 2, floor + (ay + by) / 2, (az + bz) / 2],
-  size: [bx - ax, by - ay, bz - az],
-});
-
-export const livingFrameParts = (): readonly Part[] => {
-  const { x0, x1, height } = LIVING_DOORWAY;
-  const { lining, head, casing, trim } = LIVING_FRAME;
-  const latch = x0 + lining;
-  const hinge = x1 - lining;
-  const top = height - head;
-  const reveal = [FLUR.z1, LIVING_ROOM.z0] as const;
-  const casings = (face: string, z: readonly [number, number]) => [
-    partFromBounds(
-      `${face} latch casing`,
-      [latch - casing, latch],
-      [0, top],
-      z,
-    ),
-    partFromBounds(
-      `${face} hinge casing`,
-      [hinge, hinge + casing],
-      [0, top],
-      z,
-    ),
-    partFromBounds(
-      `${face} head casing`,
-      [latch - casing, hinge + casing],
-      [top, top + casing],
-      z,
-    ),
-  ];
-  return [
-    partFromBounds("latch lining", [x0, latch], [0, height], reveal),
-    partFromBounds("hinge lining", [hinge, x1], [0, height], reveal),
-    partFromBounds("head lining", [latch, hinge], [top, height], reveal),
-    ...casings("Flur", [FLUR.z1 - trim, FLUR.z1]),
-    ...casings("living-room", [LIVING_ROOM.z0, LIVING_ROOM.z0 + trim]),
-  ];
-};
+export const livingFrameParts = (): readonly Part[] =>
+  doorwayFrameParts(LIVING_DOORWAY, floor, [FLUR.z1, LIVING_ROOM.z0], [
+    ["Flur", [FLUR.z1 - DOOR_FRAME.trim, FLUR.z1]],
+    ["living-room", [LIVING_ROOM.z0, LIVING_ROOM.z0 + DOOR_FRAME.trim]],
+  ]);

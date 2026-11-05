@@ -2,7 +2,7 @@ import { floorLevel } from "../street/building";
 import { ToonBox, addVec, type Vec3 } from "../toon/primitives";
 import { DoorGrips } from "./DoorGrips";
 import { DoorLeaf } from "./DoorLeaf";
-import { alder, laminate, patternGlass, wildOak } from "./interiorTextures";
+import { WALL_WHITE, alder, laminate, patternGlass, wildOak } from "./interiorTextures";
 import {
   BASE_UNIT,
   CHAISE,
@@ -19,7 +19,7 @@ import { FLUR } from "./stairwell";
 const floor = floorLevel(1);
 const WALL = 0.2;
 const COLOURS = {
-  wall: "#f3f1ec",
+  wall: WALL_WHITE,
   anthracite: "#3b3d40",
   sofa: "#8c8076",
   cushion: "#968a7f",

@@ -437,7 +437,7 @@ const FacadeWall: React.FC<{ readonly plaster: string }> = ({ plaster }) => {
 
 type WindowLights = {
   readonly light?: (house: number, opening: Opening) => number;
-  readonly curtain: number;
+  readonly curtainOpen: number;
 };
 
 const ACROSS = { ...ACROSS_STREET, plaster: "#ddd5c6" };
@@ -461,7 +461,7 @@ const Block: React.FC<{
         key={`${opening.kind}-${opening.x}-${opening.y}`}
         opening={opening}
         light={windows.light?.(Number(number), opening)}
-        curtain={windows.curtain}
+        curtainOpen={windows.curtainOpen}
       />
     ))}
     {BALCONIES.map(({ x, y }, i) => (
@@ -599,7 +599,7 @@ export const Street: React.FC<{
   readonly roofs?: boolean;
   readonly town?: { readonly lit: number };
   readonly windowLight?: (house: number, opening: Opening) => number;
-  readonly bedroomCurtain?: number;
+  readonly bedroomCurtainOpen?: number;
   readonly lampsOn?: boolean;
 }> = ({
   haustuer = 0,
@@ -611,10 +611,10 @@ export const Street: React.FC<{
   roofs = false,
   town,
   windowLight,
-  bedroomCurtain = 0,
+  bedroomCurtainOpen = 1,
   lampsOn = false,
 }) => {
-  const windows = { light: windowLight, curtain: bedroomCurtain };
+  const windows = { light: windowLight, curtainOpen: bedroomCurtainOpen };
   const paving = usePavingTexture((25 * STREET_LENGTH) / 30, 3.33);
   const wetTint = WEATHER[weather].wetTint ?? undefined;
 

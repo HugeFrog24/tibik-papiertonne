@@ -1,4 +1,3 @@
-import { clamp, lerp } from "../characters/scalar";
 import type { Vec3 } from "../toon/primitives";
 import type { Footprint } from "./footprint";
 
@@ -10,6 +9,14 @@ export type Part = {
   readonly center: Vec3;
   readonly size: Vec3;
 };
+
+type Span = readonly [number, number];
+
+export const boundsPart = (name: string, [ax, bx]: Span, [ay, by]: Span, [az, bz]: Span): Part => ({
+  name,
+  center: [(ax + bx) / 2, (ay + by) / 2, (az + bz) / 2],
+  size: [bx - ax, by - ay, bz - az],
+});
 
 export const STOREYS = 6;
 export const STOREY_HEIGHT = 2.85;
@@ -36,11 +43,6 @@ export type Opening = {
 };
 
 export const CURTAIN_SAND = "#d6c09a";
-const CURTAIN_GATHERED = 0.18;
-export const curtainSpan = (inner: number, drawn: number) => ({
-  x0: -inner / 2,
-  x1: -inner / 2 + lerp(CURTAIN_GATHERED, inner, clamp(drawn, 0, 1)),
-});
 
 const COLUMNS = [-8.8, -6.6, -4.4, 0.3, 3.0, 5.2, 7.4, 9.6];
 const BALCONY_COLUMNS = [-6.6, 3.0, 7.4];

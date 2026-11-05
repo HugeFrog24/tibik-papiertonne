@@ -90,7 +90,13 @@ Items marked **(test)** are enforced by `npm test`.
   **(test)**
 - **Windows:** tilt-and-turn (Dreh-Kipp) with the handle on the side frame,
   roller-shutter boxes above, some shutters let down, half-height lace
-  curtains. Balconies on the upper floors, one with a satellite dish.
+  curtains. Balconies on the upper floors. The street runs east-west: No. 12
+  faces south, No. 13 north. One of No. 12's balconies (2. OG) carries a
+  60 cm offset satellite dish aimed at Astra 19.2° Ost (azimuth 168°,
+  elevation 30°, its face nearly upright), on a mast clamped inside the
+  railing, the LNB on its arm and the coax cable run down the mast. No. 13's
+  north-facing balconies carry none: a dish there could not see the
+  satellite. **(test)**
 - **Also there:** a red-and-white hydrant sign "H 80" on bare wall left of the
   mailboxes. It reads 1,4 beside the stem (1.4 m to the right) and 3,2 under
   the bar (3.2 m straight out), and that is where the oval cast-iron cap of the
@@ -387,6 +393,14 @@ Ideas (proposed, not built; the user picks):
 - Puddle edges wobble 1-2 cm with slightly darker rims (dips in the paving).
 - The mailbox key's blade is bent about a degree at its tip (0.4 mm), from
   forcing a stiff lock.
+- The plate holders and the doorbell panel carry a thin dirt line along
+  their lower edge (road splash; a panel nobody wipes).
+- One corner of the house-number plate sits a hair proud where a screw has
+  worked loose.
+- A faint grey streak runs down No. 12's plaster below the dish mount (rain
+  run-off from the reflector).
+- The bins' stickers lift at one corner (damp and daily handling).
+- The mailbox name cards are slightly wavy where damp swelled them.
 - Rain spots on the paper vary in darkness and edge instead of being uniform
   discs: water wicks unevenly along the fibres, so a rim wobbles a few
   percent of its radius, and wet paper turns translucent and greyer, with a

@@ -90,6 +90,7 @@ import {
   rectShape,
 } from "./facade";
 import { useSignColor } from "../weather/DayLight";
+import { Dish } from "./Dish";
 
 const PLASTER = "#eadcc0";
 const FRAME = "#f6f5f0";
@@ -286,14 +287,7 @@ const Balcony: React.FC<{
           ))}
         </group>
       ) : null}
-      {decor.dish ? (
-        <group position={[-0.8, rail + 0.25, d - 0.1]} rotation={[0.3, 0.4, 0]}>
-          <mesh>
-            <sphereGeometry args={[0.32, 24, 12, 0, Math.PI * 2, 0, 0.6]} />
-            <meshToonMaterial color="#e8e8e4" side={DoubleSide} />
-          </mesh>
-        </group>
-      ) : null}
+      {decor.dish ? <Dish rail={rail} /> : null}
     </group>
   );
 };

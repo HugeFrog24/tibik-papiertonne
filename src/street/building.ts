@@ -195,7 +195,7 @@ const BALCONY_DECOR: Readonly<
   Record<number, { readonly boxOffset: number; readonly dish: number }>
 > = {
   12: { boxOffset: 0, dish: 4 },
-  13: { boxOffset: 1, dish: 9 },
+  13: { boxOffset: 1, dish: -1 },
 };
 export const balconyDecor = (house: number, index: number) => ({
   box: (index + BALCONY_DECOR[house].boxOffset) % 3 === 0,

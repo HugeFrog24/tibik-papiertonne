@@ -1,3 +1,4 @@
+import { DOOR_STAND, FACING_THE_WALL, enterHouse, pinApproach, walkLeg } from "../enterHouse";
 import { SENSOR, sensorLampOn } from "../../street/entranceSensor";
 import { mustReadSeconds } from "./letter";
 import { Euler, Matrix4, Vector3 } from "three";
@@ -11,10 +12,9 @@ import {
   touchdownTimes,
   walkCadence,
   type RootAt,
-  type Step,
 } from "../../characters/gait";
 import { easeUnit, inWindow } from "../../characters/scalar";
-import { armColliders, type Side } from "../../characters/skeleton";
+import { armColliders } from "../../characters/skeleton";
 import { frame, obb } from "../../physics/collision";
 import { TONNE, TONNE_FLOOR, tonneLidParts } from "../../street/tonneShape";
 import {
@@ -40,7 +40,6 @@ import {
   mailboxLockLocal,
 } from "../../street/mailboxDoorShape";
 import { entranceGround } from "../../street/layout";
-import { stepLift } from "../../building/stairwell";
 import { TIBIK_GAIT, tibikGaitOf, plantedTibik, type TibikFrame } from "../../Tibik/character";
 import { ARM_REST, ARM_TUCK, ARM_WALK, RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { blendArm } from "../../physics/holds";
@@ -66,14 +65,13 @@ export const LID_UP = after(TO_BIN[1], 0.7);
 export const KLOPPEN = after(LID_UP[1], 0.4);
 export const LID_THUD = KLOPPEN[1] + 0.3;
 export const TO_DOOR = after(LID_THUD + 0.2, 2);
-export const UNLOCK = after(TO_DOOR[1], 1.05);
-export const IN = after(UNLOCK[1], 1.4);
+export const ENTRY = enterHouse(TO_DOOR[1]);
+export const UNLOCK = ENTRY.unlock;
+export const IN = ENTRY.in;
 export const RUNDSCHREIBEN_DURATION = IN[1] + 6.25;
-export const BACK_STEP: readonly [number, number] = [UNLOCK[0] + 0.6, UNLOCK[1] + 0.15];
-const ROUND_THE_LEAF: readonly [number, number] = [IN[0] + 0.5, IN[0] + 1.9];
-const IN_WALK: readonly [number, number] = [ROUND_THE_LEAF[1], IN[0] + 4.4];
-const WALKING_IN: readonly [number, number] = [ROUND_THE_LEAF[0], IN_WALK[1]];
-const THROUGH_THE_DOORWAY: readonly [number, number] = [ROUND_THE_LEAF[0] + 0.5, IN_WALK[1] + 0.3];
+export const BACK_STEP = ENTRY.backStep;
+const WALKING_IN = ENTRY.walkingIn;
+const THROUGH_THE_DOORWAY = ENTRY.throughTheDoorway;
 
 const LID_OPEN = 0.3;
 const LID_LET_GO = KLOPPEN[1] + 0.1;
@@ -81,7 +79,6 @@ const TO_READY: readonly [number, number] = [TO_BIN[1] - 0.4, LID_UP[0]];
 
 export const START = { x: -5.9, z: -0.9 };
 export const STAND = { x: -2.3, z: -1.39 };
-const FACING_THE_WALL = Math.PI;
 const LEAN_IN = 0.25;
 const TURN_IN: readonly [number, number] = [AT_MAILBOX - 0.45, AT_MAILBOX];
 
@@ -112,13 +109,6 @@ const walkToBin: Walk = {
   ],
 };
 
-type Stand = { readonly x: number; readonly z: number };
-
-const DOOR_STAND: Stand = { x: -1.25, z: -1.8 };
-const ONTO_THE_STEP = [0.26, 0.3] as const;
-const INSIDE = { x: -1.45, z: -3.4 };
-const SETTLE = 0.45;
-
 const walkToDoor: Walk = {
   from: TO_DOOR[0],
   to: TO_DOOR[1],
@@ -130,89 +120,15 @@ const walkToDoor: Walk = {
   ],
 };
 
-const STANCE = 0.17;
-const ON_THE_PAVEMENT = -1.42;
-const ON_THE_STEP = DOOR_STAND.z - 0.05;
-const BACK_STAND = { x: -1.15, z: ON_THE_PAVEMENT };
-const BEFORE_THE_DOORWAY = { x: -1.875, z: ON_THE_PAVEMENT };
-const IN_THE_DOORWAY = { x: BEFORE_THE_DOORWAY.x, z: ON_THE_STEP };
-
-const walkIn: Walk = {
-  from: IN_WALK[0],
-  to: IN_WALK[1] - 0.3,
-  via: [
-    [BEFORE_THE_DOORWAY.x, BEFORE_THE_DOORWAY.z],
-    [BEFORE_THE_DOORWAY.x, -2.6],
-    [-1.8, -3.4],
-    [INSIDE.x, INSIDE.z],
-  ],
-};
-
-const shuffle = (t: number, span: readonly [number, number], from: Stand, to: Stand) => {
-  const k = inWindow(t, span);
-  const x = from.x + (to.x - from.x) * k;
-  const z = from.z + (to.z - from.z) * k;
-  return { x, z, yaw: FACING_THE_WALL, y: stepLift(z, ...ONTO_THE_STEP) };
-};
-
-const walkLeg = (walk: Walk, t: number, settle = true) => {
-  const { x, z, heading } = walkAt(walk, t);
-  const near =
-    heading +
-    2 * Math.PI * Math.round((FACING_THE_WALL - heading) / (2 * Math.PI));
-  const away =
-    inWindow(t, [walk.from, walk.from + SETTLE]) *
-    (settle ? 1 - inWindow(t, [walk.to - SETTLE, walk.to]) : 1);
-  return {
-    x,
-    z,
-    yaw: FACING_THE_WALL + (near - FACING_THE_WALL) * away,
-    y: stepLift(z, ...ONTO_THE_STEP),
-  };
-};
-
 const rootAt: RootAt = (t) => {
-  if (t >= IN_WALK[0]) return walkLeg(walkIn, t, false);
-  if (t >= ROUND_THE_LEAF[0]) return shuffle(t, ROUND_THE_LEAF, BACK_STAND, BEFORE_THE_DOORWAY);
-  if (t >= BACK_STEP[0]) return shuffle(t, BACK_STEP, DOOR_STAND, BACK_STAND);
+  const entering = ENTRY.rootAt(t);
+  if (entering) return entering;
   if (t >= TO_DOOR[0]) return walkLeg(walkToDoor, t);
   if (t >= TO_BIN[0]) return walkLeg(walkToBin, t);
   const { x, z, heading } = walkAt(walkHome, t);
   const turned = easeUnit((t - TURN_IN[0]) / (TURN_IN[1] - TURN_IN[0]));
   const yaw = heading + (FACING_THE_WALL - heading) * turned;
   return { x, z, yaw, y: 0 };
-};
-
-const squareAt =
-  (stand: Stand) =>
-  (s: Step): Step => ({ ...s, at: { x: stand.x - s.side * STANCE, z: stand.z } });
-
-const pinEnd = (steps: readonly Step[], stands: readonly Stand[]): Step[] =>
-  steps.map((s, i) => {
-    const k = i - (steps.length - stands.length);
-    return k < 0 ? s : squareAt(stands[k])(s);
-  });
-
-const pinStart = (steps: readonly Step[], stands: readonly Stand[]): Step[] =>
-  steps.map((s, i) => (i < stands.length ? squareAt(stands[i])(s) : s));
-
-const ON_THE_DOORSTEP = { x: DOOR_STAND.x, z: ON_THE_STEP };
-
-const pinned = (from: number, steps: readonly Step[]): Step[] => {
-  if (from === TO_DOOR[0])
-    return pinEnd(steps, [{ x: DOOR_STAND.x, z: ON_THE_PAVEMENT }, ON_THE_DOORSTEP, ON_THE_DOORSTEP]);
-  if (from === ROUND_THE_LEAF[0]) return pinEnd(steps, [BEFORE_THE_DOORWAY, BEFORE_THE_DOORWAY]);
-  if (from === IN_WALK[0]) return pinStart(steps, [IN_THE_DOORWAY]);
-  return [...steps];
-};
-
-const stepBack = (first: Side): Step[] => {
-  const [from, to] = BACK_STEP;
-  const half = (from + to) / 2;
-  return [
-    { side: first, lift: from, land: half + STEP_OVERLAP / 2 },
-    { side: opposite(first), lift: half - STEP_OVERLAP / 2, land: to },
-  ].map(squareAt(BACK_STAND));
 };
 
 const tibikSteps = () => {
@@ -224,19 +140,13 @@ const tibikSteps = () => {
     cadence,
     overlap: STEP_OVERLAP,
   });
-  const legs: readonly (readonly [number, number])[] = [
-    TO_BIN,
-    TO_DOOR,
-    BACK_STEP,
-    ROUND_THE_LEAF,
-    IN_WALK,
-  ];
-  return legs.reduce((steps, [from, to]) => {
+  const legs: readonly (readonly [number, number])[] = [TO_BIN, TO_DOOR];
+  const walked = legs.reduce((steps, [from, to]) => {
     const first = opposite(steps[steps.length - 1].side);
-    if (from === BACK_STEP[0]) return [...steps, ...stepBack(first)];
     const next = rhythmicSteps({ from, to, first, cadence, overlap: STEP_OVERLAP });
-    return [...steps, ...pinned(from, next)];
+    return [...steps, ...(from === TO_DOOR[0] ? pinApproach(next) : next)];
   }, home);
+  return [...walked, ...ENTRY.steps(opposite(walked[walked.length - 1].side), cadence)];
 };
 
 const GAIT_SPAN = [-1, RUNDSCHREIBEN_DURATION] as const;

@@ -3,7 +3,7 @@ import { BED, BED_RECT, BEDROOM, PILLOWS, bedroomSolids } from "../building/bedr
 import { guardGround } from "../physics/guards";
 import { OUTLINE } from "../toon/primitives";
 import { solveLeg } from "../characters/legs";
-import { allColliders, bodyColliders, type Pose, type Side } from "../characters/skeleton";
+import { allColliders, bodyColliders, lowestPoint, type Pose, type Side } from "../characters/skeleton";
 import { ARM_REST, ARM_TUCK, RIG, TIBIK_REST } from "./rig";
 
 
@@ -16,10 +16,7 @@ const SIT_LEG = { splay: 0.02, reach: 0.2, drop: 0.1 };
 export const SITTING_EDGE = 0.08;
 const SIT_LEAN = 0.1;
 
-const seatDrop = (() => {
-  const torso = bodyColliders(RIG, { position: [0, 0, 0], rotationY: 0, pose: { ...TIBIK_REST, lean: SIT_LEAN } }).lowerTorso;
-  return Math.min(...torso.map((s) => s.center.y - s.radius));
-})();
+const seatDrop = lowestPoint(bodyColliders(RIG, { position: [0, 0, 0], rotationY: 0, pose: { ...TIBIK_REST, lean: SIT_LEAN } }).lowerTorso);
 const LIE_LEG = { splay: 0.04, along: 0.1, heel: 0.06 };
 
 const leg = (side: Side, ankle: Vector3) => solveLeg(RIG, side, ankle, new Quaternion());

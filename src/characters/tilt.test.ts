@@ -6,11 +6,10 @@ import { guardGround } from "../physics/guards";
 import { solveRundschreiben } from "../scenes/rundschreiben/solve";
 import { HEAD_DRAWN, LYING, lyingInBed, sittingOnBed } from "../Tibik/bedPoses";
 import { RIG, TIBIK_REST } from "../Tibik/rig";
-import { allColliders, bodyColliders, faceDirection, type Placement } from "./skeleton";
+import { allColliders, bodyColliders, faceDirection, lowestPoint, type Placement } from "./skeleton";
 
 const mattress = bedroomParts().find((p) => p.name === "mattress")!;
-const bottomOf = (spheres: readonly { center: { y: number }; radius: number }[]) =>
-  Math.min(...spheres.map((s) => s.center.y - s.radius));
+const bottomOf = lowestPoint;
 
 test("untilted, every collider is exactly where it was", () => {
   const walking = solveRundschreiben(1.5).tibik;

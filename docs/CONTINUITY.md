@@ -495,6 +495,19 @@ Ideas (proposed, not built; the user picks):
   yellowed round the rocker and a degree off level; a dust film on the smoke
   alarm's test button; a dry moth in the dome lamp; a roller lap line and a
   hairline crack on the ceiling.
+- His fleece: light pilling where his hands grip the hem and on the side he
+  lies on; folded in a hurry, the plies a centimetre or two out of line and a
+  few degrees off square; lying 3-5 cm towards his side of the bed (always
+  pulled from there); in the morning, pushed back into a loose heap rather
+  than the evening's neat fold.
+- His bed: a shallow dent in the pillow where his head lies, the pillow pushed
+  a centimetre towards the headboard; a slight hollow and a few creases in the
+  sheet at his usual sitting spot; one fitted-sheet corner crept a few
+  millimetres (tired elastic); the mattress edge sinking a centimetre or two
+  under his seat.
+- How he lies: a degree or two off the bed's axis, his folded arms a few
+  degrees apart, his feet falling out unevenly; sitting, one foot hangs a
+  little ahead of the other.
 
 ## Continuity between scenes
 

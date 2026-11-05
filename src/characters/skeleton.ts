@@ -212,7 +212,8 @@ const frames = (skeleton: Skeleton, placement: Placement) => {
     [0, skeleton.hipHeight, 0],
     torsoRotation(placement.pose),
   );
-  return { body, torso };
+  const head = frame(torso, [0, skeleton.neckHeight, 0], headRotation(placement.pose));
+  return { body, torso, head };
 };
 
 const armSpheres = (
@@ -430,8 +431,7 @@ export const bodyColliders = (
   placement: Placement,
 ): BodyColliders => {
   const { pose } = placement;
-  const { body, torso } = frames(skeleton, placement);
-  const head = frame(torso, [0, skeleton.neckHeight, 0], headRotation(pose));
+  const { body, torso, head } = frames(skeleton, placement);
   const { lower, upper } = torsoRings(skeleton);
   const lowerTorso = ringSpheres(lower, torso);
   const upperTorso = ringSpheres(upper, torso);
@@ -587,11 +587,11 @@ export const carriedBox = (
   );
 };
 
-export const faceDirection = (skeleton: Skeleton, placement: Placement) => {
-  const { torso } = frames(skeleton, placement);
-  const head = frame(torso, [0, skeleton.neckHeight, 0], headRotation(placement.pose));
-  return new Vector3(0, 0, 1).transformDirection(head);
-};
+export const faceDirection = (skeleton: Skeleton, placement: Placement) =>
+  new Vector3(0, 0, 1).transformDirection(frames(skeleton, placement).head);
+
+export const lowestPoint = (spheres: readonly { readonly center: { readonly y: number }; readonly radius: number }[]) =>
+  Math.min(...spheres.map((s) => s.center.y - s.radius));
 
 export const allColliders = (skeleton: Skeleton, placement: Placement) => {
   const body = bodyColliders(skeleton, placement);

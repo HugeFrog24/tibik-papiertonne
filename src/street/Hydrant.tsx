@@ -1,6 +1,7 @@
 import { DECAL, drawnTexture, fitText, framedCard } from "../toon/primitives";
 import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
 import { HYDRANT, HYDRANT_SIGN, hydrantCap, metres } from "./layout";
+import { useSignColor } from "../weather/DayLight";
 
 const RED = "#c8102e";
 
@@ -42,12 +43,13 @@ const capTexture = () =>
   });
 
 export const Hydrant: React.FC = () => {
+  const signColor = useSignColor();
   const cap = hydrantCap();
   return (
     <>
       <mesh position={HYDRANT_SIGN.center}>
         <planeGeometry args={[HYDRANT_SIGN.size[0], HYDRANT_SIGN.size[1]]} />
-        <meshBasicMaterial map={signTexture()} />
+        <meshBasicMaterial color={signColor} map={signTexture()} />
       </mesh>
       <Decal
         x={cap.x}

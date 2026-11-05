@@ -48,6 +48,7 @@ import {
   windowPane,
   type ParkedCar,
 } from "./carShape";
+import { useSignColor } from "../weather/DayLight";
 
 const GLASS = "#3c4a5c";
 const MIRROR_GLASS = "#9fb2c1";
@@ -193,11 +194,12 @@ const holderTexture = (dealer: boolean) => {
 };
 
 const PlateHolder: React.FC<{ readonly dealer: boolean }> = ({ dealer }) => {
+  const signColor = useSignColor();
   const r = holderRect();
   return (
     <mesh position={[0, r.centre, -PLATE_HOLDER.behind]}>
       <planeGeometry args={[r.width, r.height]} />
-      <meshBasicMaterial map={holderTexture(dealer)} />
+      <meshBasicMaterial color={signColor} map={holderTexture(dealer)} />
     </mesh>
   );
 };
@@ -260,6 +262,7 @@ const Mirror: React.FC<{ readonly side: number; readonly color: string }> = ({
 );
 
 export const Car: React.FC<{ readonly car: ParkedCar }> = ({ car }) => {
+  const signColor = useSignColor();
   const front = plateTexture(car, false);
   const rear = plateTexture(car, true);
   return (
@@ -348,7 +351,7 @@ export const Car: React.FC<{ readonly car: ParkedCar }> = ({ car }) => {
       >
         <mesh>
           <planeGeometry args={PLATE.size} />
-          <meshBasicMaterial map={front} />
+          <meshBasicMaterial color={signColor} map={front} />
         </mesh>
         <PlateHolder dealer={hasDealerStrip(car)} />
       </group>
@@ -376,7 +379,7 @@ export const Car: React.FC<{ readonly car: ParkedCar }> = ({ car }) => {
       >
         <mesh>
           <planeGeometry args={PLATE.size} />
-          <meshBasicMaterial map={rear} />
+          <meshBasicMaterial color={signColor} map={rear} />
         </mesh>
         <PlateHolder dealer={hasDealerStrip(car)} />
       </group>

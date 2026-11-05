@@ -16,6 +16,7 @@ import { rundschreibenRain } from "./rain";
 import { UNFOLD } from "./choreography";
 import { paperSpotsAt } from "../../props/letterShape";
 import { Rain } from "../../weather/Rain";
+import { DayLight } from "../../weather/DayLight";
 import { RundschreibenSound } from "./RundschreibenSound";
 import { RUNDSCHREIBEN_FROM } from "../../timeline";
 
@@ -74,7 +75,9 @@ export const Rundschreiben: React.FC<{
       <ToonCanvas name="Rundschreiben – 3D">
         <CameraRig {...cameraAt(t)} />
         <StreetLighting weather="rain" />
-        <Scene />
+        <DayLight weather="rain">
+          <Scene />
+        </DayLight>
       </ToonCanvas>
       <Sequence from={Math.round(CAPTION.from * fps)} durationInFrames={Math.round((CAPTION.to - CAPTION.from) * fps)} layout="none">
         <AbsoluteFill>

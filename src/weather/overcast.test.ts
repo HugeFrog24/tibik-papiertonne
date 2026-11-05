@@ -20,7 +20,7 @@ import {
   manholeFootprint,
 } from "../street/drainShape";
 import { PATCHES, jointFootprint } from "../street/roadShape";
-import { PUDDLES, WEATHER } from "./overcast";
+import { PUDDLES, SIGN_LIGHT, WEATHER, facadeLight } from "./overcast";
 import { luminance } from "../toon/colourChecks";
 
 const hsl = (hex: string) => {
@@ -90,4 +90,11 @@ test("in the rain the weak sun still casts shadows, faint because the sky light 
   const { sun, hemisphere } = WEATHER.rain;
   expect(sun.shadows).toBe(true);
   expect(sun.intensity / hemisphere.intensity).toBeLessThan(0.25);
+});
+
+test("printed signs and plates are lit like the wall they hang on: full in the sun, as dim as a lit white facade under the grey sky", () => {
+  expect(SIGN_LIGHT.sunny).toBe(1);
+  expect(SIGN_LIGHT.rain).toBeCloseTo(facadeLight(WEATHER.rain) / facadeLight(WEATHER.sunny), 12);
+  expect(SIGN_LIGHT.rain).toBeGreaterThan(0.3);
+  expect(SIGN_LIGHT.rain).toBeLessThan(0.6);
 });

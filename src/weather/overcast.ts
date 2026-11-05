@@ -1,3 +1,5 @@
+import { Color } from "three";
+
 export type Weather = "sunny" | "rain";
 
 export type WeatherLook = {
@@ -25,6 +27,19 @@ export const WEATHER: Readonly<Record<Weather, WeatherLook>> = {
     wetTint: "#9a9fa3",
   },
 };
+
+const luminance = (hex: string) => {
+  const c = new Color(hex);
+  return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+};
+
+export const facadeLight = (look: WeatherLook) =>
+  ((luminance(look.hemisphere.sky) + luminance(look.hemisphere.ground)) / 2) * look.hemisphere.intensity +
+  look.sun.intensity;
+
+export const SIGN_LIGHT = Object.fromEntries(
+  (Object.keys(WEATHER) as Weather[]).map((w) => [w, facadeLight(WEATHER[w]) / facadeLight(WEATHER.sunny)]),
+) as Readonly<Record<Weather, number>>;
 
 export const PUDDLES: readonly {
   readonly x: number;

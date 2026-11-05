@@ -9,6 +9,7 @@ import {
   mailboxLockLocal,
 } from "./mailboxDoorShape";
 import { MAILBOX_COLOURS, drawMailboxCell } from "./mailboxFace";
+import { useSignColor } from "../weather/DayLight";
 
 const FACE_LIFT = 0.0003;
 
@@ -27,6 +28,7 @@ const doorFace = () => {
 };
 
 export const MailboxDoor: React.FC<{ readonly angle: number }> = ({ angle }) => {
+  const signColor = useSignColor();
   const { width: w, height: h, thickness: t } = MAILBOX_DOOR_SPEC;
   const [lx, ly] = mailboxLockLocal();
   const { radius, proud } = MAILBOX_DOOR.lock;
@@ -40,7 +42,7 @@ export const MailboxDoor: React.FC<{ readonly angle: number }> = ({ angle }) => 
     >
       <mesh position={[w / 2, h / 2, t / 2 + FACE_LIFT]}>
         <planeGeometry args={[w, h]} />
-        <meshBasicMaterial map={doorFace()} />
+        <meshBasicMaterial color={signColor} map={doorFace()} />
       </mesh>
       <ToonCylinder
         position={[lx, ly, t / 2 + proud / 2]}

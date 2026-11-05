@@ -12,6 +12,7 @@ import {
   kartonPanels,
   type FlapOrder,
 } from "./kartonShape";
+import { useSignColor } from "../weather/DayLight";
 
 const CARDBOARD = "#c49a6c";
 
@@ -73,6 +74,7 @@ export const Karton: React.FC<{
   splay,
   relabelled = false,
 }) => {
+  const signColor = useSignColor();
   const [, h, d] = size;
   const fold = bottomFold(open);
   const flaps = kartonFlaps(size, open, closed, order, splay);
@@ -113,7 +115,7 @@ export const Karton: React.FC<{
               rotation={[0, Math.PI, 0]}
             >
               <planeGeometry args={[...SHIPPING_LABELS.old.size]} />
-              <meshBasicMaterial map={shippingLabelTexture()} />
+              <meshBasicMaterial color={signColor} map={shippingLabelTexture()} />
             </mesh>
           ) : null}
           {i === 0 && relabelled ? (
@@ -126,7 +128,7 @@ export const Karton: React.FC<{
               rotation={[0, Math.PI, 0]}
             >
               <planeGeometry args={[...SHIPPING_LABELS.fresh.size]} />
-              <meshBasicMaterial map={freshLabelTexture()} />
+              <meshBasicMaterial color={signColor} map={freshLabelTexture()} />
             </mesh>
           ) : null}
         </group>

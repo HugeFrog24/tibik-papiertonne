@@ -89,6 +89,7 @@ import {
   facadeOpenings,
   rectShape,
 } from "./facade";
+import { useSignColor } from "../weather/DayLight";
 
 const PLASTER = "#eadcc0";
 const FRAME = "#f6f5f0";
@@ -368,6 +369,7 @@ const Entrance: React.FC<{
   readonly lever: number;
   readonly number: string;
 }> = ({ door, lever, number }) => {
+  const signColor = useSignColor();
   const houseNumber = useLabelTexture(number, "#1f4e9c", "#ffffff", 1.3);
   return (
     <>
@@ -385,12 +387,12 @@ const Entrance: React.FC<{
       >
         <mesh>
           <planeGeometry args={[0.19, 0.49]} />
-          <meshBasicMaterial map={doorbellTexture(Number(number))} />
+          <meshBasicMaterial color={signColor} map={doorbellTexture(Number(number))} />
         </mesh>
       </WallBox>
       <mesh position={[ENTRANCE_X + 0.95, 2.2, FACADE_Z + 0.02]}>
         <planeGeometry args={[0.3, 0.23]} />
-        <meshBasicMaterial map={houseNumber} />
+        <meshBasicMaterial color={signColor} map={houseNumber} />
       </mesh>
       <PartBoxes parts={ENTRANCE_PARTS} color="#585e62" />
       <HaustuerLeaf angle={door} lever={lever} />
@@ -403,6 +405,7 @@ const Mailboxes: React.FC<{
   readonly house: number;
   readonly door?: number;
 }> = ({ house, door }) => {
+  const signColor = useSignColor();
   const real = door !== undefined;
   return (
     <>
@@ -414,8 +417,7 @@ const Mailboxes: React.FC<{
       >
         <mesh>
           <planeGeometry args={[mailboxPlate().width, mailboxPlate().height]} />
-          <meshBasicMaterial
-            map={mailboxTexture(house, real ? MAILBOX_DOOR.resident : null)}
+          <meshBasicMaterial color={signColor} map={mailboxTexture(house, real ? MAILBOX_DOOR.resident : null)}
           />
         </mesh>
       </WallBox>

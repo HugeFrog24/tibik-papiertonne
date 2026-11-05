@@ -11,6 +11,7 @@ import {
   ToonCylinder,
 } from "../toon/primitives";
 import { TONNE, type TonneKind } from "./tonneShape";
+import { useSignColor } from "../weather/DayLight";
 
 const WIDTH = TONNE.width;
 const DEPTH = TONNE.depth;
@@ -93,6 +94,7 @@ export const Tonne: React.FC<{
   readonly house?: string;
   readonly children?: React.ReactNode;
 }> = ({ position, kind, lidOpen, house = "12", children }) => {
+  const signColor = useSignColor();
   const look = LOOK[kind];
   const body = useTaperedBox(WIDTH, HEIGHT, DEPTH, TAPER, true);
   const hull = useTaperedBox(
@@ -133,11 +135,11 @@ export const Tonne: React.FC<{
         rotation={[0.055, 0, 0]}
       >
         <planeGeometry args={[0.2, 0.125]} />
-        <meshBasicMaterial map={houseNumberTexture(house)} transparent />
+        <meshBasicMaterial color={signColor} map={houseNumberTexture(house)} transparent />
       </mesh>
       <mesh position={[0, 0.6, frontAt(0.6) + 0.006]} rotation={[0.055, 0, 0]}>
         <planeGeometry args={[0.34, 0.14]} />
-        <meshBasicMaterial map={stickerTexture(kind)} />
+        <meshBasicMaterial color={signColor} map={stickerTexture(kind)} />
       </mesh>
 
       <group position={TONNE.lid.hinge} rotation={[-lidOpen, 0, 0]}>

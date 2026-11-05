@@ -4,7 +4,7 @@ import { BLOCK_SPAN, BUILDING_HEIGHT, FACADE_Z, type Part } from "./building";
 import { FACADE_THICKNESS } from "./facade";
 
 export const BLOCK_DEPTH = 12;
-export const PARAPET = { height: 0.35, thickness: 0.25 };
+export const PARAPET = { height: 0.45, thickness: 0.25 };
 const CORNICE_BACK = 0.4;
 const SLAB = 0.3;
 const SMOKE_VENT = { size: 1.1, height: 0.45 };

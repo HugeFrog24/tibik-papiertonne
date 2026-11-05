@@ -91,6 +91,7 @@ import {
 } from "./facade";
 import { useSignColor } from "../weather/DayLight";
 import { Dish } from "./Dish";
+import { Roof, Town } from "./Town";
 
 const PLASTER = "#eadcc0";
 const FRAME = "#f6f5f0";
@@ -690,6 +691,7 @@ const Side: React.FC<{
   readonly wetTint?: string;
   readonly lampOn?: boolean;
   readonly mailboxDoor?: number;
+  readonly roofs?: boolean;
 }> = ({
   haustuer,
   haustuerLever,
@@ -704,8 +706,16 @@ const Side: React.FC<{
   wetTint,
   lampOn = false,
   mailboxDoor,
+  roofs = false,
 }) => (
   <>
+    {roofs
+      ? [0, ...NEIGHBOURS].map((n) => (
+          <group key={`roof-${n}`} position={[n * BLOCK_SPAN, 0, 0]}>
+            <Roof />
+          </group>
+        ))
+      : null}
     <Block
       haustuer={haustuer}
       haustuerLever={haustuerLever}
@@ -764,6 +774,8 @@ export const Street: React.FC<{
   readonly weather?: Weather;
   readonly lampOn?: boolean;
   readonly mailboxDoor?: number;
+  readonly roofs?: boolean;
+  readonly town?: { readonly lit: number };
 }> = ({
   haustuer = 0,
   haustuerLever = 0,
@@ -771,6 +783,8 @@ export const Street: React.FC<{
   weather = "sunny",
   lampOn = false,
   mailboxDoor,
+  roofs = false,
+  town,
 }) => {
   const paving = usePavingTexture((25 * STREET_LENGTH) / 30, 3.33);
   const wetTint = WEATHER[weather].wetTint ?? undefined;
@@ -791,7 +805,9 @@ export const Street: React.FC<{
         wetTint={wetTint}
         lampOn={lampOn}
         mailboxDoor={mailboxDoor}
+        roofs={roofs}
       />
+      {town ? <Town lit={town.lit} /> : null}
       <group
         position={[ACROSS.shift, 0, ACROSS.facade + FACADE_Z]}
         rotation={[0, Math.PI, 0]}
@@ -808,6 +824,7 @@ export const Street: React.FC<{
           yaw={Math.PI}
           trees="far"
           wetTint={wetTint}
+          roofs={roofs}
         />
       </group>
       {[1, -1].map((end) => (
@@ -821,6 +838,7 @@ export const Street: React.FC<{
             number={end > 0 ? "2" : "1"}
             plaster={NEIGHBOUR_PLASTERS[end > 0 ? 4 : 1]}
           />
+          {roofs ? <Roof /> : null}
         </group>
       ))}
       <Asphalt wetTint={wetTint} />

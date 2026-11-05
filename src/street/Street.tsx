@@ -1,5 +1,5 @@
 import { PUDDLES, lookOf, type Weather, type WeatherLook } from "../weather/overcast";
-import { wetness } from "../weather/wetGround";
+import { WET_LAYERS, wetness } from "../weather/wetGround";
 import { WetGround } from "./WetGround";
 import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
 import { ExtrudeGeometry, type Texture } from "three";
@@ -324,7 +324,7 @@ const EntranceLamp: React.FC<{ readonly on: boolean }> = ({ on }) => (
 const LAMP_GLOW = "#ffd98a";
 const PUDDLE = "#6d747a";
 
-const Puddles: React.FC = () => (
+const Puddles: React.FC<{ readonly wet: number }> = ({ wet }) => (
   <>
     {PUDDLES.map((p) => (
       <Decal
@@ -333,9 +333,10 @@ const Puddles: React.FC = () => (
         z={p.z}
         y={p.z > KERB_Z ? undefined : PAVEMENT_DECAL_Y}
         scale={[2 * p.rx, 2 * p.rz, 1]}
+        renderOrder={WET_LAYERS.puddles}
       >
         <circleGeometry args={[0.5, 40]} />
-        <meshToonMaterial color={PUDDLE} {...DECAL} />
+        <meshToonMaterial color={PUDDLE} {...DECAL} transparent opacity={wet} depthWrite={false} />
       </Decal>
     ))}
   </>
@@ -482,7 +483,6 @@ const Side: React.FC<{
   readonly paving: Texture;
   readonly yaw: number;
   readonly trees: TreeSide;
-  readonly wetTint?: string;
   readonly lampOn?: boolean;
   readonly mailboxDoor?: number;
   readonly roofs?: boolean;
@@ -499,7 +499,6 @@ const Side: React.FC<{
   paving,
   yaw,
   trees,
-  wetTint,
   lampOn = false,
   mailboxDoor,
   roofs = false,
@@ -545,7 +544,7 @@ const Side: React.FC<{
     ))}
     <mesh position={[0, 0, -0.2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <planeGeometry args={[STREET_LENGTH, 4]} />
-      <meshToonMaterial map={paving} {...(wetTint ? { color: wetTint } : {})} />
+      <meshToonMaterial map={paving} />
     </mesh>
     <ToonBox
       position={[0, KERB_Y, KERB_Z]}
@@ -597,7 +596,6 @@ export const Street: React.FC<{
   const windows = { light: windowLight, curtainOpen: bedroomCurtains };
   const paving = usePavingTexture((25 * STREET_LENGTH) / 30, 3.33);
   const seen = lookOf(weather, look);
-  const wetTint = seen.wetTint ?? undefined;
 
   return (
     <>
@@ -612,7 +610,6 @@ export const Street: React.FC<{
         paving={paving}
         yaw={0}
         trees="near"
-        wetTint={wetTint}
         lampOn={lampOn}
         mailboxDoor={mailboxDoor}
         roofs={roofs}
@@ -635,7 +632,6 @@ export const Street: React.FC<{
           paving={paving}
           yaw={Math.PI}
           trees="far"
-          wetTint={wetTint}
           roofs={roofs}
           windows={windows}
           nightLit={town?.lit}
@@ -656,9 +652,9 @@ export const Street: React.FC<{
           {roofs ? <Roof /> : null}
         </group>
       ))}
-      <Asphalt wetTint={wetTint} />
-      {wetTint ? <Puddles /> : null}
-      <WetGround wet={wetness(seen)} sky={seen.sky} time={windAt ?? 0} />
+      <Asphalt />
+      {wetness(seen) > 0 ? <Puddles wet={wetness(seen)} /> : null}
+      <WetGround look={seen} time={windAt ?? 0} />
       {PARKED_CARS.map((car) => (
         <Car key={car.x} car={car} />
       ))}

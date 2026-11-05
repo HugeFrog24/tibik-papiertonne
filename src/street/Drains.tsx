@@ -64,12 +64,14 @@ export const Decal: React.FC<{
   readonly z: number;
   readonly y?: number;
   readonly scale?: Vec3;
+  readonly renderOrder?: number;
   readonly children: React.ReactNode;
-}> = ({ x, z, y = ROAD_Y + LIFT, scale = UNSCALED, children }) => (
+}> = ({ x, z, y = ROAD_Y + LIFT, scale = UNSCALED, renderOrder = 0, children }) => (
   <mesh
     position={[x, y, z]}
     rotation={[-Math.PI / 2, 0, 0]}
     scale={scale}
+    renderOrder={renderOrder}
     receiveShadow
   >
     {children}

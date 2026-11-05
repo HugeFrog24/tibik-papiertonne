@@ -1,9 +1,21 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import { Color, Matrix4, Mesh, PerspectiveCamera, Plane, ShaderMaterial, Vector3, Vector4, WebGLRenderTarget } from "three";
+import { AddEquation, Color, CustomBlending, DataTexture, LinearFilter, Matrix4, Mesh, OneFactor, PerspectiveCamera, Plane, RedFormat, ShaderMaterial, SrcColorFactor, UnsignedByteType, Vector3, Vector4, WebGLRenderTarget, ZeroFactor } from "three";
 import { NO_INK } from "../toon/inkWidth";
 import { PUDDLES } from "../weather/overcast";
-import { DRY_PITS, MIRROR_HEIGHTS, SHEEN, WATER_F0, WET_FILM, WET_SURFACES, mirrorCamera } from "../weather/wetGround";
+import type { WeatherLook } from "../weather/overcast";
+import { RAIN_SHADOW, rainShadowMask, wetShade } from "../weather/rainShadow";
+import { DRY_PITS, MIRROR_HEIGHTS, SHEEN, WATER_F0, WET_FILM, WET_LAYERS, WET_SURFACES, mirrorCamera, wetness } from "../weather/wetGround";
+
+const OPEN_SKY = `
+uniform sampler2D shadow;
+uniform vec4 shadowBox;
+float openSky(vec2 p) {
+  vec2 uv = (p - shadowBox.xy) / (shadowBox.zw - shadowBox.xy);
+  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return 1.0;
+  return texture2D(shadow, uv).r;
+}
+`;
 
 const VERTEX = `
 uniform mat4 mirrorMatrix;
@@ -29,9 +41,12 @@ uniform vec4 puddles[${PUDDLES.length}];
 uniform vec4 pits[${DRY_PITS.length}];
 uniform float time;
 uniform float smear;
+${OPEN_SKY}
 varying vec4 vMirror;
 varying vec3 vWorld;
 void main() {
+  float open = openSky(vWorld.xz);
+  if (open <= 0.0) discard;
   for (int i = 0; i < ${DRY_PITS.length}; i++) {
     vec4 p = pits[i];
     if (vWorld.x > p.x && vWorld.x < p.z && vWorld.z > p.y && vWorld.z < p.w) discard;
@@ -45,7 +60,7 @@ void main() {
   float f = f0 + (1.0 - f0) * pow(1.0 - c, 5.0);
   float film = sheenFilm.x + (sheenFilm.y - sheenFilm.x) * f;
   float pool = sheenPuddle.x + (sheenPuddle.y - sheenPuddle.x) * f;
-  float r = wet * mix(film, pool, puddle);
+  float r = wet * open * mix(film, pool, puddle);
   vec2 uv = vMirror.xy / vMirror.w;
   uv += puddle * 0.002 * vec2(sin(vWorld.x * 31.0 + time * 11.0), cos(vWorld.z * 27.0 + time * 9.0));
   float spread = smear * (1.0 - puddle);
@@ -56,6 +71,58 @@ void main() {
   gl_FragColor = vec4(colour, r);
 }
 `;
+
+
+const SHADE_VERTEX = `
+varying vec3 vWorld;
+void main() {
+  vec4 world = modelMatrix * vec4(position, 1.0);
+  vWorld = world.xyz;
+  gl_Position = projectionMatrix * viewMatrix * world;
+}
+`;
+
+const SHADE_FRAGMENT = `
+uniform vec3 tint;
+${OPEN_SKY}
+varying vec3 vWorld;
+void main() {
+  gl_FragColor = vec4(mix(vec3(1.0), tint, openSky(vWorld.xz)), 1.0);
+}
+`;
+
+let shadowTexture: DataTexture | null = null;
+const rainShadowTexture = () => {
+  if (shadowTexture) return shadowTexture;
+  const { width, height, data } = rainShadowMask();
+  const texture = new DataTexture(data, width, height, RedFormat, UnsignedByteType);
+  texture.magFilter = LinearFilter;
+  texture.minFilter = LinearFilter;
+  texture.needsUpdate = true;
+  shadowTexture = texture;
+  return texture;
+};
+
+const half = RAIN_SHADOW.step / 2;
+const SHADOW_BOX = new Vector4(RAIN_SHADOW.x[0] - half, RAIN_SHADOW.z[0] - half, RAIN_SHADOW.x[1] + half, RAIN_SHADOW.z[1] + half);
+
+const shadeMaterial = () =>
+  new ShaderMaterial({
+    vertexShader: SHADE_VERTEX,
+    fragmentShader: SHADE_FRAGMENT,
+    transparent: true,
+    depthWrite: false,
+    blending: CustomBlending,
+    blendEquation: AddEquation,
+    blendSrc: ZeroFactor,
+    blendDst: SrcColorFactor,
+    blendSrcAlpha: ZeroFactor,
+    blendDstAlpha: OneFactor,
+    polygonOffset: true,
+    polygonOffsetFactor: WET_FILM.polygonOffsetFactor,
+    polygonOffsetUnits: WET_FILM.polygonOffsetUnits,
+    uniforms: { tint: { value: new Color(1, 1, 1) }, shadow: { value: rainShadowTexture() }, shadowBox: { value: SHADOW_BOX } },
+  });
 
 const BIAS = new Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
 const SMEAR = 0.004;
@@ -84,23 +151,30 @@ const filmMaterial = (mirror: Mirror) =>
       pits: { value: DRY_PITS.map((p) => new Vector4(p.x[0], p.z[0], p.x[1], p.z[1])) },
       time: { value: 0 },
       smear: { value: SMEAR },
+      shadow: { value: rainShadowTexture() },
+      shadowBox: { value: SHADOW_BOX },
     },
   });
 
-export const WetGround: React.FC<{ readonly wet: number; readonly sky: readonly [string, string]; readonly time: number }> = ({ wet, sky, time }) => {
+export const WetGround: React.FC<{ readonly look: WeatherLook; readonly time: number }> = ({ look, time }) => {
+  const wet = wetness(look);
+  const { sky } = look;
   const mirrors = useMemo<Mirror[]>(
     () => MIRROR_HEIGHTS.map((y) => ({ y, target: new WebGLRenderTarget(1, 1), matrix: new Matrix4(), lens: new PerspectiveCamera() })),
     [],
   );
   const materials = useMemo(() => new Map(mirrors.map((m) => [m.y, filmMaterial(m)])), [mirrors]);
+  const shade = useMemo(shadeMaterial, []);
   const films = useRef<Mesh[]>([]);
   useEffect(
     () => () => {
       mirrors.forEach((m) => m.target.dispose());
       materials.forEach((m) => m.dispose());
+      shade.dispose();
     },
-    [mirrors, materials],
+    [mirrors, materials, shade],
   );
+  (shade.uniforms.tint.value as Color).set(...wetShade(look, 1));
   materials.forEach((m) => {
     m.uniforms.wet.value = wet;
     m.uniforms.time.value = time;
@@ -149,6 +223,18 @@ export const WetGround: React.FC<{ readonly wet: number; readonly sky: readonly 
   if (wet <= 0) return null;
   return (
     <>
+      {WET_SURFACES.map((s) => (
+        <mesh
+          key={`${s.name} darkened`}
+          position={[(s.x[0] + s.x[1]) / 2, s.y, (s.z[0] + s.z[1]) / 2]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          material={shade}
+          userData={NO_INK}
+          renderOrder={WET_LAYERS.shade}
+        >
+          <planeGeometry args={[s.x[1] - s.x[0], s.z[1] - s.z[0]]} />
+        </mesh>
+      ))}
       {WET_SURFACES.map((s, i) => (
         <mesh
           key={s.name}

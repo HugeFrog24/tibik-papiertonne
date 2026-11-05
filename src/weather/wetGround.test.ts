@@ -6,7 +6,7 @@ import { MORE_TREES, TREE_POSITION } from "../street/trees";
 import { RAIN_RIBBONS } from "./Rain";
 import { PUDDLES, WEATHER } from "./overcast";
 import { rainGroundY } from "./rainDrops";
-import { DRY_PITS, WATER_F0, WET_FILM, WET_SURFACES, mirrorCamera, reflectance, waterFresnel, wetness } from "./wetGround";
+import { DRY_PITS, WATER_F0, WET_FILM, WET_LAYERS, WET_SURFACES, mirrorCamera, reflectance, waterFresnel, wetness } from "./wetGround";
 
 test("water reflects 2 % of the light seen from straight above and all of it at a grazing angle, more the flatter you look", () => {
   expect(waterFresnel(1)).toBeCloseTo(WATER_F0, 12);
@@ -64,7 +64,10 @@ test("the soil in every tree pit stays matt, on both sides of the street, and no
     }
 });
 
-test("the film lies over the ground's markings and under the rain", () => {
+test("the wet ground is drawn in layers: the ground darkened first, the puddles on it, the mirror over them and the rain over all, each over the ground's markings", () => {
   expect(WET_FILM.polygonOffsetFactor).toBeLessThan(DECAL.polygonOffsetFactor);
-  expect(WET_FILM.renderOrder).toBeLessThan(RAIN_RIBBONS.renderOrder);
+  expect(WET_LAYERS.shade).toBeLessThan(WET_LAYERS.puddles);
+  expect(WET_LAYERS.puddles).toBeLessThan(WET_LAYERS.mirror);
+  expect(WET_FILM.renderOrder).toBe(WET_LAYERS.mirror);
+  expect(WET_LAYERS.mirror).toBeLessThan(RAIN_RIBBONS.renderOrder);
 });

@@ -84,7 +84,7 @@ export const rainGroundY = (_x: number, z: number) =>
     ? ROAD_Y
     : 0;
 
-const rayObb = (origin: Vector3, dir: Vector3, box: Obb) => {
+export const rayObb = (origin: Vector3, dir: Vector3, box: Obb) => {
   const offset = origin.clone().sub(box.center);
   let near = -Infinity;
   let far = Infinity;
@@ -105,7 +105,7 @@ const rayObb = (origin: Vector3, dir: Vector3, box: Obb) => {
   return far < 0 ? Infinity : Math.max(0, near);
 };
 
-const raySphere = (origin: Vector3, dir: Vector3, s: Sphere) => {
+export const raySphere = (origin: Vector3, dir: Vector3, s: Sphere) => {
   const offset = origin.clone().sub(s.center);
   const b = offset.dot(dir);
   const c = offset.lengthSq() - s.radius * s.radius;

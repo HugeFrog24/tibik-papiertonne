@@ -49,9 +49,7 @@ const patchTexture = (patch: Footprint, i: number) =>
     },
   );
 
-export const Asphalt: React.FC<{ readonly wetTint?: string }> = ({
-  wetTint,
-}) => (
+export const Asphalt: React.FC = () => (
   <>
     <mesh
       position={[0, ROAD_Y, ROAD_PLANE.z]}
@@ -59,10 +57,7 @@ export const Asphalt: React.FC<{ readonly wetTint?: string }> = ({
       receiveShadow
     >
       <planeGeometry args={[ROAD_PLANE.length, ROAD_PLANE.depth]} />
-      <meshToonMaterial
-        map={asphaltTexture()}
-        {...(wetTint ? { color: wetTint } : {})}
-      />
+      <meshToonMaterial map={asphaltTexture()} />
     </mesh>
     <Decal x={0} z={JOINT.z}>
       <planeGeometry args={[ROAD_PLANE.length, JOINT.width]} />
@@ -77,11 +72,7 @@ export const Asphalt: React.FC<{ readonly wetTint?: string }> = ({
         <planeGeometry
           args={[patch.x[1] - patch.x[0], patch.z[1] - patch.z[0]]}
         />
-        <meshToonMaterial
-          map={patchTexture(patch, i)}
-          {...DECAL}
-          {...(wetTint ? { color: wetTint } : {})}
-        />
+        <meshToonMaterial map={patchTexture(patch, i)} {...DECAL} />
       </Decal>
     ))}
     <Drains />

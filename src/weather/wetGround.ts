@@ -47,4 +47,6 @@ const acrossTheStreet = (pit: Footprint): Footprint => ({
 
 export const DRY_PITS: readonly Footprint[] = [...[TREE_POSITION[0], ...MORE_TREES].map(treePit), ...MORE_TREES.map((x) => acrossTheStreet(treePit(x)))];
 
-export const WET_FILM = { polygonOffsetFactor: -2, polygonOffsetUnits: -8, renderOrder: 0, resolution: 0.5 } as const;
+export const WET_LAYERS = { shade: -2, puddles: -1, mirror: 0 } as const;
+
+export const WET_FILM = { polygonOffsetFactor: -2, polygonOffsetUnits: -8, renderOrder: WET_LAYERS.mirror, resolution: 0.5 } as const;

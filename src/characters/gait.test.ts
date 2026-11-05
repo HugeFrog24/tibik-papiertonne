@@ -171,7 +171,7 @@ const PAPIERTONNEN_FRAMES = Array.from(
 );
 const HAUSMUELL_STEP_WINDOWS: readonly (readonly [number, number])[] = [
   [0, 2.5],
-  [24.5, HAUSMUELL_DURATION],
+  [22.8, HAUSMUELL_DURATION],
 ];
 const inStepWindow = (t: number) =>
   HAUSMUELL_STEP_WINDOWS.some(([a, b]) => t >= a && t <= b);

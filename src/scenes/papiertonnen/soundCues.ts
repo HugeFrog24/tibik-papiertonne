@@ -9,6 +9,13 @@ export type PapiertonnenCue = {
 
 export const LID_SLAP = 4.2 + OPENING;
 
+export const FOUND_IT = {
+  name: "Found it!",
+  at: 9.6 + OPENING,
+  file: "https://remotion.media/ding.wav",
+  volume: 0.45,
+} as const;
+
 export const PAPIERTONNEN_CUES: readonly PapiertonnenCue[] = [
   {
     name: "Haustür swings shut on its closer",
@@ -64,10 +71,5 @@ export const PAPIERTONNEN_CUES: readonly PapiertonnenCue[] = [
     file: "bookOpen.ogg",
     volume: 0.8,
   },
-  {
-    name: "Found it!",
-    at: 9.6 + OPENING,
-    file: "https://remotion.media/ding.wav",
-    volume: 0.45,
-  },
+  FOUND_IT,
 ];

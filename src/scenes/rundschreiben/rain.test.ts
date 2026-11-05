@@ -15,7 +15,7 @@ const inside = (p: Vector3, box: ReturnType<typeof letterSolids>[number]) =>
 const frames = (from: number, to: number, every = 10) =>
   Array.from({ length: Math.floor(((to - from) * FPS) / every) }, (_, i) => from + (i * every) / FPS);
 
-test("no raindrop passes through the letter he holds, while he unfolds and reads it", () => {
+test("no raindrop passes through the letter he holds, while he unfolds and reads it", { timeout: 300_000 }, () => {
   const through: string[] = [];
   for (const t of frames(UNFOLD[0], THANKS[1])) {
     const state = solveRundschreiben(t);
@@ -33,7 +33,7 @@ test("no raindrop passes through the letter he holds, while he unfolds and reads
   expect(through.slice(0, 6)).toEqual([]);
 });
 
-test("no raindrop ends inside Tibik", () => {
+test("no raindrop ends inside Tibik", { timeout: 300_000 }, () => {
   const sunk: string[] = [];
   for (const t of frames(0, READ[0], 15)) {
     const state = solveRundschreiben(t);

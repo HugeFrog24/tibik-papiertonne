@@ -34,25 +34,25 @@ import type { Vec3 } from "../../toon/primitives";
 import { speakingAmountIn, speakingIn, type Line } from "../../dialogue/line";
 import type { KarenFrame } from "../../Karen/character";
 
-export const HAUSMUELL_DURATION = 28.5;
+export const HAUSMUELL_DURATION = 26.8;
 const WALKS_ON = HAUSMUELL_DURATION + 2;
 
-export const SHOT_KAREN_YELLS = 2.0;
-export const SHOT_TIBIK_ASKS = 4.0;
-export const SHOT_KAREN_ACCUSES = 5.6;
-export const SHOT_TIBIK_EXPLAINS = 7.8;
-export const SHOT_KAREN_THREATENS = 13.0;
-export const SHOT_TIBIK_WHO = 16.0;
-export const SHOT_KAREN_NAMES = 17.5;
-export const SHOT_TIBIK_WEISUNG = 20.0;
-export const SHOT_KAREN_WIE = 22.2;
-export const SHOT_EXIT = 23.6;
+export const SHOT_KAREN_YELLS = 1.35;
+export const SHOT_TIBIK_ASKS = 2.3;
+export const SHOT_KAREN_ACCUSES = 3.9;
+export const SHOT_TIBIK_EXPLAINS = 6.1;
+export const SHOT_KAREN_THREATENS = 11.3;
+export const SHOT_TIBIK_WHO = 14.3;
+export const SHOT_KAREN_NAMES = 15.8;
+export const SHOT_TIBIK_WEISUNG = 18.3;
+export const SHOT_KAREN_WIE = 20.5;
+export const SHOT_EXIT = 21.9;
 
 export const LINES: readonly Line[] = [
   {
     speaker: "karen",
-    from: 2.1,
-    to: 3.9,
+    from: 0.4,
+    to: 2.2,
     text: "DAS DÜRFEN SIE NICHT!!!!",
     name: "Karen: Das dürfen Sie nicht",
     tone: "shout",
@@ -60,8 +60,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "tibik",
-    from: 4.2,
-    to: 5.5,
+    from: 2.5,
+    to: 3.8,
     text: "Was darf ich nicht?",
     name: "Tibik: Was darf ich nicht?",
     tone: "calm",
@@ -69,8 +69,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "karen",
-    from: 5.7,
-    to: 7.6,
+    from: 4,
+    to: 5.9,
     text: "SIE KLAUEN DEN HAUSMÜLL!",
     name: "Karen: Sie klauen den Hausmüll",
     tone: "shout",
@@ -78,8 +78,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "tibik",
-    from: 7.9,
-    to: 9.9,
+    from: 6.2,
+    to: 8.2,
     text: "Ich verwende den Karton nur wieder.",
     name: "Tibik: Karton wiederverwenden",
     tone: "calm",
@@ -87,8 +87,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "tibik",
-    from: 10.1,
-    to: 12.7,
+    from: 8.4,
+    to: 11,
     text: "Das spart einen neuen und schont die Umwelt.",
     name: "Tibik: Umweltschutz",
     tone: "calm",
@@ -96,8 +96,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "karen",
-    from: 13.1,
-    to: 15.6,
+    from: 11.4,
+    to: 13.9,
     text: "ICH MELDE SIE DER HAUSVERWALTUNG!",
     name: "Karen: Hausverwaltung",
     tone: "shout",
@@ -105,8 +105,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "tibik",
-    from: 16,
-    to: 17.4,
+    from: 14.3,
+    to: 15.7,
     text: "Wer sind Sie überhaupt?",
     name: "Tibik: Wer sind Sie",
     tone: "calm",
@@ -114,8 +114,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "karen",
-    from: 17.6,
-    to: 18.45,
+    from: 15.9,
+    to: 16.75,
     text: "SCHULZ!",
     name: "Karen: Schulz",
     tone: "shout",
@@ -123,8 +123,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "karen",
-    from: 18.6,
-    to: 19.9,
+    from: 16.9,
+    to: 18.2,
     text: "ICH WOHNE IHNEN GEGENÜBER!",
     name: "Karen: Gegenüber",
     tone: "shout",
@@ -132,8 +132,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "tibik",
-    from: 20.1,
-    to: 22.2,
+    from: 18.4,
+    to: 20.5,
     text: "Haben Sie überhaupt eine Weisungsbefugnis?",
     name: "Tibik: Weisungsbefugnis",
     tone: "calm",
@@ -141,8 +141,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "karen",
-    from: 22.3,
-    to: 23.4,
+    from: 20.6,
+    to: 21.7,
     text: "…WIE BITTE?!",
     name: "Karen: Wie bitte",
     tone: "shout",
@@ -150,8 +150,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "tibik",
-    from: 23.7,
-    to: 25.4,
+    from: 22,
+    to: 23.7,
     text: "Schönen Tag noch, Frau Schulz.",
     name: "Tibik: Schönen Tag noch",
     tone: "calm",
@@ -159,8 +159,8 @@ export const LINES: readonly Line[] = [
   },
   {
     speaker: "karen",
-    from: 26,
-    to: 27.6,
+    from: 24.3,
+    to: 25.9,
     text: "DAS HAT EIN NACHSPIEL!",
     name: "Karen: Nachspiel",
     tone: "shout",
@@ -176,7 +176,7 @@ export const KAREN_SPOT: Vec3 = [3.05, 0, -0.35];
 export const facing = (from: Vec3, to: Vec3) =>
   Math.atan2(to[0] - from[0], to[2] - from[2]);
 
-const EXIT_TURN: readonly [number, number] = [24.6, 25.2];
+const EXIT_TURN: readonly [number, number] = [22.9, 23.5];
 const EXIT_YAW = -Math.PI / 2;
 const EXIT_SPEED = 0.85;
 const EXIT_EASE = 0.6;
@@ -192,21 +192,31 @@ const exitSpeed = (t: number) =>
 const tibikX = (t: number) =>
   papiertonnenTibikAt(PAPIERTONNEN_LAST_T).position[0] - exitDistance(t);
 
+const LEAVING: readonly [number, number] = [0.2, 0.55];
+const AWAY = 1.5;
+const BACK_TO_HER: readonly [number, number] = [0.75, 1.3];
+const shortest = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+
 const tibikTurnAt = (t: number) => {
   const start = papiertonnenTibikAt(PAPIERTONNEN_LAST_T);
-  const turn = kf(t, [1.0, 1.5], [0, 1]);
+  const away =
+    start.rotationY + AWAY * Math.sign(shortest(EXIT_YAW - start.rotationY));
   const towardsKaren = facing(start.position, KAREN_SPOT);
   return (
     start.rotationY +
-    (towardsKaren - start.rotationY) * turn +
+    (away - start.rotationY) * kf(t, LEAVING, [0, 1]) +
+    (towardsKaren - away) * kf(t, BACK_TO_HER, [0, 1]) +
     (EXIT_YAW - towardsKaren) * kf(t, EXIT_TURN, [0, 1])
   );
 };
 const TIBIK_TURN_STEPS: Step[] = [
-  { side: 1, lift: 1.0, land: 1.22 },
-  { side: -1, lift: 1.25, land: 1.47 },
-  { side: 1, lift: 24.7, land: 24.92 },
-  { side: -1, lift: 24.95, land: 25.18 },
+  { side: -1, lift: LEAVING[0], land: 0.42 },
+  { side: 1, lift: 0.4, land: 0.66 },
+  { side: -1, lift: 0.78, land: 1.0 },
+  { side: 1, lift: 1.03, land: 1.25 },
+  { side: -1, lift: 1.25, land: 1.42 },
+  { side: 1, lift: 23.0, land: 23.22 },
+  { side: -1, lift: 23.25, land: 23.48 },
   ...rhythmicSteps({
     from: EXIT_TURN[1],
     to: WALKS_ON,
@@ -229,10 +239,10 @@ export const tibikGait = lazy(() => {
 export const tibikAt = (t: number): TibikFrame => {
   const start = papiertonnenTibikAt(PAPIERTONNEN_LAST_T);
   const pose: Pose = start.pose;
-  const turn = kf(t, [1.0, 1.5], [0, 1]);
+  const turn = kf(t, BACK_TO_HER, [0, 1]);
   const rotationY = tibikTurnAt(t);
   const talking = speaking(t, "tibik");
-  const nod = talking ? 0.05 * Math.sin((t - 4.2) * Math.PI * 3) : 0;
+  const nod = talking ? 0.05 * Math.sin((t - 2.5) * Math.PI * 3) : 0;
   const placed = {
     position: [tibikX(t), start.position[1], start.position[2]] as Vec3,
     rotationY,
@@ -241,12 +251,12 @@ export const tibikAt = (t: number): TibikFrame => {
       bob: kf(t, [0, 0.3], [pose.bob, 0]),
       headPitch: kf(t, [0, 0.4], [pose.headPitch, 0]) + nod,
       headYaw: 0,
-      headRoll: kf(t, [4.0, 4.3, 5.4, 5.6], [0, 0.12, 0.12, 0]),
-      gazeYaw: kf(t, [0.6, 1.0], [0, 0.4]) * (1 - turn),
-      gazePitch: 0,
+      headRoll: kf(t, [2.3, 2.6, 3.7, 3.9], [0, 0.12, 0.12, 0]),
+      gazeYaw: kf(t, [0.4, 0.55], [0, 0.6]) * (1 - turn),
+      gazePitch: kf(t, [0, 0.3], [pose.gazePitch, 0]),
       blink: blinkAt(
         t,
-        [0.5, 3.2, 6.3, 9.4, 12.0, 14.6, 17.0, 19.5, 22.9, 26.4],
+        [1.5, 4.6, 7.7, 10.3, 12.9, 15.3, 17.8, 21.2, 24.7],
       ),
     },
   };
@@ -259,7 +269,7 @@ export const kartonAt = (t: number): KartonState => {
     ...start,
     position: [
       start.position[0],
-      start.position[1] + kf(t, [8.2, 8.6, 12.3, 12.7], [0, 0.03, 0.03, 0]),
+      start.position[1] + kf(t, [6.5, 6.9, 10.6, 11.0], [0, 0.03, 0.03, 0]),
       start.position[2],
     ],
   };
@@ -267,12 +277,12 @@ export const kartonAt = (t: number): KartonState => {
 
 export type { KarenFrame } from "../../Karen/character";
 
-const RUN_FROM = 6.8;
-const BRAKE_AT = 1.4;
-const STOP_AT = 2.0;
+const RUN_FROM = 5.8;
+const BRAKE_AT = 0.7;
+const STOP_AT = 1.3;
 const RUN_SPEED =
   (RUN_FROM - KAREN_SPOT[0]) / (BRAKE_AT + (STOP_AT - BRAKE_AT) / 2);
-const KAREN_FOLLOW = 27.0;
+const KAREN_FOLLOW = 25.3;
 const FOLLOW_SPEED = 0.75;
 const FOLLOW_EASE = 1.0;
 const followDistance = (t: number) => {
@@ -318,7 +328,7 @@ const karenSpeed = (t: number) =>
 const karenSteps = (): Step[] => {
   const running = rhythmicSteps({
     from: -0.7,
-    to: 1.7,
+    to: STOP_AT - 0.3,
     first: 1,
     cadence: (t) => 2.2 + 1.2 * karenSpeed(t),
     overlap: 0.06,
@@ -354,7 +364,7 @@ const POINT_AT_BUILDING: ArmPose = { ...KAREN_ARM_POINT, raise: 2.0, out: 0.2 };
 export const karenAt = (t: number): KarenFrame => {
   const root = karenRoot(t);
   const position: Vec3 = [root.x, 0, root.z];
-  const running = kf(t, [1.6, 2.0], [1, 0]);
+  const running = kf(t, [STOP_AT - 0.4, STOP_AT], [1, 0]);
   const walking = kf(t, [KAREN_FOLLOW, KAREN_FOLLOW + 0.6], [0, 1]);
   const step = strideAt(karenGait(), t);
   const yelling = speaking(t, "karen");
@@ -363,25 +373,25 @@ export const karenAt = (t: number): KarenFrame => {
     : 0;
 
   const rightArm =
-    t < 2.0
+    t < STOP_AT
       ? karenRunArm(-step * 0.6 * running)
       : armKf(
           t,
           [
-            2.0,
+            STOP_AT,
+            STOP_AT + 0.2,
             2.2,
+            2.5,
             3.9,
-            4.2,
-            5.6,
-            5.8,
-            7.6,
-            7.9,
+            4.1,
+            5.9,
+            6.2,
             SHOT_KAREN_THREATENS,
             SHOT_KAREN_THREATENS + 0.3,
-            22.0,
-            22.3,
-            25.8,
-            26.1,
+            20.3,
+            20.6,
+            24.1,
+            24.4,
           ],
           [
             karenRunArm(0),
@@ -401,12 +411,12 @@ export const karenAt = (t: number): KarenFrame => {
           ],
         );
   const leftArm =
-    t < 2.0
+    t < STOP_AT
       ? karenRunArm(step * 0.6 * running)
       : t < KAREN_FOLLOW + 0.4
         ? armKf(
             t,
-            [2.0, 2.3, KAREN_FOLLOW, KAREN_FOLLOW + 0.4],
+            [STOP_AT, STOP_AT + 0.3, KAREN_FOLLOW, KAREN_FOLLOW + 0.4],
             [karenRunArm(0), KAREN_ARM_HIPS, KAREN_ARM_HIPS, karenRunArm(0)],
           )
         : karenRunArm(step * 0.5);
@@ -417,7 +427,7 @@ export const karenAt = (t: number): KarenFrame => {
     lean: 0.15 * running + 0.06 * yellingAmount(t, "karen") + 0.1 * walking,
     sway: step * 0.06 * running + step * 0.05 * walking,
     headRoll: 0.08 * yellingAmount(t, "karen") * Math.sin(t * Math.PI * 3),
-    blink: blinkAt(t, [4.6, 8.8, 10.3, 12.2, 14.9, 18.4, 21.0, 24.2, 27.8]),
+    blink: blinkAt(t, [2.9, 7.1, 8.6, 10.5, 13.2, 16.7, 19.3, 22.5, 26.1]),
     leftArm,
     rightArm,
   });
@@ -428,10 +438,10 @@ export const karenAt = (t: number): KarenFrame => {
     pose: plantFeet(karenGait(), t, placed),
     mouthOpen,
     pointing:
-      t >= 2.1 &&
-      !(t > 3.9 && t < 5.7) &&
-      !(t > 7.6 && t < SHOT_KAREN_THREATENS + 0.1) &&
-      !(t > 22.1 && t < 25.9),
+      t >= STOP_AT + 0.1 &&
+      !(t > 2.2 && t < 4.0) &&
+      !(t > 5.9 && t < SHOT_KAREN_THREATENS + 0.1) &&
+      !(t > 20.4 && t < 24.2),
   };
 };
 

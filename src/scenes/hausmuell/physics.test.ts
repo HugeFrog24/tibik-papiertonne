@@ -145,7 +145,7 @@ test("the exchange goes on: who she is, the Weisungsbefugnis, and goodbye", () =
       "DAS HAT EIN NACHSPIEL!",
     ]),
   );
-  expect(HAUSMUELL_DURATION).toBeCloseTo(28.5, 9);
+  expect(HAUSMUELL_DURATION).toBeCloseTo(26.8, 9);
 });
 
 test("Tibik is still short of the door step when the scene cuts", () => {
@@ -158,6 +158,6 @@ test("Tibik is still short of the door step when the scene cuts", () => {
 test("both walk off on their own feet", () => {
   const stepsAfter = (plan: ReturnType<typeof tibikGait>, t: number) =>
     [...plan.plants.leftLeg, ...plan.plants.rightLeg].some((p) => p.on > t);
-  expect(stepsAfter(tibikGait(), 25.2)).toBe(true);
-  expect(stepsAfter(karenGait(), 27.0)).toBe(true);
+  expect(stepsAfter(tibikGait(), 23.5)).toBe(true);
+  expect(stepsAfter(karenGait(), 25.3)).toBe(true);
 });

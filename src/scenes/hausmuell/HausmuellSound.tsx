@@ -6,6 +6,7 @@ import { FootstepSounds } from "../../sound/FootstepSounds";
 import { SoundCues } from "../../sound/SoundCues";
 import { StreetAmbience } from "../../street/StreetAmbience";
 import { LINES, karenFootsteps, tibikFootsteps } from "./choreography";
+import { HAUSMUELL_CUES } from "./soundCues";
 
 export const HausmuellSound: React.FC<{ readonly ambience: boolean }> = ({
   ambience,
@@ -27,12 +28,7 @@ export const HausmuellSound: React.FC<{ readonly ambience: boolean }> = ({
 
       <SoundCues
         cues={[
-          {
-            name: "Record scratch",
-            at: 2.0,
-            src: "https://remotion.media/record-scratch.wav",
-            volume: 0.45,
-          },
+          ...HAUSMUELL_CUES,
           ...bubbleCues(LINES),
         ]}
       />

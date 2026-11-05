@@ -37,7 +37,8 @@ export const OPENING = 1.5;
 export const SHOT_OPEN_LID = 3.2 + OPENING;
 export const SHOT_INSIDE_BIN = 4.8 + OPENING;
 export const SHOT_FOUND_BOX = 7.0 + OPENING;
-export const PAPIERTONNEN_DURATION = 10.5 + OPENING;
+export const KARTON_OPENS: readonly [number, number] = [9.05 + OPENING, 9.55 + OPENING];
+export const PAPIERTONNEN_DURATION = 9.9 + OPENING;
 export const PAPIERTONNEN_LAST_T = PAPIERTONNEN_DURATION - 1 / 30;
 
 export const TARGET_BIN_X = binByName(SEARCHED_BIN).position[0];
@@ -78,7 +79,7 @@ export const kartonAt = (t: number): KartonState => {
       kf(u, [9.6, 9.75, 9.9], [0, 0.1, 0]),
       0,
     ],
-    open: kf(u, [9.05, 9.55], [0, 1]),
+    open: kf(t, KARTON_OPENS, [0, 1]),
     pickup: kf(u, [7.3, 8.0], [0, 1]),
     sideGrip: kf(u, [8.0, 8.2], [0, 1]),
   };
@@ -207,10 +208,6 @@ export const tibikAt = (t: number): TibikFrame => {
 
   const lean = kf(u, [4.3, 4.75, 7.4, 7.9], [0, 0.25, 0.25, 0]);
 
-  const bounce =
-    Math.max(0, Math.sin((u - 9.95) * Math.PI * 4)) *
-    kf(u, [9.95, 10.0, 10.4, 10.5], [0, 1, 1, 0]);
-
   const rightArm = opening
     ? armKf(t, CLEAR_OF_THE_FRAME, [ARM_TUCK, ARM_WALK])
     : u < SHOT_FOUND_BOX - OPENING
@@ -237,7 +234,6 @@ export const tibikAt = (t: number): TibikFrame => {
 
   const pose: TibikPose = {
     ...TIBIK_REST,
-    bob: -bounce * 0.04,
     sway: step * 0.05 * walk,
     lean,
     headPitch:
@@ -245,7 +241,7 @@ export const tibikAt = (t: number): TibikFrame => {
         u,
         [4.3, 4.75, 7.0, 7.3, 9.0, 9.15, 9.85, 9.95],
         [0, 0.35, 0.35, 0, 0, 0.1, 0.1, 0],
-      ) + kf(u, [9.95, 10.08, 10.2, 10.33, 10.45], [0, 0.12, 0, 0.12, 0]),
+      ),
     headYaw: kf(u, [5.0, 5.3, 5.6, 5.95, 6.2], [0, 0.18, 0.18, -0.18, 0]),
     headRoll: kf(u, [8.2, 8.5, 8.8, 9.1], [0, 0.2, -0.1, 0]),
     gazeYaw: kf(u, [5.0, 5.3, 5.6, 5.95, 6.2], [0, 0.5, 0.5, -0.5, 0]),

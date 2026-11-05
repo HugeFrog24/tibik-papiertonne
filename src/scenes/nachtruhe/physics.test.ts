@@ -5,7 +5,7 @@ import { allColliders, armColliders, bodyColliders, handPosition, handSphere } f
 import { contacts, sphere, sphereObbGap, type Solid } from "../../physics/collision";
 import { OUTLINE } from "../../toon/primitives";
 import { blanketProblems } from "../../props/blanketChecks";
-import { blanketSurface } from "../../props/blanketShape";
+import { blanketGrid, blanketSurface } from "../../props/blanketShape";
 import { LYING_TILT, SITTING, lyingInBed, sittingUpInBed } from "../../Tibik/bedPoses";
 import { FPS } from "../../frameRate";
 import { characterViolations } from "../../physics/guards";
@@ -236,4 +236,16 @@ test("the morning hands the epilogue its world: rain, every lid and the Haustür
   expect(last.rain).toBe(true);
   expect(last.lids.every((l) => l === 0)).toBe(true);
   expect(last.haustuer).toBe(0);
+});
+
+test("while he sits up in bed the turned-back fleece lies beside him, never tented up his side", { timeout: 300_000 }, () => {
+  const upright = [...between(SWING_IN[0], LIE_DOWN[1]), ...between(SIT_UP[0], SWING_OUT[1])].filter((t) => (solveNachtruhe(t).tibik.tilt ?? 0) < 0.6);
+  expect(upright.length).toBeGreaterThan(20);
+  const tents = upright.flatMap((t) => {
+    const state = solveNachtruhe(t);
+    const grid = blanketGrid(BED_RECT, allColliders(RIG, asCharacter(state.tibik)), blanketLie(state.blanket));
+    const highest = Math.max(...grid.columns.flatMap((x) => grid.rows.map((z) => grid.height(x, z))));
+    return highest - BED_RECT.top > 0.12 ? [`${t.toFixed(2)} s: the fleece ${((highest - BED_RECT.top) * 100).toFixed(0)} cm up`] : [];
+  });
+  expect(tents.slice(0, 6)).toEqual([]);
 });

@@ -53,8 +53,16 @@ const over = (body: readonly Sphere[], x: number, z: number, base: number) => {
 
 const foldAt = (bed: BedRect, aside: number) => bed.z0 + clamp(aside, 0, bed.z1 - bed.z0);
 
-const underneath = (body: readonly Sphere[], edge: number, fold: number) =>
-  body.filter((s) => s.center.x + s.radius + BLANKET.clearance >= edge && s.center.z + s.radius + BLANKET.clearance >= fold);
+const underneath = (bed: BedRect, body: readonly Sphere[], edge: number, fold: number) =>
+  body.filter((s) => {
+    const reach = s.radius + BLANKET.clearance;
+    return (
+      s.center.x + reach >= edge &&
+      s.center.z + reach >= fold &&
+      s.center.x - reach <= bed.x1 + BLANKET.hang &&
+      s.center.z - reach <= bed.z1 + BLANKET.hang
+    );
+  });
 
 const overhang = (bed: BedRect, x: number, z: number) =>
   (Math.max(0, bed.z0 - z, z - bed.z1, x - bed.x1) / BLANKET.hang) * BLANKET.drop;
@@ -72,7 +80,7 @@ export const blanketSurface = (bed: BedRect, body: readonly Sphere[], lie: Blank
   const { cover, aside, edge } = laid(bed, body, lie);
   const base = bed.top + BLANKET.ply;
   const folded = (1 - clamp(cover, 0, 1)) * (BLANKET.layers - 1) * BLANKET.ply;
-  const under = underneath(body, edge, foldAt(bed, aside));
+  const under = underneath(bed, body, edge, foldAt(bed, aside));
   const flap = doubled(bed, aside);
   return (x: number, z: number) => Math.max(base + folded - overhang(bed, x, z), over(under, x, z, base) + folded) + flap(z);
 };
@@ -93,7 +101,7 @@ export const blanketGrid = (bed: BedRect, body: readonly Sphere[], lie: BlanketL
       : Array.from({ length: BLANKET.across + 2 * side + 1 }, (_, j) => bed.z0 + (j - side) * dz);
   const surface = blanketSurface(bed, body, { cover, aside, edge });
   const hem = bed.top + BLANKET.hem;
-  const under = underneath(body, edge, fold);
+  const under = underneath(bed, body, edge, fold);
   const height = (x: number, z: number) =>
     x < edge + dx / 2 || (aside > 0 && z < fold + dz / 2) ? Math.max(hem - overhang(bed, x, z), over(under, x, z, hem)) : surface(x, z);
   return { columns, rows, dx, dz, height };

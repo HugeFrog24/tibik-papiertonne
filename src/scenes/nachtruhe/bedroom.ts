@@ -9,7 +9,7 @@ import { easeUnit, inWindow, lerp, windowUnit } from "../../characters/scalar";
 import { allColliders, armColliders, type ArmName } from "../../characters/skeleton";
 import { frame, obb } from "../../physics/collision";
 import { handHold, type Hold } from "../../physics/holds";
-import { blanketEdge, blanketSurface } from "../../props/blanketShape";
+import { BLANKET, blanketEdge, blanketSurface } from "../../props/blanketShape";
 import { walkFacing, type Walk } from "../../characters/walkPath";
 import { BACK_DEPTH, SITTING, SITTING_UP, lyingInBed, sittingOnBed, sittingUpInBed } from "../../Tibik/bedPoses";
 import { plantedTibik, tibikGaitOf, type TibikFrame } from "../../Tibik/character";
@@ -206,8 +206,15 @@ const pushKeys = [
   BLANKET_BACK[0] + PUSH.right[1],
 ];
 
-export const coveredAt = (t: number) =>
-  t < MORNING[0] ? kf(t, pullKeys, TURNED_BACK.map(covering)) : kf(t, pushKeys, [...TURNED_BACK].reverse().map(covering));
+const BESIDE_HIM =
+  Math.max(...allColliders(RIG, UP).map((s) => s.center.z + s.radius)) + BLANKET.clearance + OUTLINE - BED_RECT.z0;
+
+const settled = (lying: number) => lerp(covering(BESIDE_HIM), covering(ASIDE), easeUnit((lying - 0.5) / 0.5));
+
+export const coveredAt = (t: number) => {
+  if (t < MORNING[0]) return t < LIE_DOWN[1] ? settled(inWindow(t, LIE_DOWN)) : kf(t, pullKeys, TURNED_BACK.map(covering));
+  return t < SIT_UP[0] ? kf(t, pushKeys, [...TURNED_BACK].reverse().map(covering)) : settled(1 - inWindow(t, SIT_UP));
+};
 
 const HAND = Math.max(...RIG.hand.size) / 2;
 const AT_THE_CHEST = LAID_EDGE + 0.08;

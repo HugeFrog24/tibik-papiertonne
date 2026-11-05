@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { BED_RECT } from "../building/bedroomShape";
 import { allColliders, bodyColliders } from "../characters/skeleton";
 import { lyingInBed } from "../Tibik/bedPoses";
-import { RIG } from "../Tibik/rig";
+import { RIG, TIBIK_REST } from "../Tibik/rig";
 import { blanketProblems } from "./blanketChecks";
 import { BLANKET, blanketEdge, blanketGrid, blanketSurface } from "./blanketShape";
 
@@ -83,4 +83,14 @@ test("the blanket's head hem can stay where it was laid, whatever pose he is in"
   const laid = blanketEdge(BED_RECT, bodyOf(-1), 1);
   const grid = blanketGrid(BED_RECT, [], { cover: 1, aside: 0, edge: laid });
   expect(grid.columns[0]).toBeCloseTo(laid, 9);
+});
+
+test("standing beside the bed's foot he lifts no part of the blanket", () => {
+  const standing = allColliders(RIG, { position: [BED_RECT.x1 + 0.63, BED_RECT.top - 0.55, BED_RECT.z1 - 0.01], rotationY: Math.PI / 2, pose: TIBIK_REST });
+  const laid = blanketEdge(BED_RECT, bodyOf(-1), 1);
+  for (const lie of [{ cover: 1, edge: laid }, { cover: 1, aside: 0.82, edge: laid }]) {
+    const alone = blanketGrid(BED_RECT, [], lie);
+    const beside = blanketGrid(BED_RECT, standing, lie);
+    for (const x of alone.columns) for (const z of alone.rows) expect(beside.height(x, z), `${x.toFixed(2)},${z.toFixed(2)}`).toBeCloseTo(alone.height(x, z), 9);
+  }
 });

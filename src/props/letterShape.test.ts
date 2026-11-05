@@ -211,6 +211,16 @@ describe("the envelope", () => {
     expect(turns).toBeGreaterThanOrEqual(6);
   });
 
+  test("the tear wanders like a real one: its jags are unevenly spaced, some long runs, some short nicks, not a serrated grid", () => {
+    const tear = flapPieces().lifted.slice(2).reverse();
+    const gaps = tear.slice(1).map(([x], i) => x - tear[i][0]);
+    for (const gap of gaps) expect(gap).toBeGreaterThan(0);
+    expect(Math.max(...gaps)).toBeGreaterThan(2.5 * Math.min(...gaps));
+    const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    const spread = Math.sqrt(gaps.reduce((a, b) => a + (b - mean) ** 2, 0) / gaps.length);
+    expect(spread / mean).toBeGreaterThan(0.3);
+  });
+
   test("its flap lies on its back when shut and stands up above it when open", () => {
     const tip = (open: number) =>
       new Vector3(DL[0] / 2, -0.06, 0).applyMatrix4(envelopeFlap(open));

@@ -17,6 +17,7 @@ import { UNFOLD } from "./choreography";
 import { paperSpotsAt } from "../../props/letterShape";
 import { Rain } from "../../weather/Rain";
 import { RundschreibenSound } from "./RundschreibenSound";
+import { RUNDSCHREIBEN_FROM } from "../../timeline";
 
 
 const Scene: React.FC = () => {
@@ -26,6 +27,7 @@ const Scene: React.FC = () => {
     <>
       <Street
         weather="rain"
+        windAt={RUNDSCHREIBEN_FROM + t}
         lampOn={state.lampOn}
         mailboxDoor={state.mailboxDoor}
         haustuer={state.haustuer}

@@ -54,12 +54,16 @@ const paintLetter = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
 
 const SEGMENTS = { across: 16, down: 4 };
 
-export const panelGeometry = (panel: Panel, face: number, back: boolean) => {
+const OPENED_OUT = 0.8;
+
+export const bowOf = (fold: number) => Math.max(0, (fold - OPENED_OUT) / (1 - OPENED_OUT));
+
+export const panelGeometry = (panel: Panel, face: number, back: boolean, bow = 1) => {
   const [w, h] = panel.size;
   const g = new PlaneGeometry(w, h, SEGMENTS.across, SEGMENTS.down);
   g.translate(w / 2, h / 2, 0);
   const p = g.getAttribute("position");
-  for (let i = 0; i < p.count; i++) p.setZ(i, face + sheetBow(p.getX(i)));
+  for (let i = 0; i < p.count; i++) p.setZ(i, face + bow * sheetBow(p.getX(i)));
   if (back) {
     const index = g.getIndex()!;
     for (let k = 0; k < index.count; k += 3) {
@@ -86,9 +90,10 @@ const PanelView: React.FC<{
   readonly panel: Panel;
   readonly texture: Texture | null;
   readonly spots: readonly { u: number; v: number; r: number }[];
-}> = ({ panel, texture, spots }) => {
-  const geometry = useDisposable(() => panelGeometry(panel, PAPER.face, false), [panel.fromTop]);
-  const back = useDisposable(() => panelGeometry(panel, -PAPER.face, true), [panel.fromTop]);
+  readonly bow: number;
+}> = ({ panel, texture, spots, bow }) => {
+  const geometry = useDisposable(() => panelGeometry(panel, PAPER.face, false, bow), [panel.fromTop, bow]);
+  const back = useDisposable(() => panelGeometry(panel, -PAPER.face, true, bow), [panel.fromTop, bow]);
   const [w, h] = panel.size;
   const mine = spots.filter((s) => {
     const y = s.v * A4[1] - panel.fromTop;
@@ -106,7 +111,7 @@ const PanelView: React.FC<{
         <WetSpot
           key={i}
           point={
-            new Vector3(s.u * w, h - (s.v * A4[1] - panel.fromTop), PAPER.face + sheetBow(s.u * w))
+            new Vector3(s.u * w, h - (s.v * A4[1] - panel.fromTop), PAPER.face + bow * sheetBow(s.u * w))
           }
           normal={OUT}
           radius={s.r}
@@ -136,6 +141,7 @@ export const Letter: React.FC<{
           panel={panel}
           texture={texture}
           spots={spots}
+          bow={bowOf(fold)}
         />
       ))}
     </group>

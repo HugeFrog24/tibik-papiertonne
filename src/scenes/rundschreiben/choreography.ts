@@ -497,6 +497,7 @@ const READY = {
   z: PAPER_BIN.position[2] + 0.47,
 };
 const FLIGHT = 0.42;
+export const ENVELOPE_LANDS = KLOPPEN[0] + FLIGHT;
 const THROW = 3.4;
 const DRIFT = 0.18;
 const GRAVITY = 9.81;

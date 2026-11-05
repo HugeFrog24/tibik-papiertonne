@@ -156,18 +156,25 @@ export const flapOutline = (): [number, number][] => [
   [ENVELOPE.flapChamfer, -ENVELOPE.flapDepth],
 ];
 
-const TEAR = { depth: 0.026, slant: 0.006, jag: 0.0018, points: 24 };
+const TEAR = { depth: 0.026, slant: 0.006, jag: 0.0016, wander: 0.0015, points: 24 };
 
 const flapSides = (y: number) => {
   const inset = (ENVELOPE.flapChamfer * -y) / ENVELOPE.flapDepth;
   return [inset, DL[0] - inset] as const;
 };
 
+const tearSpacing = () => {
+  const widths = Array.from({ length: TEAR.points }, (_, i) => 0.25 + 1.75 * random(`flap-tear-gap/${i}`) ** 2);
+  const total = widths.reduce((a, b) => a + b, 0);
+  return widths.reduce<number[]>((at, w) => [...at, at[at.length - 1] + w / total], [0]);
+};
+
 const tearLine = (): [number, number][] =>
-  Array.from({ length: TEAR.points + 1 }, (_, i) => {
-    const u = i / TEAR.points;
-    const ragged = i === 0 || i === TEAR.points ? 0 : TEAR.jag * (2 * random(`flap-tear/${i}`) - 1);
-    const y = -(TEAR.depth + TEAR.slant * (u - 0.5)) + ragged;
+  tearSpacing().map((u, i) => {
+    const end = i === 0 || i === TEAR.points;
+    const ragged = end ? 0 : TEAR.jag * (2 * random(`flap-tear/${i}`) - 1);
+    const wander = TEAR.wander * Math.sin(Math.PI * u) * Math.sin(2 * Math.PI * (1.3 * u + random("flap-tear-wander")));
+    const y = -(TEAR.depth + TEAR.slant * (u - 0.5)) + ragged + wander;
     const [left, right] = flapSides(y);
     return [left + (right - left) * u, y];
   });

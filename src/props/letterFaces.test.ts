@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { letterPanels } from "./letterShape";
-import { PAPER, panelGeometry } from "./Letter";
+import { PAPER, bowOf, panelGeometry } from "./Letter";
 
 test("the letter's back is a front-facing sheet of its own, its normals pointing away from the text, so the ink pass sees the paper from behind too", () => {
   for (const panel of letterPanels(1)) {
@@ -18,4 +18,16 @@ test("the letter's back is a front-facing sheet of its own, its normals pointing
     const front = panelGeometry(panel, PAPER.face, false).getAttribute("normal");
     for (let i = 0; i < front.count; i++) expect(front.getZ(i)).toBeGreaterThan(0.99);
   }
+});
+
+test("folded, the sheet is pressed flat: it only bows once it is opened out, so no outer panel bulges in front of the middle one", () => {
+  expect(bowOf(0)).toBe(0);
+  expect(bowOf(0.5)).toBe(0);
+  expect(bowOf(1)).toBe(1);
+  for (const panel of letterPanels(0)) {
+    const position = panelGeometry(panel, PAPER.face, false, bowOf(0)).getAttribute("position");
+    for (let i = 0; i < position.count; i++) expect(Math.abs(position.getZ(i) - PAPER.face)).toBeLessThan(1e-9);
+  }
+  const open = panelGeometry(letterPanels(1)[1], PAPER.face, false, bowOf(1)).getAttribute("position");
+  expect(Math.max(...Array.from({ length: open.count }, (_, i) => open.getZ(i))) - PAPER.face).toBeGreaterThan(0.0015);
 });

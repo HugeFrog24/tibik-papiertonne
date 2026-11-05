@@ -15,7 +15,7 @@ import {
 } from "../../timeline";
 import { KLINGELSTURM_DURATION } from "../klingelsturm/choreography";
 import { doorCues } from "../klingelsturm/doorCues";
-import { LID_THUD, RUNDSCHREIBEN_DURATION } from "./choreography";
+import { ENVELOPE_LANDS, LID_THUD, RUNDSCHREIBEN_DURATION } from "./choreography";
 import { DOOR_SHUT } from "./home";
 import { RAIN, RUNDSCHREIBEN_CUES, rainLevel } from "./soundCues";
 
@@ -63,4 +63,9 @@ test("the declared time jumps, and the film is its five scenes end to end", () =
   expect(TIME_JUMPS).toContainEqual({ from: "Klingelsturm", to: "Rundschreiben" });
   expect(FILM_FRAMES).toBe(TREPPENHAUS_FRAMES + PAPIERTONNEN_FRAMES + HAUSMUELL_FRAMES + KLINGELSTURM_FRAMES + RUNDSCHREIBEN_FRAMES);
   expect(RUNDSCHREIBEN_FRAMES).toBe(Math.round(RUNDSCHREIBEN_DURATION * FPS));
+});
+
+test("the envelope is heard landing on the bin's floor the moment it lands", () => {
+  const landing = RUNDSCHREIBEN_CUES.find((c) => c.name === "Envelope lands in the bin")!;
+  expect(Math.abs(landing.at - ENVELOPE_LANDS)).toBeLessThan(1 / FPS);
 });

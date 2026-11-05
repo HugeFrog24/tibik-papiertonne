@@ -37,16 +37,15 @@ test("she holds the phone in her fist alone: no fingers, no thumb drawn on it", 
   for (const t of heldTimes(15)) expect(Object.keys(phoneAt(t))).not.toContain("thumb");
 });
 
+const LET_GO = 0.005;
+
 test(
-  "her fist never enters the phone, outlines included",
+  "her fist never enters the phone and never lets it drift off, outlines included",
   { timeout: 300_000 },
   () => {
     const problems = heldTimes()
-      .map((t) => ({
-        t,
-        gap: boxDistance(fistOnPhone(t).fist, HALF) - FIST - Math.max(OUTLINE, PHONE.ink),
-      }))
-      .filter(({ gap }) => gap < 0)
+      .map((t) => ({ t, gap: boxDistance(fistOnPhone(t).fist, HALF) - FIST }))
+      .filter(({ gap }) => gap < Math.max(OUTLINE, PHONE.ink) || gap > OUTLINE + PHONE.ink + LET_GO)
       .map(({ t, gap }) => `${t.toFixed(2)} s: ${(gap * 1000).toFixed(1)} mm`);
     expect(problems.slice(0, 6)).toEqual([]);
   },

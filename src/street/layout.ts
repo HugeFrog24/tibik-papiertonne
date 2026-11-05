@@ -8,6 +8,7 @@ import {
   obb,
   type Obb,
   type Solid,
+  partObb,
 } from "../physics/collision";
 import type { Vec3 } from "../toon/primitives";
 import { tonneColliders, type TonneKind } from "./tonneShape";
@@ -260,13 +261,11 @@ export const STREET_PARTS: readonly Part[] = [
   ...bikeParts(),
 ];
 
-const partSolid = (p: Part): Obb =>
-  obb(p.name, frame(new Matrix4(), p.center), p.size);
 
 export const STREET_SOLIDS: readonly Solid[] = [
   GROUND,
-  ...facadePieces().map(partSolid),
-  ...STREET_PARTS.map(partSolid),
+  ...facadePieces().map(partObb),
+  ...STREET_PARTS.map(partObb),
 ];
 
 export type BinItem = {

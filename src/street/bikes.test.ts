@@ -1,7 +1,6 @@
 import { WALK_X } from "./streetChecks";
 import { expect, test } from "vitest";
-import { obb, frame, collide } from "../physics/collision";
-import { Matrix4 } from "three";
+import { collide, partObb } from "../physics/collision";
 import { BIKE, STAND, STAND_XS, bikeParts, standZ } from "./bikes";
 import { FACADE_Z, KERB_Z } from "./building";
 
@@ -23,9 +22,7 @@ test("they stand well clear of where Tibik and Karen walk", () => {
 
 test("the parked bike leans beside its stand without passing through it", () => {
   const [stand, , bike] = bikeParts();
-  const solid = (p: typeof stand) =>
-    obb(p.name, frame(new Matrix4(), p.center), p.size);
-  expect(collide(solid(bike), solid(stand))).toBeNull();
+  expect(collide(partObb(bike), partObb(stand))).toBeNull();
   expect(BIKE.x - BIKE.width / 2 - (STAND_XS[0] + STAND.tube)).toBeLessThan(
     0.05,
   );

@@ -1,5 +1,5 @@
-import { doorFrame, doorLeaf, leverGrip, type Door } from "./doors";
-import { floorLevel, type Part } from "../street/building";
+import { doorFrame, doorLeaf, roomDoor, type Door } from "./doors";
+import { floorLevel, toPart, type Part } from "../street/building";
 import { DOOR_FRAME, doorwayFrameParts } from "./doorwayFrame";
 import { FLUR, LIVING_DOORWAY } from "./stairwell";
 
@@ -14,8 +14,6 @@ export const LIVING_ROOM = {
   height: FLUR.height,
 };
 
-const ROOM_DOOR = { width: 0.86, thickness: 0.04, backset: 0.055, lever: 1.04 };
-
 export const LIVING_DOOR: Door & {
   readonly open: number;
   readonly glass: {
@@ -25,27 +23,7 @@ export const LIVING_DOOR: Door & {
     readonly inset: number;
   };
 } = {
-  name: "living-room door",
-  width: ROOM_DOOR.width,
-  height: 1.985,
-  thickness: ROOM_DOOR.thickness,
-  hinge: [LIVING_DOORWAY.x1 - 0.0125, floor + 0.01, LIVING_ROOM.z0 + 0.022],
-  closedYaw: Math.PI,
-  swing: 1,
-  fitting: "rosettes",
-  grips: [
-    leverGrip(
-      ROOM_DOOR.width - ROOM_DOOR.backset,
-      ROOM_DOOR.lever,
-      -ROOM_DOOR.thickness / 2,
-    ),
-    leverGrip(
-      ROOM_DOOR.width - ROOM_DOOR.backset,
-      ROOM_DOOR.lever,
-      ROOM_DOOR.thickness / 2,
-      "outer",
-    ),
-  ],
+  ...roomDoor("living-room door", [LIVING_DOORWAY.x1 - 0.0125, floor + 0.01, LIVING_ROOM.z0 + 0.022]),
   open: 1.65,
   glass: { x: 0.14, bottom: 0.62, top: 0.2, inset: 0.012 },
 };
@@ -101,11 +79,7 @@ export const LIVING_FURNITURE: readonly Part[] = [
   WALL_UNIT,
   SOFA,
   CHAISE,
-].map(({ name, center, size }) => ({
-  name,
-  center: [...center],
-  size: [...size],
-}));
+].map(toPart);
 
 export const LIVING_FRAME = DOOR_FRAME;
 

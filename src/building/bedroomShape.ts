@@ -4,7 +4,7 @@ import { frame, obb, partObb, type Solid } from "../physics/collision";
 import { FACADE_Z, boundsPart, flatWindow, floorLevel, openingFrame, type Part } from "../street/building";
 import { FACADE_THICKNESS } from "../street/facade";
 import type { Vec3 } from "../toon/primitives";
-import { doorSolids, leverGrip, type Door } from "./doors";
+import { ROOM_DOOR, doorSolids, roomDoor, type Door } from "./doors";
 import { DOOR_FRAME, doorwayFrameParts } from "./doorwayFrame";
 import { FLUR } from "./stairwell";
 
@@ -149,21 +149,8 @@ const windowParts = (): Part[] => {
 
 export const BEDROOM_DOORWAY = { x0: BEDROOM.x1 - 0.1 - 0.885, x1: BEDROOM.x1 - 0.1, height: 2.01 };
 
-const ROOM_DOOR = { width: 0.86, thickness: 0.04, backset: 0.055, lever: 1.04 };
-
 export const BEDROOM_DOOR: Door & { readonly open: number } = {
-  name: "bedroom door",
-  width: ROOM_DOOR.width,
-  height: 1.985,
-  thickness: ROOM_DOOR.thickness,
-  hinge: [BEDROOM_DOORWAY.x1 - 0.0125, floor + 0.01, BEDROOM.z0 + DOOR_FRAME.trim + ROOM_DOOR.thickness / 2],
-  closedYaw: Math.PI,
-  swing: 1,
-  fitting: "rosettes",
-  grips: [
-    leverGrip(ROOM_DOOR.width - ROOM_DOOR.backset, ROOM_DOOR.lever, -ROOM_DOOR.thickness / 2),
-    leverGrip(ROOM_DOOR.width - ROOM_DOOR.backset, ROOM_DOOR.lever, ROOM_DOOR.thickness / 2, "outer"),
-  ],
+  ...roomDoor("bedroom door", [BEDROOM_DOORWAY.x1 - 0.0125, floor + 0.01, BEDROOM.z0 + DOOR_FRAME.trim + ROOM_DOOR.thickness / 2]),
   open: 1.5,
 };
 

@@ -12,6 +12,12 @@ export type Part = {
 
 type Span = readonly [number, number];
 
+export const toPart = ({ name, center, size }: {
+  readonly name: string;
+  readonly center: readonly [number, number, number];
+  readonly size: readonly [number, number, number];
+}): Part => ({ name, center: [...center], size: [...size] });
+
 export const boundsPart = (name: string, [ax, bx]: Span, [ay, by]: Span, [az, bz]: Span): Part => ({
   name,
   center: [(ax + bx) / 2, (ay + by) / 2, (az + bz) / 2],

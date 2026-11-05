@@ -6,6 +6,7 @@ import {
   frame,
   obb,
   obbCorners,
+  partObb,
 } from "../physics/collision";
 import { floorLevel } from "../street/building";
 import {
@@ -61,9 +62,7 @@ test("the living-room door only ever swings into the living room", () => {
 });
 
 test("standing open, the door touches nothing in the living room", () => {
-  const solids = LIVING_FURNITURE.map((p) =>
-    obb(p.name, frame(new Matrix4(), p.center), p.size),
-  );
+  const solids = LIVING_FURNITURE.map(partObb);
   expect(contacts([livingDoorLeaf(LIVING_DOOR.open)], solids)).toEqual([]);
 });
 
@@ -99,10 +98,8 @@ test("the living-room door has an L-lever on each face, 1050 mm above the floor 
 test("standing open, the door and its handles touch nothing in the living room and stay inside it", () => {
   const solids = doorSolids(LIVING_DOOR, LIVING_DOOR.open);
   const around = [
-    ...LIVING_FURNITURE.map((p) =>
-      obb(p.name, frame(new Matrix4(), p.center), p.size),
-    ),
-    ...livingFrameParts().map(solidOf),
+    ...LIVING_FURNITURE.map(partObb),
+    ...livingFrameParts().map(partObb),
   ];
   expect(contacts(solids, around)).toEqual([]);
   for (const s of solids)
@@ -113,9 +110,7 @@ test("standing open, the door and its handles touch nothing in the living room a
 });
 
 test("the living-room furniture stands on its floor or hangs on its far wall, inside the room, without overlapping", () => {
-  const solids = LIVING_FURNITURE.map((p) =>
-    obb(p.name, frame(new Matrix4(), p.center), p.size),
-  );
+  const solids = LIVING_FURNITURE.map(partObb);
   for (const p of LIVING_FURNITURE) {
     const [x, y, z] = p.center;
     const [w, h, d] = p.size;
@@ -143,17 +138,6 @@ test("the living-room furniture stands on its floor or hangs on its far wall, in
   ])
     expect(names).toContain(thing);
 });
-
-const solidOf = (p: {
-  readonly name: string;
-  readonly center: readonly number[];
-  readonly size: readonly number[];
-}) =>
-  obb(p.name, frame(new Matrix4(), [p.center[0], p.center[1], p.center[2]]), [
-    p.size[0],
-    p.size[1],
-    p.size[2],
-  ]);
 
 test("a DIN 18101 frame lines the doorway, with 60 mm casings on both faces and an 841 × 1972 mm clear opening", () => {
   const parts = livingFrameParts();
@@ -184,7 +168,7 @@ test("a DIN 18101 frame lines the doorway, with 60 mm casings on both faces and 
     );
   }
   expect(
-    contacts([livingDoorLeaf(LIVING_DOOR.open)], parts.map(solidOf)),
+    contacts([livingDoorLeaf(LIVING_DOOR.open)], parts.map(partObb)),
   ).toEqual([]);
 });
 

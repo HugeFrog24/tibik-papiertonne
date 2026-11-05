@@ -2,7 +2,8 @@ import { floorLevel } from "../street/building";
 import { ToonBox, addVec, type Vec3 } from "../toon/primitives";
 import { DoorGrips } from "./DoorGrips";
 import { DoorLeaf } from "./DoorLeaf";
-import { WALL_WHITE, alder, laminate, patternGlass, wildOak } from "./interiorTextures";
+import { WALL_WHITE, alder, patternGlass, wildOak } from "./interiorTextures";
+import { RoomSlabs } from "./RoomSlabs";
 import {
   BASE_UNIT,
   CHAISE,
@@ -32,19 +33,7 @@ const Shell: React.FC = () => {
   const depth = z1 - z0;
   return (
     <group>
-      <ToonBox
-        position={[(x0 + x1) / 2, floor - 0.025, (z0 + z1) / 2]}
-        size={[width, 0.05, depth]}
-        color="#ffffff"
-        map={laminate(width, depth)}
-        outline={false}
-      />
-      <ToonBox
-        position={[(x0 + x1) / 2, floor + height + 0.1, (z0 + z1) / 2]}
-        size={[width, 0.2, depth]}
-        color={COLOURS.wall}
-        outline={false}
-      />
+      <RoomSlabs room={LIVING_ROOM} floor={floor} ceiling={COLOURS.wall} />
       <ToonBox
         position={[x0 - WALL / 2, floor + height / 2, (z0 + z1) / 2]}
         size={[WALL, height, depth + 2 * WALL]}

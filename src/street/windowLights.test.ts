@@ -1,5 +1,6 @@
 import { Color, SRGBColorSpace } from "three";
 import { expect, test } from "vitest";
+import { expectSwitchingOffOneByOne } from "../tooling/switchingOff";
 import { curtainOverPane, curtainShape } from "../building/bedroomShape";
 import { FACADE_Z, OPENINGS, acrossZ, flatWindow, floorLevel } from "./building";
 import { neighbourWindowsOn } from "./lightsOn";
@@ -65,18 +66,11 @@ test("from the street his curtain shows exactly where the room's curtain hangs b
 
 test("the neighbours' windows light up at night too, a few per house, going out one by one; the stairwells stay on their timers", () => {
   const houses = ["6", "8", "10", "14", "16", "18"];
-  let before = houses.map((house) => new Set(neighbourWindowsOn(house, 1)));
-  const lit = before.reduce((n, on) => n + on.size, 0) / (houses.length * OPENINGS.length);
-  expect(lit).toBeGreaterThan(0.1);
-  expect(lit).toBeLessThan(0.35);
-  for (const on of before) for (const k of on) expect(OPENINGS[k].kind).not.toBe("stairs");
-  expect(JSON.stringify([...before[0]])).not.toBe(JSON.stringify([...before[1]]));
-  for (const share of [0.6, 0.2, 0]) {
-    const now = houses.map((house) => new Set(neighbourWindowsOn(house, share)));
-    now.forEach((on, i) => {
-      for (const k of on) expect(before[i].has(k)).toBe(true);
-    });
-    before = now;
-  }
-  expect(before.every((on) => on.size === 0)).toBe(true);
+  const evening = expectSwitchingOffOneByOne(
+    (share) => houses.map((house) => neighbourWindowsOn(house, share)),
+    houses.length * OPENINGS.length,
+    [0.6, 0.2, 0],
+  );
+  for (const on of evening) for (const k of on) expect(OPENINGS[k].kind).not.toBe("stairs");
+  expect([...evening[0]]).not.toEqual([...evening[1]]);
 });

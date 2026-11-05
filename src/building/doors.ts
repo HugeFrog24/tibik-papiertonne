@@ -136,6 +136,23 @@ export const keyOutline = ({
 
 export const profileOutline = () => keyOutline(PROFILE);
 
+export const ROOM_DOOR = { width: 0.86, height: 1.985, thickness: 0.04, backset: 0.055, lever: 1.04 };
+
+export const roomDoor = (name: string, hinge: Vec3): Door => ({
+  name,
+  width: ROOM_DOOR.width,
+  height: ROOM_DOOR.height,
+  thickness: ROOM_DOOR.thickness,
+  hinge,
+  closedYaw: Math.PI,
+  swing: 1,
+  fitting: "rosettes",
+  grips: [
+    leverGrip(ROOM_DOOR.width - ROOM_DOOR.backset, ROOM_DOOR.lever, -ROOM_DOOR.thickness / 2),
+    leverGrip(ROOM_DOOR.width - ROOM_DOOR.backset, ROOM_DOOR.lever, ROOM_DOOR.thickness / 2, "outer"),
+  ],
+});
+
 export const leverGrip = (
   spindleX: number,
   y: number,

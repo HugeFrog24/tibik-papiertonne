@@ -1,6 +1,5 @@
-import { Matrix4 } from "three";
-import { frame, obb, type Obb, type Solid } from "../physics/collision";
-import { floorLevel, type Part } from "../street/building";
+import { partObb, type Obb, type Solid } from "../physics/collision";
+import { floorLevel, toPart, type Part } from "../street/building";
 import { FLUR, TIBIK_DOOR, stairwellSolids } from "./stairwell";
 
 const floor = floorLevel(1);
@@ -58,15 +57,9 @@ export const FLUR_PARTS: readonly Part[] = [
   CHIME,
   INTERCOM,
   LIGHT_SWITCH,
-].map(({ name, center, size }) => ({
-  name,
-  center: [...center],
-  size: [...size],
-}));
+].map(toPart);
 
-export const FLUR_SOLIDS: readonly Obb[] = FLUR_PARTS.map((part) =>
-  obb(`Flur ${part.name}`, frame(new Matrix4(), part.center), part.size),
-);
+export const FLUR_SOLIDS: readonly Obb[] = FLUR_PARTS.map((part) => partObb({ ...part, name: `Flur ${part.name}` }));
 
 export const indoorSolids = (
   doors: Parameters<typeof stairwellSolids>[0],

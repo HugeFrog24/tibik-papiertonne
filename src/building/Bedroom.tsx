@@ -23,7 +23,8 @@ import {
 } from "./bedroomShape";
 import { DoorGrips } from "./DoorGrips";
 import { DoorLeaf } from "./DoorLeaf";
-import { WALL_WHITE, alder, laminate, wildOak } from "./interiorTextures";
+import { WALL_WHITE, alder, wildOak } from "./interiorTextures";
+import { RoomSlabs } from "./RoomSlabs";
 
 const COLOURS = {
   leather: "#f1efea",
@@ -130,8 +131,6 @@ const paints: Readonly<Record<string, string>> = {
 
 const Shell: React.FC = () => {
   const parts = bedroomParts();
-  const width = BEDROOM.x1 - BEDROOM.x0;
-  const depth = BEDROOM.z1 - BEDROOM.z0;
   const ceilingMap = useMemo(woodchip, []);
   const windowSkins = parts
     .filter((p) => p.name === "window wall")
@@ -139,20 +138,7 @@ const Shell: React.FC = () => {
   const frame = parts.filter((p) => p.name.endsWith("lining") || p.name.endsWith("casing"));
   return (
     <group>
-      <ToonBox
-        position={[(BEDROOM.x0 + BEDROOM.x1) / 2, BEDROOM.floor - 0.025, (BEDROOM.z0 + BEDROOM.z1) / 2]}
-        size={[width, 0.05, depth]}
-        color="#ffffff"
-        map={laminate(width, depth)}
-        outline={false}
-      />
-      <ToonBox
-        position={[(BEDROOM.x0 + BEDROOM.x1) / 2, ceiling + 0.1, (BEDROOM.z0 + BEDROOM.z1) / 2]}
-        size={[width, 0.2, depth]}
-        color="#ffffff"
-        map={ceilingMap}
-        outline={false}
-      />
+      <RoomSlabs room={BEDROOM} floor={BEDROOM.floor} ceiling="#ffffff" ceilingMap={ceilingMap} />
       <PartBoxes parts={parts.filter((p) => p.name.endsWith(" wall") && p.name !== "window wall")} color={WALL_WHITE} outline={false} />
       <PartBoxes parts={windowSkins} color={WALL_WHITE} outline={false} />
       <PartBoxes

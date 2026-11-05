@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { expectSwitchingOffOneByOne } from "../tooling/switchingOff";
 import { CORE } from "../building/stairwell";
 import { BLOCK_SPAN, BUILDING_HEIGHT, CORNICE, FACADE_Z, KERB_HEIGHT, KERB_Y, ROAD_Y, acrossFootprint, acrossZ } from "./building";
 import { FACADE_THICKNESS } from "./facade";
@@ -124,19 +125,10 @@ test("the town stays off the road and clear of the blocks that close the street'
 });
 
 test("the town's windows switch off one by one as the night goes on; none of them dims", () => {
-  let before = TOWN.map((block, i) => new Set(townWindowsOn(block, i, 1)));
-  const all = TOWN.reduce((n, block) => n + townWindows(block).length, 0);
-  const lit = before.reduce((n, on) => n + on.size, 0);
-  expect(lit / all).toBeGreaterThan(0.1);
-  expect(lit / all).toBeLessThan(0.35);
-  for (const share of [0.8, 0.5, 0.2, 0]) {
-    const now = TOWN.map((block, i) => new Set(townWindowsOn(block, i, share)));
-    now.forEach((on, i) => {
-      for (const k of on) expect(before[i].has(k)).toBe(true);
-    });
-    before = now;
-  }
-  expect(before.every((on) => on.size === 0)).toBe(true);
+  expectSwitchingOffOneByOne(
+    (share) => TOWN.map((block, i) => townWindowsOn(block, i, share)),
+    TOWN.reduce((n, block) => n + townWindows(block).length, 0),
+  );
 });
 
 test("seen from above the town stands on ground: one plane under every block and yard, below every street surface", () => {

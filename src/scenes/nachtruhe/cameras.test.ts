@@ -34,7 +34,7 @@ const acrossSolids: Solid[] = [
 ];
 const door = Array.from({ length: 31 }, (_, k) => (BEDROOM_DOOR.open * k) / 30);
 const outdoor = [...worldSolids(BINS.map(() => 0)), ...balconySolids, ...dishSolids, ...roofSolids, ...acrossSolids];
-const indoor = door.flatMap((angle) => bedroomSolids({ door: angle, curtain: 0 }));
+const indoor = door.flatMap((angle) => bedroomSolids({ door: angle, curtain: [0, 0] }));
 
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
 

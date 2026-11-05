@@ -28,7 +28,7 @@ import {
   SMOKE_ALARM,
   bedroomParts,
   bedroomSolids,
-  curtainShape,
+  curtainPanels,
 } from "./bedroomShape";
 import { LIVING_ROOM } from "./livingRoomShape";
 import { FLUR } from "./stairwell";
@@ -98,11 +98,11 @@ test("the radiator sits under the window and the curtain clears it", () => {
   const behind = BEDROOM.z1 - hi(RADIATOR, 2);
   expect(behind).toBeGreaterThanOrEqual(0.03);
   expect(behind).toBeLessThanOrEqual(0.05);
-  for (const open of [0, 0.3, 0.7, 1]) {
-    const c = curtainShape(open);
-    expect(c.z + c.amplitude, `open ${open}`).toBeLessThan(lo(RADIATOR, 2));
-    expect(c.bottom - BEDROOM.floor).toBeCloseTo(0.02, 9);
-  }
+  for (const open of [0, 0.3, 0.7, 1])
+    for (const c of curtainPanels([open, 1 - open])) {
+      expect(c.z + c.amplitude, `open ${open}`).toBeLessThan(lo(RADIATOR, 2));
+      expect(c.bottom - BEDROOM.floor).toBeCloseTo(0.02, 9);
+    }
 });
 
 test("walking round the bed's foot fits him, arms hanging or tucked as he squeezes past", () => {
@@ -127,7 +127,7 @@ test("the smoke alarm is at least 50 cm from every wall, as DIN 14676 asks, and 
 });
 
 test("no piece of furniture overlaps another, the walls or the closed door", () => {
-  for (const open of [0, 1]) {
+  for (const open of [[0, 0], [1, 1], [0, 1]] as const) {
     const solids = bedroomSolids({ door: 0, curtain: open });
     for (const [i, a] of solids.entries())
       for (const b of solids.slice(i + 1)) {
@@ -138,7 +138,7 @@ test("no piece of furniture overlaps another, the walls or the closed door", () 
 });
 
 test("the door swings into the bedroom, along the east wall, and clears the furniture at every angle up to its stop", () => {
-  const room = bedroomSolids({ door: 0, curtain: 1 }).filter((s) => !s.name.startsWith(BEDROOM_DOOR.name));
+  const room = bedroomSolids({ door: 0, curtain: [1, 1] }).filter((s) => !s.name.startsWith(BEDROOM_DOOR.name));
   for (let a = 0; a <= BEDROOM_DOOR.open + 1e-9; a += 0.05) {
     const leaf = doorLeaf(BEDROOM_DOOR, a);
     for (const p of obbCorners(leaf)) {
@@ -150,25 +150,31 @@ test("the door swings into the bedroom, along the east wall, and clears the furn
   }
 });
 
-test("the curtain opened bunches at one end and uncovers the window", () => {
-  const open = curtainShape(1);
-  const closed = curtainShape(0);
-  expect(open.x1 <= pane.x0 || open.x0 >= pane.x1).toBe(true);
-  expect(closed.x0).toBeLessThanOrEqual(pane.x0 - 0.05);
-  expect(closed.x1).toBeGreaterThanOrEqual(pane.x1 + 0.05);
-  expect(closed.x0).toBeCloseTo(open.x0, 9);
-  expect(open.amplitude).toBeGreaterThan(closed.amplitude);
-  let width = Infinity;
-  let depth = 0;
-  for (let k = 0; k <= 10; k++) {
-    const c = curtainShape(k / 10);
-    expect(c.x1 - c.x0).toBeLessThan(width);
-    expect(c.amplitude).toBeGreaterThanOrEqual(depth);
-    width = c.x1 - c.x0;
-    depth = c.amplitude;
+test("two curtain panels meet at the window's middle when drawn, cover it with room to spare, and each bunches at its own wall when opened", () => {
+  const [westClosed, eastClosed] = curtainPanels([0, 0]);
+  const middle = (pane.x0 + pane.x1) / 2;
+  expect(westClosed.x1).toBeCloseTo(middle, 9);
+  expect(eastClosed.x0).toBeCloseTo(middle, 9);
+  expect(westClosed.x0).toBeLessThanOrEqual(pane.x0 - 0.05);
+  expect(eastClosed.x1).toBeGreaterThanOrEqual(pane.x1 + 0.05);
+  const [westOpen, eastOpen] = curtainPanels([1, 1]);
+  expect(westOpen.x1).toBeLessThanOrEqual(pane.x0);
+  expect(eastOpen.x0).toBeGreaterThanOrEqual(pane.x1);
+  expect(westOpen.x0).toBeCloseTo(westClosed.x0, 9);
+  expect(eastOpen.x1).toBeCloseTo(eastClosed.x1, 9);
+  for (const side of [0, 1] as const) {
+    let width = Infinity;
+    let depth = 0;
+    for (let k = 0; k <= 10; k++) {
+      const c = curtainPanels(side === 0 ? [k / 10, 0] : [0, k / 10])[side];
+      expect(c.x1 - c.x0).toBeLessThan(width);
+      expect(c.amplitude).toBeGreaterThanOrEqual(depth);
+      width = c.x1 - c.x0;
+      depth = c.amplitude;
+    }
   }
   expect(CURTAIN.width).toBeCloseTo(BEDROOM.x1 - BEDROOM.x0 - 0.1, 9);
-  expect(BEDROOM.z1 - closed.z).toBeCloseTo(0.2, 9);
+  expect(BEDROOM.z1 - westClosed.z).toBeCloseTo(0.2, 9);
 });
 
 test("the pillows lie on the mattress against the headboard, each a little askew as slept on", () => {
@@ -223,9 +229,8 @@ test("the ceiling lamp's dome hangs as deep as it is drawn, a half sphere", () =
 });
 
 test("the cabinets' outlines stay off the curtain however far it is drawn", () => {
-  for (let k = 0; k <= 10; k++) {
-    const c = curtainShape(k / 10);
-    for (const cabinet of CABINETS)
-      if (lo(cabinet, 0) < c.x1 && hi(cabinet, 0) > c.x0) expect(hi(cabinet, 2) + CABINET_INK).toBeLessThan(c.z - c.amplitude);
-  }
+  for (let k = 0; k <= 10; k++)
+    for (const c of curtainPanels([k / 10, k / 10]))
+      for (const cabinet of CABINETS)
+        if (lo(cabinet, 0) < c.x1 && hi(cabinet, 0) > c.x0) expect(hi(cabinet, 2) + CABINET_INK).toBeLessThan(c.z - c.amplitude);
 });

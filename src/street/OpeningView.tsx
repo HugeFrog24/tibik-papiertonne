@@ -1,5 +1,5 @@
 import { DoubleSide } from "three";
-import { curtainOverPane } from "../building/bedroomShape";
+import { curtainOverPane, type CurtainOpen } from "../building/bedroomShape";
 import { STAIRWELL_LIGHT } from "../building/stairwell";
 import { ToonBox, drawnTexture, glowOf, type Glow } from "../toon/primitives";
 import {
@@ -32,6 +32,7 @@ const TILT = {
   mullion: BAR.width / 2,
   transom: BAR.at - BAR.width / 2,
 };
+const OPEN: CurtainOpen = [1, 1];
 const STAIR_GLASS = { dark: 0.28, lit: 0.85 };
 const FOLDS = 7;
 
@@ -65,27 +66,23 @@ const curtainFolds = () =>
 const BedroomCurtain: React.FC<{
   readonly x: number;
   readonly inner: { readonly w: number; readonly h: number };
-  readonly open: number;
+  readonly open: CurtainOpen;
   readonly light: number;
 }> = ({ x, inner, open, light }) => {
-  const seen = curtainOverPane(open, { x0: x - inner.w / 2, x1: x + inner.w / 2 });
-  if (!seen) return null;
   const folds = curtainFolds();
   return (
-    <mesh position={[(seen.x0 + seen.x1) / 2 - x, 0, LAYER.curtain]}>
-      <planeGeometry args={[seen.x1 - seen.x0, inner.h]} />
-      <meshToonMaterial
-        color={CURTAIN_SAND}
-        map={folds}
-        {...(light > 0
-          ? {
-              emissive: CURTAIN_SAND,
-              emissiveMap: folds,
-              emissiveIntensity: light,
-            }
-          : {})}
-      />
-    </mesh>
+    <>
+      {curtainOverPane(open, { x0: x - inner.w / 2, x1: x + inner.w / 2 }).map((seen) => (
+        <mesh key={seen.x0} position={[(seen.x0 + seen.x1) / 2 - x, 0, LAYER.curtain]}>
+          <planeGeometry args={[seen.x1 - seen.x0, inner.h]} />
+          <meshToonMaterial
+            color={CURTAIN_SAND}
+            map={folds}
+            {...(light > 0 ? { emissive: CURTAIN_SAND, emissiveMap: folds, emissiveIntensity: light } : {})}
+          />
+        </mesh>
+      ))}
+    </>
   );
 };
 
@@ -136,8 +133,8 @@ const StairGlass: React.FC<{
 export const OpeningView: React.FC<{
   readonly opening: Opening;
   readonly light?: number;
-  readonly curtainOpen?: number;
-}> = ({ opening, light = 0, curtainOpen = 1 }) => {
+  readonly curtainOpen?: CurtainOpen;
+}> = ({ opening, light = 0, curtainOpen = OPEN }) => {
   const [w, h] = openingFrame(opening);
   const inner = { w: w - 2 * BORDER, h: h - 2 * BORDER };
   const shutterDrop = inner.h * opening.shutter;

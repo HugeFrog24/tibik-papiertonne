@@ -186,10 +186,11 @@ export const CURTAIN = {
   rail: 0.05,
   pelmet: { height: 0.08, thickness: 0.02, before: 0.05 },
   hem: 0.02,
-  folds: 40,
+  folds: 20,
   fullness: 1.5,
   depth: 0.035,
-  stack: 0.7,
+  stack: 0.35,
+  meet: (PANE.x0 + PANE.x1) / 2,
 };
 
 export type CurtainShape = {
@@ -202,13 +203,19 @@ export type CurtainShape = {
   readonly bottom: number;
 };
 
-export const curtainShape = (open: number): CurtainShape => {
-  const width = lerp(CURTAIN.width, CURTAIN.stack, clamp(open, 0, 1));
-  const fabric = CURTAIN.width * CURTAIN.fullness;
-  const x0 = BEDROOM.x0 + (BEDROOM.x1 - BEDROOM.x0 - CURTAIN.width) / 2;
+export type CurtainOpen = readonly [west: number, east: number];
+
+const RAIL_ENDS = {
+  west: BEDROOM.x0 + (BEDROOM.x1 - BEDROOM.x0 - CURTAIN.width) / 2,
+  east: BEDROOM.x1 - (BEDROOM.x1 - BEDROOM.x0 - CURTAIN.width) / 2,
+};
+
+const panel = (x0: number, x1: number, closed: number): CurtainShape => {
+  const width = x1 - x0;
+  const fabric = closed * CURTAIN.fullness;
   return {
     x0,
-    x1: x0 + width,
+    x1,
     z: BEDROOM.z1 - CURTAIN.wall,
     amplitude: Math.min(CURTAIN.depth, Math.sqrt(fabric * fabric - width * width) / (Math.PI * CURTAIN.folds)),
     folds: CURTAIN.folds,
@@ -217,19 +224,27 @@ export const curtainShape = (open: number): CurtainShape => {
   };
 };
 
-export const curtainOverPane = (open: number, pane: { readonly x0: number; readonly x1: number }) => {
-  const c = curtainShape(open);
-  const x0 = Math.max(pane.x0, c.x0);
-  const x1 = Math.min(pane.x1, c.x1);
-  return x1 > x0 ? { x0, x1 } : null;
+export const curtainPanels = ([west, east]: CurtainOpen): readonly [CurtainShape, CurtainShape] => {
+  const westClosed = CURTAIN.meet - RAIL_ENDS.west;
+  const eastClosed = RAIL_ENDS.east - CURTAIN.meet;
+  return [
+    panel(RAIL_ENDS.west, RAIL_ENDS.west + lerp(westClosed, CURTAIN.stack, clamp(west, 0, 1)), westClosed),
+    panel(RAIL_ENDS.east - lerp(eastClosed, CURTAIN.stack, clamp(east, 0, 1)), RAIL_ENDS.east, eastClosed),
+  ];
 };
+
+export const curtainOverPane = (open: CurtainOpen, pane: { readonly x0: number; readonly x1: number }) =>
+  curtainPanels(open).flatMap((c) => {
+    const x0 = Math.max(pane.x0, c.x0);
+    const x1 = Math.min(pane.x1, c.x1);
+    return x1 > x0 ? [{ x0, x1 }] : [];
+  });
 
 const curtainParts = (): Part[] => {
   const z = BEDROOM.z1 - CURTAIN.wall;
   const front = z - CURTAIN.depth - CURTAIN.pelmet.before;
-  const closed = curtainShape(0);
   return [
-    boundsPart("curtain rail", [closed.x0 - 0.02, closed.x1 + 0.02], [ceiling - CURTAIN.rail, ceiling], [z - 0.012, z + 0.012]),
+    boundsPart("curtain rail", [RAIL_ENDS.west - 0.02, RAIL_ENDS.east + 0.02], [ceiling - CURTAIN.rail, ceiling], [z - 0.012, z + 0.012]),
     boundsPart("pelmet", [BEDROOM.x0, BEDROOM.x1], [ceiling - CURTAIN.pelmet.height, ceiling], [front - CURTAIN.pelmet.thickness, front]),
   ];
 };
@@ -297,12 +312,11 @@ export const bedroomParts = (): readonly Part[] => [
   ...wallFittings(),
 ];
 
-export const bedroomSolids = (state: { readonly door: number; readonly curtain: number }): readonly Solid[] => {
-  const c = curtainShape(state.curtain);
-  return [
-    ...bedroomParts().map(partObb),
-    ...PILLOWS.map((p) => obb("pillow", frame(new Matrix4(), p.center, new Euler(0, p.yaw, 0)), p.size)),
+export const bedroomSolids = (state: { readonly door: number; readonly curtain: CurtainOpen }): readonly Solid[] => [
+  ...bedroomParts().map(partObb),
+  ...PILLOWS.map((p) => obb("pillow", frame(new Matrix4(), p.center, new Euler(0, p.yaw, 0)), p.size)),
+  ...curtainPanels(state.curtain).map((c) =>
     partObb(boundsPart("curtain", [c.x0, c.x1], [c.bottom, c.top], [c.z - c.amplitude, c.z + c.amplitude])),
-    ...doorSolids(BEDROOM_DOOR, state.door),
-  ];
-};
+  ),
+  ...doorSolids(BEDROOM_DOOR, state.door),
+];

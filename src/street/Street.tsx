@@ -92,6 +92,7 @@ import { useSignColor } from "../weather/DayLight";
 import { Dish } from "./Dish";
 import { Roof, Town } from "./Town";
 import { OpeningView } from "./OpeningView";
+import type { CurtainOpen } from "../building/bedroomShape";
 import { useDisposable } from "../toon/useDisposable";
 import { PartBoxes } from "./PartBoxes";
 
@@ -414,9 +415,11 @@ const FacadeWall: React.FC<{ readonly plaster: string; readonly house: number }>
   );
 };
 
+const BY_DAY: CurtainOpen = [1, 1];
+
 type WindowLights = {
   readonly light?: (house: number, opening: Opening) => number;
-  readonly curtainOpen: number;
+  readonly curtainOpen: CurtainOpen;
 };
 
 const ACROSS = { ...ACROSS_STREET, plaster: "#ddd5c6" };
@@ -578,7 +581,7 @@ export const Street: React.FC<{
   readonly roofs?: boolean;
   readonly town?: { readonly lit: number };
   readonly windowLight?: (house: number, opening: Opening) => number;
-  readonly bedroomCurtainOpen?: number;
+  readonly bedroomCurtains?: CurtainOpen;
   readonly lampsOn?: boolean;
 }> = ({
   haustuer = 0,
@@ -590,10 +593,10 @@ export const Street: React.FC<{
   roofs = false,
   town,
   windowLight,
-  bedroomCurtainOpen = 1,
+  bedroomCurtains = BY_DAY,
   lampsOn = false,
 }) => {
-  const windows = { light: windowLight, curtainOpen: bedroomCurtainOpen };
+  const windows = { light: windowLight, curtainOpen: bedroomCurtains };
   const paving = usePavingTexture((25 * STREET_LENGTH) / 30, 3.33);
   const wetTint = WEATHER[weather].wetTint ?? undefined;
 

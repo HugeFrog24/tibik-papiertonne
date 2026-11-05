@@ -1,7 +1,7 @@
 import { Color, SRGBColorSpace } from "three";
 import { expect, test } from "vitest";
 import { expectSwitchingOffOneByOne } from "../tooling/switchingOff";
-import { curtainOverPane, curtainShape } from "../building/bedroomShape";
+import { curtainOverPane, curtainPanels } from "../building/bedroomShape";
 import { FACADE_Z, OPENINGS, acrossZ, flatWindow, floorLevel } from "./building";
 import { neighbourWindowsOn } from "./lightsOn";
 import { LAMP, LAMP_LIGHT, LAMP_POOL, STREET_LAMPS, lampGlow } from "./lamps";
@@ -51,16 +51,20 @@ test("every lamp's pool reaches across its pavement to the foot of the houses be
   }
 });
 
-test("from the street his curtain shows exactly where the room's curtain hangs behind the pane", () => {
+test("from the street his curtains show exactly where the room's two panels hang behind the pane", () => {
   const his = flatWindow(12, 1, "links");
   const pane = { x0: his.x - 0.45, x1: his.x + 0.45 };
-  expect(curtainOverPane(1, pane)).toBeNull();
-  expect(curtainOverPane(0, pane)).toEqual(pane);
+  expect(curtainOverPane([1, 1], pane)).toEqual([]);
+  expect(curtainOverPane([0, 0], pane)).toEqual([{ x0: pane.x0, x1: his.x }, { x0: his.x, x1: pane.x1 }]);
+  expect(curtainOverPane([0, 1], pane)).toEqual([{ x0: pane.x0, x1: his.x }]);
   for (const open of [0.2, 0.5, 0.8]) {
-    const shape = curtainShape(open);
-    const seen = curtainOverPane(open, pane);
-    if (shape.x1 <= pane.x0) expect(seen).toBeNull();
-    else expect(seen).toEqual({ x0: pane.x0, x1: Math.min(pane.x1, shape.x1) });
+    const [west, east] = curtainPanels([open, open]);
+    const seen = curtainOverPane([open, open], pane);
+    const expected = [
+      ...(west.x1 > pane.x0 ? [{ x0: pane.x0, x1: Math.min(pane.x1, west.x1) }] : []),
+      ...(east.x0 < pane.x1 ? [{ x0: Math.max(pane.x0, east.x0), x1: pane.x1 }] : []),
+    ];
+    expect(seen).toEqual(expected);
   }
 });
 

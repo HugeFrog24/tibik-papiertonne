@@ -67,7 +67,7 @@ test("sitting on the bed's edge his seat rests on the mattress and his short leg
 });
 
 const grown = <S extends { radius: number }>(spheres: readonly S[]) => spheres.map((s) => ({ ...s, radius: s.radius + OUTLINE / 2 }));
-const bedSolids = bedroomSolids({ door: 0, curtain: 0 }).filter((s) => ["mattress", "bed rail", "bed foot rail", "headboard", "pillow"].includes(s.name));
+const bedSolids = bedroomSolids({ door: 0, curtain: [0, 0] }).filter((s) => ["mattress", "bed rail", "bed foot rail", "headboard", "pillow"].includes(s.name));
 
 test("sitting at the edge his legs hang over it, clear of the mattress and the bed rail, outlines included", () => {
   const legs = bodyColliders(RIG, sittingOnBed(BED_RECT.x0 + 1.3)).legs;

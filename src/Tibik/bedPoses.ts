@@ -51,7 +51,7 @@ const HEADBOARD_GAP = 0.02;
 type Ball = { readonly name: string; readonly center: { readonly x: number; readonly y: number }; readonly radius: number };
 
 const pillowTop = BED_RECT.top + PILLOWS[0].size[1];
-const BED_GROUND = bedroomSolids({ door: 0, curtain: 0 }).filter((s) => s.name === "mattress" || s.name === "pillow");
+const BED_GROUND = bedroomSolids({ door: 0, curtain: [0, 0] }).filter((s) => s.name === "mattress" || s.name === "pillow");
 const pillowEnd = PILLOWS[0].center[0] + PILLOWS[0].size[0] / 2;
 
 const probeAt = (tilt: number, x = 0) =>

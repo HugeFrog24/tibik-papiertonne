@@ -229,14 +229,19 @@ composition under "Scenes" in the Studio:
   **(test)**
 - **Bedside:** a low white cabinet on each side of the headboard (wood-look
   top, a drawer over a door) with a table lamp on each (warm, about 2700 K,
-  a rocker switch on the foot) and a socket above it on the wall. **(test)**
-- **Curtain:** one full-width sand panel on a ceiling rail behind a
-  wood-look pelmet, 20 cm in front of the window wall, 1.5 times the rail's
-  width in fabric; drawn, it covers the window with room to spare; opened, it
-  bunches at the west wall, so from the street the window shows no curtain.
-  Its folds deepen as it bunches but never touch the radiator or the
-  cabinet. From the street he sees exactly what hangs behind the pane.
-  **(test)**
+  a rocker switch on the foot) and a socket above it on the wall. He sleeps
+  on the door side; in the evening only his own lamp is on (user decision).
+  His hips (48 cm) sit below the mattress top (55 cm): he hops up onto its
+  edge (user decision). **(test)**
+- **Curtains:** two sand panels on a ceiling rail behind a wood-look pelmet,
+  20 cm in front of the window wall, meeting at the window's middle, each
+  1.5 times its width in fabric; drawn, they cover the window with room to
+  spare; opened, each bunches at its own wall, clear of the window. The gap
+  between the bed and the curtains (47 cm) is too narrow for him: he reaches
+  the window only from the corner at the bed's foot and opens the near panel
+  there (user decision). Their folds deepen as they bunch but never touch the
+  radiator or the cabinet. From the street he sees exactly what hangs behind
+  the pane. **(test)**
 - **Light:** evening: the two lamps; night: dark, a faint orange street glow
   through the curtain; morning: grey daylight through the window, which is a
   real opening in No. 12's facade (No. 13's window there stays solid), so the

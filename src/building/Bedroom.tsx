@@ -20,7 +20,9 @@ import {
   RADIATOR,
   SMOKE_ALARM,
   bedroomParts,
-  curtainShape,
+  curtainPanels,
+  type CurtainOpen,
+  type CurtainShape,
   type BedsideLamp,
 } from "./bedroomShape";
 import { DoorGrips } from "./DoorGrips";
@@ -242,8 +244,7 @@ const glowMap = (u0: number, u1: number, v0: number, v1: number) =>
     ctx.filter = "none";
   });
 
-const Curtain: React.FC<{ readonly open: number; readonly daylight: number; readonly streetGlow: number }> = ({ open, daylight, streetGlow }) => {
-  const c = curtainShape(open);
+const CurtainPanel: React.FC<{ readonly c: CurtainShape; readonly daylight: number; readonly streetGlow: number }> = ({ c, daylight, streetGlow }) => {
   const width = c.x1 - c.x0;
   const height = c.top - c.bottom;
   const geometry = useDisposable(
@@ -275,6 +276,14 @@ const Curtain: React.FC<{ readonly open: number; readonly daylight: number; read
   );
 };
 
+const Curtain: React.FC<{ readonly open: CurtainOpen; readonly daylight: number; readonly streetGlow: number }> = ({ open, daylight, streetGlow }) => (
+  <>
+    {curtainPanels(open).map((c, i) => (
+      <CurtainPanel key={i} c={c} daylight={daylight} streetGlow={streetGlow} />
+    ))}
+  </>
+);
+
 const Pelmet: React.FC = () => {
   const pelmet = bedroomParts().find((p) => p.name === "pelmet")!;
   return box(pelmet, "#ffffff", { map: wildOak(), ink: 0.004 });
@@ -304,7 +313,7 @@ const CeilingFittings: React.FC = () => (
 export const Bedroom: React.FC<{
   readonly door: number;
   readonly lamps: readonly [boolean, boolean];
-  readonly curtain: number;
+  readonly curtain: CurtainOpen;
   readonly daylight: number;
   readonly streetGlow: number;
 }> = ({ door, lamps, curtain, daylight, streetGlow }) => (

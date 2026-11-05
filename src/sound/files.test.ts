@@ -2,18 +2,10 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { expect, test } from "vitest";
 import { STREET_LOOPS } from "../street/ambienceLoops";
+import { sourceFiles } from "../tooling/sourceFiles";
 
 const SRC = path.resolve(__dirname, "..");
 const PUBLIC = path.resolve(SRC, "..", "public");
-
-const sourceFiles = (dir: string): string[] =>
-  readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
-    entry.isDirectory()
-      ? sourceFiles(path.join(dir, entry.name))
-      : /\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)
-        ? [path.join(dir, entry.name)]
-        : [],
-  );
 
 test("every sound file the scenes name exists in public/", () => {
   const missing: string[] = [];

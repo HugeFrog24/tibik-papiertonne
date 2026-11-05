@@ -9,6 +9,7 @@ import {
   MeshToonMaterial,
 } from "three";
 import { INK_PASS, NO_INK, inkRadius, skipsInkIds } from "./inkWidth";
+import { sourceFiles } from "../tooling/sourceFiles";
 
 test("the drawn line is one outline wide on screen: 1.4 cm at the part's depth, in pixels", () => {
   const px = inkRadius(0.014, 1080, 50, 2);
@@ -40,19 +41,11 @@ test("ink hulls, lines and things too small for an outline stay out of the id pa
 });
 
 test("only the ink hulls are drawn from the back: every visible part shows its front, so the id pass outlines it", async () => {
-  const { readFileSync, readdirSync } = await import("node:fs");
+  const { readFileSync } = await import("node:fs");
   const path = await import("node:path");
   const root = path.resolve(__dirname, "..");
-  const files = (dir: string): string[] =>
-    readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
-      entry.isDirectory()
-        ? files(path.join(dir, entry.name))
-        : /\.tsx$/.test(entry.name) && !/\.test\.tsx$/.test(entry.name)
-          ? [path.join(dir, entry.name)]
-          : [],
-    );
   const backs: string[] = [];
-  for (const file of files(root)) {
+  for (const file of sourceFiles(root, /\.tsx$/)) {
     for (const [material] of readFileSync(file, "utf8").matchAll(/<mesh\w*Material\b[^>]*side=\{BackSide\}[^>]*\/>/g)) {
       if (!/^<meshBasicMaterial color=\{INK\}/.test(material))
         backs.push(`${path.relative(root, file)}: ${material}`);

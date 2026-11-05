@@ -14,7 +14,15 @@ Items marked **(test)** are enforced by `npm test`.
   from the front-left in every sunny scene; keep it there. The epilogue is
   overcast with steady summer rain: soft sky light, a weak diffuse sun, rain
   streaks slanting with the film's breeze, the entrance lamp switched on by
-  its motion sensor. **(test)**
+  its motion sensor. **(test)** The rain falls from far above (30 m, past every
+  camera that sees it) over the street and both rows' roofs, at one density
+  high and low, and stops on everything drawn there; it shows by the light
+  that falls on it (only in the street lamps' cones at night) and fades with
+  distance; the lee strip at the foot of No. 13 stays dry, as the slant
+  shelters it. The wet pavements and road mirror the street (water's Fresnel:
+  faint seen from above, strong at a flat angle, near-mirror in the puddles,
+  smeared into streaks elsewhere); the soil in the tree pits stays matt.
+  **(test)**
 - **Wind:** a light breeze (Beaufort 2, leaves rustle) blows down the street
   (towards +x, slightly towards the houses), with gusts. One breeze runs on
   film time across all scenes (src/physics/wind.ts). The tree crown sways a

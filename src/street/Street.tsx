@@ -1,4 +1,6 @@
 import { PUDDLES, lookOf, type Weather, type WeatherLook } from "../weather/overcast";
+import { wetness } from "../weather/wetGround";
+import { WetGround } from "./WetGround";
 import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
 import { ExtrudeGeometry, type Texture } from "three";
 import {
@@ -594,7 +596,8 @@ export const Street: React.FC<{
 }) => {
   const windows = { light: windowLight, curtainOpen: bedroomCurtains };
   const paving = usePavingTexture((25 * STREET_LENGTH) / 30, 3.33);
-  const wetTint = lookOf(weather, look).wetTint ?? undefined;
+  const seen = lookOf(weather, look);
+  const wetTint = seen.wetTint ?? undefined;
 
   return (
     <>
@@ -655,6 +658,7 @@ export const Street: React.FC<{
       ))}
       <Asphalt wetTint={wetTint} />
       {wetTint ? <Puddles /> : null}
+      <WetGround wet={wetness(seen)} sky={seen.sky} time={windAt ?? 0} />
       {PARKED_CARS.map((car) => (
         <Car key={car.x} car={car} />
       ))}

@@ -15,6 +15,7 @@ const STREAK_RGB = new Color(STREAK);
 const LAMP_RGB = new Color(LAMP_LIGHT);
 const STREAK_OPACITY = 0.65;
 const RING_OPACITY = 0.5;
+export const RAIN_RIBBONS = { renderOrder: 1 } as const;
 
 type Segment = { readonly from: Vec3; readonly to: Vec3; readonly colour: readonly number[] };
 
@@ -70,7 +71,7 @@ export const Rain: React.FC<{
 }> = ({ drops, eye, fov, light = FULL_DAYLIGHT }) => {
   const geometry = useDisposable(() => ribbonGeometry(segmentsOf(drops, light), eye, fov), [drops, light, eye, fov]);
   return (
-    <mesh geometry={geometry} userData={NO_INK} renderOrder={1}>
+    <mesh geometry={geometry} userData={NO_INK} renderOrder={RAIN_RIBBONS.renderOrder}>
       <meshBasicMaterial vertexColors transparent depthWrite={false} side={DoubleSide} />
     </mesh>
   );

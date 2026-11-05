@@ -23,7 +23,7 @@ test("every sound file the scenes name exists in public/", () => {
       if (!existsSync(path.join(PUBLIC, name)))
         missing.push(`${path.relative(SRC, file)}: ${name}`);
     }
-    if (/sfx\/stairwell\//.test(text)) {
+    if (/sfx\/stairwell\/|`stairwell\/\$\{cue\.file\}/.test(text)) {
       for (const [, cue] of text.matchAll(/file: "([^"]+)"/g)) {
         if (!existsSync(path.join(PUBLIC, "sfx", "stairwell", `${cue}.wav`)))
           missing.push(`${path.relative(SRC, file)}: stairwell/${cue}.wav`);

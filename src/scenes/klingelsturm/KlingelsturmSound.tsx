@@ -1,8 +1,8 @@
-import { staticFile, useVideoConfig } from "remotion";
+import { useVideoConfig } from "remotion";
 import { touchdownTimes } from "../../characters/gait";
 import { KarenStomps } from "../../Karen/KarenStomp";
 import { bubbleCues } from "../../sound/bubbleCues";
-import { SoundCues } from "../../sound/SoundCues";
+import { SoundCues, withSources } from "../../sound/SoundCues";
 import { doorCues, stompRoomAt } from "./doorCues";
 import { StreetAmbience } from "../../street/StreetAmbience";
 import { KLINGELSTURM_DURATION, LINES, karenStandGait } from "./choreography";
@@ -22,10 +22,7 @@ export const KlingelsturmSound: React.FC<{ readonly ambience: boolean }> = ({
       />
       <SoundCues
         cues={[
-          ...doorCues().map((cue) => ({
-            ...cue,
-            src: staticFile(`sfx/${cue.sound}.wav`),
-          })),
+          ...withSources(doorCues(), (cue) => `${cue.sound}.wav`),
           ...bubbleCues(LINES),
         ]}
       />

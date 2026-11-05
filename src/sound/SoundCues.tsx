@@ -1,5 +1,20 @@
 import { Audio } from "@remotion/media";
-import { useVideoConfig } from "remotion";
+import { staticFile, useVideoConfig } from "remotion";
+
+export type FileCue = {
+  readonly name: string;
+  readonly at: number;
+  readonly file: string;
+  readonly volume: number;
+};
+
+export const sfxSource = (path: string) =>
+  path.startsWith("http") ? path : staticFile(`sfx/${path}`);
+
+export const withSources = <C extends { readonly name: string; readonly at: number; readonly volume: number }>(
+  cues: readonly C[],
+  pathOf: (cue: C) => string,
+) => cues.map((cue) => ({ ...cue, src: sfxSource(pathOf(cue)) }));
 
 export type SoundCue = {
   readonly name: string;

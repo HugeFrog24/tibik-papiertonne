@@ -1,4 +1,5 @@
 import { KEY_APPROACH } from "../../props/keyRingShape";
+import type { FileCue } from "../../sound/SoundCues";
 import {
   BOX_OPEN,
   BOX_SHUT,
@@ -15,12 +16,6 @@ import {
 } from "./choreography";
 import { HAUSTUER_SOUNDS, HAUSTUER_WIDE, haustuerAt, indoorsAt } from "./home";
 
-export type RundschreibenCue = {
-  readonly name: string;
-  readonly at: number;
-  readonly file: string;
-  readonly volume: number;
-};
 
 export const RAIN = { name: "Rain", file: "rain", volume: 0.35 } as const;
 
@@ -32,7 +27,7 @@ export const rainLevel = (t: number) => {
   return { outside: RAIN.volume * (1 - indoors), inside: RAIN.volume * indoors };
 };
 
-export const RUNDSCHREIBEN_CUES: readonly RundschreibenCue[] = [
+export const RUNDSCHREIBEN_CUES: readonly FileCue[] = [
   { name: "Keys jingle up to the box", at: KEY_IN - KEY_APPROACH, file: "handleCoins.ogg", volume: 0.3 },
   { name: "Key into the mailbox lock", at: KEY_IN, file: "metalClick.ogg", volume: 0.35 },
   { name: "Mailbox lock turns", at: BOX_OPEN[0] - 0.05, file: "metalClick.ogg", volume: 0.3 },

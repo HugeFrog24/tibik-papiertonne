@@ -1,6 +1,5 @@
-import { staticFile } from "remotion";
 import { FootstepSounds } from "../../sound/FootstepSounds";
-import { SoundCues } from "../../sound/SoundCues";
+import { SoundCues, withSources } from "../../sound/SoundCues";
 import { StreetAmbience } from "../../street/StreetAmbience";
 import { treppenhausIndoorsAt } from "../../timeline";
 import { filmTimeOf } from "./cameras";
@@ -50,10 +49,7 @@ export const TreppenhausSound: React.FC<{ readonly ambience: boolean }> = ({
       {ambience ? <StreetAmbience indoors={treppenhausIndoorsAt} /> : null}
       <FootstepSounds times={times} who="Tibik" volume={0.3} room="stairwell" />
       <SoundCues
-        cues={CUES.map((cue) => ({
-          ...cue,
-          src: staticFile(`sfx/stairwell/${cue.file}.wav`),
-        }))}
+        cues={withSources(CUES, (cue) => `stairwell/${cue.file}.wav`)}
         timeOf={filmTimeOf}
       />
     </>

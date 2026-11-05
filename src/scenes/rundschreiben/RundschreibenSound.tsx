@@ -1,7 +1,7 @@
 import { Audio } from "@remotion/media";
 import { staticFile, useVideoConfig } from "remotion";
 import { FootstepSounds } from "../../sound/FootstepSounds";
-import { SoundCues } from "../../sound/SoundCues";
+import { SoundCues, withSources } from "../../sound/SoundCues";
 import { StreetAmbience } from "../../street/StreetAmbience";
 import { footstepTimes } from "./choreography";
 import { RAIN, RUNDSCHREIBEN_CUES, heardIndoorsAt, rainLevel } from "./soundCues";
@@ -31,10 +31,7 @@ export const RundschreibenSound: React.FC<{ readonly ambience: boolean }> = ({
       />
       <FootstepSounds times={footstepTimes(fps)} who="Tibik" volume={0.35} />
       <SoundCues
-        cues={RUNDSCHREIBEN_CUES.map((cue) => ({
-          ...cue,
-          src: staticFile(`sfx/${cue.file}`),
-        }))}
+        cues={withSources(RUNDSCHREIBEN_CUES, (cue) => cue.file)}
       />
     </>
   );

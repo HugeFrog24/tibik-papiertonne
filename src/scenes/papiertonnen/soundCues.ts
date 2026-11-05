@@ -1,11 +1,6 @@
 import { HAUSTUER_LATCHED, OPENING } from "./choreography";
 
-export type PapiertonnenCue = {
-  readonly name: string;
-  readonly at: number;
-  readonly file: string;
-  readonly volume: number;
-};
+import type { FileCue } from "../../sound/SoundCues";
 
 export const LID_SLAP = 4.2 + OPENING;
 
@@ -16,7 +11,7 @@ export const FOUND_IT = {
   volume: 0.45,
 } as const;
 
-export const PAPIERTONNEN_CUES: readonly PapiertonnenCue[] = [
+export const PAPIERTONNEN_CUES: readonly FileCue[] = [
   {
     name: "Haustür swings shut on its closer",
     at: HAUSTUER_LATCHED - 0.08,

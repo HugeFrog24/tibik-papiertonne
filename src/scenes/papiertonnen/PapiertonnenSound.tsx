@@ -1,7 +1,7 @@
 import { Audio } from "@remotion/media";
 import { PAPIERTONNEN_FROM } from "../../timeline";
 import { FootstepSounds } from "../../sound/FootstepSounds";
-import { SoundCues } from "../../sound/SoundCues";
+import { SoundCues, withSources } from "../../sound/SoundCues";
 import { staticFile, useVideoConfig } from "remotion";
 import { StreetAmbience } from "../../street/StreetAmbience";
 import { footstepTimes } from "./choreography";
@@ -32,12 +32,7 @@ export const PapiertonnenSound: React.FC<{ readonly ambience: boolean }> = ({
       <FootstepSounds times={footstepTimes(fps)} who="Tibik" volume={0.35} />
 
       <SoundCues
-        cues={PAPIERTONNEN_CUES.map((cue) => ({
-          ...cue,
-          src: cue.file.startsWith("http")
-            ? cue.file
-            : staticFile(`sfx/${cue.file}`),
-        }))}
+        cues={withSources(PAPIERTONNEN_CUES, (cue) => cue.file)}
       />
       <Audio
         name="Lid knocks the wall"

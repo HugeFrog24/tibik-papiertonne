@@ -68,3 +68,22 @@ test("looping sounds with a volume curve follow film time, not their own loop", 
   }
   expect(wrong).toEqual([]);
 });
+
+test("every sound file is credited: CREDITS.md names it, or the folder it sits in", () => {
+  const credits = readFileSync(path.join(PUBLIC, "sfx", "CREDITS.md"), "utf8");
+  const sfx = path.join(PUBLIC, "sfx");
+  const files = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+      entry.isDirectory()
+        ? files(path.join(dir, entry.name))
+        : /\.(wav|ogg)$/.test(entry.name)
+          ? [path.relative(sfx, path.join(dir, entry.name)).split(path.sep).join("/")]
+          : [],
+    );
+  const credited = (file: string) => {
+    const parts = file.split("/");
+    if (credits.includes(parts[parts.length - 1])) return true;
+    return parts.slice(0, -1).some((_, i) => credits.includes(`The files in ${parts.slice(0, i + 1).join("/")}/`));
+  };
+  expect(files(sfx).filter((file) => !credited(file))).toEqual([]);
+});

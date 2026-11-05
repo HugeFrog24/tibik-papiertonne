@@ -26,9 +26,19 @@ export type Character = { readonly skeleton: Skeleton } & Placement;
 
 const withPose = <C extends Character>(c: C, pose: Pose): C => ({ ...c, pose });
 
-export const guardGround = <C extends Character>(c: C, ground: Solid): C => {
-  const sink = deepest(contacts(bodyColliders(c.skeleton, c).legs, [ground]));
-  return sink > 0 ? withPose(c, { ...c.pose, bob: c.pose.bob + sink }) : c;
+const GROUND_PASSES = 8;
+
+export const guardGround = <C extends Character>(c: C, ground: Solid | readonly Solid[]): C => {
+  const solids = Array.isArray(ground) ? ground : [ground as Solid];
+  let current = c;
+  for (let pass = 0; pass < GROUND_PASSES; pass++) {
+    const resting = current.tilt ? allColliders(current.skeleton, current) : bodyColliders(current.skeleton, current).legs;
+    const sink = deepest(contacts(resting, solids));
+    if (sink <= 0) return current;
+    current = withPose(current, { ...current.pose, bob: current.pose.bob + sink });
+    if (!current.tilt) return current;
+  }
+  return current;
 };
 
 export const GUARD_REACH = 0.1;

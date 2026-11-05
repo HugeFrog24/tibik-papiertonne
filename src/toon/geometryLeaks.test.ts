@@ -17,7 +17,7 @@ test("geometry rebuilt from changing inputs is freed when it is replaced, so pla
     return [...source.matchAll(/useMemo\(/g)].flatMap((m) => {
       const call = callAt(source, m.index + "useMemo".length);
       const deps = /,\s*\[([^\]]*)\]\s*,?\s*\)$/.exec(call)?.[1].trim() ?? "";
-      const builds = /Geometry\b|Geometry\(/.test(call);
+      const builds = /Geometry\b|Geometry\(|bentPlane\(/.test(call);
       if (!builds || deps === "") return [];
       return [`${file}:${source.slice(0, m.index).split("\n").length}`];
     });

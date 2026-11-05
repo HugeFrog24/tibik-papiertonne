@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Color, DoubleSide, RepeatWrapping } from "three";
 import { bentPlane } from "../props/bentPlane";
+import { useDisposable } from "../toon/useDisposable";
 import { cushionGeometry } from "../props/cushion";
 import { CURTAIN_SAND, boundsPart, type Part } from "../street/building";
 import { PartBoxes } from "../street/PartBoxes";
@@ -245,7 +246,7 @@ const Curtain: React.FC<{ readonly open: number; readonly daylight: number; read
   const c = curtainShape(open);
   const width = c.x1 - c.x0;
   const height = c.top - c.bottom;
-  const geometry = useMemo(
+  const geometry = useDisposable(
     () => bentPlane([width, height], [c.folds * 8, 1], (x) => c.amplitude * Math.sin((2 * Math.PI * c.folds * x) / width)),
     [width, height, c.folds, c.amplitude],
   );

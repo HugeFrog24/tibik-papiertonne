@@ -223,7 +223,8 @@ export const Tibik: React.FC<{
   readonly rotationY: number;
   readonly pose: TibikPose;
   readonly carrying?: React.ReactNode;
-}> = ({ position, rotationY, pose, carrying }) => {
+  readonly tilt?: number;
+}> = ({ position, rotationY, pose, carrying, tilt }) => {
   const gl = useThree((s) => s.gl);
   useLayoutEffect(() => {
     INK_SCREEN.uBufferHeight.value = gl.getDrawingBufferSize(new Vector2()).y;
@@ -235,6 +236,7 @@ export const Tibik: React.FC<{
       pose={pose}
       hipHeight={RIG.hipHeight}
       Leg={Leg}
+      tilt={tilt}
     >
       <TorsoMesh skeleton={RIG} color={TIBIK_GREEN} />
 

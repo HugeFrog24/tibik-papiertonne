@@ -49,6 +49,7 @@ export type Placement = {
   readonly position: Vec3;
   readonly rotationY: number;
   readonly pose: Pose;
+  readonly tilt?: number;
 };
 
 export type Skeleton = {
@@ -202,7 +203,10 @@ const frames = (skeleton: Skeleton, placement: Placement) => {
     placement.position,
     new Euler(0, placement.rotationY, 0),
   );
-  const body = frame(root, [0, placement.pose.bob, 0]);
+  const lifted = frame(root, [0, placement.pose.bob, 0]);
+  const body = placement.tilt
+    ? frame(frame(lifted, [0, skeleton.hipHeight, 0], new Euler(-placement.tilt, 0, 0)), [0, -skeleton.hipHeight, 0])
+    : lifted;
   const torso = frame(
     body,
     [0, skeleton.hipHeight, 0],
@@ -581,6 +585,12 @@ export const carriedBox = (
     size,
     localCenter,
   );
+};
+
+export const faceDirection = (skeleton: Skeleton, placement: Placement) => {
+  const { torso } = frames(skeleton, placement);
+  const head = frame(torso, [0, skeleton.neckHeight, 0], headRotation(placement.pose));
+  return new Vector3(0, 0, 1).transformDirection(head);
 };
 
 export const allColliders = (skeleton: Skeleton, placement: Placement) => {

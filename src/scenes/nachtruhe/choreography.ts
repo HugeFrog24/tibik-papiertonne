@@ -13,9 +13,8 @@ import { WALK_SWAY, WALK_SWING, swungArms, walkArmKeys, walkingOn } from "../../
 import type { Vec3 } from "../../toon/primitives";
 import { mixLooks, WEATHER, type WeatherLook } from "../../weather/overcast";
 import { DOOR_STAND, pinApproach, walkLeg, type Root } from "../enterHouse";
-import { bedroomEveningAt, eveningCovered } from "./bedroom";
+import { bedroomAt, coveredAt } from "./bedroom";
 import {
-  BLANKET_BACK,
   CURTAIN_PULL,
   DAWN,
   DRONE,
@@ -101,7 +100,7 @@ const duskTibikAt = (t: number): TibikFrame => {
 
 export { BED_SEAT } from "./bedroom";
 
-export const nachtruheTibikAt = (t: number): TibikFrame => (t < DUSK[1] ? duskTibikAt(t) : bedroomEveningAt(t));
+export const nachtruheTibikAt = (t: number): TibikFrame => (t < DUSK[1] ? duskTibikAt(t) : bedroomAt(t));
 
 const his = flatWindow(12, 1, "links");
 const hers = flatWindow(12, 1, "rechts");
@@ -133,7 +132,7 @@ export const nachtruheWorldAt = (t: number) => {
     stairwellLit,
     windowLight,
     curtains,
-    blanket: t < BLANKET_BACK[0] ? eveningCovered(t) : kf(t, [BLANKET_BACK[0], BLANKET_BACK[1]], [1, 0]),
+    blanket: coveredAt(t),
     bedroomDoor: BEDROOM_DOOR.open,
   };
 };

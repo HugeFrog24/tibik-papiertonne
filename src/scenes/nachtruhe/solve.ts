@@ -9,7 +9,7 @@ import { keysInHand, type Lock } from "../../Tibik/keysInHand";
 import { solveTibik } from "../papiertonnen/solve";
 import { streetSolids, type StreetState } from "../streetSolids";
 import { nachtruheTibikAt, nachtruheWorldAt, type NachtruheWorld } from "./choreography";
-import { EVENING_HOLDS } from "./bedroom";
+import { BEDROOM_HOLDS } from "./bedroom";
 import { DUSK, ENTRY } from "./timeline";
 
 export type NachtruheState = NachtruheWorld &
@@ -18,7 +18,7 @@ export type NachtruheState = NachtruheWorld &
     readonly keys: Matrix4 | null;
   };
 
-export const NACHTRUHE_HOLDS: readonly Hold[] = [ENTRY.hold, ...EVENING_HOLDS];
+export const NACHTRUHE_HOLDS: readonly Hold[] = [ENTRY.hold, ...BEDROOM_HOLDS];
 
 const HOUSE_LOCK: Lock = { window: ENTRY.keysInLock, at: ENTRY.houseKeyInLock, name: "house", reach: ENTRY.hold.reach };
 const SHUT_LIDS = BINS.map(() => 0);

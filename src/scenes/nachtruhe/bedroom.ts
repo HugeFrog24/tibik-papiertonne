@@ -15,9 +15,9 @@ import { BACK_DEPTH, SITTING, SITTING_UP, lyingInBed, sittingOnBed, sittingUpInB
 import { plantedTibik, tibikGaitOf, type TibikFrame } from "../../Tibik/character";
 import { RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { WALK_SWAY, WALK_SWING, swungArms, walkArmKeys, walkingOn } from "../../Tibik/walkingArms";
-import { OUTLINE, type Vec3 } from "../../toon/primitives";
+import { OUTLINE } from "../../toon/primitives";
 import { FACING_THE_WALL, pinEnd } from "../enterHouse";
-import { HOP_UP, LAMP_OFF, LIE_DOWN, PULL_OVER, SWING_IN, WALK_TO_BED } from "./timeline";
+import { BLANKET_BACK, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, LIE_DOWN, MORNING, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_TO_BED } from "./timeline";
 
 export const BED_SEAT = sittingOnBed(BED_RECT.x0 + 1.3);
 
@@ -70,23 +70,17 @@ const walkingIn = (t: number): TibikFrame => {
   return plantedTibik(toBedGait(), t, { position: [x, y, z], rotationY: yaw, pose });
 };
 
-const hoppingUp = (t: number): TibikFrame => {
-  const k = clamp((t - HOP_UP[0]) / (HOP_UP[1] - HOP_UP[0]), 0, 1);
-  const from = walkingIn(HOP_UP[0]);
-  const back = easeUnit((k - HOP.back[0]) / (HOP.back[1] - HOP.back[0]));
-  const pose = blendPose(from.pose, SITTING, easeUnit(k));
-  const position: Vec3 = [
-    lerp(from.position[0], BED_SEAT.position[0], back),
-    BEDROOM.floor,
-    lerp(from.position[2], BED_SEAT.position[2], back),
-  ];
-  return {
-    position,
-    rotationY: BED_SEAT.rotationY,
-    pose: { ...pose, bob: lerp(from.pose.bob, SITTING.bob, easeUnit(k / HOP.rise)), blink: blinkAt(t, EVENING_BLINKS) },
-    holdingBox: false,
-  };
-};
+const progress = (t: number, [from, to]: readonly [number, number]) => clamp((t - from) / (to - from), 0, 1);
+
+const ASLEEP = [LAMP_OFF + 0.6, LAMP_OFF + 0.9] as const;
+const MORNING_BLINKS = [EYES_OPEN[1] + 1.4, EYES_OPEN[1] + 3.9, EYES_OPEN[1] + 6.6, EYES_OPEN[1] + 9.2];
+
+const blinkFor = (t: number) =>
+  t < MORNING[0]
+    ? Math.max(blinkAt(t, EVENING_BLINKS), kf(t, ASLEEP, [0, 1]))
+    : t < EYES_OPEN[1]
+      ? kf(t, EYES_OPEN, [1, 0])
+      : blinkAt(t, MORNING_BLINKS);
 
 const placed = (
   t: number,
@@ -94,17 +88,28 @@ const placed = (
 ): TibikFrame => ({
   position: [position[0], position[1], position[2]],
   rotationY,
-  pose: { ...pose, blink: blinkAt(t, EVENING_BLINKS) },
+  pose: { ...pose, blink: blinkFor(t) },
   holdingBox: false,
   tilt,
 });
+
+const standing = () => walkingIn(HOP_UP[0]);
+
+const hopAt = (t: number, k: number): TibikFrame => {
+  const from = standing();
+  const back = easeUnit((k - HOP.back[0]) / (HOP.back[1] - HOP.back[0]));
+  return placed(t, {
+    position: [lerp(from.position[0], BED_SEAT.position[0], back), BEDROOM.floor, lerp(from.position[2], BED_SEAT.position[2], back)],
+    rotationY: BED_SEAT.rotationY,
+    pose: { ...blendPose(from.pose, SITTING, easeUnit(k)), bob: lerp(from.pose.bob, SITTING.bob, easeUnit(k / HOP.rise)) },
+  });
+};
 
 const UP = sittingUpInBed(-1);
 const IN_BED = lyingInBed(-1);
 const SWING = { legs: 0.5, turn: [0.25, 1] as const };
 
-const swingingIn = (t: number): TibikFrame => {
-  const k = clamp((t - SWING_IN[0]) / (SWING_IN[1] - SWING_IN[0]), 0, 1);
+const swingAt = (t: number, k: number): TibikFrame => {
   const turn = easeUnit((k - SWING.turn[0]) / (SWING.turn[1] - SWING.turn[0]));
   return placed(t, {
     position: BED_SEAT.position.map((v, i) => lerp(v, UP.position[i], turn)),
@@ -113,67 +118,97 @@ const swingingIn = (t: number): TibikFrame => {
   });
 };
 
-const SWITCH_PRESS = { reach: LAMP_OFF - 0.45, grip: LAMP_OFF - 0.08, release: LAMP_OFF + 0.12, done: LAMP_OFF + 0.55 };
+const PRESSES = [LAMP_OFF, LAMP_ON].map((click) => ({ reach: click - 0.45, grip: click - 0.08, release: click + 0.12, done: click + 0.55 }));
 const TOWARD_THE_SWITCH = 0.15;
+const twistAt = (t: number) => Math.max(...PRESSES.map((p) => kf(t, [p.reach, p.grip, p.release, p.done], [0, TOWARD_THE_SWITCH, TOWARD_THE_SWITCH, 0])));
 
-const lyingDown = (t: number): TibikFrame => {
-  const w = inWindow(t, LIE_DOWN);
-  const twist = kf(t, [SWITCH_PRESS.reach, SWITCH_PRESS.grip, SWITCH_PRESS.release, SWITCH_PRESS.done], [0, TOWARD_THE_SWITCH, TOWARD_THE_SWITCH, 0]);
-  return placed(t, {
+const lieAt = (t: number, w: number): TibikFrame =>
+  placed(t, {
     position: UP.position.map((v, i) => lerp(v, IN_BED.position[i], w)),
     rotationY: UP.rotationY,
-    pose: { ...blendPose(SITTING_UP, IN_BED.pose, w), twist },
+    pose: { ...blendPose(SITTING_UP, IN_BED.pose, w), twist: twistAt(t) },
     tilt: lerp(0, IN_BED.tilt, w),
   });
-};
 
-const authoredEvening = (t: number): TibikFrame =>
+const evening = (t: number): TibikFrame =>
   t < HOP_UP[0]
     ? walkingIn(t)
     : t < HOP_UP[1]
-      ? hoppingUp(t)
+      ? hopAt(t, progress(t, HOP_UP))
       : t < SWING_IN[0]
         ? placed(t, BED_SEAT)
         : t < SWING_IN[1]
-          ? swingingIn(t)
+          ? swingAt(t, progress(t, SWING_IN))
           : t < LIE_DOWN[0]
             ? placed(t, UP)
-            : lyingDown(t);
+            : lieAt(t, inWindow(t, LIE_DOWN));
 
-export const bedroomEveningAt = authoredEvening;
+const morning = (t: number): TibikFrame =>
+  t < SIT_UP[0]
+    ? lieAt(t, 1)
+    : t < SIT_UP[1]
+      ? lieAt(t, 1 - inWindow(t, SIT_UP))
+      : t < SWING_OUT[0]
+        ? placed(t, UP)
+        : t < SWING_OUT[1]
+          ? swingAt(t, 1 - progress(t, SWING_OUT))
+          : t < HOP_DOWN[0]
+            ? placed(t, BED_SEAT)
+            : t < HOP_DOWN[1]
+              ? hopAt(t, 1 - progress(t, HOP_DOWN))
+              : placed(t, standing());
+
+export const bedroomAt = (t: number): TibikFrame => (t < MORNING[0] ? evening(t) : morning(t));
+
+export { STAND };
 
 export const ASIDE = 0.68;
 export const LAID_EDGE = blanketEdge(BED_RECT, allColliders(RIG, IN_BED), 1);
 export const blanketLie = (covered: number) => ({ cover: 1, aside: ASIDE * (1 - covered), edge: LAID_EDGE });
 
 const middle = IN_BED.position[2];
-const PULL = { right: [0, 0.5], left: [0.65, 1.1] } as const;
 const TURNED_BACK = [ASIDE, middle + 0.1 - BED_RECT.z0, middle - 0.09 - BED_RECT.z0, middle - 0.26 - BED_RECT.z0, 0];
+const covering = (aside: number) => 1 - aside / ASIDE;
+const PULL = { right: [0, 0.5], left: [0.65, 1.1] } as const;
+const PUSH = { flip: 0.2, left: [0.2, 0.6], right: [0.75, 1.2] } as const;
 const pullKeys = [PULL_OVER[0], PULL_OVER[0] + PULL.right[1], PULL_OVER[0] + PULL.left[0], PULL_OVER[0] + PULL.left[1], PULL_OVER[1]];
+const pushKeys = [
+  BLANKET_BACK[0],
+  BLANKET_BACK[0] + PUSH.flip,
+  BLANKET_BACK[0] + PUSH.left[1],
+  BLANKET_BACK[0] + PUSH.right[0],
+  BLANKET_BACK[0] + PUSH.right[1],
+];
 
-export const eveningCovered = (t: number) => kf(t, pullKeys, TURNED_BACK.map((aside) => 1 - aside / ASIDE));
+export const coveredAt = (t: number) =>
+  t < MORNING[0] ? kf(t, pullKeys, TURNED_BACK.map(covering)) : kf(t, pushKeys, [...TURNED_BACK].reverse().map(covering));
 
 const HAND = Math.max(...RIG.hand.size) / 2;
 const AT_THE_CHEST = LAID_EDGE + 0.08;
-
 const FROM_OUTSIDE = -(HAND + 0.01);
+const FROM_BENEATH = 0;
 
-const foldPoint = (t: number, outside = 0) => {
-  const { cover, aside, edge } = blanketLie(eveningCovered(t));
+const foldPoint = (t: number, outside: number) => {
+  const { cover, aside, edge } = blanketLie(coveredAt(t));
   const fold = BED_RECT.z0 + aside;
-  const placement = authoredEvening(t);
+  const placement = bedroomAt(t);
   const arms = new Set([...armColliders(RIG, placement, "leftArm"), ...armColliders(RIG, placement, "rightArm")].map((s) => s.name));
   const body = allColliders(RIG, placement).filter((s) => !arms.has(s.name));
   return new Vector3(AT_THE_CHEST, blanketSurface(BED_RECT, body, cover, aside, edge)(AT_THE_CHEST, fold) + HAND, fold + outside);
 };
 
-const foldHold = (arm: ArmName, [from, to]: readonly [number, number], outside: number): Hold => ({
+const at = (start: number, [from, to]: readonly [number, number]) => [start + from, start + to] as const;
+
+export const PULLING = { right: at(PULL_OVER[0], PULL.right), left: at(PULL_OVER[0], PULL.left) } as const;
+export const PUSHING = { left: at(BLANKET_BACK[0], PUSH.left), right: at(BLANKET_BACK[0], PUSH.right) } as const;
+
+const foldHold = (arm: ArmName, [grip, release]: readonly [number, number], outside: number): Hold => ({
   name: `the turned-back blanket's fold in his ${arm === "leftArm" ? "left" : "right"} hand`,
   arm,
-  reach: PULL_OVER[0] + from - 0.3,
-  grip: PULL_OVER[0] + from,
-  release: PULL_OVER[0] + to,
-  done: PULL_OVER[0] + to + 0.4,
+  reach: grip - 0.3,
+  grip,
+  release,
+  done: release + 0.4,
   target: (t) => obb("blanket fold", frame(new Matrix4(), foldPoint(t, outside).toArray(), new Euler()), [0.1, 0.01, 0.02]),
   near: (t) => foldPoint(t, outside),
   exact: true,
@@ -181,13 +216,18 @@ const foldHold = (arm: ArmName, [from, to]: readonly [number, number], outside: 
 
 const PRESS_POINT = new Vector3(CORD_SWITCH.center[0], CORD_SWITCH.center[1] + CORD_SWITCH.size[1] / 2 + HAND, CORD_SWITCH.center[2]);
 
-const switchHold: Hold = {
+const switchHold = (press: (typeof PRESSES)[number]): Hold => ({
   name: "his lamp's cord switch, pressed",
   arm: "leftArm",
-  ...SWITCH_PRESS,
+  ...press,
   target: cordSwitchSolid,
   near: () => PRESS_POINT,
-};
+});
 
-export const EVENING_HOLDS: readonly Hold[] = [foldHold("rightArm", PULL.right, 0), foldHold("leftArm", PULL.left, FROM_OUTSIDE), switchHold];
-export const PULLING = { right: [PULL_OVER[0] + PULL.right[0], PULL_OVER[0] + PULL.right[1]], left: [PULL_OVER[0] + PULL.left[0], PULL_OVER[0] + PULL.left[1]] } as const;
+export const BEDROOM_HOLDS: readonly Hold[] = [
+  foldHold("rightArm", PULLING.right, FROM_BENEATH),
+  foldHold("leftArm", PULLING.left, FROM_OUTSIDE),
+  foldHold("leftArm", PUSHING.left, FROM_BENEATH),
+  foldHold("rightArm", PUSHING.right, FROM_BENEATH),
+  ...PRESSES.map(switchHold),
+];

@@ -20,15 +20,15 @@ import { lensProblems, penetrations, seconds } from "../sceneChecks";
 import { streetSolids } from "../streetSolids";
 import { cameraAt } from "./cameras";
 import { BED_SEAT, duskRootAt } from "./choreography";
-import { PULLING, blanketLie } from "./bedroom";
+import { PULLING, PUSHING, STAND, blanketLie } from "./bedroom";
 import { solveNachtruhe, type NachtruheState } from "./solve";
-import { DRONE, DUSK, ENTRY, EVENING, HOP_UP, LAMP_OFF, LIE_DOWN, NACHTRUHE_DURATION, PULL_OVER, SWING_IN } from "./timeline";
+import { BLANKET_BACK, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT } from "./timeline";
 
 const dusk = Array.from({ length: Math.round(DUSK[1] * FPS) }, (_, f) => f / FPS);
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
 const between = (from: number, to: number) => frames.filter((t) => t >= from && t < to);
 const bedroomOf = (state: NachtruheState) => bedroomSolids({ door: state.bedroomDoor, curtain: state.curtains });
-const EVENING_FRAMES = between(DUSK[1], EVENING[1]);
+const EVENING_FRAMES = [...between(DUSK[1], EVENING[1]), ...between(MORNING[0], HOP_DOWN[1] + 0.2)];
 
 test("the dusk continues Klingelsturm's world: he is on the pavement with nothing in his hands but his keys, the Haustür shut", () => {
   const first = solveNachtruhe(0);
@@ -127,9 +127,9 @@ test("he swings his legs onto the bed and sits up where he will lie, then lies d
 
 const HOLDING = Math.max(...RIG.hand.size) + 0.012;
 
-test("he pulls the turned-back blanket over himself by its fold, his right hand to his middle, then his left to his side", { timeout: 300_000 }, () => {
-  const away = (["rightArm", "leftArm"] as const).flatMap((arm) => {
-    const [from, to] = PULLING[arm === "rightArm" ? "right" : "left"];
+const foldMisses = (windows: { readonly right: readonly [number, number]; readonly left: readonly [number, number] }) =>
+  (["rightArm", "leftArm"] as const).flatMap((arm) => {
+    const [from, to] = windows[arm === "rightArm" ? "right" : "left"];
     return between(from, to + 1e-9).flatMap((t) => {
       const state = solveNachtruhe(t);
       const { cover, aside, edge } = blanketLie(state.blanket);
@@ -141,18 +141,53 @@ test("he pulls the turned-back blanket over himself by its fold, his right hand 
       return miss > HOLDING ? [`${t.toFixed(2)} s: ${arm} ${(miss * 100).toFixed(1)} cm from the fold`] : [];
     });
   });
-  expect(away.slice(0, 8)).toEqual([]);
+
+test("he pulls the turned-back blanket over himself by its fold, his right hand to his middle, then his left to his side", { timeout: 300_000 }, () => {
+  expect(foldMisses(PULLING).slice(0, 8)).toEqual([]);
   expect(solveNachtruhe(PULL_OVER[0]).blanket).toBe(0);
   expect(solveNachtruhe(PULL_OVER[1]).blanket).toBe(1);
 });
 
-test("his fingers are on the cord switch when his lamp clicks off", () => {
-  const click = Math.ceil(LAMP_OFF * FPS) / FPS;
-  expect(solveNachtruhe(click - 1 / FPS).lamps[1]).toBe(true);
-  expect(solveNachtruhe(click).lamps[1]).toBe(false);
-  const gap = sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(click).tibik), "leftArm"), cordSwitchSolid());
-  expect(gap).toBeLessThan(0.005);
-  expect(gap).toBeGreaterThan(-0.005);
+test("in the morning he pushes the blanket back from beneath, left hand then right, until it lies turned back as the evening found it", { timeout: 300_000 }, () => {
+  expect(foldMisses(PUSHING).slice(0, 8)).toEqual([]);
+  expect(solveNachtruhe(BLANKET_BACK[0]).blanket).toBe(1);
+  expect(solveNachtruhe(BLANKET_BACK[1]).blanket).toBe(0);
+});
+
+const pressGap = (click: number) => sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(click).tibik), "leftArm"), cordSwitchSolid());
+
+test("his fingers are on the cord switch when his lamp clicks off at night and on in the morning", () => {
+  const off = Math.ceil(LAMP_OFF * FPS) / FPS;
+  expect(solveNachtruhe(off - 1 / FPS).lamps[1]).toBe(true);
+  expect(solveNachtruhe(off).lamps[1]).toBe(false);
+  const on = Math.ceil(LAMP_ON * FPS) / FPS;
+  expect(solveNachtruhe(on - 1 / FPS).lamps[1]).toBe(false);
+  expect(solveNachtruhe(on).lamps[1]).toBe(true);
+  for (const click of [off, on]) {
+    expect(pressGap(click), click.toFixed(2)).toBeLessThan(0.005);
+    expect(pressGap(click), click.toFixed(2)).toBeGreaterThan(-0.005);
+  }
+});
+
+test("his eyes close in the dark and stay shut until he opens them in the morning, where he fell asleep", () => {
+  expect(solveNachtruhe(EVENING[1] - 0.1).tibik.pose.blink).toBeCloseTo(1, 3);
+  const morning = solveNachtruhe(MORNING[0]).tibik;
+  expect(near(morning.position, lyingInBed(-1).position, 0.01)).toBe(true);
+  expect(morning.pose.blink).toBeCloseTo(1, 3);
+  expect(solveNachtruhe(EYES_OPEN[0] - 0.05).tibik.pose.blink).toBeCloseTo(1, 3);
+  expect(solveNachtruhe(EYES_OPEN[1] + 0.05).tibik.pose.blink).toBeLessThan(0.05);
+});
+
+test("he sits up, swings his legs out and hops down where he hopped up", () => {
+  const up = solveNachtruhe(SIT_UP[1] + 0.05).tibik;
+  expect(near(up.position, sittingUpInBed(-1).position, 0.01)).toBe(true);
+  expect(up.tilt ?? 0).toBeCloseTo(0, 3);
+  const edge = solveNachtruhe(SWING_OUT[1] + 0.05).tibik;
+  expect(near(edge.position, BED_SEAT.position, 0.01)).toBe(true);
+  expect(edge.rotationY).toBeCloseTo(Math.PI, 3);
+  const down = solveNachtruhe(HOP_DOWN[1] + 0.05).tibik;
+  expect(near(down.position, [STAND.x, BEDROOM.floor, STAND.z], 0.01)).toBe(true);
+  expect(down.pose.bob).toBeLessThan(0.02);
 });
 
 test("the cord switch rests on his pillow and its cord runs to the lamp through nothing, him included, outlines included", { timeout: 300_000 }, () => {

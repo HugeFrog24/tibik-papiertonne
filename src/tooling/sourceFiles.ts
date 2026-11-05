@@ -9,3 +9,6 @@ export const sourceFiles = (dir: string, extension = /\.tsx?$/): string[] =>
         ? [path.join(dir, entry.name)]
         : [],
   );
+
+export const selfClosingTags = (source: string, name: string) =>
+  [...source.matchAll(new RegExp(String.raw`<${name}\b[\s\S]*?\/>`, "g"))].map(([tag]) => tag);

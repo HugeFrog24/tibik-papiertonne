@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { expect, test } from "vitest";
 import {
   BackSide,
@@ -9,7 +11,7 @@ import {
   MeshToonMaterial,
 } from "three";
 import { INK_PASS, NO_INK, inkRadius, skipsInkIds } from "./inkWidth";
-import { sourceFiles } from "../tooling/sourceFiles";
+import { selfClosingTags, sourceFiles } from "../tooling/sourceFiles";
 
 test("the drawn line is one outline wide on screen: 1.4 cm at the part's depth, in pixels", () => {
   const px = inkRadius(0.014, 1080, 50, 2);
@@ -40,22 +42,17 @@ test("ink hulls, lines and things too small for an outline stay out of the id pa
   expect(skipsInkIds(part)).toBe(false);
 });
 
-test("only the ink hulls are drawn from the back: every visible part shows its front, so the id pass outlines it", async () => {
-  const { readFileSync } = await import("node:fs");
-  const path = await import("node:path");
+test("only the ink hulls are drawn from the back: every visible part shows its front, so the id pass outlines it", () => {
   const root = path.resolve(__dirname, "..");
-  const backs: string[] = [];
-  for (const file of sourceFiles(root, /\.tsx$/)) {
-    for (const [material] of readFileSync(file, "utf8").matchAll(/<mesh\w*Material\b[^>]*side=\{BackSide\}[^>]*\/>/g)) {
-      if (!/^<meshBasicMaterial color=\{INK\}/.test(material))
-        backs.push(`${path.relative(root, file)}: ${material}`);
-    }
-  }
+  const backs = sourceFiles(root, /\.tsx$/).flatMap((file) =>
+    selfClosingTags(readFileSync(file, "utf8"), String.raw`mesh\w*Material`)
+      .filter((material) => /side=\{BackSide\}/.test(material) && !/^<meshBasicMaterial color=\{INK\}/.test(material))
+      .map((material) => `${path.relative(root, file)}: ${material}`),
+  );
   expect(backs).toEqual([]);
 });
 
-test("the ink fades into the haze with three's own exponential fog, at the depth of the surface it outlines", async () => {
-  const { readFileSync } = await import("node:fs");
+test("the ink fades into the haze with three's own exponential fog, at the depth of the surface it outlines", () => {
   const source = readFileSync(`${__dirname}/InkPass.tsx`, "utf8");
   expect(source).toContain("1.0 - exp(-hazeDensity * hazeDensity * inkDepth * inkDepth)");
   expect(source).toContain("inkDepth = min(inkDepth, there.g)");

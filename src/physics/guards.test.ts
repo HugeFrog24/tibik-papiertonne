@@ -2,7 +2,8 @@ import { Matrix4 } from "three";
 import { expect, test } from "vitest";
 import { rundschreibenTibikAt } from "../scenes/rundschreiben/choreography";
 import { asCharacter } from "../Tibik/character";
-import { obb } from "./collision";
+import { contacts, obb } from "./collision";
+import { bodyColliders } from "../characters/skeleton";
 import { GUARD_REACH, guardBody } from "./guards";
 
 const standing = () => asCharacter(rundschreibenTibikAt(0));
@@ -17,6 +18,8 @@ test("a path run into a wall moves the body by a small, visible push at most, ne
   const moved = Math.hypot(after.position[0] - x, after.position[2] - z);
   expect(moved).toBeGreaterThan(0);
   expect(moved).toBeLessThanOrEqual(GUARD_REACH + 1e-9);
+  const body = bodyColliders(after.skeleton, after);
+  expect(contacts([...body.legs, ...body.lowerTorso], [wallThrough(x + 0.1, z)]).length).toBeGreaterThan(0);
 });
 
 test("a body clear of every solid stays where its path puts it", () => {

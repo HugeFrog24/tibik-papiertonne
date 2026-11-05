@@ -411,7 +411,9 @@ const Mailboxes: React.FC<{
       >
         <mesh>
           <planeGeometry args={[mailboxPlate().width, mailboxPlate().height]} />
-          <meshBasicMaterial color={signColor} map={mailboxTexture(house, real ? MAILBOX_DOOR.resident : null)}
+          <meshBasicMaterial
+            color={signColor}
+            map={mailboxTexture(house, real ? MAILBOX_DOOR.resident : null)}
           />
         </mesh>
       </WallBox>

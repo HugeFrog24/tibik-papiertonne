@@ -1,8 +1,8 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test } from "vitest";
 import { STREET_LOOPS } from "../street/ambienceLoops";
-import { sourceFiles } from "../tooling/sourceFiles";
+import { selfClosingTags, sourceFiles } from "../tooling/sourceFiles";
 
 const SRC = path.resolve(__dirname, "..");
 const PUBLIC = path.resolve(SRC, "..", "public");
@@ -44,9 +44,7 @@ test("every sound file the scenes name exists in public/", () => {
 test("looping sounds with a volume curve follow film time, not their own loop", () => {
   const wrong: string[] = [];
   for (const file of sourceFiles(SRC)) {
-    for (const [element] of readFileSync(file, "utf8").matchAll(
-      /<Audio\b[\s\S]*?\/>/g,
-    )) {
+    for (const element of selfClosingTags(readFileSync(file, "utf8"), "Audio")) {
       if (
         /\bloop\b(?!V)/.test(element) &&
         /volume=\{\(/.test(element) &&
@@ -64,14 +62,8 @@ test("looping sounds with a volume curve follow film time, not their own loop", 
 test("every sound file is credited: CREDITS.md names it, or the folder it sits in", () => {
   const credits = readFileSync(path.join(PUBLIC, "sfx", "CREDITS.md"), "utf8");
   const sfx = path.join(PUBLIC, "sfx");
-  const files = (dir: string): string[] =>
-    readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
-      entry.isDirectory()
-        ? files(path.join(dir, entry.name))
-        : /\.(wav|ogg)$/.test(entry.name)
-          ? [path.relative(sfx, path.join(dir, entry.name)).split(path.sep).join("/")]
-          : [],
-    );
+  const files = (dir: string) =>
+    sourceFiles(dir, /\.(wav|ogg)$/).map((file) => path.relative(sfx, file).split(path.sep).join("/"));
   const credited = (file: string) => {
     const parts = file.split("/");
     if (credits.includes(parts[parts.length - 1])) return true;

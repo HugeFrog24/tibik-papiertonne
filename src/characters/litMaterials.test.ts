@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test } from "vitest";
+import { sourceFiles } from "../tooling/sourceFiles";
 
 const CHARACTER_DIRS = ["src/Karen", "src/Tibik", "src/characters"];
 const UNLIT_ON_PURPOSE = new Set([
@@ -10,12 +11,10 @@ const UNLIT_ON_PURPOSE = new Set([
 
 const characterSources = () =>
   CHARACTER_DIRS.flatMap((dir) =>
-    readdirSync(dir)
-      .filter((f) => f.endsWith(".tsx"))
-      .map((file) => {
-        const rel = path.posix.join(dir, file);
-        return { rel, source: readFileSync(rel, "utf8") };
-      }),
+    sourceFiles(dir, /\.tsx$/).map((file) => {
+      const rel = file.split(path.sep).join("/");
+      return { rel, source: readFileSync(rel, "utf8") };
+    }),
   );
 
 test("every part of Tibik and Karen is lit by the scene, so nothing on them glows when the light goes out", () => {

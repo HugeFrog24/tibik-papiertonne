@@ -1,5 +1,6 @@
 import { Color, SRGBColorSpace } from "three";
 import { expect, test } from "vitest";
+import { BEDSIDE_GLOW, CURTAIN_DAYLIGHT, NIGHT_GLOW } from "./Bedroom";
 import { bodyColliders } from "../characters/skeleton";
 import { boxGap, obbCorners } from "../physics/collision";
 import { FACADE_Z, flatWindow, openingFrame } from "../street/building";
@@ -233,4 +234,11 @@ test("the cabinets' outlines stay off the curtain however far it is drawn", () =
     for (const c of curtainPanels([k / 10, k / 10]))
       for (const cabinet of CABINETS)
         if (lo(cabinet, 0) < c.x1 && hi(cabinet, 0) > c.x0) expect(hi(cabinet, 2) + CABINET_INK).toBeLessThan(c.z - c.amplitude);
+});
+
+test("at night with his lamp off the street only glows faintly in the room: under a fifth of his lamp, and on the curtain under a sixth of its daylight", () => {
+  expect(NIGHT_GLOW.room).toBeLessThan(BEDSIDE_GLOW / 5);
+  expect(NIGHT_GLOW.curtain).toBeLessThan(CURTAIN_DAYLIGHT / 6);
+  expect(NIGHT_GLOW.room).toBeGreaterThan(0);
+  expect(NIGHT_GLOW.curtain).toBeGreaterThan(0);
 });

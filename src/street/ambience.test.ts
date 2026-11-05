@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { shotAt as nachtruheShotAt } from "../scenes/nachtruhe/cameras";
+import { inTheBedroom } from "../scenes/nachtruhe/cameras";
 import {
   STORY_END,
   haustuerAt,
@@ -31,7 +31,7 @@ test("the street is fully open from the Haustür until the Klingelsturm cut, hea
   for (let f = indoorsFrom; f < nightFrom; f++)
     expect(filmIndoors(f)).toBe(1);
   for (let f = nightFrom; f < rainFrom; f++)
-    expect(filmIndoors(f), `frame ${f}`).toBe(nachtruheShotAt((f - nightFrom) / FPS).name.startsWith("Bedroom") ? 1 : 0);
+    expect(filmIndoors(f), `frame ${f}`).toBe(inTheBedroom((f - nightFrom) / FPS) ? 1 : 0);
   expect(filmIndoors(rainFrom)).toBe(0);
   expect(filmIndoors(FILM_FRAMES - 1)).toBe(1);
   for (let f = rainFrom + 1; f < FILM_FRAMES; f++)

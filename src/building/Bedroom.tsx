@@ -268,6 +268,10 @@ const glowMap = (u0: number, u1: number, v0: number, v1: number) =>
     ctx.filter = "none";
   });
 
+export const CURTAIN_DAYLIGHT = 0.8;
+export const BEDSIDE_GLOW = 1;
+export const NIGHT_GLOW = { room: 0.15, curtain: 0.1 };
+
 const CurtainPanel: React.FC<{ readonly c: CurtainShape; readonly daylight: number; readonly streetGlow: number }> = ({ c, daylight, streetGlow }) => {
   const width = c.x1 - c.x0;
   const height = c.top - c.bottom;
@@ -279,7 +283,7 @@ const CurtainPanel: React.FC<{ readonly c: CurtainShape; readonly daylight: numb
   const u1 = Math.min(1, (c.x1 - PANE.x0) / width);
   const behind = u1 > u0;
   const emissive = useMemo(
-    () => new Color(COLOURS.sandLit).multiplyScalar(0.8 * daylight).add(new Color(COLOURS.street).multiplyScalar(0.18 * streetGlow)),
+    () => new Color(COLOURS.sandLit).multiplyScalar(CURTAIN_DAYLIGHT * daylight).add(new Color(COLOURS.street).multiplyScalar(NIGHT_GLOW.curtain * streetGlow)),
     [daylight, streetGlow],
   );
   const lit = behind && (daylight > 0 || streetGlow > 0);
@@ -359,8 +363,8 @@ export const Bedroom: React.FC<{
   </group>
 );
 
-const STREET_GLOW = { intensity: 0.35, distance: 4.5, inside: 0.8 };
-const LAMP_GLOW = { intensity: 1.0, distance: 6 };
+const STREET_GLOW = { distance: 4.5, inside: 0.8 };
+const LAMP_GLOW = { distance: 6 };
 const NIGHT_FILL = 0.12;
 
 export const BedroomLighting: React.FC<{
@@ -374,7 +378,7 @@ export const BedroomLighting: React.FC<{
       <pointLight
         position={[(PANE.x0 + PANE.x1) / 2, (PANE.y0 + PANE.y1) / 2, BEDROOM.z1 - STREET_GLOW.inside]}
         color={COLOURS.street}
-        intensity={STREET_GLOW.intensity * streetGlow}
+        intensity={NIGHT_GLOW.room * streetGlow}
         distance={STREET_GLOW.distance}
         decay={2}
       />
@@ -385,7 +389,7 @@ export const BedroomLighting: React.FC<{
           key={i}
           position={[lamp.base[0], lamp.base[1] + lamp.height - lamp.shadeHeight / 2, lamp.base[2]]}
           color={BEDSIDE_LIGHT}
-          intensity={LAMP_GLOW.intensity}
+          intensity={BEDSIDE_GLOW}
           distance={LAMP_GLOW.distance}
           decay={2}
         />

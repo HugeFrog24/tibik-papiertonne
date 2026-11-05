@@ -40,7 +40,7 @@ export const WEATHER: Readonly<Record<Weather, WeatherLook>> = {
   },
   night: {
     sky: ["#0b1022", "#1b2440"],
-    hemisphere: { sky: "#2a3550", ground: "#15151a", intensity: 0.6 },
+    hemisphere: { sky: "#3a4a72", ground: "#20202a", intensity: 1 },
     sun: { intensity: 0, shadows: false },
     wetTint: null,
     wet: 0,

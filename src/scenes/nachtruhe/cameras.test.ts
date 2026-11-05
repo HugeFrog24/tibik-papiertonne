@@ -11,7 +11,7 @@ import { BINS, worldSolids } from "../../street/layout";
 import { PARAPET, roofParts } from "../../street/townShape";
 import { STREET_TREES, TREE_CROWN, TREE_POSITION } from "../../street/trees";
 import { lensProblems } from "../sceneChecks";
-import { CAPTION, KEY_MOMENTS, NACHTRUHE_DURATION, NACHTRUHE_SHOTS, cameraAt, shotAt } from "./cameras";
+import { CAPTION, KEY_MOMENTS, NACHTRUHE_DURATION, NACHTRUHE_SHOTS, cameraAt, lightingAt, shotAt } from "./cameras";
 
 const shot = (name: string) => NACHTRUHE_SHOTS.find((s) => s.name === name)!;
 
@@ -121,4 +121,12 @@ test("no key moment hides behind a street tree's crown", () => {
 
 test("the time-jump caption is up for three seconds from the morning's first frame", () => {
   expect(CAPTION).toEqual({ text: "Zwei Wochen später.", from: shot("Bedroom: morning").from, to: shot("Bedroom: morning").from + 3 });
+});
+
+test("the bedroom shots are lit by the room's own lights, the street shots by the street's, never both", () => {
+  for (const s of NACHTRUHE_SHOTS) {
+    const mid = (s.from + s.to) / 2;
+    const indoors = s.name.startsWith("Bedroom");
+    expect(lightingAt(mid), s.name).toEqual({ street: !indoors, bedroom: indoors });
+  }
 });

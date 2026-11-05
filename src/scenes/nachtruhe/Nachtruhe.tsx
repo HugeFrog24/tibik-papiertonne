@@ -21,11 +21,9 @@ import { Rain } from "../../weather/Rain";
 import { rainAt } from "../../weather/rainDrops";
 import { streetSolids } from "../streetSolids";
 import { blanketLie } from "./bedroom";
-import { CAPTION, cameraAt, shotAt } from "./cameras";
+import { CAPTION, cameraAt, inTheBedroom, lightingAt } from "./cameras";
 import { solveNachtruhe, type NachtruheState } from "./solve";
 import { DAWN, DUSK } from "./timeline";
-
-const inTheBedroom = (t: number) => shotAt(t).name.startsWith("Bedroom");
 
 const daylightOf = (look: WeatherLook) =>
   clamp((facadeLight(look) - facadeLight(WEATHER.night)) / (facadeLight(WEATHER.rain) - facadeLight(WEATHER.night)), 0, 1);
@@ -73,10 +71,11 @@ const Scene: React.FC = () => {
 
 const Lighting: React.FC<{ readonly t: number }> = ({ t }) => {
   const state = solveNachtruhe(t);
+  const lit = lightingAt(t);
   return (
     <>
-      <StreetLighting look={state.look} />
-      {inTheBedroom(t) ? <BedroomLighting lamps={state.lamps} daylight={daylightOf(state.look)} streetGlow={state.lampsOn ? 1 : 0} /> : null}
+      {lit.street ? <StreetLighting look={state.look} /> : null}
+      {lit.bedroom ? <BedroomLighting lamps={state.lamps} daylight={daylightOf(state.look)} streetGlow={state.lampsOn ? 1 : 0} /> : null}
     </>
   );
 };

@@ -183,3 +183,9 @@ test("a given look wins over the weather's own", () => {
   expect(lookOf("rain", WEATHER.night)).toBe(WEATHER.night);
   expect(lookOf()).toBe(WEATHER.sunny);
 });
+
+test("the night stays darker than the dusk but bright enough that a facade still reads", () => {
+  const ratio = facadeLight(WEATHER.night) / facadeLight(WEATHER.dusk);
+  expect(ratio).toBeGreaterThan(0.45);
+  expect(ratio).toBeLessThan(0.8);
+});

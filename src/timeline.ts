@@ -1,6 +1,6 @@
 import { HAUSMUELL_DURATION } from "./scenes/hausmuell/choreography";
 import { KLINGELSTURM_DURATION } from "./scenes/klingelsturm/choreography";
-import { shotAt as nachtruheShotAt } from "./scenes/nachtruhe/cameras";
+import { inTheBedroom } from "./scenes/nachtruhe/cameras";
 import { NACHTRUHE_DURATION } from "./scenes/nachtruhe/timeline";
 import { PAPIERTONNEN_DURATION } from "./scenes/papiertonnen/choreography";
 import { RUNDSCHREIBEN_DURATION } from "./scenes/rundschreiben/choreography";
@@ -47,7 +47,7 @@ export const treppenhausIndoorsAt = (frame: number) =>
 const RUNDSCHREIBEN_START = Math.round(RUNDSCHREIBEN_FROM * FPS);
 const NACHTRUHE_START = Math.round(NACHTRUHE_FROM * FPS);
 
-export const nachtruheIndoorsAt = (t: number) => (nachtruheShotAt(t).name.startsWith("Bedroom") ? 1 : 0);
+export const nachtruheIndoorsAt = (t: number) => (inTheBedroom(t) ? 1 : 0);
 
 export const filmIndoors = (frame: number) =>
   frame < TREPPENHAUS_FRAMES

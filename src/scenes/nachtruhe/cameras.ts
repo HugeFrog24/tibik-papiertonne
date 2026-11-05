@@ -33,6 +33,10 @@ export const NACHTRUHE_SHOTS: readonly Shot[] = [
 
 export const { shotAt, cameraAt } = camerasOf(NACHTRUHE_SHOTS);
 
+export const inTheBedroom = (t: number) => shotAt(t).name.startsWith("Bedroom");
+
+export const lightingAt = (t: number) => ({ street: !inTheBedroom(t), bedroom: inTheBedroom(t) });
+
 const CAPTION_HOLD = 3;
 export const CAPTION = { text: "Zwei Wochen später.", from: MORNING[0], to: MORNING[0] + CAPTION_HOLD } as const;
 

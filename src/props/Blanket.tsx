@@ -4,8 +4,14 @@ import { useDisposable } from "../toon/useDisposable";
 import { bentPlane } from "./bentPlane";
 import { BLANKET, blanketGrid, type BedRect } from "./blanketShape";
 
-export const Blanket: React.FC<{ readonly bed: BedRect; readonly body: readonly Sphere[]; readonly cover: number }> = ({ bed, body, cover }) => {
-  const grid = blanketGrid(bed, body, cover);
+export const Blanket: React.FC<{
+  readonly bed: BedRect;
+  readonly body: readonly Sphere[];
+  readonly cover: number;
+  readonly aside?: number;
+  readonly edge?: number;
+}> = ({ bed, body, cover, aside = 0, edge }) => {
+  const grid = blanketGrid(bed, body, cover, aside, edge);
   const x0 = grid.columns[0];
   const far = grid.rows[grid.rows.length - 1];
   const geometry = useDisposable(
@@ -15,7 +21,7 @@ export const Blanket: React.FC<{ readonly bed: BedRect; readonly body: readonly 
         [grid.columns.length - 1, grid.rows.length - 1],
         (u, v) => grid.height(x0 + u, far - v),
       ),
-    [bed, body, cover],
+    [bed, body, cover, aside, edge],
   );
   return (
     <mesh geometry={geometry} position={[x0, 0, far]} rotation={[-Math.PI / 2, 0, 0]}>

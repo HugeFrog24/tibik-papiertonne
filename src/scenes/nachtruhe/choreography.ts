@@ -13,10 +13,9 @@ import { WALK_SWAY, WALK_SWING, swungArms, walkArmKeys, walkingOn } from "../../
 import type { Vec3 } from "../../toon/primitives";
 import { mixLooks, WEATHER, type WeatherLook } from "../../weather/overcast";
 import { DOOR_STAND, pinApproach, walkLeg, type Root } from "../enterHouse";
-import { bedroomEveningAt } from "./bedroom";
+import { bedroomEveningAt, eveningCovered } from "./bedroom";
 import {
   BLANKET_BACK,
-  BLANKET_UP,
   CURTAIN_PULL,
   DAWN,
   DRONE,
@@ -134,7 +133,7 @@ export const nachtruheWorldAt = (t: number) => {
     stairwellLit,
     windowLight,
     curtains,
-    blanket: kf(t, [BLANKET_UP[0], BLANKET_UP[1], BLANKET_BACK[0], BLANKET_BACK[1]], [0, 1, 1, 0]),
+    blanket: t < BLANKET_BACK[0] ? eveningCovered(t) : kf(t, [BLANKET_BACK[0], BLANKET_BACK[1]], [1, 0]),
     bedroomDoor: BEDROOM_DOOR.open,
   };
 };

@@ -1,8 +1,10 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { BED_RECT, BEDROOM, bedroomSolids } from "../../building/bedroomShape";
-import { bodyColliders } from "../../characters/skeleton";
-import { SITTING } from "../../Tibik/bedPoses";
+import { allColliders, armColliders, bodyColliders, handPosition } from "../../characters/skeleton";
+import { blanketProblems } from "../../props/blanketChecks";
+import { blanketSurface } from "../../props/blanketShape";
+import { LYING_TILT, SITTING, lyingInBed, sittingUpInBed } from "../../Tibik/bedPoses";
 import { FPS } from "../../frameRate";
 import { characterViolations } from "../../physics/guards";
 import { DOORSTEP, FACADE_Z } from "../../street/building";
@@ -16,14 +18,15 @@ import { lensProblems, penetrations, seconds } from "../sceneChecks";
 import { streetSolids } from "../streetSolids";
 import { cameraAt } from "./cameras";
 import { BED_SEAT, duskRootAt } from "./choreography";
+import { PULLING, blanketLie } from "./bedroom";
 import { solveNachtruhe, type NachtruheState } from "./solve";
-import { DRONE, DUSK, ENTRY, HOP_UP, LIE_DOWN, NACHTRUHE_DURATION } from "./timeline";
+import { DRONE, DUSK, ENTRY, EVENING, HOP_UP, LIE_DOWN, NACHTRUHE_DURATION, PULL_OVER, SWING_IN } from "./timeline";
 
 const dusk = Array.from({ length: Math.round(DUSK[1] * FPS) }, (_, f) => f / FPS);
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
 const between = (from: number, to: number) => frames.filter((t) => t >= from && t < to);
 const bedroomOf = (state: NachtruheState) => bedroomSolids({ door: state.bedroomDoor, curtain: state.curtains });
-const UP_TO_LYING = between(DUSK[1], LIE_DOWN[0]);
+const EVENING_FRAMES = between(DUSK[1], EVENING[1]);
 
 test("the dusk continues Klingelsturm's world: he is on the pavement with nothing in his hands but his keys, the Haustür shut", () => {
   const first = solveNachtruhe(0);
@@ -63,9 +66,9 @@ test("he unlocks the Haustür from outside with his house key and goes in; the c
   expect(solveNachtruhe(DRONE[0]).haustuer).toBe(0);
 });
 
-test("in the evening Tibik passes through nothing in the bedroom, outlines included, until he lies down", { timeout: 300_000 }, () => {
+test("in the evening Tibik passes through nothing in the bedroom, outlines included", { timeout: 300_000 }, () => {
   const violations = penetrations(
-    UP_TO_LYING,
+    EVENING_FRAMES,
     (t) => {
       const state = solveNachtruhe(t);
       return characterViolations(asCharacter(state.tibik), bedroomOf(state));
@@ -89,10 +92,54 @@ test("he comes in through the bedroom door, walks along his side of the bed and 
 });
 
 test("the doorway camera keeps 30 cm off Tibik and out of every solid while he goes to bed", { timeout: 300_000 }, () => {
-  const problems = UP_TO_LYING.flatMap((t) => {
+  const problems = EVENING_FRAMES.flatMap((t) => {
     const state = solveNachtruhe(t);
     const body = bodyColliders(RIG, asCharacter(state.tibik));
     return lensProblems(t, new Vector3(...cameraAt(t).position), 0.05, bedroomOf(state), [...body.torso, ...body.head, ...body.leftArm, ...body.rightArm, ...body.legs], 0.3);
   });
   expect(problems.slice(0, 8)).toEqual([]);
+});
+
+test("the blanket never passes through him or the mattress all evening, outlines included", { timeout: 300_000 }, () => {
+  const problems = EVENING_FRAMES.filter((_, i) => i % 2 === 0).flatMap((t) => {
+    const state = solveNachtruhe(t);
+    const { cover, aside, edge } = blanketLie(state.blanket);
+    return blanketProblems(BED_RECT, allColliders(RIG, asCharacter(state.tibik)), cover, aside, edge).map((p) => `${t.toFixed(2)} s: ${p}`);
+  });
+  expect(problems.slice(0, 8)).toEqual([]);
+});
+
+const near = (a: readonly number[], b: readonly number[], within: number) => a.every((v, i) => Math.abs(v - b[i]) < within);
+
+test("he swings his legs onto the bed and sits up where he will lie, then lies down with his head on his pillow", () => {
+  const up = solveNachtruhe(SWING_IN[1] + 0.05).tibik;
+  expect(near(up.position, sittingUpInBed(-1).position, 0.01)).toBe(true);
+  expect(up.rotationY).toBeCloseTo(Math.PI / 2, 3);
+  expect(up.tilt ?? 0).toBeCloseTo(0, 3);
+  const lying = solveNachtruhe(LIE_DOWN[1] + 0.2).tibik;
+  const bed = lyingInBed(-1);
+  expect(near(lying.position, bed.position, 0.01)).toBe(true);
+  expect(lying.tilt ?? 0).toBeCloseTo(LYING_TILT, 3);
+  expect(lying.pose.bob).toBeCloseTo(bed.pose.bob, 2);
+});
+
+const HOLDING = Math.max(...RIG.hand.size) + 0.012;
+
+test("he pulls the turned-back blanket over himself by its fold, his right hand to his middle, then his left to his side", { timeout: 300_000 }, () => {
+  const away = (["rightArm", "leftArm"] as const).flatMap((arm) => {
+    const [from, to] = PULLING[arm === "rightArm" ? "right" : "left"];
+    return between(from, to + 1e-9).flatMap((t) => {
+      const state = solveNachtruhe(t);
+      const { cover, aside, edge } = blanketLie(state.blanket);
+      const holding = new Set(armColliders(RIG, asCharacter(state.tibik), arm).map((s) => s.name));
+      const body = allColliders(RIG, asCharacter(state.tibik)).filter((s) => !holding.has(s.name));
+      const hand = handPosition(RIG, asCharacter(state.tibik), arm);
+      const fold = BED_RECT.z0 + aside;
+      const miss = hand.distanceTo(new Vector3(hand.x, blanketSurface(BED_RECT, body, cover, aside, edge)(hand.x, fold), fold));
+      return miss > HOLDING ? [`${t.toFixed(2)} s: ${arm} ${(miss * 100).toFixed(1)} cm from the fold`] : [];
+    });
+  });
+  expect(away.slice(0, 8)).toEqual([]);
+  expect(solveNachtruhe(PULL_OVER[0]).blanket).toBe(0);
+  expect(solveNachtruhe(PULL_OVER[1]).blanket).toBe(1);
 });

@@ -3,7 +3,7 @@ import { BED_RECT } from "../building/bedroomShape";
 import { allColliders, bodyColliders } from "../characters/skeleton";
 import { lyingInBed } from "../Tibik/bedPoses";
 import { RIG } from "../Tibik/rig";
-import { OUTLINE } from "../toon/primitives";
+import { blanketProblems } from "./blanketChecks";
 import { BLANKET, blanketEdge, blanketGrid, blanketSurface } from "./blanketShape";
 
 const sides = [1, -1] as const;
@@ -18,29 +18,7 @@ const covered = (side: 1 | -1, cover: number) => {
 
 test("the drawn blanket never passes through him or the mattress, outlines included, between its vertices too", () => {
   for (const side of sides)
-    for (const cover of [0, 0.5, 1]) {
-      const { body, grid, at } = covered(side, cover);
-      const problems: string[] = [];
-      const check = (x: number, z: number, h: number) => {
-        const overMattress = x >= BED_RECT.x0 && x <= BED_RECT.x1 && z >= BED_RECT.z0 && z <= BED_RECT.z1;
-        if (overMattress && h < BED_RECT.top + 0.001) problems.push(`into the mattress at ${x.toFixed(2)},${z.toFixed(2)}`);
-        for (const s of body) {
-          const reach = s.radius + OUTLINE / 2;
-          const d = Math.hypot(x - s.center.x, z - s.center.z);
-          if (d < reach && h < s.center.y + Math.sqrt(reach * reach - d * d)) problems.push(`into his ${s.name} at ${x.toFixed(2)},${z.toFixed(2)}`);
-        }
-      };
-      for (let i = 0; i < grid.columns.length; i++)
-        for (let j = 0; j < grid.rows.length; j++) {
-          check(grid.columns[i], grid.rows[j], at(i, j));
-          if (i + 1 < grid.columns.length && j + 1 < grid.rows.length) {
-            const x = (grid.columns[i] + grid.columns[i + 1]) / 2;
-            const z = (grid.rows[j] + grid.rows[j + 1]) / 2;
-            check(x, z, Math.min((at(i, j) + at(i + 1, j + 1)) / 2, (at(i + 1, j) + at(i, j + 1)) / 2));
-          }
-        }
-      expect([...new Set(problems)].slice(0, 6), `side ${side}, cover ${cover}`).toEqual([]);
-    }
+    for (const cover of [0, 0.5, 1]) expect(blanketProblems(BED_RECT, bodyOf(side), cover).slice(0, 6), `side ${side}, cover ${cover}`).toEqual([]);
 });
 
 test("the blanket's rows and columns meet the mattress's edges, and it hangs over the sides and the foot", () => {
@@ -82,4 +60,27 @@ test("folded at the foot it lies in layers, thicker than one ply", () => {
   const middle = (BED_RECT.z0 + BED_RECT.z1) / 2;
   expect(height(BED_RECT.x1 - 0.1, middle) - BED_RECT.top).toBeGreaterThan(0.02);
   expect(blanketSurface(BED_RECT, [], 1)(BED_RECT.x1 - 0.1, middle) - BED_RECT.top).toBeLessThan(0.015);
+});
+
+test("turned back from the door side, the bed lies bare there and the turned-back part lies doubled beside the fold", () => {
+  const aside = 0.6;
+  const fold = BED_RECT.z0 + aside;
+  const grid = blanketGrid(BED_RECT, [], 1, aside);
+  expect(grid.rows[0]).toBeCloseTo(fold, 9);
+  const surface = blanketSurface(BED_RECT, [], 1, aside);
+  const x = BED_RECT.x1 - 0.3;
+  expect(surface(x, fold + 0.1) - surface(x, fold + aside + 0.1)).toBeCloseTo(BLANKET.ply, 6);
+  expect(surface(x, BED_RECT.z1 - 0.05) - BED_RECT.top).toBeLessThan(0.015);
+  expect(blanketGrid(BED_RECT, [], 1).rows).toEqual(blanketGrid(BED_RECT, [], 1, 0).rows);
+});
+
+test("turned back from the door side, it drapes over whatever of him lies under it and never passes through him", () => {
+  for (const side of sides)
+    for (const aside of [0.3, 0.6]) expect(blanketProblems(BED_RECT, bodyOf(side), 1, aside).slice(0, 6), `side ${side}, aside ${aside}`).toEqual([]);
+});
+
+test("the blanket's head hem can stay where it was laid, whatever pose he is in", () => {
+  const laid = blanketEdge(BED_RECT, bodyOf(-1), 1);
+  const grid = blanketGrid(BED_RECT, [], 1, 0, laid);
+  expect(grid.columns[1]).toBeCloseTo(laid, 9);
 });

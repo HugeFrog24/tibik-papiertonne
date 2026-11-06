@@ -147,7 +147,7 @@ export type PhoneState = PhonePlace & {
 };
 
 export const inHerPocket = (t: number) =>
-  t < POCKET[1] || (t > BANGING.tuck[1] && t < BANGING.raise[0]) || t > CODA.phoneAway[1];
+  t < POCKET[1] || (t >= BANGING.wideCut && t < BANGING.raise[0]) || t >= CODA.mediumCut;
 
 export const phoneAt = (t: number): PhoneState => ({
   inHand: !inHerPocket(t),

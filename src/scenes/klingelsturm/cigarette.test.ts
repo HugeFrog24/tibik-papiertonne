@@ -46,7 +46,7 @@ test("every coda time is on a whole frame and the scene ends about 74 s in", () 
   expect(CODA.end).toBeLessThan(75);
 });
 
-test("no cigarette or lighter before the cut into the Medium; the phone leaves her hand only at its pocket", () => {
+test("no cigarette or lighter before the cut into the Medium; the phone rests at her hip until that cut and leaves her hand on it", () => {
   const before = solveKlingelsturm(CODA.mediumCut - 1 / FPS);
   expect(before.cigarette).toBeNull();
   expect(before.lighter).toBeNull();
@@ -54,9 +54,9 @@ test("no cigarette or lighter before the cut into the Medium; the phone leaves h
   expect(at.cigarette).not.toBeNull();
   expect(at.lighter).not.toBeNull();
   expect(shotAt(CODA.mediumCut).name).toBe("Close-up: the cigarette");
-  expect(phonePlaceAt(CODA.phoneAway[1])).toEqual(PHONE_AT_POCKET);
-  expect(solveKlingelsturm(CODA.phoneAway[1] + 1 / FPS).phone).toBeNull();
-  expect(solveKlingelsturm(CODA.phoneAway[0]).phone).not.toBeNull();
+  expect(phonePlaceAt(CODA.mediumCut - 1 / FPS)).toEqual(PHONE_AT_POCKET);
+  expect(solveKlingelsturm(CODA.mediumCut - 1 / FPS).phone).not.toBeNull();
+  expect(solveKlingelsturm(CODA.mediumCut).phone).toBeNull();
 });
 
 const lipsWindows: readonly (readonly [number, number])[] = [[CODA.mediumCut, CODA.end - 0.1]];

@@ -145,10 +145,10 @@ export const SHOTS: readonly Shot[] = [
   },
   { name: "Wide: still ringing", from: FLUR_CUT[1], to: 6.0, at: () => WIDE },
   { name: "Spyhole", from: 6.0, to: 9.0, at: () => SPYHOLE },
-  { name: "Over Karen: the gap", from: 9.0, to: POCKET[0], at: GAP_SHOT },
+  { name: "Over Karen: the gap", from: 9.0, to: POCKET[1], at: GAP_SHOT },
   {
     name: "Medium: the phone",
-    from: POCKET[0],
+    from: POCKET[1],
     to: TAPING_CUT[0],
     at: PHONE_SHOT,
   },

@@ -118,12 +118,12 @@ test("the fist on the door in the Wide, and the parcel and his face in the Flur,
   });
 });
 
-test("for the trip she tucks the phone into her pocket and draws it again before she dials, her hand on its grip whenever she holds it", () => {
+test("for the trip she lowers the phone to her hip, it leaves her hand on the cut to the wide and is back in it before she dials, her hand on its grip whenever she holds it", () => {
   expect(phonePlaceAt(BANGING.tuck[1])).toEqual(PHONE_AT_POCKET);
   expect(phonePlaceAt(BANGING.raise[0])).toEqual(PHONE_AT_POCKET);
   for (const t of framesOf([BANGING.tuck[0], BANGING.raise[1]])) {
     const state = solveKlingelsturm(t);
-    const away = t > BANGING.tuck[1] + 1e-9 && t < BANGING.raise[0] - 1e-9;
+    const away = t > BANGING.wideCut - 1e-9 && t < BANGING.raise[0] - 1e-9;
     expect(state.phone === null, seconds(t)).toBe(away);
     if (away) continue;
     const hand = handSphere(KAREN_SKELETON, asKaren(state.karen), "rightArm").center;

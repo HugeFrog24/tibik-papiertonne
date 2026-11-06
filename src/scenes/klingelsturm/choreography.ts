@@ -362,5 +362,5 @@ const phoneHold = (name: string, grip: number, release: number): Hold => ({
 
 export const PHONE_HOLDS: readonly Hold[] = [
   phoneHold("the phone, out of her pocket", POCKET[1], BANGING.tuck[1]),
-  phoneHold("the phone, out of her pocket again", BANGING.raise[0], CODA.phoneAway[1]),
+  phoneHold("the phone, out of her pocket again", BANGING.raise[0], CODA.mediumCut),
 ];

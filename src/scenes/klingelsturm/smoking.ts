@@ -62,8 +62,8 @@ const underTheLighter = (t: number) => {
 export const LIGHTER_HOLD: Hold = {
   name: "the lighter, up out of her fist",
   arm: "rightArm",
-  reach: CODA.phoneAway[1],
-  grip: CODA.mediumCut,
+  reach: CODA.mediumCut,
+  grip: CODA.lighterGrip,
   release: CODA.lighterDown[1],
   done: round6(CODA.lighterDown[1] + REACH),
   target: (t) => lighterObb(lighterAt(t)),

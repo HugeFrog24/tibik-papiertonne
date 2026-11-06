@@ -14,14 +14,16 @@ const at = (base: number, after: number) => round6(base + after);
 const span = (base: number, from: number, to: number) => [at(base, from), at(base, to)] as const;
 
 const mediumCut = at(GONE, 0.8);
-const flick = at(mediumCut, 0.3);
+const lighterGrip = at(mediumCut, 0.3);
+const flick = at(lighterGrip, 0.3);
 const flameOut = at(flick, 1.5);
-const jumpCut = at(mediumCut, 4.0);
+const jumpCut = at(mediumCut, 4.3);
 const outAgain = at(jumpCut, 1.4);
 
 export const CODA = {
   phoneAway: span(GONE, 0, 0.5),
   mediumCut,
+  lighterGrip,
   flick,
   flame: [flick, flameOut] as const,
   draws: [span(flick, 0.5, 0.8), span(flick, 1.0, 1.4)] as const,
@@ -111,6 +113,6 @@ const lighting = (cigarette: Matrix4, burned: number, facing: number) => {
 
 export const lighterFrame = (karen: Placement, t: number, cigarette: Matrix4, burned: number): Matrix4 => {
   const torso = torsoMatrix(KAREN_SKELETON, karen);
-  const raised = blendFrames(placeFrame(torso, LIGHTER_LOW), lighting(cigarette, burned, karen.rotationY), inWindow(t, [CODA.mediumCut, CODA.flick]));
+  const raised = blendFrames(placeFrame(torso, LIGHTER_LOW), lighting(cigarette, burned, karen.rotationY), inWindow(t, [CODA.lighterGrip, CODA.flick]));
   return blendFrames(raised, placeFrame(torso, PHONE_AT_POCKET), inWindow(t, CODA.lighterDown));
 };

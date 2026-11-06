@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { RATE, decode, peakOf, sfx, writeWav } from "./sfx-audio.mjs";
+import { RATE, THROUGH_THE_DOOR, decode, muffle, peakOf, sfx, writeWav } from "./sfx-audio.mjs";
 import { withScratch } from "./scratch.mjs";
 
 const RECORDINGS = fileURLToPath(new URL("../assets/recordings/", import.meta.url));
@@ -22,5 +22,6 @@ withScratch("tape-", (scratch) => {
   const out = samples.slice(from, last + 1).map((v, i, all) => (v * Math.min(1, (all.length - i) / fade)) / peak * 0.9);
   mkdirSync(sfx("flur/"), { recursive: true });
   writeWav(sfx("flur/tape-pull.wav"), [out]);
-  console.log(`flur/tape-pull.wav: ${(out.length / RATE).toFixed(2)} s from ${recording.title}`);
+  writeWav(sfx("flur/tape-pull-door.wav"), [muffle(out, THROUGH_THE_DOOR)]);
+  console.log(`flur/tape-pull.wav, flur/tape-pull-door.wav: ${(out.length / RATE).toFixed(2)} s from ${recording.title}`);
 });

@@ -1,4 +1,4 @@
-import { Audio } from "@remotion/media";
+import { MixAudio } from "../sound/MixAudio";
 import { useVideoConfig } from "remotion";
 import { sfxSource } from "../sound/SoundCues";
 
@@ -34,14 +34,14 @@ export const KarenStomp: React.FC<{
   const { step, thud } = stompFiles(index, room);
   return (
     <>
-      <Audio
+      <MixAudio
         name={`Karen stomp ${index + 1}`}
         src={sfxSource(step)}
         from={frame}
         volume={1}
         playbackRate={STOMP_RATE}
       />
-      <Audio
+      <MixAudio
         name={`Karen stomp ${index + 1}: thud`}
         src={sfxSource(thud)}
         from={frame}

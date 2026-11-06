@@ -1,4 +1,4 @@
-import { Audio } from "@remotion/media";
+import { MixAudio } from "./MixAudio";
 import { staticFile, useVideoConfig } from "remotion";
 import { musicPlacement, musicVolume, type Music } from "./music";
 
@@ -6,7 +6,7 @@ export const Score: React.FC<{ readonly music: Music; readonly offset: number }>
   const { fps } = useVideoConfig();
   const placed = musicPlacement(music, offset, fps);
   return placed ? (
-    <Audio
+    <MixAudio
       name={music.name}
       src={staticFile(music.file)}
       from={placed.from}

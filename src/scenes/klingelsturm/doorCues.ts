@@ -30,7 +30,7 @@ type Version = {
 
 const INSIDE = { sound: "phone/bell-storm", volume: 0.6 };
 const THROUGH = { sound: "stairwell/phone/bell-storm-door", volume: 0.8 };
-const TAPE_PULL = { sound: "flur/tape-pull", lead: 0.04, volume: 0.9 };
+export const TAPE_PULL = { sound: "flur/tape-pull", door: "flur/tape-pull-door", seconds: 2.19, lead: 0.04, volume: 0.9 };
 
 export const inTheFlur = (t: number) => shotAt(t).name.startsWith("Flur:");
 
@@ -101,12 +101,15 @@ const herPhone = (): BellCue[] =>
   });
 
 const tapeCues = (): BellCue[] =>
-  TAPE_STRIPS.map(({ name, times }) => ({
-    name: `Tibik pulls the tape ${name}`,
-    at: round6(times.start - TAPE_PULL.lead),
-    sound: TAPE_PULL.sound,
-    volume: TAPE_PULL.volume,
-  }));
+  TAPE_STRIPS.flatMap(({ name, times }) =>
+    throughTheCuts(
+      `Tibik pulls the tape ${name}`,
+      round6(times.start - TAPE_PULL.lead),
+      TAPE_PULL.seconds,
+      { sound: TAPE_PULL.sound, volume: TAPE_PULL.volume, label: "in his Flur" },
+      { sound: TAPE_PULL.door, volume: TAPE_PULL.volume, label: "through his door" },
+    ),
+  );
 
 const RELAY = { sound: "stairwell/relay", volume: 0.7 };
 

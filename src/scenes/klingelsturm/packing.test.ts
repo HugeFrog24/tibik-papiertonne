@@ -393,9 +393,13 @@ test(
 );
 
 test("the second strip screeches as it is pulled, and he leans over the parcel for it", () => {
-  const pulls = doorCues().filter((c) => c.sound === "flur/tape-pull");
-  expect(pulls).toHaveLength(2);
-  expect(pulls[1].at).toBeCloseTo(TAPING_AGAIN.start - 0.04, 6);
+  const strips = new Map<string, number>();
+  for (const c of doorCues().filter((c) => /tape-pull/.test(c.sound))) {
+    const strip = c.name.replace(/ (in his Flur|through his door) @.*$/, "");
+    strips.set(strip, Math.min(strips.get(strip) ?? Infinity, c.at));
+  }
+  expect(strips.size).toBe(2);
+  expect([...strips.values()][1]).toBeCloseTo(TAPING_AGAIN.start - 0.04, 6);
   expect(shotAt(TAPING_AGAIN.start + 0.5).name).toMatch(/^Flur/);
   expect(tibikAt((TAPING_AGAIN.pick + TAPING_AGAIN.down) / 2).pose.lean).toBeGreaterThan(0.2);
 });

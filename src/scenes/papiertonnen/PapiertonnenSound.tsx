@@ -1,6 +1,6 @@
 import { Score } from "../../sound/Score";
 import { MAIN_STREET } from "../../sound/music";
-import { Audio } from "@remotion/media";
+import { MixAudio } from "../../sound/MixAudio";
 import { PAPIERTONNEN_FROM } from "../../timeline";
 import { FootstepSounds } from "../../sound/FootstepSounds";
 import { SoundCues, withSources } from "../../sound/SoundCues";
@@ -22,7 +22,7 @@ export const PapiertonnenSound: React.FC<{ readonly ambience: boolean }> = ({
       {ambience ? <Score music={MAIN_STREET} offset={PAPIERTONNEN_FROM} /> : null}
 
       {Array.from({ length: FLY_COUNT }, (_, i) => (
-        <Audio
+        <MixAudio
           key={i}
           name={`Fly ${i + 1} buzzing`}
           src={staticFile(`sfx/${flyBuzzSound(i)}.wav`)}
@@ -37,7 +37,7 @@ export const PapiertonnenSound: React.FC<{ readonly ambience: boolean }> = ({
       <SoundCues
         cues={withSources(PAPIERTONNEN_CUES, (cue) => cue.file)}
       />
-      <Audio
+      <MixAudio
         name="Lid knocks the wall"
         src={staticFile("sfx/impactGeneric_light_002.ogg")}
         from={Math.round(LID_SLAP * fps) + 1}

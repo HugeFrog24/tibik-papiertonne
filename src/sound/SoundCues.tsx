@@ -1,4 +1,4 @@
-import { Audio } from "@remotion/media";
+import { MixAudio } from "./MixAudio";
 import { staticFile, useVideoConfig } from "remotion";
 
 export type FileCue = {
@@ -56,7 +56,7 @@ export const SoundCues: React.FC<{
       {cues.filter((cue) => playable(cue, fps)).map((cue) => {
         const t = timeOf(cue.at);
         return t === null ? null : (
-          <Audio
+          <MixAudio
             key={`${cue.name}@${cue.at}`}
             name={cue.name}
             src={cue.src}

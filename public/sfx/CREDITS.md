@@ -52,7 +52,8 @@ phone/bell-storm.wav and phone/bell-storm-door.wav are a synthesised 680 Hz squa
 not distributed).
 
 flur/tape-pull.wav is "Adhesive tape #3" by Denis Chardonnet, BigSoundBank, CC0 (public domain),
-https://bigsoundbank.com/adhesive-tape-3-s0299.html, trimmed by scripts/make-tape.mjs.
+https://bigsoundbank.com/adhesive-tape-3-s0299.html, trimmed by scripts/make-tape.mjs; flur/tape-pull-door.wav
+is the same strip heard from the landing through his door (low-passed and quieter, CC0 like its source).
 
 The files in coda/ (Karen's cigarette in the Klingelsturm) are cut and levelled by scripts/make-cigarette.mjs
 and heard through the stairwell reverb as stairwell/coda/:

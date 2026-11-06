@@ -12,7 +12,7 @@ import { FPS } from "../../timeline";
 import { KEYS } from "./calls";
 import { KLINGELSTURM_DURATION, karenStandGait } from "./choreography";
 import { OPEN, SHUT, UNLATCH, tibikGait } from "./door";
-import { doorCues, inTheFlur, stompRoomAt, type BellCue } from "./doorCues";
+import { TAPE_PULL, doorCues, inTheFlur, stompRoomAt, type BellCue } from "./doorCues";
 import { EXIT_SOUNDS } from "./exit";
 import { lightsAt } from "./light";
 import { PACKING } from "./parcel";
@@ -105,7 +105,7 @@ const RATTLE_SOUND = /impactMetal_light|latch-rattle/;
 const blowCue = (at: number) => cueNear(BLOW_SOUND, at);
 const loudness = (cue: { readonly sound: string; readonly volume: number }) => cue.volume * peakOf(readWav(`${cue.sound}.wav`).samples);
 
-const POUNDING = { hit: [0, 0.15] as const, loud: -15, overStomp: 1.5, mids: [200, 2000] as const, carried: 0.4, below: 150, rumble: 0.4, ring: [1.0, 1.5] as const, rings: -34 };
+const POUNDING = { hit: [0, 0.15] as const, loud: -15, overStomp: 6, mids: [200, 2000] as const, carried: 0.4, below: 150, rumble: 0.4, ring: [1.0, 1.5] as const, rings: -34 };
 
 test("her fist on his door bangs on any speaker: every blow take is loud, carried in the mids rather than a rumble below 150 Hz, and on the landing the stairwell still rings a second later", () => {
   BANGING.blows.forEach((at, i) => {
@@ -164,7 +164,7 @@ test("the latch rattle under each blow is a dull, quiet clatter, not a ting: lit
   });
 });
 
-test("a blow on the landing hits harder than her stomp: louder over the hit", () => {
+test("a blow on the landing is far louder than her stomp, as a fist on a hollow door is than footsteps: at least 6 dB over the hit", () => {
   const stomp = Math.max(hitLevel("stairwell/footstep_concrete_000", 1), hitLevel("stairwell/impactSoft_heavy_000", 0.6));
   for (const at of BANGING.blows.slice(0, 4)) {
     const cue = blowCue(at)!;
@@ -333,4 +333,20 @@ test("the gas hiss is a steady rush: no click in it and no loop you could hear",
   expect(loudest10ms / level).toBeLessThan(2);
   const repeats = Array.from({ length: 950 }, (_, i) => correlation(envelope, 50 + i));
   expect(Math.max(...repeats)).toBeLessThan(0.3);
+});
+
+test("his tape is heard faintly through his door while we are on the landing and plainly once we cut into his Flur", () => {
+  const tape = doorCues().filter((c) => /tape-pull/.test(c.sound));
+  expect(tape.length).toBeGreaterThan(0);
+  for (const cue of tape) {
+    const middle = cue.at + (cue.length ?? 0.05) / 2;
+    expect(cue.sound, `${cue.name}`).toBe(inTheFlur(middle) ? "flur/tape-pull" : "flur/tape-pull-door");
+  }
+  const plain = readWav("flur/tape-pull.wav").samples;
+  const door = readWav("flur/tape-pull-door.wav").samples;
+  expect(20 * Math.log10(peakOf(door) / peakOf(plain))).toBeLessThan(-12);
+});
+
+test("the tape cues last as long as the tape file", () => {
+  expect(TAPE_PULL.seconds).toBeCloseTo(soundSeconds(`${TAPE_PULL.sound}.wav`), 2);
 });

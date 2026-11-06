@@ -1,4 +1,4 @@
-import { Audio } from "@remotion/media";
+import { MixAudio } from "./MixAudio";
 import { staticFile, useVideoConfig } from "remotion";
 import { footstepPlan, type Surface } from "./footsteps";
 
@@ -14,7 +14,7 @@ export const FootstepSounds: React.FC<{
   return (
     <>
       {footstepPlan(times, fps, { surface, room, variant }).map(({ frame, file }, i) => (
-        <Audio key={frame} name={`${who} footstep ${i + 1}`} src={staticFile(`sfx/${file}`)} from={frame} volume={volume} />
+        <MixAudio key={frame} name={`${who} footstep ${i + 1}`} src={staticFile(`sfx/${file}`)} from={frame} volume={volume} />
       ))}
     </>
   );

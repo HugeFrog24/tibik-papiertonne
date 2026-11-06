@@ -1,6 +1,6 @@
-import { RATE, pole, randomFrom, sfx, writeWav } from "./sfx-audio.mjs";
+import { RATE, peakOf, pole, randomFrom, sfx, writeWav } from "./sfx-audio.mjs";
 
-const PULL = { seconds: 1.2, travel: 0.3 };
+const PULL = { seconds: 0.6, travel: 0.25 };
 const GLIDER_SPACING = 0.06;
 const HISS = { low: 2200, high: 6500, level: 0.05 };
 const RUMBLE = { low: 350, high: 900, level: 0.04 };
@@ -52,7 +52,5 @@ for (let i = 0; i < length; i++) {
   }
 }
 
-let max = 0;
-for (const v of out) max = Math.max(max, Math.abs(v));
-writeWav(sfx("curtain-gliders.wav"), [out], PEAK / max);
+writeWav(sfx("curtain-gliders.wav"), [out], PEAK / peakOf(out));
 console.log(`curtain-gliders.wav: ${PULL.seconds} s, mono`);

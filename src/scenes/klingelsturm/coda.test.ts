@@ -14,7 +14,7 @@ import { footfallOffset } from "../../Karen/footfall";
 import { mouthInWorld, onScreen, seenBy } from "../../dialogue/screen";
 import { KAREN_SKELETON } from "../../Karen/rig";
 import { FPS } from "../../timeline";
-import type { CameraSetup } from "../hausmuell/cameras";
+import type { CameraSetup } from "../../toon/shots";
 import { SHOTS, cameraAt } from "./cameras";
 import {
   KAREN_HOME,
@@ -23,10 +23,14 @@ import {
   karenStandGait,
 } from "./choreography";
 import { SHUT } from "./door";
+import { BANGING } from "./banging";
 
-test("after he shuts his door Karen crosses to her own door and phones from there, facing the stairs", () => {
+const POUNDING: readonly [number, number] = [BANGING.walk[0], BANGING.back[1]];
+
+test("after he shuts his door Karen crosses to her own door and phones from there, facing the stairs, leaving it only to pound on his door between the calls", () => {
   expect(KAREN_HOME.turn[0]).toBeGreaterThanOrEqual(SHUT[1]);
   for (let t = KAREN_HOME.side[1] + 0.1; t <= KLINGELSTURM_DURATION; t += 0.5) {
+    if (t >= POUNDING[0] && t <= POUNDING[1]) continue;
     const karen = karenAt(t);
     expect(karen.position[0], t.toFixed(1)).toBeGreaterThan(LANE_SPLIT);
     expect(karen.position[0], t.toFixed(1)).toBeLessThan(CORE.x1 - 0.5);

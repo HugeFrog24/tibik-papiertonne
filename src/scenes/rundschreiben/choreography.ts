@@ -1,4 +1,4 @@
-import { DOOR_STAND, FACING_THE_WALL, enterHouse, pinApproach, walkLeg } from "../enterHouse";
+import { DOOR_STAND, FACING_THE_WALL, enterHouse, pinApproach, shuffle, squareAt, walkLeg } from "../enterHouse";
 import { SENSOR, sensorLampOn } from "../../street/entranceSensor";
 import { mustReadSeconds } from "./letter";
 import { Euler, Matrix4, Vector3 } from "three";
@@ -12,9 +12,10 @@ import {
   touchdownTimes,
   walkCadence,
   type RootAt,
+  type Step,
 } from "../../characters/gait";
 import { after, easeUnit, inWindow } from "../../characters/scalar";
-import { armColliders } from "../../characters/skeleton";
+import { armColliders, type ArmPose } from "../../characters/skeleton";
 import { frame, obb } from "../../physics/collision";
 import { TONNE, TONNE_FLOOR, tonneLidParts } from "../../street/tonneShape";
 import {
@@ -33,7 +34,7 @@ import type { Hold } from "../../physics/holds";
 import { KEY_APPROACH, KEY_GRIP, keyBowGrip, keyDepthAt, keyInLock } from "../../props/keyRingShape";
 import { MAILBOXES, binByName } from "../../street/layout";
 import {
-  MAILBOX_DOOR,
+  MAILBOX_DOOR_SPEC,
   mailboxDoorFrame,
   mailboxDoorSolid,
   mailboxInside,
@@ -79,7 +80,8 @@ const LID_LET_GO = KLOPPEN[1] + 0.1;
 const TO_READY: readonly [number, number] = [TO_BIN[1] - 0.4, LID_UP[0]];
 
 export const START = { x: -5.9, z: -0.9 };
-export const STAND = { x: -2.3, z: -1.39 };
+export const STAND = { x: -2.72, z: -1.27 };
+export const READ_SPOT = { x: -2.3, z: -1.39 };
 const LEAN_IN = 0.25;
 const TURN_IN: readonly [number, number] = [AT_MAILBOX - 0.45, AT_MAILBOX];
 
@@ -103,8 +105,8 @@ const walkToBin: Walk = {
   from: TO_BIN[0],
   to: TO_BIN[1],
   via: [
-    [STAND.x, STAND.z],
-    [STAND.x + 0.6, -0.8],
+    [READ_SPOT.x, READ_SPOT.z],
+    [READ_SPOT.x + 0.6, -0.8],
     [BIN_STAND.x, -0.3],
     [BIN_STAND.x, BIN_STAND.z],
   ],
@@ -126,6 +128,7 @@ const rootAt: RootAt = (t) => {
   if (entering) return entering;
   if (t >= TO_DOOR[0]) return walkLeg(walkToDoor, t);
   if (t >= TO_BIN[0]) return walkLeg(walkToBin, t);
+  if (t >= SIDESTEP[0]) return shuffle(t, SIDESTEP, STAND, READ_SPOT);
   const { x, z, heading } = walkAt(walkHome, t);
   const turned = easeUnit((t - TURN_IN[0]) / (TURN_IN[1] - TURN_IN[0]));
   const yaw = heading + (FACING_THE_WALL - heading) * turned;
@@ -141,12 +144,13 @@ const tibikSteps = () => {
     cadence,
     overlap: STEP_OVERLAP,
   });
+  const aside = [...home, ...sidesteps(opposite(home[home.length - 1].side))];
   const legs: readonly (readonly [number, number])[] = [TO_BIN, TO_DOOR];
   const walked = legs.reduce((steps, [from, to]) => {
     const first = opposite(steps[steps.length - 1].side);
     const next = rhythmicSteps({ from, to, first, cadence, overlap: STEP_OVERLAP });
     return [...steps, ...(from === TO_DOOR[0] ? pinApproach(next) : next)];
-  }, home);
+  }, aside);
   return [...walked, ...ENTRY.steps(opposite(walked[walked.length - 1].side), cadence)];
 };
 
@@ -180,7 +184,7 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
         AT_MAILBOX,
         KEY_IN - 0.4,
         KEY_OUT[1],
-        KEY_OUT[1] + 0.5,
+        KEY_OUT[1] + 0.3,
         LID_UP[0] - 0.3,
         LID_UP[0] + 0.1,
         LID_LET_GO,
@@ -224,11 +228,28 @@ export const KEY_OUT: readonly [number, number] = [
   BOX_SHUT[1] + 0.6,
 ];
 
+const SIDESTEP_TIMING = { every: 0.18, takes: 0.14 };
+const SIDESTEP_WAY = [0.35, 1, 1] as const;
+export const SIDESTEP: readonly [number, number] = [
+  KEY_OUT[1],
+  KEY_OUT[1] + (SIDESTEP_WAY.length - 1) * SIDESTEP_TIMING.every + SIDESTEP_TIMING.takes,
+];
+
+const sidesteps = (first: Step["side"]): Step[] =>
+  SIDESTEP_WAY.map((k, i) => {
+    const lift = SIDESTEP[0] + i * SIDESTEP_TIMING.every;
+    const stand = { x: STAND.x + (READ_SPOT.x - STAND.x) * k, z: STAND.z + (READ_SPOT.z - STAND.z) * k };
+    return squareAt(stand)({ side: i % 2 === 0 ? first : opposite(first), lift, land: lift + SIDESTEP_TIMING.takes });
+  });
+
+export const BOX_PULLED_OPEN = (80 * Math.PI) / 180;
+const ROUND_THE_DOOR = { taking: 0.15, inward: 0.13, out: 0.08, up: 0.04 };
+
 export const mailboxDoorAt = (t: number) =>
   kf(
     t,
     [BOX_OPEN[0], BOX_OPEN[1], BOX_SHUT[0] + 0.1, BOX_SHUT[1]],
-    [0, MAILBOX_DOOR.open, MAILBOX_DOOR.open, 0],
+    [0, BOX_PULLED_OPEN, BOX_PULLED_OPEN, 0],
   );
 
 const keyTurnAt = (t: number) =>
@@ -252,13 +273,20 @@ export const keysInLock = (t: number): Matrix4 => {
 export const keyGripAt = (t: number) =>
   keyBowGrip(keysInLock(t), "mailbox", KEY_GRIP);
 
+const AT_THE_KEY: readonly ArmPose[] = [
+  { raise: 1.1, out: 0.62, elbow: 1.45, inward: 0.9 },
+  { raise: -0.31, out: 1.1, elbow: 1.87, inward: -0.47 },
+  { raise: -0.47, out: 1.23, elbow: 1.28, inward: -0.7 },
+];
+
 export const KEY_HOLD: Hold = {
   name: "his keys in the lock",
   arm: "leftArm",
+  starts: AT_THE_KEY,
   reach: KEY_IN - 0.6,
   grip: KEY_IN - KEY_APPROACH,
   release: BOX_OPEN[1],
-  done: ENVELOPE_OUT[0] + 0.2,
+  done: BOX_OPEN[1] + ROUND_THE_DOOR.taking,
   target: (t) => mailboxDoorSolid(mailboxDoorAt(t)),
   near: keyGripAt,
   exact: true,
@@ -267,6 +295,7 @@ export const KEY_HOLD: Hold = {
 export const KEY_SHUT_HOLD: Hold = {
   name: "his keys, shutting the box",
   arm: "leftArm",
+  starts: AT_THE_KEY,
   reach: ENVELOPE_OUT[1] + 0.15,
   grip: BOX_SHUT[0] + 0.1,
   release: KEY_OUT[1],
@@ -466,10 +495,27 @@ const gripBox = (at: Vector3) =>
     [0.01, 0.01, 0.01],
   );
 
+const roundTheDoor = () => {
+  const edge = new Vector3(MAILBOX_DOOR_SPEC.width, 0, 0).applyMatrix4(mailboxDoorFrame(BOX_PULLED_OPEN));
+  return new Vector3(edge.x + ROUND_THE_DOOR.inward, envelopeGripAt(ENVELOPE_SLIDE[0], "leftArm").y + ROUND_THE_DOOR.up, edge.z + ROUND_THE_DOOR.out);
+};
+
+export const ROUND_THE_DOOR_HOLD: Hold = {
+  name: "his hand round the door's edge",
+  arm: "leftArm",
+  reach: BOX_OPEN[1],
+  grip: BOX_OPEN[1] + ROUND_THE_DOOR.taking,
+  release: BOX_OPEN[1] + ROUND_THE_DOOR.taking,
+  done: ENVELOPE_SLIDE[0],
+  target: () => gripBox(roundTheDoor()),
+  near: roundTheDoor,
+  exact: true,
+};
+
 export const ENVELOPE_LEFT_HOLD: Hold = {
   name: "the envelope, out of the box",
   arm: "leftArm",
-  reach: BOX_OPEN[1],
+  reach: BOX_OPEN[1] + ROUND_THE_DOOR.taking,
   grip: ENVELOPE_SLIDE[0],
   release: ENVELOPE_OUT[1] + 0.15,
   done: BOX_SHUT[0] + 0.1,

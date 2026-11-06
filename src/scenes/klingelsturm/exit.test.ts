@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { CODA } from "./cigarette";
 import {
   FLIGHTS,
   TIBIK_LIGHT_BUTTON,
@@ -52,8 +53,8 @@ test("he picks the parcel up unseen, behind his shut door, and carries it on his
     expect(solveKlingelsturm(t).carried, t.toFixed(2)).toBe(t >= EXIT.pickup);
 });
 
-test("after the light goes out he leaves: door shut behind him, the light back on, and he is going down the flight at the end", () => {
-  const end = solveKlingelsturm(KLINGELSTURM_DURATION - 1 / FPS);
+test("after the light goes out he leaves: door shut behind him, the light back on, and he is going down the flight before the jump cut", () => {
+  const end = solveKlingelsturm(CODA.jumpCut - 1 / FPS);
   expect(end.tibikDoor).toBe(0);
   expect(end.lights).toBe(1);
   expect(lightsAt(LIGHT.out + 1)).toBe(0);

@@ -6,6 +6,7 @@ import {
   treppenhausIndoors,
 } from "../scenes/treppenhaus/choreography";
 import { hushAt } from "../scenes/nachtruhe/soundCues";
+import { SCENES } from "../timeline";
 import { FILM_FRAMES, FPS, KLINGELSTURM_FROM, RUNDSCHREIBEN_FROM, TREPPENHAUS_FRAMES, filmHush, filmIndoors, NACHTRUHE_FROM } from "../timeline";
 import { breeze } from "../physics/wind";
 import { STREET_LOOPS, hushedVolume, loopVolume } from "./ambienceLoops";
@@ -80,4 +81,17 @@ test("the film's street hushes through Nachtruhe as the scene does, and nowhere 
 test("the town hushes for the night, the wind in the leaves does not", () => {
   const hushed = (loop: (typeof STREET_LOOPS)[number]) => hushedVolume(loop, 0, 0.1);
   for (const loop of STREET_LOOPS) expect(hushed(loop), loop.name).toBeCloseTo(loopVolume(loop, 0) * (loop.breezy ? 1 : 0.1), 12);
+});
+
+test("the film hears each scene's street as that scene hears it on its own, frame for frame", () => {
+  let start = 0;
+  for (const scene of SCENES) {
+    for (let f = 0; f < scene.frames; f += 5) {
+      expect(filmIndoors(start + f), `${scene.name} frame ${f}`).toBeCloseTo(scene.ambience.indoors(f / FPS), 12);
+      expect(filmHush(start + f), `${scene.name} frame ${f}`).toBeCloseTo(scene.ambience.hush(f / FPS), 12);
+    }
+    start += scene.frames;
+  }
+  expect(start).toBe(FILM_FRAMES);
+  expect(SCENES.map((s) => s.name)).toEqual(["Treppenhaus", "Papiertonnen", "Hausmuell", "Klingelsturm", "Nachtruhe", "Rundschreiben"]);
 });

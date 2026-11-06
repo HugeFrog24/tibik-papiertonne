@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, rmSync } from "node:fs";
 import { bellPresses } from "./bell-presses.mjs";
-import { DOOR, RATE, THROUGH_THE_DOOR, muffle, pole, randomFrom, sfx, writeWav } from "./sfx-audio.mjs";
+import { DOOR, RATE, THROUGH_THE_DOOR, muffle, peakOf, pole, randomFrom, sfx, writeWav } from "./sfx-audio.mjs";
 
 const BELL = { frequency: 680, trill: 16, depth: 0.45, level: 0.92, length: 5, attack: 0.003 };
 const json = (relative) => JSON.parse(readFileSync(new URL(relative, import.meta.url), "utf8"));
@@ -21,7 +21,7 @@ const bell = () => {
     const trill = 1 - BELL.depth * (0.5 + 0.5 * Math.cos(2 * Math.PI * BELL.trill * t));
     out[i] = Math.min(1, t / BELL.attack) * trill * square(t);
   }
-  const peak = out.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  const peak = peakOf(out);
   return out.map((v) => (v * BELL.level) / peak);
 };
 

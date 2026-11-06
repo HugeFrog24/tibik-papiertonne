@@ -1,4 +1,4 @@
-import { Euler, Matrix4 } from "three";
+import { Euler, Matrix4, Vector3 } from "three";
 import { frame, obb, type Obb, type Solid } from "../physics/collision";
 import {
   BUILDING_HEIGHT,
@@ -562,6 +562,8 @@ export const DOORBELL = {
   proud: 0.03,
 };
 export const doorLanding = (door: Door) => (door.hinge[0] < CORE.x0 ? -1 : 1);
+export const landingNormal = (door: Door, angle = 0) =>
+  new Vector3(0, 0, doorLanding(door)).transformDirection(doorFrame(door, angle));
 export const doorbellCenter = (door: Door): Vec3 => [
   door.width + DOORBELL.along,
   DOORBELL.height,

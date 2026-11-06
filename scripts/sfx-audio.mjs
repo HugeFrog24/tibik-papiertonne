@@ -14,6 +14,14 @@ export const randomFrom = (seed) => () => {
 
 export const pole = (frequency) => 1 - Math.exp((-2 * Math.PI * frequency) / RATE);
 
+export const peakOf = (samples) => samples.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+
+export const passage = (samples, { from, seconds, fadeIn, fadeOut }) => {
+  const start = Math.round(from * RATE);
+  const envelope = (t) => Math.min(1, t / fadeIn, (seconds - t) / fadeOut);
+  return Float32Array.from({ length: Math.round(seconds * RATE) }, (_, i) => (samples[start + i] ?? 0) * envelope(i / RATE));
+};
+
 export const DOOR = { cutoff: 5000, level: 10 ** (-4 / 20) };
 export const THROUGH_THE_DOOR = { cutoff: 800, level: 10 ** (-16 / 20) };
 

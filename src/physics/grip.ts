@@ -29,6 +29,13 @@ import {
   type Character,
 } from "./guards";
 
+export const OVERHEAD = Math.PI / 2 + 0.3;
+
+const overheadDip = (arm: ArmPose, spheres: readonly Sphere[], up: Vector3) =>
+  arm.raise > OVERHEAD
+    ? Math.max(0, spheres[0].center.clone().sub(spheres[spheres.length - 1].center).dot(up))
+    : 0;
+
 const ARM_LIMITS: Record<keyof ArmPose, [number, number]> = {
   raise: [-0.6, 3.0],
   out: [-0.3, 1.6],
@@ -71,6 +78,7 @@ export const reachArm = <C extends Character>(
     Math.max(upperArm.radius, forearm.radius, ...hand.size);
   const reachable = nearby(solids, shoulder, length);
   const authored = c.pose[which];
+  const up = new Vector3(0, 1, 0).transformDirection(torsoMatrix(c.skeleton, c));
   const keys = Object.keys(ARM_LIMITS) as (keyof ArmPose)[];
   const cost = (arm: ArmPose) => {
     const placed = withArm(c, which, arm);
@@ -80,6 +88,7 @@ export const reachArm = <C extends Character>(
       deepest(contacts(spheres, reachable)),
       held ? deepest(contacts(limb, [held])) : 0,
       armIntoTorso(c.skeleton, placed.pose, which),
+      overheadDip(arm, spheres, up),
     );
     const drift = keys.reduce(
       (sum, key) => sum + Math.abs(arm[key] - authored[key]),

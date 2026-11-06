@@ -1,5 +1,6 @@
 import { clamp, lerp } from "../characters/scalar";
-import { ACROSS_STREET, FACADE_Z, KERB_DEPTH, KERB_Z, ROAD_Y, acrossZ } from "../street/building";
+import { FACADE_Z, KERB_DEPTH, KERB_Z, ROAD_Y, acrossFootprint, acrossZ } from "../street/building";
+import { STREET_LENGTH } from "../street/roadShape";
 import type { Footprint } from "../street/footprint";
 import { treePit } from "../street/layout";
 import { MORE_TREES, TREE_POSITION } from "../street/trees";
@@ -29,23 +30,17 @@ export const mirrorCamera = ({ position, target, up = [0, 1, 0] }: Camera, y: nu
   up: [up[0], -up[1], up[2]] as Vec3,
 });
 
-const STREET_LENGTH = 240;
-const kerbFace = (side: 1 | -1, z: number) => z + (side * KERB_DEPTH) / 2;
+const kerbEdge = (side: 1 | -1, z: number) => z + (side * KERB_DEPTH) / 2;
 
 export const WET_SURFACES: readonly { readonly name: string; readonly y: number; readonly x: readonly [number, number]; readonly z: readonly [number, number] }[] = [
-  { name: "No. 12's pavement", y: 0, x: [-STREET_LENGTH / 2, STREET_LENGTH / 2], z: [FACADE_Z, kerbFace(-1, KERB_Z)] },
-  { name: "the road", y: ROAD_Y, x: [-STREET_LENGTH / 2, STREET_LENGTH / 2], z: [kerbFace(1, KERB_Z), kerbFace(-1, acrossZ(KERB_Z))] },
-  { name: "No. 13's pavement", y: 0, x: [-STREET_LENGTH / 2, STREET_LENGTH / 2], z: [kerbFace(1, acrossZ(KERB_Z)), acrossZ(FACADE_Z)] },
+  { name: "No. 12's pavement", y: 0, x: [-STREET_LENGTH / 2, STREET_LENGTH / 2], z: [FACADE_Z, kerbEdge(-1, KERB_Z)] },
+  { name: "the road", y: ROAD_Y, x: [-STREET_LENGTH / 2, STREET_LENGTH / 2], z: [kerbEdge(1, KERB_Z), kerbEdge(-1, acrossZ(KERB_Z))] },
+  { name: "No. 13's pavement", y: 0, x: [-STREET_LENGTH / 2, STREET_LENGTH / 2], z: [kerbEdge(1, acrossZ(KERB_Z)), acrossZ(FACADE_Z)] },
 ];
 
 export const MIRROR_HEIGHTS = [...new Set(WET_SURFACES.map((s) => s.y))];
 
-const acrossTheStreet = (pit: Footprint): Footprint => ({
-  x: [ACROSS_STREET.shift - pit.x[1], ACROSS_STREET.shift - pit.x[0]],
-  z: [acrossZ(pit.z[1]), acrossZ(pit.z[0])],
-});
-
-export const DRY_PITS: readonly Footprint[] = [...[TREE_POSITION[0], ...MORE_TREES].map(treePit), ...MORE_TREES.map((x) => acrossTheStreet(treePit(x)))];
+export const DRY_PITS: readonly Footprint[] = [...[TREE_POSITION[0], ...MORE_TREES].map(treePit), ...MORE_TREES.map((x) => acrossFootprint(treePit(x)))];
 
 export const WET_LAYERS = { shade: -2, puddles: -1, mirror: 0 } as const;
 

@@ -13,7 +13,7 @@ import {
 } from "../street/layout";
 import { RIG, TIBIK_REST } from "../Tibik/rig";
 import { RAIN_SOLIDS } from "../street/rainSolids";
-import { BUILDING_HEIGHT as ROOF_LEVEL } from "../street/building";
+import { BUILDING_HEIGHT as ROOF_LEVEL, KERB_DEPTH, KERB_HEIGHT, KERB_Y, KERB_Z } from "../street/building";
 import { roofParts } from "../street/townShape";
 import type { Vec3 } from "../toon/primitives";
 import {
@@ -362,4 +362,17 @@ test("far off a streak is drawn long enough to read as rain, at least 27 lines o
 
 test("drawn long, every streak still lies outside every solid and Tibik", { timeout: 120_000 }, () => {
   expectThroughNothing({ fov: FOV });
+});
+
+test("drops falling on a kerb stop on its top, along the whole stretch of rain on both sides of the street", () => {
+  const top = KERB_Y + KERB_HEIGHT / 2;
+  const onKerb = (z: number) => (z > KERB_Z - KERB_DEPTH / 2 && z < KERB_Z + KERB_DEPTH / 2) || (z > acrossZ(KERB_Z) - KERB_DEPTH / 2 && z < acrossZ(KERB_Z) + KERB_DEPTH / 2);
+  let landed = 0;
+  for (const c of rainColumns()) {
+    const hit = columnHit(c.id, SOLIDS, []);
+    if (!onKerb(hit.point.z) || hit.point.y > top + 0.01) continue;
+    landed++;
+    expect(hit.point.y, `${c.id} at ${hit.point.toArray().map((v) => v.toFixed(2))}`).toBeGreaterThanOrEqual(top - 1e-6);
+  }
+  expect(landed).toBeGreaterThan(100);
 });

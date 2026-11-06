@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { RATE, decode, sfx, writeWav } from "./sfx-audio.mjs";
+import { RATE, decode, peakOf, sfx, writeWav } from "./sfx-audio.mjs";
 import { withScratch } from "./scratch.mjs";
 
 const RECORDINGS = fileURLToPath(new URL("../assets/recordings/", import.meta.url));
@@ -13,7 +13,7 @@ const recordings = JSON.parse(readFileSync(path.join(RECORDINGS, "recordings.jso
 const [recording] = recordings.tape;
 withScratch("tape-", (scratch) => {
   const samples = decode(path.join(RECORDINGS, recording.file), scratch);
-  const peak = samples.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  const peak = peakOf(samples);
   const floor = peak * 10 ** (FLOOR / 20);
   const first = samples.findIndex((v) => Math.abs(v) > floor);
   const last = samples.length - 1 - [...samples].reverse().findIndex((v) => Math.abs(v) > floor);

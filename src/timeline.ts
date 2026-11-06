@@ -1,13 +1,13 @@
 import { HAUSMUELL_DURATION } from "./scenes/hausmuell/choreography";
 import { KLINGELSTURM_DURATION } from "./scenes/klingelsturm/choreography";
-import { inTheBedroom } from "./scenes/nachtruhe/cameras";
-import { hushAt } from "./scenes/nachtruhe/soundCues";
+import { KLINGELSTURM_AMBIENCE } from "./scenes/klingelsturm/doorCues";
+import { NACHTRUHE_AMBIENCE } from "./scenes/nachtruhe/soundCues";
 import { NACHTRUHE_DURATION } from "./scenes/nachtruhe/timeline";
 import { PAPIERTONNEN_DURATION } from "./scenes/papiertonnen/choreography";
 import { RUNDSCHREIBEN_DURATION } from "./scenes/rundschreiben/choreography";
-import { heardIndoorsAt } from "./scenes/rundschreiben/soundCues";
-import { TREPPENHAUS_DURATION, storyTime } from "./scenes/treppenhaus/cameras";
-import { treppenhausIndoors } from "./scenes/treppenhaus/choreography";
+import { RUNDSCHREIBEN_AMBIENCE } from "./scenes/rundschreiben/soundCues";
+import { TREPPENHAUS_AMBIENCE, TREPPENHAUS_DURATION } from "./scenes/treppenhaus/cameras";
+import { OUT_IN_THE_STREET, type SceneAmbience } from "./street/sceneAmbience";
 
 export { FPS } from "./frameRate";
 import { FPS } from "./frameRate";
@@ -17,7 +17,15 @@ export const HAUSMUELL_FRAMES = Math.round(HAUSMUELL_DURATION * FPS);
 export const KLINGELSTURM_FRAMES = Math.round(KLINGELSTURM_DURATION * FPS);
 export const NACHTRUHE_FRAMES = Math.round(NACHTRUHE_DURATION * FPS);
 export const RUNDSCHREIBEN_FRAMES = Math.round(RUNDSCHREIBEN_DURATION * FPS);
-const SCENE_FRAMES = [TREPPENHAUS_FRAMES, PAPIERTONNEN_FRAMES, HAUSMUELL_FRAMES, KLINGELSTURM_FRAMES, NACHTRUHE_FRAMES, RUNDSCHREIBEN_FRAMES];
+export const SCENES: readonly { readonly name: string; readonly frames: number; readonly ambience: SceneAmbience }[] = [
+  { name: "Treppenhaus", frames: TREPPENHAUS_FRAMES, ambience: TREPPENHAUS_AMBIENCE },
+  { name: "Papiertonnen", frames: PAPIERTONNEN_FRAMES, ambience: OUT_IN_THE_STREET },
+  { name: "Hausmuell", frames: HAUSMUELL_FRAMES, ambience: OUT_IN_THE_STREET },
+  { name: "Klingelsturm", frames: KLINGELSTURM_FRAMES, ambience: KLINGELSTURM_AMBIENCE },
+  { name: "Nachtruhe", frames: NACHTRUHE_FRAMES, ambience: NACHTRUHE_AMBIENCE },
+  { name: "Rundschreiben", frames: RUNDSCHREIBEN_FRAMES, ambience: RUNDSCHREIBEN_AMBIENCE },
+];
+const SCENE_FRAMES = SCENES.map((scene) => scene.frames);
 const startFrame = (scene: number) => SCENE_FRAMES.slice(0, scene).reduce((sum, frames) => sum + frames, 0);
 export const FILM_FRAMES = startFrame(SCENE_FRAMES.length);
 export const PAPIERTONNEN_FROM = startFrame(1) / FPS;
@@ -35,25 +43,25 @@ export const TIME_JUMPS: readonly {
   { from: "Nachtruhe", to: "Rundschreiben" },
 ];
 
-export const treppenhausIndoorsAt = (frame: number) =>
-  treppenhausIndoors(storyTime(frame / FPS));
+const sceneAtFrame = (frame: number) => {
+  let start = 0;
+  for (const scene of SCENES) {
+    if (frame < start + scene.frames) return { scene, start };
+    start += scene.frames;
+  }
+  return { scene: SCENES[SCENES.length - 1], start: start - SCENES[SCENES.length - 1].frames };
+};
 
-const KLINGELSTURM_START = startFrame(3);
-const NACHTRUHE_START = startFrame(4);
-const RUNDSCHREIBEN_START = startFrame(5);
+const heardInTheFilm = (pick: (ambience: SceneAmbience) => (t: number) => number) => (frame: number) => {
+  const { scene, start } = sceneAtFrame(frame);
+  return pick(scene.ambience)((frame - start) / FPS);
+};
 
-export const nachtruheIndoorsAt = (t: number) => (inTheBedroom(t) ? 1 : 0);
+export const filmIndoors = heardInTheFilm((a) => a.indoors);
 
-export const filmIndoors = (frame: number) =>
-  frame < TREPPENHAUS_FRAMES
-    ? treppenhausIndoorsAt(frame)
-    : frame >= RUNDSCHREIBEN_START
-      ? heardIndoorsAt((frame - RUNDSCHREIBEN_START) / FPS)
-      : frame >= NACHTRUHE_START
-        ? nachtruheIndoorsAt((frame - NACHTRUHE_START) / FPS)
-        : frame >= KLINGELSTURM_START
-          ? 1
-          : 0;
+export const filmHush = heardInTheFilm((a) => a.hush);
 
-export const filmHush = (frame: number) =>
-  frame >= NACHTRUHE_START && frame < RUNDSCHREIBEN_START ? hushAt((frame - NACHTRUHE_START) / FPS) : 1;
+export const FILM_AMBIENCE: SceneAmbience = {
+  indoors: (t) => filmIndoors(Math.round(t * FPS)),
+  hush: (t) => filmHush(Math.round(t * FPS)),
+};

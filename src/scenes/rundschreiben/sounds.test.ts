@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { loopFiles } from "../../sound/IndoorLoop";
 import { expectFilesCredited } from "../../sound/creditChecks";
 import { readWav } from "../../sound/wavFile";
 import {
@@ -30,7 +31,7 @@ import { RUNDSCHREIBEN_CUES, footstepsByRoom, rainLevel } from "./soundCues";
 
 
 test("every cue has its file and every file is credited", () => {
-  const files = [...RUNDSCHREIBEN_CUES.map((c) => c.file), `${RAIN.file}.wav`, `${RAIN.file}-muffled.wav`];
+  const files = [...RUNDSCHREIBEN_CUES.map((c) => c.file), ...Object.values(loopFiles(RAIN.file))];
   expectFilesCredited(files);
   expect(RUNDSCHREIBEN_CUES.some((c) => Math.abs(c.at - LID_THUD) < 1 / FPS)).toBe(true);
   expect(RUNDSCHREIBEN_CUES.some((c) => Math.abs(c.at - DOOR_SHUT) < 1 / FPS)).toBe(true);
@@ -83,7 +84,7 @@ test("the declared time jumps, and the film is its six scenes end to end", () =>
     { from: "Nachtruhe", to: "Rundschreiben" },
   ]);
   expect(FILM_FRAMES).toBe(TREPPENHAUS_FRAMES + PAPIERTONNEN_FRAMES + HAUSMUELL_FRAMES + KLINGELSTURM_FRAMES + NACHTRUHE_FRAMES + RUNDSCHREIBEN_FRAMES);
-  expect(NACHTRUHE_FROM).toBe(KLINGELSTURM_FROM + KLINGELSTURM_FRAMES / FPS);
+  expect(NACHTRUHE_FROM).toBeCloseTo(KLINGELSTURM_FROM + KLINGELSTURM_FRAMES / FPS, 9);
   expect(RUNDSCHREIBEN_FROM).toBeCloseTo(NACHTRUHE_FROM + NACHTRUHE_FRAMES / FPS, 9);
   expect(NACHTRUHE_FRAMES).toBe(Math.round(NACHTRUHE_DURATION * FPS));
   expect(RUNDSCHREIBEN_FRAMES).toBe(Math.round(RUNDSCHREIBEN_DURATION * FPS));

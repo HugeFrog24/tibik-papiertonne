@@ -1,11 +1,11 @@
 import { clamp, smoothstep } from "../characters/scalar";
-import { LAMP, LAMP_POOL, STREET_LAMPS } from "../street/lamps";
+import { LAMP_POOL, STREET_LAMPS, lampLightAt } from "../street/lamps";
 import type { Vec3 } from "../toon/primitives";
 import { daylightOf, type WeatherLook } from "./overcast";
 
 export type RainLight = { readonly level: number; readonly warmth: number };
 
-const SOURCES = STREET_LAMPS.map((lamp): Vec3 => [lamp.x, LAMP.height - 0.12, lamp.z + lamp.toward * LAMP.arm]);
+const SOURCES = STREET_LAMPS.map(lampLightAt);
 const INNER = LAMP_POOL.angle * (1 - LAMP_POOL.penumbra);
 
 const inCone = ([x, y, z]: Vec3, [sx, sy, sz]: Vec3) => {
@@ -27,4 +27,3 @@ export const rainLight = (look: WeatherLook, lampsOn: boolean) => {
   };
 };
 
-export const FULL_DAYLIGHT = (): RainLight => ({ level: 1, warmth: 0 });

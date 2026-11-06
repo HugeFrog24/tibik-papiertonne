@@ -1,9 +1,10 @@
 import { Quaternion, Vector3 } from "three";
 import { BED, BED_RECT, BEDROOM, PILLOWS, bedroomSolids } from "../building/bedroomShape";
+import type { Obb } from "../physics/collision";
 import { guardGround } from "../physics/guards";
 import { OUTLINE } from "../toon/primitives";
 import { solveLeg } from "../characters/legs";
-import { allColliders, bodyColliders, lowestPoint, type Pose, type Side } from "../characters/skeleton";
+import { allColliders, bodyColliders, lowestPoint, type Placement, type Pose, type Side } from "../characters/skeleton";
 import { ARM_REST, ARM_TUCK, RIG, TIBIK_REST } from "./rig";
 
 
@@ -103,7 +104,30 @@ export const LYING_TILT = (() => {
   return raised;
 })();
 
-export const lyingInBed = (side: 1 | -1) => {
+const ON_THE_SHEET = 0.002;
+
+const dropOnto = (s: { readonly center: Vector3; readonly radius: number }, box: Obb) => {
+  const offset = s.center.clone().sub(box.center);
+  const ex = Math.max(0, Math.abs(offset.dot(box.axes[0])) - box.half[0]);
+  const ez = Math.max(0, Math.abs(offset.dot(box.axes[2])) - box.half[2]);
+  const edge = Math.hypot(ex, ez);
+  if (edge >= s.radius) return Infinity;
+  return offset.dot(box.axes[1]) - box.half[1] - Math.sqrt(s.radius * s.radius - edge * edge);
+};
+
+const SUPPORTS = BED_GROUND.filter((s): s is Obb => s.kind === "obb");
+
+export const settledInBed = <P extends Placement>(placement: P): P => {
+  const spheres = allColliders(RIG, placement).map((s) => {
+    const head = s.name === "head" || s.name.includes("eye") || s.name.includes("iris");
+    return head ? { center: s.center, radius: s.radius + HEAD_DRAWN } : s;
+  });
+  const room = Math.min(...spheres.flatMap((s) => SUPPORTS.map((box) => dropOnto(s, box))));
+  const drop = Math.max(0, room - ON_THE_SHEET);
+  return drop > 0 && Number.isFinite(drop) ? { ...placement, position: [placement.position[0], placement.position[1] - drop, placement.position[2]] } : placement;
+};
+
+const placedLying = (side: 1 | -1) => {
   const x = headX(LYING_TILT);
   const { pillow, mattress } = needs(probeAt(LYING_TILT, x));
   const middle = (BED_RECT.z0 + BED_RECT.z1) / 2;
@@ -120,6 +144,8 @@ export const lyingInBed = (side: 1 | -1) => {
   );
 };
 
+export const lyingInBed = (side: 1 | -1) => settledInBed(placedLying(side));
+
 export const sittingOnBed = (x: number) => ({
   skeleton: RIG,
   position: [x, BEDROOM.floor, BED_RECT.z0 + SITTING_EDGE] as [number, number, number],
@@ -128,7 +154,7 @@ export const sittingOnBed = (x: number) => ({
 });
 
 export const sittingUpInBed = (side: 1 | -1) => {
-  const { position, rotationY } = lyingInBed(side);
+  const { position, rotationY } = placedLying(side);
   return { skeleton: RIG, position, rotationY, pose: SITTING_UP, tilt: 0 };
 };
 

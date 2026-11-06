@@ -6,31 +6,41 @@ export const throughTheWalls = (level: number, indoors: number) => ({
   inside: level * indoors,
 });
 
+export const loopFiles = (file: string) => ({
+  open: `${file}.wav`,
+  muffled: `${file}-muffled.wav`,
+});
+
 export const IndoorLoop: React.FC<{
   readonly name: string;
   readonly file: string;
-  readonly level: (frame: number) => number;
-  readonly indoors: (frame: number) => number;
+  readonly level: (t: number) => number;
+  readonly indoors: (t: number) => number;
+  readonly from?: number;
   readonly startAt?: number;
   readonly once?: boolean;
-}> = ({ name, file, level, indoors, startAt = 0, once = false }) => {
-  const heard = (f: number) => throughTheWalls(level(f), indoors(f));
+}> = ({ name, file, level, indoors, from = 0, startAt = 0, once = false }) => {
+  const { fps } = useVideoConfig();
+  const heard = (f: number) =>
+    throughTheWalls(level(from + f / fps), indoors(from + f / fps));
   return (
-    <Sequence from={-Math.round(startAt * useVideoConfig().fps)} layout="none" name={name}>
-      <Audio
-        name={name}
-        src={staticFile(`sfx/${file}.wav`)}
-        loop={!once}
-        loopVolumeCurveBehavior="extend"
-        volume={(f) => heard(f).outside}
-      />
-      <Audio
-        name={`${name} (through the walls)`}
-        src={staticFile(`sfx/${file}-muffled.wav`)}
-        loop={!once}
-        loopVolumeCurveBehavior="extend"
-        volume={(f) => heard(f).inside}
-      />
+    <Sequence from={Math.round(from * fps)} layout="none" name={name}>
+      <Sequence from={-Math.round(startAt * fps)} layout="none">
+        <Audio
+          name={name}
+          src={staticFile(`sfx/${loopFiles(file).open}`)}
+          loop={!once}
+          loopVolumeCurveBehavior="extend"
+          volume={(f) => heard(f).outside}
+        />
+        <Audio
+          name={`${name} (through the walls)`}
+          src={staticFile(`sfx/${loopFiles(file).muffled}`)}
+          loop={!once}
+          loopVolumeCurveBehavior="extend"
+          volume={(f) => heard(f).inside}
+        />
+      </Sequence>
     </Sequence>
   );
 };

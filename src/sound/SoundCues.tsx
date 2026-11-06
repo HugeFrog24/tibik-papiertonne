@@ -38,6 +38,14 @@ export const trimsOf = (
       : Math.round(((cue.skip ?? 0) + cue.length) * fps),
 });
 
+export const playable = (
+  cue: { readonly skip?: number; readonly length?: number },
+  fps: number,
+) => {
+  const { trimBefore, trimAfter } = trimsOf(cue, fps);
+  return trimAfter === undefined || trimAfter > (trimBefore ?? 0);
+};
+
 export const SoundCues: React.FC<{
   readonly cues: readonly SoundCue[];
   readonly timeOf?: (at: number) => number | null;
@@ -45,7 +53,7 @@ export const SoundCues: React.FC<{
   const { fps } = useVideoConfig();
   return (
     <>
-      {cues.map((cue) => {
+      {cues.filter((cue) => playable(cue, fps)).map((cue) => {
         const t = timeOf(cue.at);
         return t === null ? null : (
           <Audio

@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { doorLeaf } from "../../building/doors";
 import { TIBIK_DOOR } from "../../building/stairwell";
 import type { Vec3 } from "../../toon/primitives";
+import { later } from "./banging";
 import { phoneObb } from "./choreography";
 import {
   phoneViolations,
@@ -23,7 +24,7 @@ const intoHisDoor = (state: KlingelsturmState) => {
 };
 
 test("her phone is checked against the landing as it is at that moment, his open door included", () => {
-  const state = solveKlingelsturm(50.9);
+  const state = solveKlingelsturm(later(50.9));
   expect(state.phone).not.toBeNull();
   expect(state.tibikDoor).toBeGreaterThan(1);
   expect(intoHisDoor(state).length).toBeGreaterThan(0);

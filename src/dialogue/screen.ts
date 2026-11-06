@@ -1,9 +1,10 @@
 import { PerspectiveCamera, Vector3 } from "three";
 import { bodyColliders, type Skeleton } from "../characters/skeleton";
-import type { CameraSetup } from "../scenes/hausmuell/cameras";
-import { WORLD_UP } from "../toon/primitives";
+import { aimLens, type CameraSetup } from "../toon/shots";
 
-export const FRAME_SIZE = { width: 1920, height: 1080 };
+import { FRAME_SIZE } from "../frameRate";
+
+export { FRAME_SIZE };
 
 export const mouthInWorld = (
   skeleton: Skeleton,
@@ -29,13 +30,7 @@ export const onScreen = (
   point: Vector3,
   setup: CameraSetup,
 ): [number, number] => {
-  camera.fov = setup.fov;
-  camera.position.set(...setup.position);
-  camera.up.set(...(setup.up ?? WORLD_UP));
-  camera.lookAt(...setup.target);
-  camera.updateProjectionMatrix();
-  camera.updateMatrixWorld();
-  const ndc = point.clone().project(camera);
+  const ndc = point.clone().project(aimLens(camera, setup));
   return [
     ((ndc.x + 1) / 2) * FRAME_SIZE.width,
     ((1 - ndc.y) / 2) * FRAME_SIZE.height,

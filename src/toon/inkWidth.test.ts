@@ -10,7 +10,7 @@ import {
   MeshBasicMaterial,
   MeshToonMaterial,
 } from "three";
-import { INK_PASS, NO_INK, inkRadius, skipsInkIds } from "./inkWidth";
+import { INK_BLOCKER, INK_PASS, NO_INK, inkOf, inkRadius, skipsInkIds } from "./inkWidth";
 import { selfClosingTags, sourceFiles } from "../tooling/sourceFiles";
 
 test("the drawn line is one outline wide on screen: 1.4 cm at the part's depth, in pixels", () => {
@@ -57,4 +57,26 @@ test("the ink fades into the haze with three's own exponential fog, at the depth
   expect(source).toContain("1.0 - exp(-hazeDensity * hazeDensity * inkDepth * inkDepth)");
   expect(source).toContain("inkDepth = min(inkDepth, there.g)");
   expect(source).toMatch(/instanceof FogExp2/);
+});
+
+test("a part draws its own line width when it or a group above it sets one, a see-through part blocks the line, and every other part keeps the outline", () => {
+  const prop = new Group();
+  prop.userData = { ink: 0.002 };
+  const tip = new Mesh();
+  prop.add(tip);
+  expect(inkOf(tip)).toBeCloseTo(0.002, 9);
+  const flame = new Mesh();
+  flame.userData = INK_BLOCKER;
+  prop.add(flame);
+  expect(inkOf(flame)).toBeLessThan(0);
+  expect(skipsInkIds(flame)).toBe(false);
+  expect(inkOf(new Mesh())).toBe(0);
+});
+
+test("the ink pass reads each part's own width from the id target and never inks across a see-through part", () => {
+  const pass = readFileSync(path.join("src", "toon", "InkPass.tsx"), "utf8");
+  expect(pass).toContain("vec4(uId, vDepth, uInk, 1.0)");
+  expect(pass).toContain("there.b < 0.0");
+  expect(pass).toContain("here.b < 0.0");
+  expect(pass).toContain("there.b / outline");
 });

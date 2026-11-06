@@ -3,8 +3,7 @@ import { MAIN_STREET } from "../../sound/music";
 import { FootstepSounds } from "../../sound/FootstepSounds";
 import { SoundCues, withSources } from "../../sound/SoundCues";
 import { StreetAmbience } from "../../street/StreetAmbience";
-import { treppenhausIndoorsAt } from "../../timeline";
-import { filmTimeOf } from "./cameras";
+import { TREPPENHAUS_AMBIENCE, filmTimeOf } from "./cameras";
 import { SOUND_CUES, footstepStoryTimes } from "./choreography";
 
 const CUES = [
@@ -48,7 +47,7 @@ export const TreppenhausSound: React.FC<{ readonly ambience: boolean }> = ({
     .filter((t): t is number => t !== null);
   return (
     <>
-      {ambience ? <StreetAmbience indoors={treppenhausIndoorsAt} /> : null}
+      {ambience ? <StreetAmbience ambience={TREPPENHAUS_AMBIENCE} /> : null}
       {ambience ? <Score music={MAIN_STREET} offset={0} /> : null}
       <FootstepSounds times={times} who="Tibik" volume={0.3} room="stairwell" />
       <SoundCues

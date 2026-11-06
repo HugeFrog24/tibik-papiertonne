@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { buzz, flyVoiceOf, looped } from "./fly-voice.mjs";
-import { randomFrom, sfx, writeWav } from "./sfx-audio.mjs";
+import { peakOf, randomFrom, sfx, writeWav } from "./sfx-audio.mjs";
 
 const LOOP = { seconds: 6, fade: 0.5, peak: 0.5, seed: 1907 };
 const model = JSON.parse(
@@ -21,7 +21,7 @@ model.flies.forEach((fly, i) => {
     ),
     LOOP.fade,
   );
-  const peak = sound.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  const peak = peakOf(sound);
   writeWav(sfx(`${fly.sound}.wav`), [sound], LOOP.peak / peak);
   console.log(
     `${fly.sound}.wav: ${LOOP.seconds} s at ${(model.recordings[fly.recording].heard.f0 * fly.pitch).toFixed(0)} Hz`,

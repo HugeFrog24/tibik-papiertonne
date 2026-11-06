@@ -7,6 +7,11 @@ import { StairwellSet } from "../../building/StairwellSet";
 import { DialogueTrack } from "../../dialogue/DialogueTrack";
 import { Karen } from "../../Karen/Karen";
 import { Phone } from "../../Karen/Phone";
+import { Cigarette } from "../../props/Cigarette";
+import { Lighter } from "../../props/Lighter";
+import { SmokeCurls } from "../../smoke/SmokeCurls";
+import { codaSmokeAt } from "./codaSmoke";
+import { CODA } from "./cigarette";
 import { SprayView } from "../../Karen/SprayView";
 import { Tibik } from "../../Tibik/Tibik";
 import { Street } from "../../street/Street";
@@ -35,6 +40,9 @@ export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
     parcel,
     taping,
     carried,
+    cigarette,
+    lighter,
+    tibikHere,
   } = solveKlingelsturm(t);
   return (
     <Sky>
@@ -63,14 +71,19 @@ export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
             ) : null
           }
         />
-        <Tibik
-          position={tibik.position}
-          rotationY={tibik.rotationY}
-          pose={tibik.pose}
-          carrying={
-            carried ? <CarriedParcel swap={swapAt(t)} taping={taping} /> : null
-          }
-        />
+        {tibikHere ? (
+          <Tibik
+            position={tibik.position}
+            rotationY={tibik.rotationY}
+            pose={tibik.pose}
+            carrying={
+              carried ? <CarriedParcel swap={swapAt(t)} taping={taping} /> : null
+            }
+          />
+        ) : null}
+        {cigarette ? <Cigarette frame={cigarette.frame} burned={cigarette.burned} ash={cigarette.ash} glow={cigarette.glow} /> : null}
+        {lighter ? <Lighter frame={lighter.frame} flame={lighter.flame} t={t} sinceStruck={t - CODA.flick} /> : null}
+        <SmokeCurls curls={codaSmokeAt(t)} />
         <SprayView frame={klingelsturmSprayAt(t)} />
       </ToonCanvas>
       <Track name="Dialogue">

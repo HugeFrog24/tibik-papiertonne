@@ -1,14 +1,26 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { touchdownTimes } from "../../characters/gait";
+import { heardAt } from "../../sound/perspective";
+import { storyJumpsIn } from "../../toon/shots";
+import { soundSeconds } from "../../sound/soundLength";
+import { SHOTS, cameraAt } from "./cameras";
+import { CODA } from "./cigarette";
+import { tibikAt } from "./door";
 import { FPS } from "../../timeline";
 import { KEYS } from "./calls";
 import { KLINGELSTURM_DURATION, karenStandGait } from "./choreography";
 import { OPEN, SHUT, UNLATCH, tibikGait } from "./door";
-import { doorCues, inTheFlur, stompRoomAt } from "./doorCues";
+import { doorCues, inTheFlur, stompRoomAt, type BellCue } from "./doorCues";
 import { EXIT_SOUNDS } from "./exit";
 import { lightsAt } from "./light";
 import { PACKING } from "./parcel";
+import { BANGING } from "./banging";
+import { readWav } from "../../sound/wavFile";
+import { brightness, peakOf, tail } from "../../sound/toneChecks";
+import { expectFilesCredited, expectSfx } from "../../sound/creditChecks";
+import { BLOW_TAKES } from "./offenceCues";
 
 const FRAME = 1 / FPS;
 
@@ -42,12 +54,13 @@ test("his steps behind the shut door are heard muffled on the landing, one per f
 });
 
 test("once his door is open his steps are heard plainly in the stairwell, one per footfall", () => {
-  const out = hisSteps().filter((t) => t >= EXIT_SOUNDS.doorOpens);
+  const out = hisSteps().filter((t) => t >= EXIT_SOUNDS.doorOpens && t < CODA.jumpCut);
   expect(out.length).toBeGreaterThan(8);
   for (const t of out)
     heard(/^stairwell\/footstep_concrete_00\d$/, t, "his footfall outside");
-  const plain = doorCues().filter((c) => /footstep_concrete/.test(c.sound));
-  expect(plain).toHaveLength(out.length);
+  const plain = doorCues().filter((c) => /^stairwell\/footstep_concrete_00\d$/.test(c.sound));
+  expect(plain.length).toBeLessThanOrEqual(out.length);
+  expect(new Set(doorCues().filter((c) => /footstep_concrete/.test(c.sound)).map((c) => c.at)).size).toBe(out.length);
 });
 
 test("when he leaves, his door is heard opening, then shutting with its latch, and the light switch clicks", () => {
@@ -85,4 +98,202 @@ test("every sound the landing's cues name exists in public/sfx", () => {
     .map((c) => c.sound)
     .filter((sound) => !existsSync(`public/sfx/${sound}.wav`));
   expect([...new Set(missing)]).toEqual([]);
+});
+
+const BLOW_SOUND = /impactWood_heavy|door-blow/;
+const RATTLE_SOUND = /impactMetal_light|latch-rattle/;
+const blowCue = (at: number) => cueNear(BLOW_SOUND, at);
+const loudness = (cue: { readonly sound: string; readonly volume: number }) => cue.volume * peakOf(readWav(`${cue.sound}.wav`).samples);
+
+test("each blow sounds on its contact frame, the stairwell take on the landing, the door take in the Flur", () => {
+  BANGING.blows.forEach((at, i) => {
+    const cue = blowCue(at);
+    expect(cue, `blow ${i + 1}`).toBeDefined();
+    expect(cue!.sound).toMatch(i < 4 ? /^stairwell\/impactWood_heavy_00\d$/ : /^flur\/door-blow-\d$/);
+    expect(existsSync(`public/sfx/${cue!.sound}.wav`), cue!.sound).toBe(true);
+  });
+  expect(new Set(BANGING.blows.map((at) => blowCue(at)!.sound)).size).toBeGreaterThanOrEqual(5);
+});
+
+test("the latch rattle follows each blow, quieter than the blow", () => {
+  for (const at of BANGING.blows) {
+    const blow = blowCue(at)!;
+    const rattle = doorCues().find((c) => RATTLE_SOUND.test(c.sound) && c.at >= blow.at && c.at - blow.at <= FRAME);
+    expect(rattle, `rattle after ${at}`).toBeDefined();
+    expectSfx([`${rattle!.sound}.wav`]);
+    expect(loudness(rattle!)).toBeLessThan(loudness(blow) / 3);
+  }
+});
+
+test("heard in his Flur a blow is duller than on the landing and has no stairwell tail", () => {
+  for (const n of BLOW_TAKES) {
+    const door = readWav(`flur/door-blow-${n}.wav`);
+    const landing = readWav(`stairwell/impactWood_heavy_00${n}.wav`);
+    expect(brightness(door.samples, door.rate), `take ${n}`).toBeLessThan(brightness(landing.samples, landing.rate));
+    expect(tail(door.samples, door.rate), `take ${n}`).toBeLessThan(tail(landing.samples, landing.rate));
+  }
+});
+
+test("a blow on the landing plays about as loud as her stomp: from 0.85 to 1.5 times as loud", () => {
+  const stomp = Math.max(
+    peakOf(readWav("stairwell/footstep_concrete_000.wav").samples),
+    0.6 * peakOf(readWav("stairwell/impactSoft_heavy_000.wav").samples),
+  );
+  for (const at of BANGING.blows.slice(0, 4)) {
+    const blow = loudness(blowCue(at)!);
+    expect(blow, `blow @${at}`).toBeGreaterThanOrEqual(0.85 * stomp);
+    expect(blow, `blow @${at}`).toBeLessThanOrEqual(1.5 * stomp);
+  }
+});
+
+test("she pants through the beat and the walk back", () => {
+  const pants = doorCues().filter((c) => /panting/.test(c.sound));
+  const covered = (t: number) => pants.some((c) => c.at <= t + 1e-9 && c.at + (c.length ?? 0) >= t - 1e-9);
+  for (let t = BANGING.blows[3]; t <= BANGING.raise[0]; t += 0.1) expect(covered(t), t.toFixed(2)).toBe(true);
+});
+
+test("every new banging file exists and the Kenney takes are credited", () => {
+  expectFilesCredited(BLOW_TAKES.flatMap((n) => [`impactWood_heavy_00${n}.ogg`, `impactMetal_light_00${n}.ogg`]));
+  expectSfx(BLOW_TAKES.flatMap((n) => [`stairwell/impactWood_heavy_00${n}.wav`, `stairwell/impactMetal_light_00${n}.wav`, `flur/door-blow-${n}.wav`, `flur/latch-rattle-${n}.wav`]));
+});
+
+const coda = (sound: string) => doorCues().filter((c) => c.sound === `stairwell/coda/${sound}`);
+const spans = (cue: BellCue, [from, to]: readonly [number, number]) =>
+  Math.abs(cue.at - from) < FRAME && cue.length !== undefined && Math.abs(cue.at + cue.length - to) < FRAME;
+const CODA_SOUNDS = ["lighter-strike", "lighter-hiss", "lighter-release", "drag", "inhale", "exhale"];
+
+test("the lighter strikes on the flick, hisses while the flame burns and clicks when she lets go", () => {
+  heard(/^stairwell\/cloth2$/, CODA.phoneAway[0], "the phone going into her pocket");
+  const wheel = doorCues().find((c) => c.sound === "stairwell/coda/lighter-strike");
+  expect(wheel, "the flint wheel").toBeDefined();
+  const struck = readWav(`${wheel!.sound}.wav`);
+  const spark = struck.samples.reduce((best, v, i, all) => (Math.abs(v) > Math.abs(all[best]) ? i : best), 0) / struck.rate;
+  expect(Math.abs(wheel!.at + spark - CODA.flick), "the spark lands on the flick").toBeLessThan(FRAME);
+  const hiss = coda("lighter-hiss");
+  expect(hiss).toHaveLength(1);
+  expect(spans(hiss[0], CODA.flame), JSON.stringify(hiss[0])).toBe(true);
+  heard(/^stairwell\/coda\/lighter-release$/, CODA.flame[1], "the gas lever let go");
+  const strike = loudness(wheel!);
+  expect(loudness(hiss[0])).toBeLessThan(strike / 3);
+  expect(loudness(cueNear(/lighter-release/, CODA.flame[1])!)).toBeLessThan(strike);
+});
+
+test("every draw crackles and every exhale breathes, all through the stairwell", () => {
+  const drags = coda("drag");
+  expect(drags).toHaveLength(3);
+  for (const draw of [...CODA.draws, CODA.laterDraw]) expect(drags.some((c) => spans(c, draw)), `draw @${draw[0]}`).toBe(true);
+  const inhales = coda("inhale");
+  expect(inhales).toHaveLength(2);
+  for (const breath of [[CODA.draws[0][0], CODA.exhale[0]], [CODA.laterDraw[0], CODA.darkExhale[0]]] as const)
+    expect(inhales.some((c) => spans(c, breath)), `inhale @${breath[0]}`).toBe(true);
+  expect(coda("exhale").map((c) => c.at)).toEqual([CODA.exhale[0], CODA.darkExhale[0]]);
+  for (const cue of doorCues().filter((c) => c.at >= CODA.phoneAway[0])) expect(cue.sound, cue.name).toMatch(/^stairwell\//);
+});
+
+type Footfall = { readonly at: number; readonly volume: number; readonly far: number };
+
+const footfallsOut = (): Footfall[] => {
+  const cues = doorCues().filter((c) => /footstep_concrete/.test(c.sound));
+  return [...new Set(cues.map((c) => c.at))].map((at) => {
+    const here = cues.filter((c) => c.at === at);
+    const volume = here.reduce((sum, c) => sum + c.volume, 0);
+    const far = here.filter((c) => c.sound.endsWith("-far")).reduce((sum, c) => sum + c.volume, 0);
+    return { at, volume, far: far / volume };
+  });
+};
+
+test("his steps fade as he goes down and stop at the jump cut", () => {
+  const out = footfallsOut();
+  const offScreen = out.filter((c) => c.at > CODA.mediumCut);
+  expect(offScreen.length).toBeGreaterThanOrEqual(5);
+  expect(CODA.jumpCut - offScreen[offScreen.length - 1].at).toBeLessThan(0.6);
+  for (const cue of doorCues().filter((c) => /footstep_concrete/.test(c.sound))) expect(cue.at + (cue.length ?? Infinity), cue.name).toBeLessThanOrEqual(CODA.jumpCut + 1e-6);
+  const level = (step: Footfall) => step.volume / heardAt(tibikAt(step.at).position, cameraAt(step.at).position, 2.5);
+  for (const step of out) expect(level(step), String(step.at)).toBeCloseTo(level(out[0]), 9);
+  offScreen.slice(1).forEach((step, i) => expect(step.volume, String(step.at)).toBeLessThan(offScreen[i].volume));
+  expect(offScreen[offScreen.length - 1].volume).toBeLessThan(0.6 * Math.max(...out.map((c) => c.volume)));
+});
+
+test("going down the flight his steps sound further away, not only quieter: the far take, duller and more echoing, takes over with distance", () => {
+  for (const n of [0, 1, 2, 3]) {
+    const near = readWav(`stairwell/footstep_concrete_00${n}.wav`);
+    const far = readWav(`stairwell/footstep_concrete_00${n}-far.wav`);
+    expect(brightness(far.samples, far.rate), `take ${n}`).toBeLessThan(brightness(near.samples, near.rate));
+    expect(tail(far.samples, far.rate), `take ${n}`).toBeGreaterThan(tail(near.samples, near.rate));
+  }
+  const out = footfallsOut();
+  const distance = (step: Footfall) => new Vector3(...tibikAt(step.at).position).distanceTo(new Vector3(...cameraAt(step.at).position));
+  for (const step of out.filter((s) => distance(s) <= 2.5)) expect(step.far, String(step.at)).toBe(0);
+  const offScreen = out.filter((c) => c.at > CODA.mediumCut);
+  offScreen.slice(1).forEach((step, i) => expect(step.far, String(step.at)).toBeGreaterThanOrEqual(offScreen[i].far));
+  expect(offScreen[offScreen.length - 1].far).toBeGreaterThan(0.5);
+});
+
+test("every new file exists, comes from a CC0 or public-domain recording and is credited", () => {
+  expectSfx([...CODA_SOUNDS.flatMap((f) => [`coda/${f}.wav`, `stairwell/coda/${f}.wav`]), "stairwell/cloth2.wav"]);
+  const recordings = JSON.parse(readFileSync("assets/recordings/recordings.json", "utf8"));
+  const sources: { file: string; license: string; source: string }[] = [...recordings.cigarette, ...recordings.breath];
+  expect(sources.length).toBeGreaterThanOrEqual(2);
+  const credits = readFileSync("public/sfx/CREDITS.md", "utf8");
+  for (const recording of sources) {
+    expect(existsSync(`assets/recordings/${recording.file}`), recording.file).toBe(true);
+    expect(recording.license).toMatch(/^(CC0|Public domain)/);
+    expect(credits).toContain(recording.source);
+  }
+  for (const file of CODA_SOUNDS) expect(credits).toContain(`coda/${file}.wav`);
+});
+
+test("no Klingelsturm sound runs over the cut into the rain, and none from before the jump runs over the jump cut", () => {
+  expect(storyJumpsIn(SHOTS)).toEqual([CODA.jumpCut]);
+  for (const cue of doorCues()) {
+    const ends = cue.at + (cue.length ?? soundSeconds(`${cue.sound}.wav`) - (cue.skip ?? 0));
+    expect(ends, cue.name).toBeLessThanOrEqual(KLINGELSTURM_DURATION + 1e-6);
+    if (cue.at < CODA.jumpCut) expect(ends, cue.name).toBeLessThanOrEqual(CODA.jumpCut + 1e-6);
+  }
+});
+
+test("every coda sound is heard over the street bed and none is louder than the strike", () => {
+  const strike = loudness(doorCues().find((c) => c.sound === "stairwell/coda/lighter-strike")!);
+  const quiet = ["stairwell/cloth2", ...["drag", "inhale", "exhale", "lighter-release"].map((name) => `stairwell/coda/${name}`)];
+  for (const sound of quiet)
+    for (const cue of doorCues().filter((c) => c.sound === sound)) {
+      expect(loudness(cue), cue.name).toBeGreaterThanOrEqual(0.03);
+      expect(loudness(cue), cue.name).toBeLessThan(strike);
+    }
+});
+
+const envelopeOf = (samples: Float32Array, rate: number) => {
+  const step = Math.round(rate / 1000);
+  return Array.from({ length: Math.floor(samples.length / step) }, (_, i) => {
+    let sum = 0;
+    for (let j = i * step; j < (i + 1) * step; j++) sum += samples[j] * samples[j];
+    return Math.sqrt(sum / step);
+  });
+};
+
+const correlation = (a: number[], lag: number) => {
+  const n = a.length - lag;
+  const mean = a.reduce((s, v) => s + v, 0) / a.length;
+  let ab = 0;
+  let aa = 0;
+  let bb = 0;
+  for (let i = 0; i < n; i++) {
+    const x = a[i] - mean;
+    const y = a[i + lag] - mean;
+    ab += x * y;
+    aa += x * x;
+    bb += y * y;
+  }
+  return ab / Math.sqrt(aa * bb);
+};
+
+test("the gas hiss is a steady rush: no click in it and no loop you could hear", () => {
+  const { samples, rate } = readWav("coda/lighter-hiss.wav");
+  const settled = samples.subarray(Math.round(0.15 * rate), Math.round(1.5 * rate));
+  const envelope = envelopeOf(settled, rate);
+  const level = Math.sqrt(settled.reduce((s, v) => s + v * v, 0) / settled.length);
+  const loudest10ms = Math.max(...Array.from({ length: envelope.length - 10 }, (_, i) => Math.hypot(...envelope.slice(i, i + 10)) / Math.sqrt(10)));
+  expect(loudest10ms / level).toBeLessThan(2);
+  const repeats = Array.from({ length: 950 }, (_, i) => correlation(envelope, 50 + i));
+  expect(Math.max(...repeats)).toBeLessThan(0.3);
 });

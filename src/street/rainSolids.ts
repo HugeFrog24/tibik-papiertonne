@@ -1,6 +1,7 @@
 import { Vector3 } from "three";
 import { partObb, sphere, type Obb, type Solid } from "../physics/collision";
-import { ACROSS_STREET, BALCONIES, BLOCK_SPAN, CORNICE, FACADE_Z, acrossZ, balconyParts, type Part } from "./building";
+import { ACROSS_STREET, BALCONIES, BLOCK_SPAN, CORNICE, FACADE_Z, KERB_DEPTH, KERB_HEIGHT, KERB_Y, KERB_Z, acrossZ, balconyParts, type Part } from "./building";
+import { STREET_LENGTH } from "./roadShape";
 import { facadePieces } from "./facade";
 import { BIN_SPACING, BIN_Z, NEIGHBOUR_BINS, ROW_PARTS, STREET_SOLIDS } from "./layout";
 import { tonneColliders } from "./tonneShape";
@@ -51,6 +52,9 @@ const FAR_DOMES = RAINED_ON_BLOCKS.map((n) => {
   return { ...dome, center: new Vector3(ACROSS_STREET.shift - dome.center.x, dome.center.y, acrossZ(dome.center.z)) };
 });
 
+const KERB: Part = { name: "kerb", center: [0, KERB_Y, KERB_Z], size: [STREET_LENGTH, KERB_HEIGHT, KERB_DEPTH] };
+const KERBS: Part[] = [KERB, across(KERB)];
+
 const trunk = (x: number): Part => ({ name: "tree trunk", center: [x, TRUNK.height / 2, TREE_POSITION[2]], size: poleBox(TRUNK) });
 const TRUNKS: Part[] = [...MORE_TREES.map(trunk), ...MORE_TREES.map((x) => across(trunk(x)))];
 
@@ -63,7 +67,7 @@ const BINS: Obb[] = RAINED_ON_BLOCKS.filter((n) => n !== 0).flatMap((n) => {
 
 export const RAIN_SOLIDS: readonly Solid[] = [
   ...STREET_SOLIDS,
-  ...[...ROW, ...FAR_ROW, ...TRUNKS].map(partObb),
+  ...[...ROW, ...FAR_ROW, ...TRUNKS, ...KERBS].map(partObb),
   ...DOMES,
   ...FAR_DOMES,
   ...BINS,

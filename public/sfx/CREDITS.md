@@ -12,6 +12,8 @@ street-atmosphere-muffled.wav, street-traffic-muffled.wav and street-leaves-muff
 The files in stairwell/ are sounds from this folder (the Kenney sounds above and the phone/
 sounds below) run through a synthetic stairwell reverb by scripts/make-stairwell.mjs; each keeps
 its source's licence.
+stairwell/footstep_concrete_000-far.wav to stairwell/footstep_concrete_003-far.wav are the same Kenney steps heard
+from further off (the direct sound low-passed at 1.5 kHz, more of the reverb).
 
 The files in phone/ are synthesised for this project by scripts/make-phone.mjs (no third-party
 material): the doorbell, the DTMF keypad tones, the German line tones (ringback and busy, 425 Hz),
@@ -19,7 +21,10 @@ the answering machine's beep, the receiver click and Karen's panting (filtered n
 
 The files in flur/ other than tape-pull.wav are Kenney sounds above (footstep_concrete_000.ogg to
 footstep_concrete_003.ogg, bookPlace1.ogg, impactSoft_heavy_000.ogg) as heard through a flat door,
-made by scripts/make-flur.mjs (CC0 like their sources).
+made by scripts/make-flur.mjs (CC0 like their sources); door-blow-0.wav to door-blow-4.wav are
+impactWood_heavy_000.ogg to impactWood_heavy_004.ogg as heard from inside the struck door (gently
+low-passed), and latch-rattle-0.wav to latch-rattle-4.wav are impactMetal_light_000.ogg to
+impactMetal_light_004.ogg unchanged.
 
 street-pigeons.wav and street-pigeons-muffled.wav are synthesised by scripts/make-ambience.mjs from a
 model that scripts/learn-pigeons.mjs learns from two public-domain wood pigeon recordings on
@@ -40,6 +45,17 @@ not distributed).
 flur/tape-pull.wav is "Adhesive tape #3" by Denis Chardonnet, BigSoundBank, CC0 (public domain),
 https://bigsoundbank.com/adhesive-tape-3-s0299.html, trimmed by scripts/make-tape.mjs.
 
+The files in coda/ (Karen's cigarette in the Klingelsturm) are cut and levelled by scripts/make-cigarette.mjs
+and heard through the stairwell reverb as stairwell/coda/:
+coda/lighter-strike.wav and coda/drag.wav are cut from, and coda/lighter-hiss.wav is noise shaped to the flame's
+spectrum in,
+"Cigarette, Ignition" by Joseph Sardin, BigSoundBank, CC0 (public domain),
+https://bigsoundbank.com/cigarette-ignition-s2131.html;
+coda/inhale.wav and coda/exhale.wav are from "Sigh by the Mouth" by Joseph Sardin, BigSoundBank, CC0 (public domain),
+https://bigsoundbank.com/sound-1405-soupirer-par-la-bouche.html;
+coda/lighter-release.wav is Kenney's metalClick.ogg above. Both recordings are kept in assets/recordings/.
+stairwell/cloth2.wav is Kenney's cloth2.ogg (her phone going into her pocket).
+
 The Kenney sounds used by the scenes, by file: bookFlip1.ogg, bookFlip2.ogg, bookFlip3.ogg,
 bookOpen.ogg, bookPlace1.ogg, cloth2.ogg, creak1.ogg, doorClose_1.ogg, doorClose_4.ogg,
 doorOpen_1.ogg, footstep_concrete_000.ogg, footstep_concrete_001.ogg, footstep_concrete_002.ogg,
@@ -51,6 +67,10 @@ Haustür's cylinder).
 cloth1.ogg, cloth3.ogg, cloth4.ogg, creak2.ogg and creak3.ogg ("RPG Audio") and footstep_wood_000.ogg,
 footstep_wood_001.ogg, footstep_wood_002.ogg and footstep_wood_003.ogg ("Impact Sounds") were added for
 Nachtruhe (the fleece, the curtain's fabric, the bed and his steps on the bedroom's laminate).
+impactWood_heavy_000.ogg, impactWood_heavy_001.ogg, impactWood_heavy_002.ogg, impactWood_heavy_003.ogg,
+impactWood_heavy_004.ogg, impactMetal_light_000.ogg, impactMetal_light_001.ogg, impactMetal_light_002.ogg,
+impactMetal_light_003.ogg and impactMetal_light_004.ogg ("Impact Sounds", Kenney, CC0 1.0,
+https://kenney.nl/assets/impact-sounds) were added for the Klingelsturm: Karen's fist on his door and the latch rattling in its strike plate.
 
 rain.wav and rain-muffled.wav (heard from inside the building) are made by scripts/make-rain.mjs from
 "Rain" by ezwa, public domain (released worldwide by its author, originally on PDSounds.org),

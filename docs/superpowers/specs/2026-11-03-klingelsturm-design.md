@@ -74,7 +74,10 @@ widths). Karen shouts every bubble, her hesitation too („…NEIN."; user,
 | 8 | | T | „Der Umwelt zuliebe nicht." — and closes the door on her; the lock clicks. |
 | 9 | Medium | K | Takes her big-button phone from her trouser pocket, puts it on speaker, calls the Hausverwaltung. Ringback tone. |
 | 10 | | Phone | „Hausverwaltung Musterstadt. Sie rufen außerhalb unserer Sprechzeiten an. Bitte hinterlassen Sie eine Nachricht nach dem Signalton." Beep. |
-| 11 | | K | „DAS IST EIN NOTFALL!" — hangs up, dials 1-1-0 (big keys, DTMF tones; the screen shows the digits). |
+| 11 | | K | „DAS IST EIN NOTFALL!" — hangs up. |
+| 11a | Wide | K | (user, 2026-11-06) She tucks the phone back into her pocket, stomps back to his door and pounds on it with her fist: four blows, a beat, two more. Silent. |
+| 11b | Flur (intercut) | T | The last two blows boom through his Flur; he calmly lays a second strip of tape over the first along the seam, unbothered. |
+| 11c | Medium | K | Back at her door she draws the phone again and dials 1-1-0 (big keys, DTMF tones; the screen shows the digits). |
 | 12 | | Phone | „Polizei-Notruf. Was ist Ihr Notfall?" |
 | 13 | | K | „MEIN NACHBAR HAT EINEN KARTON AUS DEM HAUSMÜLL GENOMMEN!" |
 | 14 | | Phone | „Ist jemand verletzt oder in Gefahr?" |
@@ -88,7 +91,11 @@ In the dark, his lock clicks and the door opens; warm light from his Flur
 falls on Karen. Tibik steps out with the box taped up as a parcel (address
 label, not legible). He presses the landing light switch for her (the light
 comes back), gives a friendly nod, and goes down the stairs with the parcel.
-Her shoes stand on her mat. End.
+Her shoes stand on her mat. (2026-11-06) She pockets her phone; close-up: a
+cigarette in the corner of her mouth, a red lighter in her right hand, she
+lights it and pockets the lighter. Cut, about three minutes later: she draws
+on the half-smoked cigarette, the timer light goes out on her again, only the
+ember glows. End.
 
 ## Staging and cameras
 

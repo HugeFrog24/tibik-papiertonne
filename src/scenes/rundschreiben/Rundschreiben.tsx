@@ -15,6 +15,7 @@ import { rundschreibenRain } from "./rain";
 import { UNFOLD } from "./choreography";
 import { paperSpotsAt } from "../../props/letterShape";
 import { Rain } from "../../weather/Rain";
+import { WEATHER } from "../../weather/overcast";
 import { DayLight } from "../../weather/DayLight";
 import { RundschreibenSound } from "./RundschreibenSound";
 import { RUNDSCHREIBEN_FROM } from "../../timeline";
@@ -51,7 +52,7 @@ const Scene: React.FC = () => {
           spots={paperSpotsAt(t, UNFOLD[0])}
         />
       ) : null}
-      <Rain drops={rundschreibenRain(t, state)} eye={cameraAt(t).position} fov={cameraAt(t).fov} />
+      <Rain drops={rundschreibenRain(t, state)} eye={cameraAt(t).position} fov={cameraAt(t).fov} look={WEATHER.rain} lampsOn={false} />
       {state.envelope ? (
         <Envelope
           matrix={state.envelope.matrix}

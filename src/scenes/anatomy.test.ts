@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { armColliders, type Skeleton } from "../characters/skeleton";
 import { asKaren } from "../Karen/character";
 import { asCharacter } from "../Tibik/character";
+import { OVERHEAD } from "../physics/grip";
 import { FPS } from "../timeline";
 import { HAUSMUELL_DURATION } from "./hausmuell/choreography";
 import { solveHausmuell } from "./hausmuell/solve";
@@ -14,7 +15,6 @@ import { solveTreppenhaus } from "./treppenhaus/solve";
 
 type Posed = Parameters<typeof armColliders>[1] & { skeleton: Skeleton };
 
-const OVERHEAD = Math.PI / 2 + 0.3;
 
 const arms = (who: string, c: Posed, at: string) =>
   (["leftArm", "rightArm"] as const).flatMap((arm) => {

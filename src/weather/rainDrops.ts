@@ -6,7 +6,8 @@ import { STREET_SOLIDS } from "../street/layout";
 import { RAIN_SOLIDS } from "../street/rainSolids";
 import { BLOCK_DEPTH, PARAPET } from "../street/townShape";
 import { clamp, smoothstep } from "../characters/scalar";
-import { FRAME_SIZE } from "../dialogue/screen";
+import { FRAME_SIZE } from "../frameRate";
+import { aimLens } from "../toon/shots";
 import { WIND } from "../physics/wind";
 import {
   BUILDING_HEIGHT,
@@ -246,11 +247,7 @@ export const reachFade = (distance: number) => 1 - smoothstep(clamp((distance - 
 export type RainView = { readonly target: Vec3; readonly fov: number; readonly aspect: number; readonly up?: Vec3 };
 
 export const viewFrustum = (camera: Vec3, view: RainView) => {
-  const lens = new PerspectiveCamera(view.fov, view.aspect, 0.05, RAIN_REACH.none);
-  lens.position.set(...camera);
-  lens.up.set(...(view.up ?? [0, 1, 0]));
-  lens.lookAt(...view.target);
-  lens.updateMatrixWorld();
+  const lens = aimLens(new PerspectiveCamera(), { position: camera, target: view.target, fov: view.fov, up: view.up }, { aspect: view.aspect, near: 0.05, far: RAIN_REACH.none });
   return new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(lens.projectionMatrix, lens.matrixWorldInverse));
 };
 

@@ -21,6 +21,7 @@ import {
   KEY_HOLD,
   KEY_REGRIP,
   KEY_SHUT_HOLD,
+  ROUND_THE_DOOR_HOLD,
   LETTER_LEFT_HOLD,
   LID_HOLD,
   PAPER_BIN,
@@ -55,6 +56,7 @@ export type RundschreibenState = {
 
 export const RUNDSCHREIBEN_HOLDS: readonly Hold[] = [
   KEY_HOLD,
+  ROUND_THE_DOOR_HOLD,
   ENVELOPE_LEFT_HOLD,
   KEY_SHUT_HOLD,
   ENVELOPE_RIGHT_HOLD,

@@ -20,9 +20,9 @@ import { lensProblems, penetrations, seconds } from "../sceneChecks";
 import { streetSolids } from "../streetSolids";
 import { cameraAt } from "./cameras";
 import { BED_SEAT, duskRootAt } from "./choreography";
-import { CORNER, CURTAIN_HANDS, CURTAIN_OPENS_TO, PULLING, PUSHING, STAND, blanketLie, curtainGrip } from "./bedroom";
+import { CORNER, CURTAIN_OPENS_TO, PULLING, PUSHING, STAND, blanketLie, curtainGrip } from "./bedroom";
 import { solveNachtruhe, type NachtruheState } from "./solve";
-import { BLANKET_BACK, CURTAIN_PULL, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND } from "./timeline";
+import { BLANKET_BACK, CURTAIN_PULL, CURTAIN_PULLS, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND } from "./timeline";
 
 const dusk = Array.from({ length: Math.round(DUSK[1] * FPS) }, (_, f) => f / FPS);
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
@@ -216,19 +216,32 @@ test("after getting up he walks round the foot of the bed to the corner by the w
   }
 });
 
-test("he slides the near curtain panel toward the wall by its fabric until the near half of the window is open, his right hand on it, and the far panel stays drawn", { timeout: 300_000 }, () => {
-  const away = (["rightArm"] as const).flatMap((arm) =>
-    between(...CURTAIN_HANDS[arm]).flatMap((t) => {
-      const gap = sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(t).tibik), arm), curtainGrip(t));
-      return Math.abs(gap) > 0.005 ? [`${t.toFixed(2)} s: ${arm} ${(gap * 1000).toFixed(1)} mm off the curtain`] : [];
+test("he draws the near curtain panel toward the wall hand over hand: three pulls, his right hand on the fabric through each, the edge moving exactly as far as his hand, until the near half of the window is open; the far panel stays drawn", { timeout: 300_000 }, () => {
+  expect(CURTAIN_PULLS).toHaveLength(3);
+  const away = CURTAIN_PULLS.flatMap((pull) =>
+    between(...pull).flatMap((t) => {
+      const gap = sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(t).tibik), "rightArm"), curtainGrip(t));
+      return Math.abs(gap) > 0.005 ? [`${t.toFixed(2)} s: ${(gap * 1000).toFixed(1)} mm off the curtain`] : [];
     }),
   );
   expect(away.slice(0, 8)).toEqual([]);
+  const edge = (t: number) => curtainPanels(solveNachtruhe(t).curtains)[1].x0;
+  for (const [from, to] of CURTAIN_PULLS) {
+    const hand = curtainGrip(to).center.x - curtainGrip(from).center.x;
+    expect(hand).toBeGreaterThan(0.15);
+    expect(edge(to) - edge(from)).toBeCloseTo(hand, 9);
+    for (const t of between(from, to)) expect(curtainGrip(t).center.x - curtainGrip(from).center.x).toBeCloseTo(edge(t) - edge(from), 9);
+  }
+  CURTAIN_PULLS.slice(1).forEach(([from], k) => {
+    const lastEnd = CURTAIN_PULLS[k][1];
+    for (const t of between(lastEnd, from)) expect(edge(t)).toBeCloseTo(edge(lastEnd), 12);
+  });
   for (const t of between(MORNING[0], MORNING[1])) expect(solveNachtruhe(t).curtains[0], t.toFixed(2)).toBe(0);
   expect(solveNachtruhe(CURTAIN_PULL[0]).curtains[1]).toBe(0);
-  expect(solveNachtruhe(CURTAIN_PULL[1]).curtains[1]).toBe(CURTAIN_OPENS_TO);
-  const { x0 } = curtainPanels(solveNachtruhe(CURTAIN_PULL[1]).curtains)[1];
-  expect(x0).toBeGreaterThan(PANE.x1);
+  expect(solveNachtruhe(CURTAIN_PULL[1]).curtains[1]).toBeCloseTo(CURTAIN_OPENS_TO, 12);
+  expect(CURTAIN_OPENS_TO).toBeGreaterThan(0.6);
+  expect(CURTAIN_OPENS_TO).toBeLessThan(0.75);
+  expect(edge(CURTAIN_PULL[1])).toBeGreaterThan(PANE.x1);
 });
 
 test("the morning hands the epilogue its world: rain, every lid and the Haustür shut", () => {
@@ -248,4 +261,14 @@ test("while he sits up in bed the turned-back fleece lies beside him, never tent
     return highest - BED_RECT.top > 0.12 ? [`${t.toFixed(2)} s: the fleece ${((highest - BED_RECT.top) * 100).toFixed(0)} cm up`] : [];
   });
   expect(tents.slice(0, 6)).toEqual([]);
+});
+
+test("lying back at night and sitting up in the morning he stays on the sheet: his body never floats more than an ink line above the mattress", () => {
+  const floating: string[] = [];
+  for (const t of [...between(...LIE_DOWN), ...between(...SIT_UP)]) {
+    const body = bodyColliders(RIG, asCharacter(solveNachtruhe(t).tibik));
+    const lowest = Math.min(...[...body.torso, ...body.lowerTorso, ...body.legs].map((s) => s.center.y - s.radius));
+    if (lowest - BED_RECT.top > OUTLINE) floating.push(`${t.toFixed(2)} s: ${((lowest - BED_RECT.top) * 1000).toFixed(1)} mm`);
+  }
+  expect(floating.slice(0, 8)).toEqual([]);
 });

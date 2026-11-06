@@ -1,5 +1,8 @@
+import { BANGING, later } from "./banging";
+import { CODA } from "./cigarette";
 import { HAUSVERWALTUNG } from "../../street/building";
-import { lerpVec3, smoothstep, round6 } from "../../characters/scalar";
+import { round6 } from "../../characters/scalar";
+import { placesAt, stopsAt } from "../../characters/propPlace";
 
 import { bubbleBox, type Line } from "../../dialogue/line";
 import {
@@ -18,18 +21,18 @@ export type KeyPress = { readonly key: Key; readonly at: number };
 export const KEYS: readonly KeyPress[] = [
   { key: "call", at: 16.8 },
   { key: "end", at: 29.35 },
-  { key: "1", at: 29.7 },
-  { key: "1", at: 30.1 },
-  { key: "0", at: 30.5 },
-  { key: "call", at: 30.9 },
+  { key: "1", at: later(29.7) },
+  { key: "1", at: later(30.1) },
+  { key: "0", at: later(30.5) },
+  { key: "call", at: later(30.9) },
 ];
 
 export const DIALLED = KEYS.filter(
   (k) => k.key !== "call" && k.key !== "end",
 ).map((k) => ({ digit: k.key, at: k.at }));
 
-export const CLICK = 45.6;
-export const LOWERED: readonly [number, number] = [47.0, 47.6];
+export const CLICK = later(45.6);
+export const LOWERED: readonly [number, number] = [later(47.0), later(47.6)];
 
 const PHONE_BOX = bubbleBox(1240, 40, 660, 420, 56);
 const KAREN_BOX = bubbleBox(30, 30, 900, 460, 66);
@@ -75,23 +78,23 @@ export const CALL_LINES: readonly Line[] = [
     "Signalton",
   ),
   karen(27.7, 28.9, "DAS IST EIN NOTFALL!", "Das ist ein Notfall"),
-  phone(32.0, 33.0, "Polizei-Notruf.", "Polizei-Notruf"),
-  phone(33.2, 34.7, "Was ist Ihr Notfall?", "Was ist Ihr Notfall"),
+  phone(later(32.0), later(33.0), "Polizei-Notruf.", "Polizei-Notruf"),
+  phone(later(33.2), later(34.7), "Was ist Ihr Notfall?", "Was ist Ihr Notfall"),
   karen(
-    34.9,
-    37.9,
+    later(34.9),
+    later(37.9),
     "MEIN NACHBAR HAT EINEN KARTON AUS DEM HAUSMÜLL GENOMMEN!",
     "Karton aus dem Hausmüll",
   ),
   phone(
-    38.1,
-    40.1,
+    later(38.1),
+    later(40.1),
     "Ist jemand verletzt oder in Gefahr?",
     "Verletzt oder in Gefahr",
   ),
-  karen(40.4, 41.4, "…NEIN.", "Nein"),
-  karen(41.6, 43.5, "ABER ER SAGT: DER UMWELT ZULIEBE!", "Der Umwelt zuliebe"),
-  phone(43.8, 45.4, "Ein Karton ist kein Notfall.", "Kein Notfall"),
+  karen(later(40.4), later(41.4), "…NEIN.", "Nein"),
+  karen(later(41.6), later(43.5), "ABER ER SAGT: DER UMWELT ZULIEBE!", "Der Umwelt zuliebe"),
+  phone(later(43.8), later(45.4), "Ein Karton ist kein Notfall.", "Kein Notfall"),
 ];
 
 const PLACES: readonly { readonly at: number; readonly place: PhonePlace }[] = [
@@ -101,43 +104,29 @@ const PLACES: readonly { readonly at: number; readonly place: PhonePlace }[] = [
   { at: 17.45, place: PHONE_AT_MOUTH },
   { at: 29.0, place: PHONE_AT_MOUTH },
   { at: 29.25, place: PHONE_AT_LOOK },
-  { at: 31.1, place: PHONE_AT_LOOK },
-  { at: 31.45, place: PHONE_AT_MOUTH },
-  { at: 45.7, place: PHONE_AT_MOUTH },
-  { at: 46.1, place: PHONE_AT_LOOK },
+  { at: BANGING.tuck[0], place: PHONE_AT_LOOK },
+  { at: BANGING.tuck[1], place: PHONE_AT_POCKET },
+  { at: BANGING.raise[0], place: PHONE_AT_POCKET },
+  { at: BANGING.raise[1], place: PHONE_AT_LOOK },
+  { at: later(31.1), place: PHONE_AT_LOOK },
+  { at: later(31.45), place: PHONE_AT_MOUTH },
+  { at: later(45.7), place: PHONE_AT_MOUTH },
+  { at: later(46.1), place: PHONE_AT_LOOK },
   { at: LOWERED[0], place: PHONE_AT_LOOK },
   { at: LOWERED[1], place: PHONE_AT_HIP },
+  { at: CODA.phoneAway[0], place: PHONE_AT_HIP },
+  { at: CODA.phoneAway[1], place: PHONE_AT_POCKET },
 ];
 
-
-const between = <T>(
-  stops: readonly { readonly at: number; readonly value: T }[],
-  t: number,
-) => {
-  const next = stops.findIndex((p) => p.at > t);
-  if (next <= 0) {
-    const only = next === 0 ? stops[0] : stops[stops.length - 1];
-    return { a: only, b: only, w: 0 };
-  }
-  const a = stops[next - 1];
-  const b = stops[next];
-  return { a, b, w: smoothstep((t - a.at) / (b.at - a.at)) };
-};
 
 const PLACE_STOPS = PLACES.map((p) => ({ at: p.at, value: p.place }));
 
 export const SETTLED = PLACES[1].at;
 
-export const phonePlaceAt = (t: number): PhonePlace => {
-  const { a, b, w } = between(PLACE_STOPS, t);
-  return {
-    position: lerpVec3(a.value.position, b.value.position, w),
-    rotation: lerpVec3(a.value.rotation, b.value.rotation, w),
-  };
-};
+export const phonePlaceAt: (t: number) => PhonePlace = placesAt(PLACES);
 
 export const readingAt = (t: number) => {
-  const { a, b, w } = between(PLACE_STOPS, t);
+  const { a, b, w } = stopsAt(PLACE_STOPS, t);
   const reading = (p: PhonePlace) => (p === PHONE_AT_LOOK ? 1 : 0);
   return reading(a.value) + (reading(b.value) - reading(a.value)) * w;
 };
@@ -157,8 +146,11 @@ export type PhoneState = PhonePlace & {
   readonly screen: string;
 };
 
+export const inHerPocket = (t: number) =>
+  t < POCKET[1] || (t > BANGING.tuck[1] && t < BANGING.raise[0]) || t > CODA.phoneAway[1];
+
 export const phoneAt = (t: number): PhoneState => ({
-  inHand: t >= POCKET[1],
+  inHand: !inHerPocket(t),
   ...phonePlaceAt(t),
   screen: screenAt(t),
 });
@@ -193,6 +185,13 @@ const ringback = (call: KeyPress, start: string): PhoneCue => {
 
 export const phoneCues = (): PhoneCue[] => [
   { name: "Karen pants", at: 0, sound: "panting", volume: 0.55, length: 7.4 },
+  {
+    name: "Karen pants after pounding on his door",
+    at: BANGING.blows[3],
+    sound: "panting",
+    volume: 0.55,
+    length: round6(BANGING.raise[0] - BANGING.blows[3]),
+  },
   ringback(KEYS[0], "Hausverwaltung"),
   { name: "Answering machine beep", at: 27.4, sound: "beep", volume: 0.5 },
   ...DIALLED.map((d) => ({

@@ -8,6 +8,7 @@ export const LAMP = {
   arm: 0.7,
   head: [0.55, 0.09, 0.26] as Vec3,
   kerbSetback: 0.45,
+  lightBelowTop: 0.12,
 };
 
 export const LAMP_LIGHT = "#ffb46b";
@@ -23,6 +24,8 @@ export type StreetLamp = {
   readonly z: number;
   readonly toward: 1 | -1;
 };
+
+export const lampLightAt = (lamp: StreetLamp): Vec3 => [lamp.x, LAMP.height - LAMP.lightBelowTop, lamp.z + lamp.toward * LAMP.arm];
 
 export const STREET_LAMPS: readonly StreetLamp[] = [
   ...[-76, -46, -16, 14, 44, 74].map(

@@ -1,6 +1,6 @@
 import { Audio } from "@remotion/media";
 import { staticFile, useVideoConfig } from "remotion";
-import { footstepTake, type Surface } from "./footsteps";
+import { footstepPlan, type Surface } from "./footsteps";
 
 export const FootstepSounds: React.FC<{
   readonly times: readonly number[];
@@ -11,17 +11,10 @@ export const FootstepSounds: React.FC<{
   readonly surface?: Surface;
 }> = ({ times, who, volume, variant = 0, room, surface }) => {
   const { fps } = useVideoConfig();
-  const frames = [...new Set(times.map((t) => Math.round(t * fps)))];
   return (
     <>
-      {frames.map((frame, i) => (
-        <Audio
-          key={frame}
-          name={`${who} footstep ${i + 1}`}
-          src={staticFile(`sfx/${footstepTake(i, { surface, room, variant })}`)}
-          from={frame}
-          volume={volume}
-        />
+      {footstepPlan(times, fps, { surface, room, variant }).map(({ frame, file }, i) => (
+        <Audio key={frame} name={`${who} footstep ${i + 1}`} src={staticFile(`sfx/${file}`)} from={frame} volume={volume} />
       ))}
     </>
   );

@@ -30,6 +30,16 @@ export const ONE_UNIT = { inkGroup: true } as const;
 
 export const NO_INK = { noInk: true } as const;
 
+export const INK_BLOCKER = { inkBlocker: true } as const;
+
+export const inkOf = (object: Object3D) => {
+  for (let o: Object3D | null = object; o; o = o.parent) {
+    if (o.userData.inkBlocker === true) return -1;
+    if (typeof o.userData.ink === "number") return o.userData.ink as number;
+  }
+  return 0;
+};
+
 export const skipsInkIds = (object: Object3D) =>
   object.userData.noInk === true ||
   object instanceof Line ||

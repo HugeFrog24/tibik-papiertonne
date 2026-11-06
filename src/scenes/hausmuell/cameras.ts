@@ -1,6 +1,6 @@
 import { kf } from "../../characters/animate";
-import { easeUnit, lerpVec3 } from "../../characters/scalar";
 import type { Vec3 } from "../../toon/primitives";
+import { camerasOf, fixed, type CameraSetup, type Shot } from "../../toon/shots";
 import {
   KAREN_SPOT,
   HAUSMUELL_DURATION,
@@ -16,49 +16,6 @@ import {
   SHOT_EXIT,
   TIBIK_SPOT,
 } from "./choreography";
-
-export type CameraSetup = {
-  readonly position: Vec3;
-  readonly target: Vec3;
-  readonly fov: number;
-  readonly up?: Vec3;
-};
-export type Shot = {
-  readonly name: string;
-  readonly from: number;
-  readonly to: number;
-  readonly at: (t: number) => CameraSetup;
-};
-
-export const fixed =
-  (position: Vec3, target: Vec3, fov: number) => (): CameraSetup => ({
-    position,
-    target,
-    fov,
-  });
-
-export const dolly =
-  (from: CameraSetup, to: CameraSetup, start: number, end: number) =>
-  (t: number): CameraSetup => {
-    const k = easeUnit((t - start) / (end - start));
-    return {
-      position: lerpVec3(from.position, to.position, k),
-      target: lerpVec3(from.target, to.target, k),
-      fov: from.fov + (to.fov - from.fov) * k,
-    };
-  };
-
-export const findShot = <
-  S extends { readonly from: number; readonly to: number },
->(
-  shots: readonly S[],
-  t: number,
-): S => shots.find((s) => t >= s.from && t < s.to) ?? shots[shots.length - 1];
-
-export const camerasOf = <S extends Shot>(shots: readonly S[]) => ({
-  shotAt: (t: number): S => findShot(shots, t),
-  cameraAt: (t: number): CameraSetup => findShot(shots, t).at(t),
-});
 
 const HEAD_HEIGHT = { tibik: 1.45, karen: 1.45 };
 

@@ -1,4 +1,6 @@
-import { findShot, fixed, type CameraSetup } from "../hausmuell/cameras";
+import { ambienceOf } from "../../street/sceneAmbience";
+import { treppenhausIndoors } from "./choreography";
+import { filmTimeIn, findShot, fixed, storyTimeIn, type CameraSetup, type Shot } from "../../toon/shots";
 import { STORY_END } from "./choreography";
 
 const LAST_SHOT_FROM = 8.5;
@@ -6,13 +8,7 @@ const LAST_SHOT_STORY = 15.8;
 export const TREPPENHAUS_DURATION =
   LAST_SHOT_FROM + STORY_END - LAST_SHOT_STORY;
 
-export type StoryShot = {
-  readonly name: string;
-  readonly from: number;
-  readonly to: number;
-  readonly story: number;
-  readonly at: (storyT: number) => CameraSetup;
-};
+type StoryShot = Shot & { readonly story: number };
 
 export const SHOTS: readonly StoryShot[] = [
   {
@@ -47,17 +43,11 @@ export const SHOTS: readonly StoryShot[] = [
 
 const shotAt = (filmT: number) => findShot(SHOTS, filmT);
 
-export const storyTime = (filmT: number) => {
-  const shot = shotAt(filmT);
-  return shot.story + (filmT - shot.from);
-};
+export const storyTime = storyTimeIn(SHOTS);
 
 export const cameraAt = (filmT: number): CameraSetup =>
   shotAt(filmT).at(storyTime(filmT));
 
-export const filmTimeOf = (storyT: number): number | null => {
-  const shot = SHOTS.find(
-    (s) => storyT >= s.story && storyT < s.story + (s.to - s.from),
-  );
-  return shot ? shot.from + (storyT - shot.story) : null;
-};
+export const filmTimeOf = filmTimeIn(SHOTS);
+
+export const TREPPENHAUS_AMBIENCE = ambienceOf({ indoors: (t) => treppenhausIndoors(storyTime(t)) });

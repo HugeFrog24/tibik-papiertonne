@@ -297,7 +297,7 @@ test(
 );
 
 test(
-  "the phone appears only when her hand reaches her pocket, and she holds it from then on, her fist's outline meeting the phone's",
+  "the phone appears only when her hand reaches her pocket, and whenever it is out of her pocket her fist's outline meets the phone's",
   { timeout: 300_000 },
   () => {
     const out = frames.filter((t) => phoneAt(t).inHand);

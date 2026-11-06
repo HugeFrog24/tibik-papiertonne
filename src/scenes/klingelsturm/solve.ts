@@ -1,5 +1,5 @@
 import { indoorSolids } from "../../building/flurShape";
-import { Quaternion, Vector3 } from "three";
+import { Quaternion, Vector3, type Matrix4 } from "three";
 import { doorFrame } from "../../building/doors";
 import {
   TIBIK_DOOR,
@@ -14,7 +14,7 @@ import {
 } from "../../characters/skeleton";
 import type { Line } from "../../dialogue/line";
 import { mouthInWorld, onScreen, seenBy } from "../../dialogue/screen";
-import type { CameraSetup } from "../hausmuell/cameras";
+import type { CameraSetup } from "../../toon/shots";
 import { asKaren } from "../../Karen/character";
 import { KAREN_SKELETON } from "../../Karen/rig";
 import {
@@ -37,16 +37,19 @@ import {
 } from "./parcel";
 import { EXIT_HOLDS, carriedAt } from "./exit";
 import { armLimb } from "../../physics/grip";
-import { workArm } from "../../physics/holds";
+import { followTheHand, workArm } from "../../physics/holds";
 import { lazy } from "../../physics/lazy";
 import { memoByFrame } from "../../physics/memoSolve";
 import type { KarenFrame } from "../hausmuell/choreography";
 import { FISHEYE, undistortUv } from "../../toon/fisheye";
 import { FRAME, cameraAt, shotAt } from "./cameras";
+import { CODA, emberGlowAt, flameAmountAt, inHerHands, lighterOut, lightingAt } from "./cigarette";
+import { LIGHTER_HOLD, cigaretteAt, lighterAt, smokedAt } from "./smoking";
+import { BLOW_HOLDS } from "./banging";
 import { phoneAt, type PhoneState } from "./calls";
 import {
   BELL_HOLDS,
-  PHONE_HOLD,
+  PHONE_HOLDS,
   phoneGrip,
   karenAt,
   phoneObb,
@@ -62,6 +65,9 @@ export type KlingelsturmState = {
   readonly parcel: number;
   readonly taping: number;
   readonly carried: boolean;
+  readonly cigarette: { readonly frame: Matrix4; readonly burned: number; readonly ash: number; readonly glow: number } | null;
+  readonly lighter: { readonly frame: Matrix4; readonly flame: number } | null;
+  readonly tibikHere: boolean;
 };
 
 const solidsWith = (tibik: number, tibikLever: number): Solid[] => [
@@ -82,19 +88,20 @@ const solidsAt = (
 ];
 
 const solve = (t: number): KlingelsturmState => {
+  const tibikT = Math.min(t, CODA.mediumCut);
   const door = tibikDoorAt(t);
   const lever = tibikLeverAt(t);
   const parcel = parcelClosedAt(t);
   const carried = carriedAt(t);
   const solids = solidsAt(door, lever, parcel, t, carried);
-  let tibik = asCharacter(tibikAt(t));
-  tibik = workArm(tibik, "leftArm", t, solids, [
+  let tibik = asCharacter(tibikAt(tibikT));
+  tibik = workArm(tibik, "leftArm", tibikT, solids, [
     ...PACKING_HOLDS,
     LEVER_HOLD,
     ...TAPING_HOLDS,
     ...EXIT_HOLDS,
   ]);
-  tibik = workArm(tibik, "rightArm", t, solids, [
+  tibik = workArm(tibik, "rightArm", tibikT, solids, [
     ...PACKING_HOLDS,
     ...TAPING_HOLDS,
     ...EXIT_HOLDS,
@@ -103,8 +110,10 @@ const solve = (t: number): KlingelsturmState => {
   let karen = asKaren(authored);
   karen = guardLean(karen, solids);
   const authoredPhone = phoneAt(t).inHand ? phoneAt(t) : null;
-  karen = workArm(karen, "leftArm", t, solids, BELL_HOLDS);
-  karen = workArm(karen, "rightArm", t, solids, [PHONE_HOLD]);
+  karen = workArm(karen, "leftArm", t, solids, [...BELL_HOLDS, ...BLOW_HOLDS]);
+  karen = workArm(karen, "rightArm", t, solids, [...PHONE_HOLDS, LIGHTER_HOLD]);
+  const smoking = inHerHands(t);
+  const { burned, ash } = smokedAt(t);
   const solved = {
     ...authored,
     position: karen.position,
@@ -127,8 +136,16 @@ const solve = (t: number): KlingelsturmState => {
     parcel,
     taping: t,
     carried,
+    cigarette: smoking ? { frame: cigaretteAt(t), burned, ash, glow: emberGlowAt(t) } : null,
+    lighter: lighterOut(t) ? { frame: heldLighter(solved, t), flame: flameAmountAt(t) } : null,
+    tibikHere: t < CODA.mediumCut,
   };
 };
+
+const rightHandOf = (karen: KarenFrame) => handSphere(KAREN_SKELETON, asKaren(karen), "rightArm").center;
+
+const heldLighter = (karen: KarenFrame, t: number) =>
+  followTheHand(lighterAt(t), rightHandOf(karen), LIGHTER_HOLD.near!(t), 1 - lightingAt(t));
 
 export const solveKlingelsturm = memoByFrame(solve);
 

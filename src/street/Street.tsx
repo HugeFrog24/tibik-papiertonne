@@ -30,7 +30,9 @@ import {
   DOORBELL_FACE,
   doorbellRow,
   FLYER,
+  flyerFlapAngle,
   flyerPose,
+  mailboxFlapHinge,
   mailboxCell,
   mailboxPlate,
   ENTRANCE_LAMP,
@@ -64,6 +66,7 @@ import { WallBox } from "../building/WallBox";
 import { DoorLeaf } from "../building/DoorLeaf";
 import { DoorCloser } from "./DoorCloser";
 import { MailboxDoor } from "./MailboxDoor";
+import { MailboxFlap } from "./MailboxFlap";
 import { MAILBOX_DOOR } from "./mailboxDoorShape";
 import {
   MAILBOX_COLOURS,
@@ -72,7 +75,7 @@ import {
 } from "./mailboxFace";
 import { BikeStands } from "./BikeStands";
 import { Asphalt } from "./Asphalt";
-import { STREET_END, STREET_MIDDLE } from "./roadShape";
+import { STREET_END, STREET_LENGTH, STREET_MIDDLE } from "./roadShape";
 import { Car } from "./Car";
 import { Tonne } from "./Tonne";
 import { DistantBlock } from "./DistantBlock";
@@ -162,6 +165,8 @@ const doorbellTexture = (house: number) =>
     });
   });
 
+const MAILBOX_FLAP_INK = 0.001;
+
 const mailboxTexture = (house: number, opened: string | null) =>
   drawnTexture(
     `mailboxes-${house}-${opened ?? "painted"}`,
@@ -172,7 +177,7 @@ const mailboxTexture = (house: number, opened: string | null) =>
       residentsOf(house).forEach((name, i) =>
         name === opened
           ? drawMailboxInside(ctx, mailboxCell(i))
-          : drawMailboxCell(ctx, mailboxCell(i), name, name === NO_ADS[house]),
+          : drawMailboxCell(ctx, mailboxCell(i), name, name === NO_ADS[house], house === FLYER.house && name === FLYER.resident),
       );
     },
   );
@@ -259,6 +264,7 @@ const Mailboxes: React.FC<{
           />
         </mesh>
       </WallBox>
+      {house === FLYER.house ? <MailboxFlap hinge={mailboxFlapHinge(FLYER.resident)} angle={flyerFlapAngle()} ink={MAILBOX_FLAP_INK} /> : null}
       {real ? <MailboxDoor angle={door} /> : null}
     </>
   );
@@ -462,7 +468,6 @@ const Block: React.FC<{
   </>
 );
 
-const STREET_LENGTH = 240;
 const NEIGHBOUR_PLASTERS = [
   "#e3d6bd",
   "#d6dccf",

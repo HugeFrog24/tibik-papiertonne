@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import { BEDSIDE_GLOW, CURTAIN_DAYLIGHT, NIGHT_GLOW } from "./Bedroom";
 import { bodyColliders } from "../characters/skeleton";
 import { boxGap, obbCorners } from "../physics/collision";
-import { FACADE_Z, flatWindow, openingFrame } from "../street/building";
+import { FACADE_Z, FRAME_BORDER, OPENING_LAYERS, flatWindow, openingFrame } from "../street/building";
 import { FACADE_THICKNESS, facadeOpenings } from "../street/facade";
 import { LAMP_LIGHT } from "../street/lamps";
 import { overlap, rectFootprint } from "../street/footprint";
@@ -20,14 +20,18 @@ import {
   CABINETS,
   CABINET_INK,
   CURTAIN,
+  CURTAIN_TRANSMITS,
   DOME_LAMP,
+  INNER_GLASS,
   LAMPS,
   PANE,
   PILLOWS,
   RADIATOR,
   SKIRTING,
   SMOKE_ALARM,
+  bareShareOfPane,
   bedroomParts,
+  daylightIn,
   bedroomSolids,
   curtainPanels,
 } from "./bedroomShape";
@@ -241,4 +245,31 @@ test("at night with his lamp off the street only glows faintly in the room: unde
   expect(NIGHT_GLOW.curtain).toBeLessThan(CURTAIN_DAYLIGHT / 6);
   expect(NIGHT_GLOW.room).toBeGreaterThan(0);
   expect(NIGHT_GLOW.curtain).toBeGreaterThan(0);
+});
+
+test("the room brightens as the curtain opens: behind drawn curtains the daylight as it was, more the more of the pane is bare, none at night", () => {
+  expect(daylightIn(1, [0, 0])).toBeCloseTo(1, 12);
+  expect(daylightIn(0, [0, 0.7])).toBe(0);
+  expect(bareShareOfPane([0, 0])).toBe(0);
+  expect(bareShareOfPane([1, 1])).toBe(1);
+  let previous = daylightIn(1, [0, 0]);
+  for (let k = 0.1; k <= 1 + 1e-9; k += 0.1) {
+    const now = daylightIn(1, [0, k]);
+    expect(now).toBeGreaterThanOrEqual(previous);
+    previous = now;
+  }
+  expect(daylightIn(1, [1, 1])).toBeCloseTo(1 / CURTAIN_TRANSMITS, 12);
+  expect(CURTAIN_TRANSMITS).toBeGreaterThan(0.3);
+  expect(CURTAIN_TRANSMITS).toBeLessThan(0.6);
+});
+
+test("from inside his window has glass: a pane facing into the room just behind the outside glass, filling the frame's clear opening", () => {
+  expect(INNER_GLASS.x).toBeCloseTo((PANE.x0 + PANE.x1) / 2, 12);
+  expect(INNER_GLASS.y).toBeCloseTo((PANE.y0 + PANE.y1) / 2, 12);
+  expect(INNER_GLASS.w).toBeCloseTo(PANE.x1 - PANE.x0 - 2 * FRAME_BORDER, 12);
+  expect(INNER_GLASS.h).toBeCloseTo(PANE.y1 - PANE.y0 - 2 * FRAME_BORDER, 12);
+  expect(INNER_GLASS.z).toBeLessThan(FACADE_Z + OPENING_LAYERS.glass);
+  expect(INNER_GLASS.z).toBeGreaterThan(FACADE_Z);
+  expect(INNER_GLASS.tint).toBeGreaterThan(0);
+  expect(INNER_GLASS.tint).toBeLessThan(0.15);
 });

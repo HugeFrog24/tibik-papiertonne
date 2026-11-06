@@ -99,7 +99,7 @@ export const MAILBOXES = onFacade(
   "mailboxes",
   ENTRANCE_X - 1.05,
   1.15,
-  [0.72, 0.62, 0.14],
+  [0.755, 0.666, 0.27],
 );
 export const HYDRANT_SIGN: Part = {
   name: "hydrant sign",
@@ -129,12 +129,15 @@ export const doorbellRow = (i: number) => {
   return { y: rows.top + (i + 0.5) * height, height };
 };
 export const MAILBOX_GRID = {
-  cols: 3,
-  rows: 4,
-  px: [512, 440] as const,
+  cols: 2,
+  rows: 6,
+  px: [735, 646] as const,
   inset: 0.02,
   lift: 0.005,
-  slot: { x: 20, y: 22, height: 10 },
+  slot: { width: 335, height: 33, top: 16 },
+  flap: { width: 347, height: 45, top: 10, thickness: 0.0025, lip: { height: 4, proud: 0.004 } },
+  lock: { right: 26, fromBottom: 24, radius: 9 },
+  tag: { width: 120, height: 22, left: 22, fromBottom: 34 },
 };
 export const mailboxPlate = () => {
   const [w, h, d] = MAILBOXES.size;
@@ -168,8 +171,29 @@ export const mailboxCellOf = (name: string) => {
 export const mailboxSlot = (name: string): Vec3 => {
   const { slot } = MAILBOX_GRID;
   const cell = mailboxCellOf(name);
-  return platePoint(cell.x + cell.w / 2, cell.y + slot.y + slot.height / 2);
+  return platePoint(cell.x + cell.w / 2, cell.y + slot.top + slot.height / 2);
 };
+
+type Cell = ReturnType<typeof mailboxCell>;
+
+export const mailboxLockPx = (cell: Cell) => ({
+  x: cell.x + cell.w - MAILBOX_GRID.lock.right,
+  y: cell.y + cell.h - MAILBOX_GRID.lock.fromBottom,
+});
+
+export const mailboxTagPx = (cell: Cell) => {
+  const { tag } = MAILBOX_GRID;
+  return { x: cell.x + tag.left, y: cell.y + cell.h - tag.fromBottom, w: tag.width, h: tag.height };
+};
+
+export const mailboxFlapHingeOf = (cell: Cell): Vec3 => {
+  const [x, y, z] = platePoint(cell.x + cell.w / 2, cell.y + MAILBOX_GRID.flap.top);
+  return [x, y, z + MAILBOX_GRID.flap.thickness / 2];
+};
+
+export const mailboxFlapHinge = (name: string): Vec3 => mailboxFlapHingeOf(mailboxCellOf(name));
+
+export const mailboxMetresPerPx = () => [mailboxPlate().width / MAILBOX_GRID.px[0], mailboxPlate().height / MAILBOX_GRID.px[1]] as const;
 export const FLYER = {
   house: 12,
   resident: "Krause",
@@ -189,6 +213,27 @@ export const flyerBox = () => {
   ];
   return { top, bottom };
 };
+const FLAP_STEPS = 40;
+
+export const flyerFlapAngle = () => {
+  const [, hy, hz] = mailboxFlapHinge(FLYER.resident);
+  const length = MAILBOX_GRID.flap.height * mailboxMetresPerPx()[1];
+  const { top, bottom } = flyerBox();
+  const along = [bottom[1] - top[1], bottom[2] - top[2]];
+  const norm = Math.hypot(along[0], along[1]);
+  const out = [along[1] / norm, -along[0] / norm];
+  const clear = FLYER.size[2] / 2 + MAILBOX_GRID.flap.thickness / 2 + FLYER.ink;
+  const gap = (angle: number) =>
+    (hy - length * Math.cos(angle) - top[1]) * out[0] + (hz + length * Math.sin(angle) - top[2]) * out[1] - clear;
+  let [lo, hi] = [0, Math.PI / 2];
+  for (let i = 0; i < FLAP_STEPS; i++) {
+    const mid = (lo + hi) / 2;
+    if (gap(mid) < 0) lo = mid;
+    else hi = mid;
+  }
+  return hi;
+};
+
 export const flyerPose = () => {
   const { top, bottom } = flyerBox();
   return {

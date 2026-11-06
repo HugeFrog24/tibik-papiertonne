@@ -1,7 +1,7 @@
 import { CurvePath, Euler, LineCurve3, Matrix4, Vector3 } from "three";
 import { clamp, lerp } from "../characters/scalar";
 import { frame, obb, partObb, type Solid } from "../physics/collision";
-import { FACADE_Z, boundsPart, flatWindow, floorLevel, openingFrame, type Part } from "../street/building";
+import { FACADE_Z, FRAME_BORDER, OPENING_LAYERS, boundsPart, flatWindow, floorLevel, openingFrame, type Part } from "../street/building";
 import { FACADE_THICKNESS } from "../street/facade";
 import type { Vec3 } from "../toon/primitives";
 import { ROOM_DOOR, doorSolids, roomDoor, type Door } from "./doors";
@@ -116,6 +116,15 @@ const lampParts = (lamp: BedsideLamp): Part[] => {
 const his = flatWindow(12, 1, "links");
 const [paneW, paneH] = openingFrame(his);
 export const PANE = { x0: his.x - paneW / 2, x1: his.x + paneW / 2, y0: his.y - paneH / 2, y1: his.y + paneH / 2 };
+
+export const INNER_GLASS = {
+  x: his.x,
+  y: his.y,
+  z: FACADE_Z + OPENING_LAYERS.glass - 0.001,
+  w: paneW - 2 * FRAME_BORDER,
+  h: paneH - 2 * FRAME_BORDER,
+  tint: 0.08,
+};
 
 export const RADIATOR: Part = boundsPart(
   "radiator",
@@ -239,6 +248,13 @@ export const curtainOverPane = (open: CurtainOpen, pane: { readonly x0: number; 
     const x1 = Math.min(pane.x1, c.x1);
     return x1 > x0 ? [{ x0, x1 }] : [];
   });
+
+export const CURTAIN_TRANSMITS = 0.4;
+
+export const bareShareOfPane = (open: CurtainOpen) =>
+  1 - curtainOverPane(open, PANE).reduce((sum, c) => sum + (c.x1 - c.x0), 0) / (PANE.x1 - PANE.x0);
+
+export const daylightIn = (daylight: number, open: CurtainOpen) => daylight * (1 + (1 / CURTAIN_TRANSMITS - 1) * bareShareOfPane(open));
 
 const curtainParts = (): Part[] => {
   const z = BEDROOM.z1 - CURTAIN.wall;

@@ -1,3 +1,5 @@
+import { doorShiverAt } from "./banging";
+import { CODA } from "./cigarette";
 import { gripSolid } from "../../building/doors";
 import { groundWithMats } from "../../building/ground";
 import { TIBIK_DOOR, stairwellGround } from "../../building/stairwell";
@@ -6,7 +8,7 @@ import {
   type RootAt,
   type Step,
 } from "../../characters/gait";
-import { AT_THE_CHEST, TAPING } from "./parcel";
+import { AT_THE_CHEST, TAPE_STRIPS } from "./parcel";
 import {
   EXIT,
   exitArms,
@@ -31,7 +33,9 @@ export const SHUT: readonly [number, number] = [15.45, 15.75];
 const LEVER_DOWN = 0.5;
 
 export const tibikDoorAt = (t: number) =>
-  AJAR_ANGLE * (inWindow(t, OPEN) - inWindow(t, SHUT)) + exitDoorAt(t);
+  AJAR_ANGLE * (inWindow(t, OPEN) - inWindow(t, SHUT)) +
+  exitDoorAt(t) +
+  doorShiverAt(t);
 
 export const tibikLeverAt = (t: number) =>
   LEVER_DOWN *
@@ -45,8 +49,13 @@ const PACKING_LEAN = 0.25;
 const packing = (t: number) =>
   inWindow(t, [2.0, 2.4]) -
   inWindow(t, [4.4, 4.75]) +
-  inWindow(t, [TAPING.at - 0.1, TAPING.pick]) -
-  inWindow(t, [TAPING.down, TAPING.done]);
+  TAPE_STRIPS.reduce(
+    (sum, { times }) =>
+      sum +
+      inWindow(t, [times.at - 0.1, times.pick]) -
+      inWindow(t, [times.down, times.done]),
+    0,
+  );
 export const TO_THE_DOOR: readonly [number, number] = [4.85, 5.85];
 const BACK = SHUT[1] + 0.25 - TURN[0];
 const TURN_BACK: readonly [number, number] = [TURN[0] + BACK, TURN[1] + BACK];
@@ -69,6 +78,7 @@ const flurRoot: RootAt = (t) => {
 };
 
 const tibikRoot = exitRoot(flurRoot);
+const WALKING_UNTIL = CODA.jumpCut + 1;
 
 const OUT: readonly Step[] = [
   { side: 1, lift: 4.72, land: 4.86 },
@@ -83,10 +93,10 @@ const OUT: readonly Step[] = [
 const STEPS: readonly Step[] = [
   ...OUT,
   ...shiftSteps(OUT, BACK),
-  ...exitSteps(OUT, TURN[0]),
+  ...exitSteps(OUT, TURN[0], WALKING_UNTIL),
 ];
 
-export const tibikGait = tibikGaitOf(tibikRoot, () => STEPS, 60, stairwellGround, groundWithMats);
+export const tibikGait = tibikGaitOf(tibikRoot, () => STEPS, WALKING_UNTIL, stairwellGround, groundWithMats);
 
 export const tibikAt = (t: number): TibikFrame => {
   const { x, z, yaw, y = floorLevel(1) } = tibikRoot(t);

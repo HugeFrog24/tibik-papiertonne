@@ -1,6 +1,6 @@
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { RATE, SPEED_OF_SOUND, THROUGH_THE_DOOR, decode, muffle, pole, randomFrom, sfx, sfxPath, writeWav } from "./sfx-audio.mjs";
+import { RATE, SPEED_OF_SOUND, THROUGH_THE_DOOR, decode, muffle, peakOf, pole, randomFrom, sfx, sfxPath, writeWav } from "./sfx-audio.mjs";
 import { withScratch } from "./scratch.mjs";
 
 const ROOM = { width: 2.6, lane: 1.3, depth: 7.4, storey: 2.85 };
@@ -17,9 +17,16 @@ const SOURCES = [
   "metalLatch",
   "switch_002",
   "impactSoft_heavy_000",
+  "cloth2",
+  ...[0, 1, 2, 3, 4].flatMap((n) => [`impactWood_heavy_00${n}`, `impactMetal_light_00${n}`]),
 ];
 const RELAY = { from: "switch_002", box: { cutoff: THROUGH_THE_DOOR.cutoff, level: 1 }, wet: 0.65 };
-const WAV_SOURCES = ["phone/bell-storm-door", "phone/dtmf-0", "phone/dtmf-1", "phone/dtmf-2", "phone/ringback", "phone/busy", "phone/beep", "phone/click", "phone/panting", "phone/panting-door"];
+const FAR_OFF = { box: { cutoff: 1500, level: 0.8 }, wet: 0.65 };
+const FAR_STEPS = [0, 1, 2, 3].map((n) => `footstep_concrete_00${n}`);
+const WAV_SOURCES = [
+  ...["bell-storm-door", "dtmf-0", "dtmf-1", "dtmf-2", "ringback", "busy", "beep", "click", "panting", "panting-door"].map((name) => `phone/${name}`),
+  ...(existsSync(sfx("coda/")) ? readdirSync(sfx("coda/")) : []).filter((file) => file.endsWith(".wav")).map((file) => `coda/${path.parse(file).name}`),
+];
 
 const impulse = () => {
   const random = randomFrom(4711);
@@ -61,6 +68,7 @@ withScratch("stairwell-", (scratch) => {
     ...SOURCES.map((name) => ({ name, file: `${name}.ogg`, wet: WET })),
     ...WAV_SOURCES.map((name) => ({ name, file: `${name}.wav`, wet: WET })),
     { name: "relay", file: `${RELAY.from}.ogg`, wet: RELAY.wet, box: RELAY.box },
+    ...FAR_STEPS.map((name) => ({ name: `${name}-far`, file: `${name}.ogg`, wet: FAR_OFF.wet, box: FAR_OFF.box })),
   ];
   for (const { name, file, wet: mix, box } of sources) {
     mkdirSync(sfx(`stairwell/${path.posix.dirname(name)}/`), { recursive: true });
@@ -68,7 +76,7 @@ withScratch("stairwell-", (scratch) => {
     const dry = box ? Float32Array.from(muffle(decoded, box)) : decoded;
     const wet = convolve(dry, ir);
     const mixed = wet.map((w, i) => (i < dry.length ? dry[i] : 0) + mix * w);
-    const peak = mixed.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+    const peak = peakOf(mixed);
     const out = peak > 0.98 ? mixed.map((v) => (v * 0.98) / peak) : mixed;
     writeWav(sfx(`stairwell/${name}.wav`), [out]);
     console.log(`stairwell/${name}.wav: ${(out.length / RATE).toFixed(2)} s${peak > 0.98 ? `, scaled ${(0.98 / peak).toFixed(2)}` : ""}`);

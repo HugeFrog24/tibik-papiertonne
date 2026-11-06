@@ -1,3 +1,4 @@
+import { LATER_FRAMES, later } from "./banging";
 import { stairwellGround } from "../../building/stairwell";
 import { armKf, kf } from "../../characters/animate";
 import { shiftSteps, type RootAt, type Step } from "../../characters/gait";
@@ -18,12 +19,12 @@ import { CRADLE } from "./carry";
 import { AT_THE_CHEST } from "./parcel";
 
 export const EXIT = {
-  offset: 1468 / FPS,
-  pickup: 47.3,
-  walk: 47.45,
+  offset: (1468 + LATER_FRAMES) / FPS,
+  pickup: later(47.3),
+  walk: later(47.45),
   nod: 0.9,
   wait: 20 / FPS,
-  end: 57.7,
+  end: later(57.7),
 };
 
 const AT_THE_LEVER = treppenhausRoot(0).yaw - 2 * Math.PI;
@@ -139,11 +140,11 @@ export const exitRoot =
     };
   };
 
-export const exitSteps = (walk: readonly Step[], from: number): Step[] => [
+export const exitSteps = (walk: readonly Step[], from: number, until: number): Step[] => [
   ...shiftSteps(walk, EXIT.walk - from),
   ...treppenhausSteps()
     .filter(
-      (s) => s.lift >= LEAVING.sidle[0] && filmTime(s.land) < EXIT.end + 1,
+      (s) => s.lift >= LEAVING.sidle[0] && filmTime(s.land) < until,
     )
     .map((s) => ({
       ...s,

@@ -5,6 +5,7 @@ import { footprint, type Footprint } from "./footprint";
 const MIDDLE = (kerbFace(false) + kerbFace(true)) / 2;
 
 export const STREET_END = 118;
+export const STREET_LENGTH = 240;
 export const STREET_MIDDLE = (FACADE_Z + ACROSS_STREET.facade) / 2;
 export const ROAD_PLANE = { z: 11, depth: 18, length: 2 * STREET_END };
 export const ASPHALT = { tile: 4, base: "#4b4e53" };

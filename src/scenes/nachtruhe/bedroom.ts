@@ -11,13 +11,13 @@ import { frame, obb } from "../../physics/collision";
 import { handHold, type Hold } from "../../physics/holds";
 import { BLANKET, blanketEdge, blanketSurface } from "../../props/blanketShape";
 import { walkFacing, type Walk } from "../../characters/walkPath";
-import { BACK_DEPTH, SITTING, SITTING_UP, lyingInBed, sittingOnBed, sittingUpInBed } from "../../Tibik/bedPoses";
+import { BACK_DEPTH, SITTING, SITTING_UP, lyingInBed, settledInBed, sittingOnBed, sittingUpInBed } from "../../Tibik/bedPoses";
 import { plantedTibik, tibikGaitOf, type TibikFrame } from "../../Tibik/character";
 import { RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { walkingOn, walkingPose } from "../../Tibik/walkingArms";
 import { OUTLINE } from "../../toon/primitives";
 import { FACING_THE_WALL, pinEnd, type Stand } from "../enterHouse";
-import { BLANKET_BACK, CURTAIN_PULL, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, LIE_DOWN, MORNING, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND, WALK_TO_BED } from "./timeline";
+import { BLANKET_BACK, CURTAIN_PULLS, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, LIE_DOWN, MORNING, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND, WALK_TO_BED } from "./timeline";
 
 export const BED_SEAT = sittingOnBed(BED_RECT.x0 + 1.3);
 
@@ -113,12 +113,14 @@ const TOWARD_THE_SWITCH = 0.15;
 const twistAt = (t: number) => Math.max(...PRESSES.map((p) => kf(t, [p.reach, p.grip, p.release, p.done], [0, TOWARD_THE_SWITCH, TOWARD_THE_SWITCH, 0])));
 
 const lieAt = (t: number, w: number): TibikFrame =>
-  placed(t, {
-    position: UP.position.map((v, i) => lerp(v, IN_BED.position[i], w)),
-    rotationY: UP.rotationY,
-    pose: { ...blendPose(SITTING_UP, IN_BED.pose, w), twist: twistAt(t) },
-    tilt: lerp(0, IN_BED.tilt, w),
-  });
+  settledInBed(
+    placed(t, {
+      position: UP.position.map((v, i) => lerp(v, IN_BED.position[i], w)),
+      rotationY: UP.rotationY,
+      pose: { ...blendPose(SITTING_UP, IN_BED.pose, w), twist: twistAt(t) },
+      tilt: lerp(0, IN_BED.tilt, w),
+    }),
+  );
 
 const evening = (t: number): TibikFrame =>
   t < HOP_UP[0]
@@ -136,7 +138,7 @@ const evening = (t: number): TibikFrame =>
 const drawn = curtainPanels([0, 0])[1];
 const FACING_THE_STACK = Math.PI / 2;
 const GRIP_AHEAD = 0.02;
-const FORWARD_REACH = 0.3;
+const STROKE = 0.25;
 const SIDE_REACH = RIG.shoulder.x + 0.42;
 const FABRIC_PULLED = 0.03;
 
@@ -266,31 +268,40 @@ export const BEDROOM_HOLDS_IN_BED: readonly Hold[] = [
   ...PRESSES.map(switchHold),
 ];
 
-const ALONG_THE_PANEL = (CORNER.x + GRIP_AHEAD - drawn.x0) / (drawn.x1 - drawn.x0);
 const opened = curtainPanels([0, 1])[1];
-export const CURTAIN_OPENS_TO = Math.min(1, FORWARD_REACH / ((1 - ALONG_THE_PANEL) * (opened.x0 - drawn.x0)));
+const EDGE_TRAVEL = opened.x0 - drawn.x0;
+const TAKES_HOLD = CORNER.x + GRIP_AHEAD;
 
-export const curtainOpenAt = (t: number) => CURTAIN_OPENS_TO * inWindow(t, CURTAIN_PULL);
+export const CURTAIN_OPENS_TO = (STROKE * CURTAIN_PULLS.length) / EDGE_TRAVEL;
+
+const pulled = (t: number) => CURTAIN_PULLS.reduce((sum, pull) => sum + inWindow(t, pull), 0);
+
+export const curtainOpenAt = (t: number) => (STROKE * pulled(t)) / EDGE_TRAVEL;
 
 const GRIP = { height: 1, size: [0.04, 0.06, 0.01] as const };
+const REACH_BACK = { first: 0.35, again: 0.25 };
+const LET_GO = { between: 0.2, last: 0.4 };
 
-export const curtainGrip = (t: number) => {
+const gripOf = (k: number) => (t: number) => {
   const panel = curtainPanels([0, curtainOpenAt(t)])[1];
-  const x = lerp(panel.x0, panel.x1, ALONG_THE_PANEL);
+  const x = TAKES_HOLD + STROKE * inWindow(t, CURTAIN_PULLS[k]);
   return obb("curtain grip", frame(new Matrix4(), [x, BEDROOM.floor + GRIP.height, panel.z - panel.amplitude - FABRIC_PULLED], new Euler()), [...GRIP.size]);
 };
 
-export const CURTAIN_HANDS = { rightArm: CURTAIN_PULL } as const;
+const strokeAt = (t: number) => CURTAIN_PULLS.reduce((k, [from], i) => (t >= from - REACH_BACK.again ? i : k), 0);
 
-export const MORNING_HOLDS: readonly Hold[] = [
+export const curtainGrip = (t: number) => gripOf(strokeAt(t))(t);
+
+export const MORNING_HOLDS: readonly Hold[] = CURTAIN_PULLS.map((pull, k) =>
   handHold({
-    name: "the near curtain panel in his right hand",
+    name: `the near curtain panel in his right hand, pull ${k + 1}`,
     arm: "rightArm",
-    window: CURTAIN_PULL,
-    lead: 0.35,
-    target: curtainGrip,
-    near: (t) => curtainGrip(t).center.clone().add(new Vector3(0, 0, -(GRIP.size[2] / 2 + HAND))),
+    window: pull,
+    lead: k === 0 ? REACH_BACK.first : REACH_BACK.again,
+    tail: k === CURTAIN_PULLS.length - 1 ? LET_GO.last : LET_GO.between,
+    target: gripOf(k),
+    near: (t) => gripOf(k)(t).center.clone().add(new Vector3(0, 0, -(GRIP.size[2] / 2 + HAND))),
   }),
-];
+);
 
 export const bedroomStepTimes = (fps: number) => [...touchdownTimes(toBedGait(), HOP_UP[0], fps), ...touchdownTimes(toWindowGait(), MORNING[1], fps)];

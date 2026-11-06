@@ -1,13 +1,17 @@
+import { ambienceOf } from "../../street/sceneAmbience";
 import { touchdownTimes } from "../../characters/gait";
 import { FPS } from "../../timeline";
-import { SHOTS, shotAt } from "./cameras";
+import { SHOTS, cameraAt, shotAt } from "./cameras";
 import { KEYS, phoneCues } from "./calls";
 import { KLINGELSTURM_DURATION, bellStorm } from "./choreography";
-import { OPEN, SHUT, UNLATCH, tibikGait } from "./door";
+import { OPEN, SHUT, UNLATCH, tibikAt, tibikGait } from "./door";
 import { EXIT_SOUNDS } from "./exit";
 import { LIGHT, LIGHT_BACK } from "./light";
-import { PACKING, TAPING } from "./parcel";
-import { round6 } from "../../characters/scalar";
+import { PACKING, TAPE_STRIPS } from "./parcel";
+import { round6, windowUnit } from "../../characters/scalar";
+import { blowCues, codaCues, cutAtTheJump } from "./offenceCues";
+import { CODA } from "./cigarette";
+import { distanceBetween, heardFrom } from "../../sound/perspective";
 
 export type BellCue = {
   readonly name: string;
@@ -96,24 +100,27 @@ const herPhone = (): BellCue[] =>
     return throughTheCuts(cue.name, cue.at, cue.length, inside, outside);
   });
 
-const tapeCues = (): BellCue[] => [
-  {
-    name: "Tibik pulls the tape across the lid",
-    at: round6(TAPING.start - TAPE_PULL.lead),
+const tapeCues = (): BellCue[] =>
+  TAPE_STRIPS.map(({ name, times }) => ({
+    name: `Tibik pulls the tape ${name}`,
+    at: round6(times.start - TAPE_PULL.lead),
     sound: TAPE_PULL.sound,
     volume: TAPE_PULL.volume,
-  },
-];
+  }));
 
 const RELAY = { sound: "stairwell/relay", volume: 0.7 };
 
 const relayCues = (): BellCue[] => [
   { name: "The timer relay clicks", at: LIGHT.out, ...RELAY },
   { name: "The timer relay pulls in", at: round6(LIGHT_BACK[0]), ...RELAY },
+  { name: "The timer relay clicks again", at: CODA.outAgain, ...RELAY },
 ];
 
 const STEP_SOUNDS = 4;
 const OUT_ON_THE_LANDING = 0.3;
+const HEARD_PLAINLY_WITHIN = 2.5;
+const SOUNDS_FAR_BEYOND = 5;
+
 
 const hisDoorCues = (): BellCue[] => [
   {
@@ -148,7 +155,7 @@ const hisSteps = (): BellCue[] => {
   const behind = steps.filter(
     (t) => !inTheFlur(t) && t < EXIT_SOUNDS.doorOpens,
   );
-  const out = steps.filter((t) => t >= EXIT_SOUNDS.doorOpens);
+  const out = steps.filter((t) => t >= EXIT_SOUNDS.doorOpens && t < CODA.jumpCut);
   return [
     ...behind.map((at, i) => ({
       name: `Tibik steps behind his door @${at}`,
@@ -156,13 +163,18 @@ const hisSteps = (): BellCue[] => {
       sound: `flur/footstep-door-${i % STEP_SOUNDS}`,
       volume: 0.8,
     })),
-    ...out.map((at, i) => ({
-      name: `Tibik steps out @${at}`,
-      at,
-      sound: `stairwell/footstep_concrete_00${i % STEP_SOUNDS}`,
-      volume: OUT_ON_THE_LANDING,
-      length: KLINGELSTURM_DURATION - at,
-    })),
+    ...out.flatMap((at, i) => {
+      const distance = distanceBetween(tibikAt(at).position, cameraAt(at).position);
+      const level = OUT_ON_THE_LANDING * heardFrom(distance, HEARD_PLAINLY_WITHIN);
+      const far = windowUnit(distance, [HEARD_PLAINLY_WITHIN, SOUNDS_FAR_BEYOND]);
+      const take = `stairwell/footstep_concrete_00${i % STEP_SOUNDS}`;
+      return [
+        { name: `Tibik steps out @${at}`, at, sound: take, volume: level * (1 - far) },
+        { name: `Tibik steps out, far off @${at}`, at, sound: `${take}-far`, volume: level * far },
+      ]
+        .filter((cue) => cue.volume > 0)
+        .map(cutAtTheJump);
+    }),
   ];
 };
 
@@ -220,4 +232,8 @@ export const doorCues = (): BellCue[] => [
   ...flapCues(),
   ...hangUpCues(),
   ...exitCues(),
+  ...blowCues(inTheFlur),
+  ...codaCues(),
 ];
+
+export const KLINGELSTURM_AMBIENCE = ambienceOf({ indoors: () => 1 });

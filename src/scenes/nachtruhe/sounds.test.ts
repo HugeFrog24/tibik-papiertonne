@@ -1,5 +1,6 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
+import { loopFiles } from "../../sound/IndoorLoop";
 import { expectFilesCredited } from "../../sound/creditChecks";
 import { ENTRANCE_X, FACADE_Z } from "../../street/building";
 import { RAIN } from "../../sound/rain";
@@ -14,7 +15,7 @@ import { curtainOpenAt } from "./bedroom";
 import { cameraAt, inTheBedroom } from "./cameras";
 import { nachtruheWorldAt } from "./choreography";
 import { BLACKBIRD, EPILOGUE_RAIN_START, HAUSTUER_FAR_OFF, NACHTRUHE_CUES, RAIN_FROM, footstepsByPlace, hushAt, rainLevelAt } from "./soundCues";
-import { CURTAIN_PULL, DAWN, DRONE, DUSK, ENTRY, LAMP_OFF, LAMP_ON, NACHTRUHE_DURATION } from "./timeline";
+import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, LAMP_OFF, LAMP_ON, NACHTRUHE_DURATION } from "./timeline";
 
 const frameOf = (t: number) => Math.round(t * FPS);
 
@@ -23,10 +24,8 @@ test("every cue has its file and every file is credited", () => {
   const steps = [...street.files, ...bedroom.files];
   const files = [
     ...NACHTRUHE_CUES.map((c) => c.file),
-    `${BLACKBIRD.file}.wav`,
-    `${BLACKBIRD.file}-muffled.wav`,
-    `${RAIN.file}.wav`,
-    `${RAIN.file}-muffled.wav`,
+    ...Object.values(loopFiles(BLACKBIRD.file)),
+    ...Object.values(loopFiles(RAIN.file)),
     ...steps,
   ];
   expectFilesCredited(files);
@@ -36,26 +35,28 @@ test("every cue has its file and every file is credited", () => {
   }
 });
 
-test("each click lands on the frame his hand presses the switch, the rings while the curtain moves", () => {
+test("each click lands on the frame his hand presses the switch, the gliders run with each pull of the curtain", () => {
   const clicks = NACHTRUHE_CUES.filter((c) => c.name.startsWith("His lamp clicks"));
   expect(clicks.map((c) => frameOf(c.at))).toEqual([frameOf(LAMP_OFF), frameOf(LAMP_ON)]);
   for (const click of clicks) {
     const f = frameOf(click.at);
     expect(nachtruheWorldAt(f / FPS).lamps[1], click.name).not.toBe(nachtruheWorldAt((f - 1) / FPS).lamps[1]);
   }
-  const rings = NACHTRUHE_CUES.find((c) => c.file === "curtain-gliders.wav")!;
-  expect(frameOf(rings.at)).toBe(frameOf(CURTAIN_PULL[0]));
-  expect(Math.abs(soundSeconds(rings.file) - (CURTAIN_PULL[1] - CURTAIN_PULL[0]))).toBeLessThan(1 / FPS);
-  expect(curtainOpenAt(rings.at + 0.1)).toBeGreaterThan(curtainOpenAt(rings.at));
-  expect(curtainOpenAt(CURTAIN_PULL[1] - 0.1)).toBeLessThan(curtainOpenAt(CURTAIN_PULL[1]));
+  const runs = NACHTRUHE_CUES.filter((c) => c.file === "curtain-gliders.wav");
+  expect(runs.map((c) => frameOf(c.at))).toEqual(CURTAIN_PULLS.map(([from]) => frameOf(from)));
+  for (const [from, to] of CURTAIN_PULLS) {
+    expect(Math.abs(soundSeconds("curtain-gliders.wav") - (to - from))).toBeLessThan(1 / FPS);
+    expect(curtainOpenAt(from + 0.1)).toBeGreaterThan(curtainOpenAt(from));
+    expect(curtainOpenAt(to - 0.1)).toBeLessThan(curtainOpenAt(to));
+  }
 });
 
 test("the rain does not jump at the cut into the epilogue", () => {
   expect(RAIN_FROM).toBe(DAWN[0]);
-  expect(soundSeconds(`${RAIN.file}.wav`)).toBe(RAIN.seconds);
-  expect(soundSeconds(`${RAIN.file}-muffled.wav`)).toBe(RAIN.seconds);
+  expect(soundSeconds(loopFiles(RAIN.file).open)).toBe(RAIN.seconds);
+  expect(soundSeconds(loopFiles(RAIN.file).muffled)).toBe(RAIN.seconds);
   const elapsed = (NACHTRUHE_FRAMES - frameOf(RAIN_FROM)) / FPS;
-  expect(EPILOGUE_RAIN_START).toBeCloseTo(elapsed % soundSeconds(`${RAIN.file}.wav`), 9);
+  expect(EPILOGUE_RAIN_START).toBeCloseTo(elapsed % soundSeconds(loopFiles(RAIN.file).open), 9);
   expect(rainLevelAt(NACHTRUHE_DURATION)).toBe(RAIN.volume);
 });
 
@@ -95,10 +96,10 @@ test("the Haustür sounds as in the epilogue, as far off as the dusk wide stands
 });
 
 test("the blackbird sings through the dusk and has fallen silent by the time his lamp goes off", () => {
-  const ends = soundSeconds(`${BLACKBIRD.file}.wav`);
+  const ends = soundSeconds(loopFiles(BLACKBIRD.file).open);
   expect(ends).toBeGreaterThan(DUSK[1]);
   expect(ends).toBeLessThan(LAMP_OFF);
-  expect(soundSeconds(`${BLACKBIRD.file}-muffled.wav`)).toBe(ends);
+  expect(soundSeconds(loopFiles(BLACKBIRD.file).muffled)).toBe(ends);
 });
 
 test("his steps patter on the pavement in the street and on the laminate in his bedroom, never one in a shot that does not show him", () => {

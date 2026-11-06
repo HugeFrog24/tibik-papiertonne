@@ -3,15 +3,20 @@ import { viewerLens, type Door } from "../../building/doors";
 import { FRAME_SIZE } from "../../dialogue/screen";
 import { floorLevel } from "../../street/building";
 import type { Vec3 } from "../../toon/primitives";
-import { camerasOf, type CameraSetup, type Shot } from "../hausmuell/cameras";
+import { camerasOf, storyTimeIn, type CameraSetup, type Shot } from "../../toon/shots";
+import { karenMouthEmitter } from "../../Karen/mouthEmitter";
+import { CODA, cigaretteFrame } from "./cigarette";
+import { cigaretteTip } from "../../props/cigaretteShape";
+import { STORY_SKIP } from "./light";
 import { Vector3 } from "three";
 import { lazy } from "../../physics/lazy";
 import { doorFrame } from "../../building/doors";
 import { mouthInWorld } from "../../dialogue/screen";
 import { RIG } from "../../Tibik/rig";
+import { BANGING } from "./banging";
 import { CLICK, KEYS, POCKET } from "./calls";
 import { AJAR_ANGLE, tibikAt } from "./door";
-import { TAPING } from "./parcel";
+import { TAPING, parcelBody } from "./parcel";
 import { KLINGELSTURM_DURATION, karenAt } from "./choreography";
 
 export const FRAME = FRAME_SIZE;
@@ -73,6 +78,19 @@ const GAP_SHOT = lazy((): CameraSetup => {
   };
 });
 
+const SMOKING_FOV = 32;
+
+const ON_HER_LATER = lazy((): CameraSetup => {
+  const mouth = karenMouthEmitter(karenAt(CODA.outAgain)).origin;
+  return { ...CODA_WIDE, target: [mouth.x, mouth.y, mouth.z] };
+});
+
+const AT_HER_MOUTH = lazy((): CameraSetup => {
+  const karen = karenAt(CODA.flick);
+  const between = karenMouthEmitter(karen).origin.lerp(cigaretteTip(cigaretteFrame(karen), 0), 0.5);
+  return { position: PHONE_EYE, target: [between.x, between.y, between.z], fov: SMOKING_FOV };
+});
+
 const DIALLING: readonly [number, number] = [
   KEYS[1].at - 0.15,
   KEYS[KEYS.length - 1].at + 0.3,
@@ -103,6 +121,13 @@ const FLUR_SHOT: CameraSetup = {
   target: [-4.3, FLOOR + 1.5, -8.7],
   fov: 62,
 };
+
+const FLUR_ON_THE_PARCEL = lazy((): CameraSetup => {
+  const between = parcelBody()
+    .center.clone()
+    .lerp(mouthInWorld(RIG, tibikAt(BANGING.flurCut[0])), 0.5);
+  return { ...FLUR_SHOT, target: [between.x, between.y, between.z] };
+});
 
 export const SHOTS: readonly Shot[] = [
   { name: "Wide: Klingelsturm", from: 0, to: BELL_CUT, at: () => WIDE },
@@ -136,6 +161,24 @@ export const SHOTS: readonly Shot[] = [
   {
     name: "Medium: the answering machine",
     from: TAPING_CUT[1],
+    to: BANGING.wideCut,
+    at: PHONE_SHOT,
+  },
+  {
+    name: "Wide: the banging",
+    from: BANGING.wideCut,
+    to: BANGING.flurCut[0],
+    at: () => WIDE,
+  },
+  {
+    name: "Flur: the banging",
+    from: BANGING.flurCut[0],
+    to: BANGING.flurCut[1],
+    at: FLUR_ON_THE_PARCEL,
+  },
+  {
+    name: "Medium: back to the phone",
+    from: BANGING.flurCut[1],
     to: DIALLING[1],
     at: PHONE_SHOT,
   },
@@ -148,9 +191,24 @@ export const SHOTS: readonly Shot[] = [
   {
     name: "Wide: the light goes out",
     from: CLICK,
-    to: KLINGELSTURM_DURATION,
+    to: CODA.mediumCut,
     at: () => CODA_WIDE,
   },
+  {
+    name: "Close-up: the cigarette",
+    from: CODA.mediumCut,
+    to: CODA.jumpCut,
+    at: AT_HER_MOUTH,
+  },
+  {
+    name: "Wide: later",
+    from: CODA.jumpCut,
+    to: KLINGELSTURM_DURATION,
+    story: CODA.jumpCut + STORY_SKIP,
+    at: ON_HER_LATER,
+  },
 ];
+
+export const storyTime = storyTimeIn(SHOTS);
 
 export const { shotAt, cameraAt } = camerasOf(SHOTS);

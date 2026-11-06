@@ -142,7 +142,7 @@ const LampLight: React.FC<{ readonly on: boolean; readonly reach: number }> = ({
     <>
       <primitive object={target} position={[0, 0, reach]} />
       <spotLight
-        position={[0, LAMP.height - 0.12, reach]}
+        position={[0, LAMP.height - LAMP.lightBelowTop, reach]}
         target={target}
         color={LAMP_LIGHT}
         intensity={lampGlow(on).light}

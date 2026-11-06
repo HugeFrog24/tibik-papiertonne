@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { fixed, type Shot } from "./cameras";
+import { fixed, type Shot } from "../../toon/shots";
 
 test("a fixed shot holds one camera for its whole length", () => {
   const at: Shot["at"] = fixed([1, 2, 3], [4, 5, 6], 45);

@@ -35,7 +35,7 @@ export const walkLeg = (walk: Walk, t: number, settle = true): Root => {
   return { x, z, yaw, y: stepLift(z, ...ONTO_THE_STEP) };
 };
 
-const shuffle = (t: number, span: readonly [number, number], from: Stand, to: Stand): Root => {
+export const shuffle = (t: number, span: readonly [number, number], from: Stand, to: Stand): Root => {
   const k = inWindow(t, span);
   const z = from.z + (to.z - from.z) * k;
   return { x: from.x + (to.x - from.x) * k, z, yaw: FACING_THE_WALL, y: stepLift(z, ...ONTO_THE_STEP) };

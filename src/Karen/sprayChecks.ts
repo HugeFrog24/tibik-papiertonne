@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { FRAME_SIZE, onScreen, seenBy } from "../dialogue/screen";
-import type { CameraSetup } from "../scenes/hausmuell/cameras";
+import type { CameraSetup } from "../toon/shots";
 import type { Placement } from "../characters/skeleton";
 import type { Line } from "../dialogue/line";
 import {

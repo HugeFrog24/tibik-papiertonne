@@ -1,6 +1,6 @@
 import { smoothstep } from "../characters/scalar";
 import type { ArmName, ArmPose } from "../characters/skeleton";
-import type { Vector3 } from "three";
+import { Matrix4, type Vector3 } from "three";
 import type { Obb, Solid } from "./collision";
 import { reachArm } from "./grip";
 import { guardArm, type Character } from "./guards";
@@ -16,6 +16,14 @@ export type Hold = {
   readonly pose?: ArmPose | ((t: number) => ArmPose);
   readonly near?: (t: number) => Vector3;
   readonly exact?: boolean;
+  readonly approach?: (u: number) => number;
+  readonly starts?: readonly ArmPose[];
+};
+
+export const followTheHand = (frame: Matrix4, hand: Vector3, near: Vector3, weight: number) => {
+  if (weight <= 0) return frame;
+  const miss = hand.clone().sub(near).multiplyScalar(weight);
+  return new Matrix4().makeTranslation(miss.x, miss.y, miss.z).multiply(frame);
 };
 
 export const handHold = ({
@@ -36,9 +44,11 @@ const HOLD_STARTS: ArmPose[] = [
   { raise: 0.8, out: 0.4, elbow: 0.2, inward: -0.3 },
 ];
 
+const startsOf = (...holds: readonly Hold[]): ArmPose[] => [...HOLD_STARTS, ...holds.flatMap((h) => h.starts ?? [])];
+
 const holdWeight = (hold: Hold, t: number) => {
   if (t < hold.grip)
-    return smoothstep((t - hold.reach) / (hold.grip - hold.reach));
+    return (hold.approach ?? smoothstep)((t - hold.reach) / (hold.grip - hold.reach));
   if (t <= hold.release) return 1;
   return 1 - smoothstep((t - hold.release) / (hold.done - hold.release));
 };
@@ -71,8 +81,11 @@ const reachFor = <C extends Character>(
         [],
         true,
       )
-    : reachArm(c, which, goal, solids, null, HOLD_STARTS);
+    : reachArm(c, which, goal, solids, null, startsOf(hold));
 };
+
+const straightBetween = (hold: Hold, next: Hold) =>
+  hold.exact === true && next.exact === true && hold.near !== undefined && next.near !== undefined && hold.pose === undefined && next.pose === undefined;
 
 const withArmPose = <C extends Character>(c: C, which: ArmName, arm: ArmPose): C => ({
   ...c,
@@ -90,6 +103,10 @@ export const workArm = <C extends Character>(
     .filter((h) => h.arm === which && t > h.reach && t < h.done)
     .sort((a, b) => a.reach - b.reach);
   if (!hold) return guardArm(c, solids, which);
+  if (next && next.reach >= hold.release && straightBetween(hold, next)) {
+    const between = hold.near!(Math.min(t, hold.release)).clone().lerp(next.near!(t), holdWeight(next, t));
+    return reachArm(c, which, between, solids, null, startsOf(hold, next));
+  }
   const reached = reachFor(c, which, t, solids, hold);
   if (next && next.reach >= hold.release) {
     const onward = reachFor(c, which, t, solids, next);

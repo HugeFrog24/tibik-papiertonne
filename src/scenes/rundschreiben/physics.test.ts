@@ -33,7 +33,10 @@ import { expectGoesIn, expectKeyTurnsByHand, keysAwayFromFist } from "../entryCh
 import { lensProblems, penetrations, seconds } from "../sceneChecks";
 import { cameraAt, shotAt } from "./cameras";
 import {
+  SIDESTEP,
+  tibikGait,
   BOX_OPEN,
+  BOX_PULLED_OPEN,
   BOX_SHUT,
   ENVELOPE_OUT,
   FLAP,
@@ -150,7 +153,9 @@ test("the key goes into his mailbox's lock and turns a quarter turn before the d
 
 test("the box door swings open on its hinge, pulled by the key in the lock, his left hand on the keys", () => {
   expect(solveRundschreiben(BOX_OPEN[0]).mailboxDoor).toBe(0);
-  expect(solveRundschreiben(BOX_OPEN[1]).mailboxDoor).toBeCloseTo(MAILBOX_DOOR.open, 9);
+  expect(solveRundschreiben(BOX_OPEN[1]).mailboxDoor).toBeCloseTo(BOX_PULLED_OPEN, 9);
+  expect(BOX_PULLED_OPEN).toBeLessThanOrEqual(MAILBOX_DOOR.open);
+  expect(BOX_PULLED_OPEN).toBeGreaterThanOrEqual((75 * Math.PI) / 180);
   let last = -1;
   for (const t of window(BOX_OPEN[0], BOX_OPEN[1])) {
     const { state, bow } = keyOf(t, "mailbox");
@@ -561,9 +566,11 @@ test("the house key turns back no faster than a hand turns a key", { timeout: 30
 });
 
 test("his left hand goes straight from one grip to the next, never dropping to his side in between", { timeout: 300_000 }, () => {
+  const { center, size } = mailboxInside();
+  const floor = center[1] - size[1] / 2 - 0.05;
   const low = window(KEY_IN, FLAP[0])
     .map((t) => ({ t, y: handOf(t, "leftArm").y }))
-    .filter(({ y }) => y < 0.92)
+    .filter(({ y }) => y < floor)
     .map(({ t, y }) => `${t.toFixed(2)} s: hand at ${y.toFixed(3)} m`);
   expect(low.slice(0, 6)).toEqual([]);
 });
@@ -571,4 +578,12 @@ test("his left hand goes straight from one grip to the next, never dropping to h
 test("the key he holds stays in his fist, carried or in a lock, except while it hangs in the open box", { timeout: 300_000 }, () => {
   const held = (t: number) => (t > BOX_OPEN[1] && t < BOX_SHUT[0] + 0.1 ? null : t < KEY_REGRIP ? "mailbox" : "house");
   expect(keysAwayFromFist(solveRundschreiben, frames, held).slice(0, 8)).toEqual([]);
+});
+
+test("he shuffles aside to read the letter, never hops: one foot is always on the ground", () => {
+  const { plants } = tibikGait();
+  for (let t = SIDESTEP[0]; t <= SIDESTEP[1] + 0.2; t += 1 / 60) {
+    const down = Object.values(plants).some((list) => list.some((p) => p.on <= t + 1e-9 && t <= p.off + 1e-9));
+    expect(down, t.toFixed(3)).toBe(true);
+  }
 });

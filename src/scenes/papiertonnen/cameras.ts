@@ -1,5 +1,5 @@
 import { ENTRANCE_X, FACADE_Z } from "../../street/building";
-import { camerasOf, type CameraSetup, type Shot } from "../hausmuell/cameras";
+import { camerasOf, type CameraSetup, type Shot } from "../../toon/shots";
 import {
   BIN_Z,
   PAPIERTONNEN_DURATION,

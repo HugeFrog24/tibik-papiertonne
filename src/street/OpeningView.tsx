@@ -5,6 +5,8 @@ import { ToonBox, drawnTexture, glowOf, type Glow } from "../toon/primitives";
 import {
   CURTAIN_SAND,
   FACADE_Z,
+  FRAME_BORDER,
+  OPENING_LAYERS,
   WINDOW,
   WINDOW_PAINT,
   openingFrame,
@@ -15,16 +17,8 @@ const TILTED_GLASS = "#557189";
 const ROOM_DARK = "#2a2d31";
 const CAFE_CURTAIN = "#efeee6";
 
-const LAYER = {
-  glass: 0.02,
-  curtain: 0.03,
-  shutter: 0.04,
-  bars: 0.05,
-  frame: 0.08,
-  handle: 0.095,
-  shutterBox: 0.11,
-};
-const BORDER = 0.085;
+const LAYER = OPENING_LAYERS;
+const BORDER = FRAME_BORDER;
 
 const BAR = { at: 0.28, width: 0.06 };
 const TILT = {

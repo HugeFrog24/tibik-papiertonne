@@ -4,6 +4,8 @@ import type { Vec3 } from "../toon/primitives";
 import {
   MAILBOXES,
   mailboxCellOf,
+  mailboxLockPx,
+  mailboxMetresPerPx,
   mailboxPlate,
   platePoint,
 } from "./layout";
@@ -17,7 +19,7 @@ export const MAILBOX_DOOR = {
   thickness: 0.002,
   lift: 0.0012,
   ink: 0.001,
-  lock: { fromEdge: 0.018, radius: 0.007, proud: 0.001 },
+  lock: { radius: 0.007, proud: 0.001 },
   wall: 0.001,
 };
 
@@ -52,11 +54,12 @@ export const mailboxDoorFrame = (angle: number) =>
 export const mailboxDoorSolid = (angle: number) =>
   doorLeaf(MAILBOX_DOOR_SPEC, angle);
 
-export const mailboxLockLocal = (): Vec3 => [
-  MAILBOX_DOOR_SPEC.width - MAILBOX_DOOR.lock.fromEdge,
-  MAILBOX_DOOR_SPEC.height / 2,
-  MAILBOX_DOOR.thickness / 2 + MAILBOX_DOOR.lock.proud,
-];
+export const mailboxLockLocal = (): Vec3 => {
+  const cell = mailboxCellOf(MAILBOX_DOOR.resident);
+  const lock = mailboxLockPx(cell);
+  const [sx, sy] = mailboxMetresPerPx();
+  return [(lock.x - cell.x) * sx, (cell.y + cell.h - lock.y) * sy, MAILBOX_DOOR.thickness / 2 + MAILBOX_DOOR.lock.proud];
+};
 
 export const mailboxKeyhole = (): Vec3 => {
   const p = new Vector3(...mailboxLockLocal()).applyMatrix4(

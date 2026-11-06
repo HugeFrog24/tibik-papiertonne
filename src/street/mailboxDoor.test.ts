@@ -62,10 +62,10 @@ const corners = (box: Obb) =>
     ),
   );
 
-test("the door is Tibik's box: row 3 right, over its painted cell", () => {
+test("the door is Tibik's box: row 5 left (1. OG links), over its painted cell", () => {
   expect(TIBIK).toBe(8);
-  expect(TIBIK % MAILBOX_GRID.cols).toBe(MAILBOX_GRID.cols - 1);
-  expect(Math.floor(TIBIK / MAILBOX_GRID.cols)).toBe(2);
+  expect(TIBIK % MAILBOX_GRID.cols).toBe(0);
+  expect(Math.floor(TIBIK / MAILBOX_GRID.cols)).toBe(4);
   const door = corners(mailboxDoorSolid(0));
   const cell = cellRect(TIBIK);
   const xs = door.map((p) => p.x);
@@ -129,11 +129,11 @@ test("the lock sits near the free edge where a key can reach it", () => {
   expect(Math.abs(key.y - door.center.y)).toBeLessThan(door.half[1]);
 });
 
-test("the envelope fits inside the box, standing on its long edge", () => {
+test("the envelope fits inside the box, lying flat", () => {
   const { center, size } = mailboxInside();
   expect(size[0]).toBeGreaterThanOrEqual(DL[0] + 0.005);
-  expect(size[1]).toBeGreaterThanOrEqual(DL[1] + 0.005);
-  expect(size[2]).toBeGreaterThan(0.05);
+  expect(size[2]).toBeGreaterThanOrEqual(DL[1] + 0.005);
+  expect(size[1]).toBeGreaterThan(0.05);
   const cell = cellRect(TIBIK);
   expect(center[0] - size[0] / 2).toBeGreaterThanOrEqual(cell.x0 - 1e-9);
   expect(center[0] + size[0] / 2).toBeLessThanOrEqual(cell.x1 + 1e-9);

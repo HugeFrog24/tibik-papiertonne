@@ -5,7 +5,7 @@ import { RIG } from "../../Tibik/rig";
 import { SWITCH_PRESS, bedroomAt, curtainGrip } from "./bedroom";
 import { ENTRANCE_X, FACADE_Z, flatWindow } from "../../street/building";
 import type { Vec3 } from "../../toon/primitives";
-import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../hausmuell/cameras";
+import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../../toon/shots";
 import { CURTAIN_PULL, DAWN, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, KAREN_OUT, LAMP_OFF, LAMP_ON, LAMP_ON_AT_DUSK, LIE_DOWN, MORNING, SIT_UP, WALK_ROUND } from "./timeline";
 
 export { NACHTRUHE_DURATION } from "./timeline";

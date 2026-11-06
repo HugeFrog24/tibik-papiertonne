@@ -2,7 +2,7 @@ import { Vector3 } from "three";
 import type { Hold } from "../../physics/holds";
 import { readWav } from "../../sound/wavFile";
 import { expect, test } from "vitest";
-import { CHEST, CHIME } from "../../building/flurShape";
+import { CHEST, CHIME, FLUR_SOLIDS } from "../../building/flurShape";
 import { doorFrame } from "../../building/doors";
 import { FLUR, TIBIK_DOOR } from "../../building/stairwell";
 import { mouthInWorld, seenBy } from "../../dialogue/screen";
@@ -22,14 +22,19 @@ import {
   PARCEL,
   TAPE,
   TAPE_ROLL,
+  TAPE_PUT_DOWN,
+  TAPE_STRIPS,
   TAPING,
-  TAPING_HOLDS,
+  TAPING_AGAIN,
   parcelBody,
   parcelClosedAt,
   parcelSolids,
+  stripPiecesAt,
   tapeRollSolid,
   tapeStripAt,
+  tapingHoldsOf,
 } from "./parcel";
+import { KLINGELSTURM_DURATION } from "./choreography";
 import { FOUND_KARTON_SIZE, PANEL } from "../../street/kartonShape";
 import { solveKlingelsturm, tibikViolations } from "./solve";
 import { mm } from "../sceneChecks";
@@ -48,6 +53,16 @@ const onTheChest = (center: readonly number[], size: readonly number[]) => {
     center[2] - size[2] / 2 >= z0 &&
     center[2] + size[2] / 2 <= z1
   );
+};
+
+const tibikThrough = (from: number, to: number) => {
+  const problems: string[] = [];
+  for (let f = from; f <= to; f++) {
+    const t = f / FPS;
+    for (const c of tibikViolations(solveKlingelsturm(t)))
+      if (c.depth > 0.005) problems.push(`${t.toFixed(2)} s: ${c.a} in ${c.b}`);
+  }
+  return problems.slice(0, 5);
 };
 
 test("the parcel stands on his chest of drawers, the book inside it, the tape dispenser beside it", () => {
@@ -93,14 +108,7 @@ test(
   "in his Flur Tibik passes through nothing, the parcel included",
   { timeout: 300_000 },
   () => {
-    const problems: string[] = [];
-    for (let f = 0; f <= 6 * FPS; f++) {
-      const t = f / FPS;
-      for (const c of tibikViolations(solveKlingelsturm(t)))
-        if (c.depth > 0.005)
-          problems.push(`${t.toFixed(2)} s: ${c.a} in ${c.b}`);
-    }
-    expect(problems.slice(0, 5)).toEqual([]);
+    expect(tibikThrough(0, 6 * FPS)).toEqual([]);
   },
 );
 
@@ -265,7 +273,7 @@ test("the strip is laid as he pulls: up one end, along the seam of the lid and d
   expect(length(TAPING.start - 0.01)).toBe(0);
   const full = FOUND_KARTON_SIZE[0] + 2 * PANEL + 2 * TAPE_ROLL.overhang;
   expect(length(TAPING.end)).toBeCloseTo(full, 3);
-  expect(length(60)).toBeCloseTo(full, 3);
+  expect(length(TAPING_AGAIN.start - 0.01)).toBeCloseTo(full, 3);
   let before = 0;
   for (let t = TAPING.start; t <= TAPING.end; t += 1 / FPS) {
     const now = length(t);
@@ -275,7 +283,7 @@ test("the strip is laid as he pulls: up one end, along the seam of the lid and d
   const lid = parcelBody();
   const top = lid.center.y + lid.half[1];
   const seam = lid.axes[2];
-  for (const piece of tapeStripAt(TAPING.end)) {
+  for (const piece of stripPiecesAt(TAPE_STRIPS[0], TAPING.end)) {
     expect(
       Math.abs(piece.center.clone().sub(lid.center).dot(seam)),
     ).toBeLessThan(0.002);
@@ -320,10 +328,74 @@ test(
   "he starts the tape with his left hand and hands the roll to his right over the middle of the lid",
   { timeout: 300_000 },
   () => {
-    expect(TAPING_HOLDS.map((h) => h.arm).sort()).toEqual([
+    const first = tapingHoldsOf(TAPE_STRIPS[0]);
+    expect(first.map((h) => h.arm).sort()).toEqual([
       "leftArm",
       "rightArm",
     ]);
-    expect(handsOff(TAPING_HOLDS).slice(0, 6)).toEqual([]);
+    expect(handsOff(first).slice(0, 6)).toEqual([]);
   },
 );
+
+const [, second] = TAPE_STRIPS;
+const piecesLength = (pieces: readonly Obb[]) => pieces.reduce((sum, piece) => sum + 2 * Math.max(...piece.half), 0);
+
+test("the second strip runs along the seam again, over the first and 15 mm towards him, along the lid's length and down both ends by the overhang", () => {
+  const lid = parcelBody();
+  const again = stripPiecesAt(second, TAPING_AGAIN.end);
+  expect(piecesLength(again)).toBeCloseTo(FOUND_KARTON_SIZE[0] + 2 * PANEL + 2 * TAPE_ROLL.overhang, 3);
+  for (const piece of again) expect(piece.center.clone().sub(lid.center).dot(lid.axes[2]), piece.name).toBeCloseTo(0.015, 4);
+  const firstTop = stripPiecesAt(TAPE_STRIPS[0], TAPING_AGAIN.end).find((p) => p.name === "tape along the lid")!;
+  const secondTop = again.find((p) => p.name.startsWith("tape along the lid"))!;
+  expect(secondTop.center.y - secondTop.half[1]).toBeGreaterThanOrEqual(firstTop.center.y + firstTop.half[1] - 1e-9);
+  expect(secondTop.center.y - secondTop.half[1] - (firstTop.center.y + firstTop.half[1])).toBeLessThan(0.0005);
+  const out = (piece: Obb) => piece.center.clone().sub(lid.center).dot(lid.axes[0]);
+  const ends = stripPiecesAt(TAPE_STRIPS[0], TAPING_AGAIN.end).filter((p) => !p.name.includes("along the lid"));
+  for (const end of again.filter((p) => !p.name.includes("along the lid"))) {
+    const under = ends.find((p) => Math.sign(out(p)) === Math.sign(out(end)))!;
+    expect(Math.abs(out(end)) - Math.abs(out(under)), end.name).toBeCloseTo(TAPE_ROLL.thickness, 6);
+  }
+});
+
+test("from TAPING_AGAIN.end on the parcel shows two strips, the carried parcel too", () => {
+  expect(stripPiecesAt(second, TAPING_AGAIN.start - 0.01)).toEqual([]);
+  expect(tapeStripAt(TAPING_AGAIN.start - 0.01)).toHaveLength(3);
+  for (const t of [TAPING_AGAIN.end, TAPING_AGAIN.done + 1, KLINGELSTURM_DURATION - 0.1]) {
+    const pieces = tapeStripAt(t);
+    expect(pieces, t.toFixed(2)).toHaveLength(6);
+    expect(new Set(pieces.map((p) => p.name)).size).toBe(6);
+  }
+});
+
+test("for the second strip he picks the roll up with his right hand where he put it down, and his left sets it back where it first stood", () => {
+  const at = (t: number) => tapeRollSolid(t).center;
+  const down = new Vector3(...TAPE_PUT_DOWN.center);
+  expect(at(TAPING.done).distanceTo(down)).toBeLessThan(1e-6);
+  expect(at(TAPING_AGAIN.at).distanceTo(down)).toBeLessThan(1e-6);
+  expect(at(TAPING_AGAIN.done).distanceTo(new Vector3(...TAPE.center))).toBeLessThan(1e-6);
+  expect(at(TAPING_AGAIN.start).distanceTo(down)).toBeGreaterThan(0.05);
+  const [starts, finishes] = tapingHoldsOf(second);
+  expect([starts.arm, finishes.arm]).toEqual(["rightArm", "leftArm"]);
+});
+
+test(
+  "his hands hold the roll and touch nothing else through the second taping",
+  { timeout: 300_000 },
+  () => {
+    expect(handsOff(tapingHoldsOf(second)).slice(0, 6)).toEqual([]);
+    expect(tibikThrough(Math.floor(TAPING_AGAIN.at * FPS), Math.ceil(TAPING_AGAIN.done * FPS))).toEqual([]);
+    const problems: string[] = [];
+    for (let t = TAPING_AGAIN.at; t <= TAPING_AGAIN.done; t += 1 / FPS)
+      for (const c of contacts([tapeRollSolid(t)], [...parcelSolids(1, t).filter((s) => !s.name.includes("tape")), ...FLUR_SOLIDS]))
+        if (c.depth > 0.002) problems.push(`${t.toFixed(2)} s: roll in ${c.b} by ${mm(c.depth)}`);
+    expect(problems.slice(0, 5)).toEqual([]);
+  },
+);
+
+test("the second strip screeches as it is pulled, and he leans over the parcel for it", () => {
+  const pulls = doorCues().filter((c) => c.sound === "flur/tape-pull");
+  expect(pulls).toHaveLength(2);
+  expect(pulls[1].at).toBeCloseTo(TAPING_AGAIN.start - 0.04, 6);
+  expect(shotAt(TAPING_AGAIN.start + 0.5).name).toMatch(/^Flur/);
+  expect(tibikAt((TAPING_AGAIN.pick + TAPING_AGAIN.down) / 2).pose.lean).toBeGreaterThan(0.2);
+});

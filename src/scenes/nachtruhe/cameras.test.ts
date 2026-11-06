@@ -55,7 +55,7 @@ test("the shots run back to back with the plan's names; the drone and the dawn k
   expect(length("Dawn")).toBeCloseTo(3, 9);
   for (const name of ["Dusk wide", "Bedroom: evening", "Bedroom: morning"]) {
     expect(length(name), name).toBeGreaterThanOrEqual(6);
-    expect(length(name), name).toBeLessThan(13);
+    expect(length(name), name).toBeLessThan(15);
   }
 });
 

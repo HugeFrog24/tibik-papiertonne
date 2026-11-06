@@ -20,12 +20,14 @@ import {
   DOME_LAMP,
   LAMPS,
   PANE,
+  INNER_GLASS,
   PILLOWS,
   RADIATOR,
   SMOKE_ALARM,
   bedroomParts,
   curtainPanels,
   type CurtainOpen,
+  daylightIn,
   type CurtainShape,
   type BedsideLamp,
 } from "./bedroomShape";
@@ -36,6 +38,7 @@ import { RoomSlabs } from "./RoomSlabs";
 
 const COLOURS = {
   leather: "#f1efea",
+  glass: "#dfe8ee",
   sheet: "#f7f6f2",
   cabinet: "#f4f3ef",
   radiator: "#f6f6f3",
@@ -338,6 +341,13 @@ const CeilingFittings: React.FC = () => (
   </group>
 );
 
+const InnerGlass: React.FC = () => (
+  <mesh position={[INNER_GLASS.x, INNER_GLASS.y, INNER_GLASS.z]} rotation={[0, Math.PI, 0]} userData={NO_INK}>
+    <planeGeometry args={[INNER_GLASS.w, INNER_GLASS.h]} />
+    <meshBasicMaterial color={COLOURS.glass} transparent opacity={INNER_GLASS.tint} depthWrite={false} />
+  </mesh>
+);
+
 export const Bedroom: React.FC<{
   readonly door: number;
   readonly lamps: readonly [boolean, boolean];
@@ -358,6 +368,7 @@ export const Bedroom: React.FC<{
     <CordSwitch />
     <Radiator />
     <Curtain open={curtain} daylight={daylight} streetGlow={streetGlow} />
+    <InnerGlass />
     <Pelmet />
     <CeilingFittings />
   </group>
@@ -371,9 +382,10 @@ export const BedroomLighting: React.FC<{
   readonly lamps: readonly [boolean, boolean];
   readonly daylight: number;
   readonly streetGlow: number;
-}> = ({ lamps, daylight, streetGlow }) => (
+  readonly curtain: CurtainOpen;
+}> = ({ lamps, daylight, streetGlow, curtain }) => (
   <>
-    <hemisphereLight args={["#cdd4dd", "#8a8072", NIGHT_FILL + (1 - NIGHT_FILL) * daylight]} />
+    <hemisphereLight args={["#cdd4dd", "#8a8072", NIGHT_FILL + (1 - NIGHT_FILL) * daylightIn(daylight, curtain)]} />
     {streetGlow > 0 ? (
       <pointLight
         position={[(PANE.x0 + PANE.x1) / 2, (PANE.y0 + PANE.y1) / 2, BEDROOM.z1 - STREET_GLOW.inside]}

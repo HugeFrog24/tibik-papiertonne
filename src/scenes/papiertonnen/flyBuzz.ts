@@ -1,4 +1,4 @@
-import { Vector3 } from "three";
+import { heardAt } from "../../sound/perspective";
 import { TONNE } from "../../street/tonneShape";
 import { cameraAt } from "./cameras";
 import { lidAt } from "./choreography";
@@ -10,15 +10,12 @@ export const flyBuzzSound = (fly: number) => `fly-buzz-${fly}`;
 
 export const buzzVolume = (fly: number, t: number) => {
   const { position } = flyAt(fly, t);
-  const distance = new Vector3(...position).distanceTo(
-    new Vector3(...cameraAt(t).position),
-  );
   const open = Math.min(1, lidAt(t) / BUZZ_LOUDNESS.flung);
   const muffled =
     position[1] < TONNE.height
       ? BUZZ_LOUDNESS.shut + (1 - BUZZ_LOUDNESS.shut) * open
       : 1;
   return (
-    BUZZ_LOUDNESS.full * Math.min(1, BUZZ_LOUDNESS.near / distance) * muffled
+    BUZZ_LOUDNESS.full * heardAt(position, cameraAt(t).position, BUZZ_LOUDNESS.near) * muffled
   );
 };

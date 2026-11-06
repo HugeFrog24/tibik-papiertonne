@@ -4,7 +4,8 @@ import { LAMP_LIGHT } from "../street/lamps";
 import { NO_INK } from "../toon/inkWidth";
 import type { Vec3 } from "../toon/primitives";
 import type { Drop } from "./rainDrops";
-import { FULL_DAYLIGHT, type RainLight } from "./rainLight";
+import type { WeatherLook } from "./overcast";
+import { rainLight, type RainLight } from "./rainLight";
 import { ribbon, streakOpacity } from "./rainStreaks";
 
 const STREAK = "#dfe6ec";
@@ -67,9 +68,10 @@ export const Rain: React.FC<{
   readonly drops: readonly Drop[];
   readonly eye: Vec3;
   readonly fov: number;
-  readonly light?: (p: Vec3) => RainLight;
-}> = ({ drops, eye, fov, light = FULL_DAYLIGHT }) => {
-  const geometry = useDisposable(() => ribbonGeometry(segmentsOf(drops, light), eye, fov), [drops, light, eye, fov]);
+  readonly look: WeatherLook;
+  readonly lampsOn: boolean;
+}> = ({ drops, eye, fov, look, lampsOn }) => {
+  const geometry = useDisposable(() => ribbonGeometry(segmentsOf(drops, rainLight(look, lampsOn)), eye, fov), [drops, look, lampsOn, eye, fov]);
   return (
     <mesh geometry={geometry} userData={NO_INK} renderOrder={RAIN_RIBBONS.renderOrder}>
       <meshBasicMaterial vertexColors transparent depthWrite={false} side={DoubleSide} />

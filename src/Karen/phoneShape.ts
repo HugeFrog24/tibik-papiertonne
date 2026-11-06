@@ -1,13 +1,11 @@
+import type { PropPlace } from "../characters/propPlace";
 import { aroundCorner } from "../physics/gripPath";
 import { OUTLINE, type Vec3 } from "../toon/primitives";
 import { KAREN_SKELETON } from "./rig";
 
 export const PHONE = { size: [0.055, 0.12, 0.016] as Vec3, ink: 0.004 };
 
-export type PhonePlace = {
-  readonly position: Vec3;
-  readonly rotation: Vec3;
-};
+export type PhonePlace = PropPlace;
 
 export const PHONE_AT_POCKET: PhonePlace = {
   position: [-0.52, 0.12, 0.28],

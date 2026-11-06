@@ -2,6 +2,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { AddEquation, Color, CustomBlending, DataTexture, LinearFilter, Matrix4, Mesh, OneFactor, PerspectiveCamera, Plane, RedFormat, ShaderMaterial, SrcColorFactor, UnsignedByteType, Vector3, Vector4, WebGLRenderTarget, ZeroFactor } from "three";
 import { NO_INK } from "../toon/inkWidth";
+import { aimLens } from "../toon/shots";
 import { PUDDLES } from "../weather/overcast";
 import type { WeatherLook } from "../weather/overcast";
 import { RAIN_SHADOW, rainShadowMask, wetShade } from "../weather/rainShadow";
@@ -196,16 +197,7 @@ export const WetGround: React.FC<{ readonly look: WeatherLook; readonly time: nu
     gl.setClearColor(new Color(0, 0, 0), 0);
     for (const mirror of mirrors) {
       const view = mirrorCamera({ position: camera.position.toArray(), target: ahead.toArray(), up: camera.up.toArray() }, mirror.y);
-      const lens = mirror.lens;
-      lens.fov = camera.fov;
-      lens.aspect = camera.aspect;
-      lens.near = camera.near;
-      lens.far = camera.far;
-      lens.position.set(...view.position);
-      lens.up.set(...view.up);
-      lens.lookAt(...view.target);
-      lens.updateProjectionMatrix();
-      lens.updateMatrixWorld();
+      const lens = aimLens(mirror.lens, { ...view, fov: camera.fov }, { aspect: camera.aspect, near: camera.near, far: camera.far });
       mirror.matrix.copy(BIAS).multiply(lens.projectionMatrix).multiply(lens.matrixWorldInverse);
       mirror.target.setSize(width, height);
       gl.clippingPlanes = [new Plane(new Vector3(0, 1, 0), -(mirror.y + 0.002))];

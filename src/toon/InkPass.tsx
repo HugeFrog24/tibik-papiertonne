@@ -17,7 +17,7 @@ import {
   type Object3D,
 } from "three";
 import { FISHEYE, fisheyeTargetSize } from "./fisheye";
-import { INK_PASS, inkRadius, skipsInkIds } from "./inkWidth";
+import { INK_PASS, inkOf, inkRadius, skipsInkIds } from "./inkWidth";
 import { OUTLINE } from "./primitives";
 
 const QUAD_VERTEX =
@@ -35,8 +35,9 @@ const ID_VERTEX = [
 
 const ID_FRAGMENT = [
   "uniform float uId;",
+  "uniform float uInk;",
   "varying float vDepth;",
-  "void main() { gl_FragColor = vec4(uId, vDepth, 0.0, 1.0); }",
+  "void main() { gl_FragColor = vec4(uId, vDepth, uInk, 1.0); }",
 ].join("\n");
 
 const RINGS = INK_PASS.rings.map((r) => r.toFixed(2)).join(", ");
@@ -48,6 +49,7 @@ const COMPOSITE = [
   "uniform float inkPerDepth;",
   "uniform float maxRadius;",
   "uniform float jump;",
+  "uniform float outline;",
   "uniform vec3 ink;",
   "uniform vec3 haze;",
   "uniform float hazeDensity;",
@@ -78,14 +80,16 @@ const COMPOSITE = [
   "    for (int k = 0; k < TURNS; k++) {",
   "      float a = 6.2831853 * (float(k) + 0.5 * float(ring)) / float(TURNS);",
   "      vec4 there = texture2D(idMap, uv + vec2(cos(a), sin(a)) * reach * texel);",
-  "      if (there.r < 0.5 || abs(there.r - here.r) < 0.5) continue;",
+  "      if (there.r < 0.5 || abs(there.r - here.r) < 0.5 || there.b < 0.0) continue;",
   "      if (there.g > depth - jump) continue;",
-  "      if (reach <= min(maxRadius, inkPerDepth / there.g)) {",
+  "      float own = there.b > 0.0 ? there.b / outline : 1.0;",
+  "      if (reach <= min(maxRadius, own * inkPerDepth / there.g)) {",
   "        inked = 1.0;",
   "        inkDepth = min(inkDepth, there.g);",
   "      }",
   "    }",
   "  }",
+  "  if (here.b < 0.0) inked = 0.0;",
   "  vec4 base = texture2D(colourMap, uv);",
   "  float hazed = 1.0 - exp(-hazeDensity * hazeDensity * inkDepth * inkDepth);",
   "  vec3 colour = mix(base.rgb, mix(ink, haze, hazed), inked);",
@@ -106,7 +110,7 @@ const idMaterialFor = (
   from: Material,
 ) => {
   const material = new ShaderMaterial({
-    uniforms: { uId: { value: inkIdOf(mesh) } },
+    uniforms: { uId: { value: inkIdOf(mesh) }, uInk: { value: inkOf(mesh) } },
     vertexShader: ID_VERTEX,
     fragmentShader: ID_FRAGMENT,
     side: from.side,
@@ -140,6 +144,7 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
         inkPerDepth: { value: 1 },
         maxRadius: { value: INK_PASS.maxRadius },
         jump: { value: INK_PASS.jump },
+        outline: { value: OUTLINE },
         ink: { value: new Color(INK_PASS.ink) },
         haze: { value: new Color() },
         hazeDensity: { value: 0 },

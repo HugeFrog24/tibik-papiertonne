@@ -29,7 +29,9 @@ export const SIT_UP = after(BLANKET_BACK[1] + 0.2, 1.3);
 export const SWING_OUT = after(SIT_UP[1] + 0.1, 1);
 export const HOP_DOWN = after(SWING_OUT[1] + 0.2, 0.5);
 export const WALK_ROUND = after(HOP_DOWN[1] + 0.1, 3.2);
-export const CURTAIN_PULL = after(WALK_ROUND[1] + 0.3, 1.2);
+const CURTAIN_STROKE = { pull: 0.6, back: 0.45 };
+export const CURTAIN_PULLS = [0, 1, 2].map((k) => after(WALK_ROUND[1] + 0.3 + k * (CURTAIN_STROKE.pull + CURTAIN_STROKE.back), CURTAIN_STROKE.pull));
+export const CURTAIN_PULL = [CURTAIN_PULLS[0][0], CURTAIN_PULLS[CURTAIN_PULLS.length - 1][1]] as const;
 export const MORNING = [DAWN[1], CURTAIN_PULL[1] + 0.8] as const;
 
 export const NACHTRUHE_DURATION = MORNING[1];

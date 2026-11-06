@@ -1,3 +1,4 @@
+import { ambienceOf } from "../../street/sceneAmbience";
 import { throughTheWalls } from "../../sound/IndoorLoop";
 import { KEY_APPROACH } from "../../props/keyRingShape";
 import type { FileCue } from "../../sound/SoundCues";
@@ -52,3 +53,5 @@ export const RUNDSCHREIBEN_CUES: readonly FileCue[] = [
   { name: "Lid thuds shut", at: LID_THUD, file: "impactSoft_heavy_000.ogg", volume: 0.9 },
   ...entryCues(ENTRY),
 ];
+
+export const RUNDSCHREIBEN_AMBIENCE = ambienceOf({ indoors: heardIndoorsAt });

@@ -80,6 +80,29 @@ export const TAPING = {
   done: 20.3,
 };
 
+export const TAPING_AGAIN = {
+  at: 32.2,
+  pick: 32.45,
+  start: 32.8,
+  handover: 33.7,
+  end: 34.6,
+  down: 35.0,
+  done: 35.3,
+};
+
+export type TapeStrip = {
+  readonly name: string;
+  readonly times: typeof TAPING;
+  readonly layer: number;
+  readonly aside: number;
+  readonly mirrored: boolean;
+};
+
+export const TAPE_STRIPS: readonly TapeStrip[] = [
+  { name: "along the seam", times: TAPING, layer: 0, aside: 0, mirrored: false },
+  { name: "over the first", times: TAPING_AGAIN, layer: 1, aside: 0.015, mirrored: true },
+];
+
 export const AT_THE_CHEST = {
   x: chestFront + 0.4,
   z: PARCEL.position[2],
@@ -185,11 +208,12 @@ export const PACKING_HOLDS: readonly Hold[] = [
   flapHold("the near long flap", "rightArm", (c) => c.near, NEAR, 0.6, -0.9),
 ];
 
-const L = w + 2 * PANEL;
 const R = TAPE_ROLL.radius + TAPE_ROLL.clearance;
 const OH = TAPE_ROLL.overhang;
 const ARC = (R * Math.PI) / 2;
+const L = w + 2 * PANEL;
 const PATH = 2 * OH + L + 2 * ARC;
+const layerOf = (strip: TapeStrip) => strip.layer * TAPE_ROLL.thickness;
 
 const lidTop = lazy(() => {
   const up = new Vector3(0, 1, 0);
@@ -213,8 +237,13 @@ const lidTop = lazy(() => {
   );
 });
 
-const along = (p: number) => {
-  const T = lidTop();
+const mirror = (strip: TapeStrip, at: { x: number; y: number; normal: number }) =>
+  strip.mirrored ? { x: -at.x, y: at.y, normal: Math.PI - at.normal } : at;
+
+const along = (strip: TapeStrip, p: number) => mirror(strip, pathPoint(strip, p));
+
+const pathPoint = (strip: TapeStrip, p: number) => {
+  const T = lidTop() + layerOf(strip);
   if (p <= OH) return { x: -L / 2 - R, y: T - OH + p, normal: Math.PI };
   if (p <= OH + ARC) {
     const a = Math.PI - (p - OH) / R;
@@ -229,15 +258,16 @@ const along = (p: number) => {
   return { x: L / 2 + R, y: T - (p - OH - 2 * ARC - L), normal: 0 };
 };
 
-const pulled = (t: number) => PATH * inWindow(t, [TAPING.start, TAPING.end]);
+const pulled = (strip: TapeStrip, t: number) =>
+  PATH * inWindow(t, [strip.times.start, strip.times.end]);
 
 const FLAT = new Quaternion().setFromEuler(new Euler(-Math.PI / 2, 0, 0));
 const parcelTurn = lazy(() =>
   new Quaternion().setFromEuler(new Euler(...PARCEL.rotation)),
 );
 
-const onTheLid = (x: number, y: number, normal: number) => ({
-  position: new Vector3(x, y, 0).applyMatrix4(parcelFrame()),
+const onTheLid = (strip: TapeStrip, x: number, y: number, normal: number) => ({
+  position: new Vector3(x, y, strip.aside).applyMatrix4(parcelFrame()),
   turn: parcelTurn()
     .clone()
     .multiply(
@@ -265,35 +295,43 @@ const blend = (
 const TEAR = 0.15;
 const BESIDE = 0.04;
 
+const stripAt = (t: number) =>
+  TAPE_STRIPS[t < TAPING_AGAIN.at ? 0 : 1];
+
 const rollAt = (t: number) => {
-  if (t < TAPING.start) {
-    const start = along(0);
-    const beside = onTheLid(start.x - BESIDE, start.y, start.normal);
-    const lifted = TAPING.pick + 0.7 * (TAPING.start - TAPING.pick);
+  const strip = stripAt(t);
+  const { pick, start, end: last, down } = strip.times;
+  const from = strip.mirrored ? TAPE_PUT_DOWN : TAPE;
+  const to = strip.mirrored ? TAPE : TAPE_PUT_DOWN;
+  const away = strip.mirrored ? -1 : 1;
+  if (t < start) {
+    const first = along(strip, 0);
+    const beside = onTheLid(strip, first.x - away * BESIDE, first.y, first.normal);
+    const lifted = pick + 0.7 * (start - pick);
     return t < lifted
-      ? blend(resting(TAPE), beside, inWindow(t, [TAPING.pick, lifted]))
+      ? blend(resting(from), beside, inWindow(t, [pick, lifted]))
       : blend(
           beside,
-          onTheLid(start.x, start.y, start.normal),
-          inWindow(t, [lifted, TAPING.start]),
+          onTheLid(strip, first.x, first.y, first.normal),
+          inWindow(t, [lifted, start]),
         );
   }
-  if (t <= TAPING.end) {
-    const at = along(pulled(t));
-    return onTheLid(at.x, at.y, at.normal);
+  if (t <= last) {
+    const at = along(strip, pulled(strip, t));
+    return onTheLid(strip, at.x, at.y, at.normal);
   }
-  const end = along(PATH);
-  const torn = onTheLid(end.x + 0.03, end.y + 0.02, 0);
-  if (t <= TAPING.end + TEAR)
+  const final = along(strip, PATH);
+  const torn = onTheLid(strip, final.x + away * 0.03, final.y + 0.02, final.normal);
+  if (t <= last + TEAR)
     return blend(
-      onTheLid(end.x, end.y, 0),
+      onTheLid(strip, final.x, final.y, final.normal),
       torn,
-      inWindow(t, [TAPING.end, TAPING.end + TEAR]),
+      inWindow(t, [last, last + TEAR]),
     );
   return blend(
     torn,
-    resting(TAPE_PUT_DOWN),
-    inWindow(t, [TAPING.end + TEAR, TAPING.down]),
+    resting(to),
+    inWindow(t, [last + TEAR, down]),
   );
 };
 
@@ -310,28 +348,31 @@ export const tapeRollSolid = (t: number): Obb =>
   ]);
 
 const stripPiece = (
+  strip: TapeStrip,
   name: string,
   center: readonly [number, number],
   size: readonly [number, number],
 ): Obb =>
   obb(
-    name,
+    strip.layer > 0 ? `${name}, again` : name,
     parcelFrame(),
     [size[0], size[1], TAPE_ROLL.width],
-    [center[0], center[1], 0],
+    [strip.mirrored ? -center[0] : center[0], center[1], strip.aside],
   );
 
-export const tapeStripAt = (t: number): Obb[] => {
-  const p = pulled(t);
-  const T = lidTop();
+export const stripPiecesAt = (strip: TapeStrip, t: number): Obb[] => {
+  const p = pulled(strip, t);
+  const T = lidTop() + layerOf(strip);
+  const out = layerOf(strip);
   const th = TAPE_ROLL.thickness;
   const pieces: Obb[] = [];
   const up = Math.min(OH, p);
   if (up > 0)
     pieces.push(
       stripPiece(
+        strip,
         "tape up the start end",
-        [-L / 2 - th / 2, T - OH + up / 2],
+        [-L / 2 - out - th / 2, T - OH + up / 2],
         [th, up],
       ),
     );
@@ -339,47 +380,54 @@ export const tapeStripAt = (t: number): Obb[] => {
   if (top > 0)
     pieces.push(
       stripPiece(
+        strip,
         "tape along the lid",
         [-L / 2 + top / 2, T + th / 2],
         [top, th],
       ),
     );
-  const down = clamp(p - OH - 2 * ARC - L, 0, OH);
-  if (down > 0)
+  const fall = clamp(p - OH - 2 * ARC - L, 0, OH);
+  if (fall > 0)
     pieces.push(
       stripPiece(
+        strip,
         "tape down the far end",
-        [L / 2 + th / 2, T - down / 2],
-        [th, down],
+        [L / 2 + out + th / 2, T - fall / 2],
+        [th, fall],
       ),
     );
   return pieces;
 };
+
+export const tapeStripAt = (t: number): Obb[] =>
+  TAPE_STRIPS.flatMap((strip) => stripPiecesAt(strip, t));
 
 const onTop = (t: number) =>
   new Vector3(0, 0, 0)
     .applyMatrix4(tapeRollFrame(t))
     .add(new Vector3(0, TAPE_ROLL.radius, 0));
 
-export const TAPING_HOLDS: readonly Hold[] = [
+export const tapingHoldsOf = ({ name, times, mirrored }: TapeStrip): Hold[] => [
   {
-    name: "the tape roll, started with the left hand",
-    arm: "leftArm",
-    reach: TAPING.at,
-    grip: TAPING.pick,
-    release: TAPING.handover + 0.05,
-    done: TAPING.handover + 0.35,
+    name: `the tape roll ${name}, started with the ${mirrored ? "right" : "left"} hand`,
+    arm: mirrored ? "rightArm" : "leftArm",
+    reach: times.at,
+    grip: times.pick,
+    release: times.handover + 0.05,
+    done: times.handover + 0.35,
     target: tapeRollSolid,
     near: onTop,
   },
   {
-    name: "the tape roll, taken over by the right hand",
-    arm: "rightArm",
-    reach: TAPING.handover - 0.3,
-    grip: TAPING.handover - 0.05,
-    release: TAPING.down,
-    done: TAPING.done,
+    name: `the tape roll ${name}, taken over by the ${mirrored ? "left" : "right"} hand`,
+    arm: mirrored ? "leftArm" : "rightArm",
+    reach: times.handover - 0.3,
+    grip: times.handover - 0.05,
+    release: times.down,
+    done: times.done,
     target: tapeRollSolid,
     near: onTop,
   },
 ];
+
+export const TAPING_HOLDS: readonly Hold[] = TAPE_STRIPS.flatMap(tapingHoldsOf);

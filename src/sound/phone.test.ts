@@ -1,13 +1,13 @@
 import { expect, test } from "vitest";
 import { bellRings } from "../scenes/klingelsturm/choreography";
+import { peakOf } from "./toneChecks";
 import { readWav, tonePower as power } from "./wavFile";
 
 const BELL_HZ = 680;
 
 test("the bell is a loud 680 Hz square wave: odd harmonics at 1/3, 1/5 of the fundamental, no even ones", () => {
   const { rate, samples } = readWav("phone/bell.wav");
-  const peak = samples.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
-  expect(peak).toBeGreaterThan(0.8);
+  expect(peakOf(samples)).toBeGreaterThan(0.8);
   const at = (n: number) => power(samples, rate, 0.1, 1.1, n * BELL_HZ);
   const db = (n: number) => 10 * Math.log10(at(n) / at(1));
   expect(Math.abs(db(3) - 20 * Math.log10(1 / 3))).toBeLessThan(1.5);

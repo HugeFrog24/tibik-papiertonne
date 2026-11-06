@@ -66,5 +66,23 @@
       "license": "CC0 1.0 (public domain)",
       "source": "https://freesound.org/people/squashy555/sounds/341675/"
     }
+  ],
+  "cigarette": [
+    {
+      "file": "cigarette-ignition.ogg",
+      "title": "Cigarette, Ignition",
+      "author": "Joseph Sardin (BigSoundBank)",
+      "license": "CC0 (public domain)",
+      "source": "https://bigsoundbank.com/cigarette-ignition-s2131.html"
+    }
+  ],
+  "breath": [
+    {
+      "file": "sigh-by-the-mouth.ogg",
+      "title": "Sigh by the Mouth",
+      "author": "Joseph Sardin (BigSoundBank)",
+      "license": "CC0 (public domain)",
+      "source": "https://bigsoundbank.com/sound-1405-soupirer-par-la-bouche.html"
+    }
   ]
 }

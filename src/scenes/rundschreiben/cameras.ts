@@ -9,7 +9,7 @@ import {
 } from "../../props/letterShape";
 import { FRAME_SIZE } from "../../dialogue/screen";
 import type { Vec3 } from "../../toon/primitives";
-import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../hausmuell/cameras";
+import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../../toon/shots";
 import {
   FOLD,
   REACT,
@@ -93,7 +93,7 @@ export const SHOTS: readonly RundschreibenShot[] = [
     name: "Mailbox",
     from: AT_MAILBOX,
     to: OPENING,
-    at: fixed([-3.7, 1.6, -0.5], [-2.75, 1.15, -2.0], 40),
+    at: fixed([-3.9, 1.5, -0.45], [-2.95, 1.02, -1.8], 40),
   },
   {
     name: "Opening",

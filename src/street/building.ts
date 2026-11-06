@@ -34,6 +34,16 @@ export const WINDOW = {
   frame: [1.15, 1.4, 0.08] as Vec3,
   sill: { offset: [0, -0.74, 0.1] as Vec3, size: [1.3, 0.05, 0.2] as Vec3 },
 };
+export const OPENING_LAYERS = {
+  glass: 0.02,
+  curtain: 0.03,
+  shutter: 0.04,
+  bars: 0.05,
+  frame: 0.08,
+  handle: 0.095,
+  shutterBox: 0.11,
+};
+export const FRAME_BORDER = 0.085;
 export const WINDOW_PAINT = { frame: "#f6f5f0", glass: "#6d8ba3", shutter: "#c9c6bf", lit: "#ffc98a" };
 export const BALCONY_DOOR = { frame: [1.0, 2.2, 0.08] as Vec3 };
 export const STAIR_WINDOW = { frame: [0.8, 1.1, 0.08] as Vec3 };

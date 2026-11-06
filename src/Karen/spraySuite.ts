@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import type { Placement } from "../characters/skeleton";
 import type { Solid } from "../physics/collision";
-import type { CameraSetup } from "../scenes/hausmuell/cameras";
+import type { CameraSetup } from "../toon/shots";
 import type { Burst, Flight, SprayFrame } from "./spray";
 import { SPITTLE, type Spike } from "./spittle";
 import { atFrame } from "../frameRate";

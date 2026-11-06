@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { RATE, decode } from "./sfx-audio.mjs";
+import { decode, passage } from "./sfx-audio.mjs";
 import { writeWithMuffled } from "./ambience-loop.mjs";
 import { withScratch } from "./scratch.mjs";
 
@@ -12,10 +12,6 @@ const PEAK = 0.8;
 const recordings = JSON.parse(readFileSync(path.join(RECORDINGS, "recordings.json"), "utf8"));
 const [recording] = recordings.blackbird;
 withScratch("blackbird-", (scratch) => {
-  const samples = decode(path.join(RECORDINGS, recording.file), scratch);
-  const length = Math.round(PASSAGE.seconds * RATE);
-  const start = Math.round(PASSAGE.from * RATE);
-  const envelope = (t) => Math.min(1, t / PASSAGE.fadeIn, (PASSAGE.seconds - t) / PASSAGE.fadeOut);
-  const data = [Float32Array.from({ length }, (_, i) => (samples[start + i] ?? 0) * envelope(i / RATE))];
-  writeWithMuffled("blackbird", { length, data }, PEAK);
+  const samples = passage(decode(path.join(RECORDINGS, recording.file), scratch), PASSAGE);
+  writeWithMuffled("blackbird", { length: samples.length, data: [samples] }, PEAK);
 });

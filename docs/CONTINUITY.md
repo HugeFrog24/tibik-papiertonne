@@ -88,9 +88,15 @@ Items marked **(test)** are enforced by `npm test`.
   the pavement and the road; nothing above the head is lit. **(test)**
 - **Entrance:** a Türsprechanlage: a speaker grille and microphone above a bell
   button for every flat's surname (Tibik lives here; the handsets are in the flats),
-  a mailbox unit with a "Bitte keine Werbung!" sticker (on Schulz's box; a
-  yellow pizza flyer sticks out of Krause's slot, Tibik's box is empty), and a blue
-  house-number sign. Doors are reached by a step; there is no porch. A
+  a surface-mounted mailbox unit like KNOBLOCH's 12-box one with horizontal
+  boxes (755 × 666 × 270 mm, two columns of six 370 × 110 mm doors, one row
+  per storey from the 5. OG at the top to the EG at the bottom, links left and
+  rechts right): every door has a full-width flap hinged at its top with a lip
+  at its foot over a 335 × 33 mm slot (EN 13724; every slot 0.70-1.70 m above
+  the pavement), its lock at the bottom right by the free edge and its name tag
+  at the bottom left **(test)**; a "Bitte keine Werbung!" sticker on Schulz's
+  box; a yellow pizza flyer stuck in Krause's slot props its flap open
+  **(test)**; Tibik's box is empty; and a blue house-number sign. Doors are reached by a step; there is no porch. A
   60 × 40 cm anthracite mat in an aluminium frame is set flush into the step in
   front of the Haustür; feet walk over it at step height. **(test)**
   An anthracite wall lamp with a motion sensor hangs over the mailboxes,
@@ -156,9 +162,13 @@ composition under "Scenes" in the Studio:
   three into a DL envelope; its wording is the spec's, word for word.
   **(test)** It is read only in point-of-view inserts, at least 40 px per line
   of type, and the punchline stays out of the first insert. **(test)**
-- His mailbox is the empty one, row 3 right, in the unit left of the Haustür;
-  his key turns a quarter turn and the box door swings open on its hinge.
-  **(test)**
+- His mailbox is the empty one, row 5 left (1. OG links), in the unit left of
+  the Haustür; his key turns a quarter turn and he pulls the box door open by
+  it on its left hinge to about 80° (its stop is at 100°; 80° lets the
+  envelope slide out past the door), lets go and brings his hand round the
+  door's edge to the envelope, and later shuts the door by the key; with the
+  key out he shuffles three short steps to his right, clear of the unit, to
+  open and read the letter. **(test)**
 - From outside he unlocks the Haustür with his house key, pulls it open by the
   key while stepping back off the step, sidesteps round the open leaf and
   walks in; the closer shuts it behind him, and the street and the rain
@@ -206,9 +216,31 @@ composition under "Scenes" in the Studio:
   dispatcher has the last word. Misusing 110 is an offence (§ 145 StGB), so
   the dispatcher stays calm and asks what the emergency is. After hanging up
   she lowers the phone to her belly.
+- **She pounds on his door between the two calls** (a Ruhestörung in the
+  strict sense; nobody mentions it, the circular included). After the
+  answering machine she tucks the phone back into her trouser pocket, stomps
+  back to his door, stands where she rang and pounds with the side of her
+  left fist 1.35 m up, 8 cm in from the latch edge (well clear of the
+  spyhole): four blows 0.4 s apart, a beat of 1.0 s, two more. Each blow is a
+  strike from a fist drawn back by her head (at least 20 cm of swing,
+  1.5 m/s or more at the leaf), touches the leaf (0-2 mm) and never goes past
+  it. **(test)** In the beat she squares up, her left foot stepping out to her
+  wide stance. **(test)** Back at her door she draws the phone again, her hand
+  on its grip whenever she holds it. **(test)** The
+  locked leaf gives at most 2 mm at its latch edge (the play in the strike
+  plate) and is still again 0.1 s later. **(test)** The Wide shows the first
+  four, his Flur the last two: Tibik calm at the chest, unbothered. Then she
+  walks back, raises the phone and dials 110. Everything after the hang-up
+  starts 6.9 s later than before. **(test)**
 - His Flur: a chest of drawers by the door. He packs the found Karton with a
   paperback and tapes it shut with 50 mm packing tape on a 76 mm core, which
-  stays on the chest. Beside his door, on the latch side, a white rocker
+  stays on the chest. While Karen pounds on his door he lays a second strip
+  over the first along the seam, 15 mm towards him, right hand to left this
+  time (the roll lies where his right hand put it down), and sets the roll
+  back where it first stood; the parcel shows both strips from then on, in
+  his arms too. **(test)** (A strip across the first would need the far side
+  of the parcel, 0.69 m from his shoulder; he reaches 0.46 m.) Beside his
+  door, on the latch side, a white rocker
   light switch at 1.05 m, 15 cm from the door (DIN 18015-3 zone ZS-t). **(test)**
 - **Stairwell light:** a 180 s timer, switched on downstairs inside the time
   jump. It runs out about 2 s after the dispatcher's last word and gives **no
@@ -225,6 +257,61 @@ composition under "Scenes" in the Studio:
   down the stairs without the rail. The parcel rides on his forearm at
   shoulder height: his arms are too short to hold it at the hip. **(test)**
   Karen stands aside at her door and turns to watch him go.
+- **Her cigarette (Klingelsturm coda):** once he is down the stairs she puts
+  the phone back in her pocket; at the cut into the close-up a king-size
+  cigarette sits in the right corner of her mouth (5 mm between her lips,
+  angled down and to her right) and a plain red disposable lighter stands up
+  out of her right fist. She turns her head towards it, flicks (the wheel
+  throws four tiny sparks sideways for two frames, clear of her face and the
+  cigarette, as the flame catches), draws twice
+  (the tip catches on the first draw), lets the flame die, and the lighter
+  goes into her pocket. Where both came from is never shown. **(test)** She
+  smokes hands-free, the cigarette staying in her mouth corner to the end:
+  her arms can't bring a hand to the middle of her face (her shoulders sit
+  half a metre either side of it), so nobody holds it to her lips. **(test)**
+  The flame stands upright, lights her face at about a ceiling lamp's
+  strength, and dies down rather than vanishing; the ember brightens on each
+  draw and its light reaches 14 cm, her lips, nose tip and chin. **(test)**
+  The cigarette and lighter draw their own thin lines (2 mm and 3 mm) in the
+  ink pass, and the flame blocks the ink, so no line crosses it.
+- **The hidden jump in the Klingelsturm:** the close-up cuts to the wide about
+  2 min 50 s later (story time runs 170 s ahead of film time after the cut):
+  the cigarette has burned 8 mm a minute since it was lit (5-7 min for a
+  cigarette), about 23 mm by the second timeout, with a short ash tip. The
+  180 s timer he restarted runs out on her exactly then: the damp relay
+  click, no warning blink, and the landing drops to the windows' daylight
+  as at the first timeout (the stairwell light rule above), the ember
+  glowing in her mouth corner. Tibik is out of every
+  shot from the cut into the close-up. **(test)** The circular in the epilogue
+  stays silent on her pounding and her smoking.
+- **Her smoke:** cartoon curls, light grey with an ink shell drawn behind
+  every fill (so overlapping curls merge into one outlined cloud), fading out
+  over 3-3.5 s: a thin wisp rising from the ember whenever it is lit, and her
+  exhales from the other corner of her mouth, blown up and off to her left so
+  her face stays clear. Each curl ages in story time, so nothing from before
+  the jump is left after it, but the wisp has risen all through the skipped
+  minutes, so the column stands steady from the first frame after the jump;
+  a few faint flat wisps of different sizes then hang around her at forehead
+  height, where exhaled smoke settles in a stairwell's still, warmer-above
+  air. Curls never pass into the stairwell or her and spread flat under a
+  ceiling they reach; in the dark they show at 40 %. **(test)**
+- **The coda's sounds:** all through the stairwell's reverb. His steps go on
+  down the flight after he is out of shot, one per footfall, quieter with his
+  distance from the camera (full level within 2.5 m, then falling as 1/r)
+  and further away in sound too: between 2.5 and 5 m they cross over to a
+  far take whose direct sound is dulled (the flight between him and the
+  camera) and whose echo is stronger (loudness, direct-to-echo balance and
+  dullness are how we hear distance in a room); they stop at the jump cut,
+  already faint; the Haustür far below isn't heard
+  (he reaches it in the skipped minutes). Her phone going into her pocket
+  rustles; the lighter's flint wheel strikes on the flick, the gas hisses
+  quietly exactly while the flame burns and the lever snaps back as she lets
+  go (the spark lands on the flick frame); each draw crackles from its start
+  to its end, she inhales from each drag to its exhale (before the jump and
+  in the dark), and each exhale is a long unvoiced breath. The hiss is a
+  steady rush with no audible loop. No
+  sound from before the jump runs over the jump cut, and none runs over the
+  cut into Nachtruhe. **(test)**
 
 ## His bedroom (Nachtruhe)
 
@@ -254,7 +341,9 @@ composition under "Scenes" in the Studio:
   spare; opened, each bunches at its own wall, clear of the window. The gap
   between the bed and the curtains (47 cm) is too narrow for him: he reaches
   the window only from the corner at the bed's foot and opens the near panel
-  there (user decision). Their folds deepen as they bunch but never touch the
+  there (user decision), hand over hand: three short pulls by its fabric, the
+  edge moving only as far as his hand, the near half about two thirds open
+  (user decision). Their folds deepen as they bunch but never touch the
   radiator or the cabinet. From the street he sees exactly what hangs behind
   the pane. **(test)**
 - **Light:** evening: the two lamps; night: dark, a faint orange street glow
@@ -467,6 +556,39 @@ Ideas (proposed, not built; the user picks):
   drone shot (needs a blind on her window first).
 - The kerb by the house: a small chip off its top edge where a wheel bumped it,
   pale stone under the grey, seen only in a street lamp's pool at night.
+- The wet street: one car parked after the rain set in stands on wet road
+  while the others keep a dry patch under them; the gutter band along each
+  kerb a shade darker and glossier (the road drains to the gullies); the
+  road's sealed joint and the patches' sealed edges shine a touch more; the
+  sand joints between the paving slabs stay darker, and one slab by the step
+  has sunk a few millimetres and holds a thin sheet that mirrors more; at the
+  dawn the first drops freckle the dry slabs with dark dots before the ground
+  closes wet; under the street tree fewer, fatter drips, the ground wetting
+  later and patchily.
+- Rain on the house: slow fat drips from the balcony slabs' fronts, the sills
+  and the dish's rim, out of step with the rain; a shallow pond by the roof's
+  outlet showing rings; rain ticking on the bin lids, the mailbox top and the
+  car roofs apart from the hiss; at the dawn the first drops heard one by one
+  before the hiss fills in.
+- The curtain: the fabric's swish a few frames before the gliders run (the
+  hand takes up the slack first); a soft clatter as the last gliders knock
+  together at the end cap.
+- The blackbird: a few soft roosting calls after its song, before silence; now
+  and then a second one answering faintly from down the street, heard only
+  outside.
+- The bed and the lamp: a softer settling creak a moment after he sits (the
+  slats take the weight after the frame), another as he sits up; the cord
+  switch clicking brighter one way than the other; the warm LED bulb lighting
+  a few frames after the press and fading over two or three; a tiny tick as the
+  loose switch body settles.
+- The street at night: a parked car's alarm LED blinking red behind its
+  windscreen; the bell panel's name fields faintly lit, one dark from a dead
+  LED; two or three moths in the nearer lamp cones; now and then one far-off
+  car swelling past on the cross street within the hush.
+- Too clean, by the rule above: his footsteps rotate their four takes strictly
+  in turn (a seeded order without immediate repeats would hide it); rain rings
+  spread at every hit, where real rings form only on standing water (a small
+  crown splash elsewhere).
 - The doormat lies slightly askew in front of the Haustür, where feet kick it.
 - The mailbox name labels differ: printed, handwritten, one a little crooked
   or sun-faded.
@@ -495,6 +617,17 @@ Ideas (proposed, not built; the user picks):
   run-off from the reflector).
 - The bins' stickers lift at one corner (damp and daily handling).
 - The mailbox name cards are slightly wavy where damp swelled them.
+- A neighbour's flap or two hangs 1-2 degrees open, or has one corner bent a
+  millimetre proud where a thick catalogue was forced through.
+- A fine ring of key scratches circles Tibik's lock, brightest below the
+  keyhole where a key tip slips while finding it in the dark.
+- The "Keine Werbung!" sticker lifts at one corner, and a flyer's corner pokes
+  out from under a neighbour's flap (pushed in anyway).
+- Krause's pizza flyer two weeks on: the same flyer props the same flap in
+  Papiertonnen and in Rundschreiben. Either Krause is away and the box shows
+  it (the flyer rain-limp, a second flyer and a free weekly paper pushed in
+  beside it, the flap standing wider), or someone has taken it and the flap
+  rests shut.
 - One street lamp in the row glows a shade cooler than the others: its LED
   module was swapped after a fault (visible only at night).
 - A few dead moths and some dust lie in the stairwell lamp's diffuser (the
@@ -560,6 +693,35 @@ Ideas (proposed, not built; the user picks):
 - How he lies: a degree or two off the bed's axis, his folded arms a few
   degrees apart, his feet falling out unevenly; sitting, one foot hangs a
   little ahead of the other.
+- Her pounding: where each blow lands and how her arm swings vary by 1-2 cm
+  (an angry arm never repeats); each blow's take in a seeded order with no
+  immediate repeat, levels about 1 dB apart, the last two a touch softer
+  (her arm tiring); his leaf knocks once on its strike plate after the last
+  blow; afterwards she shakes out her hand; her phone's backlight has timed
+  out while it hangs at her side and lights up again on her first "1".
+- His second strip: it drifts 1-2 mm off the seam and its start end is cut
+  slightly skew (laid while she pounds); the roll's torn-off tail stands up
+  a couple of millimetres, curled.
+- Her cigarette: the burn front a few degrees off square (the upper side of
+  the drooping cigarette burns about 1 mm ahead, a thin char ring), the ember
+  cone 1-2 mm longer on one side and the ash leaning a degree or two (a
+  loosely packed cigarette burns unevenly); the filter end slightly
+  damp-darkened where her lips hold it; after the jump it droops a degree or
+  two lower (the filter softens between her lips over three minutes).
+- Her lighter: the red corners scuffed paler from her pocket, a faint soot
+  shadow on the hood by the nozzle, the wheel's knurl brighter where her
+  thumb rolls it; while she lights up it stands a few degrees off plumb and
+  turned a little towards her face (a fist from below never holds it square
+  to the room).
+- Her smoke: the wisp's puffs bunch and thin by about 10 % on a seeded
+  pattern (uneven burning).
+- The coda's sounds: each draw's crackle starts from a different point of
+  the recording (the first, as the paper catches, thinner; the later one
+  fuller); the gas hiss dips or flutters slightly during the draws (the draw
+  pulls the flame to the tip); the second exhale is a different, shorter and
+  lazier breath than the first.
+- Story changes (only if you want them): the first strike doesn't catch; a
+  throat-clear after the exhale.
 
 ## Continuity between scenes
 
@@ -572,7 +734,9 @@ Ideas (proposed, not built; the user picks):
   Papier 1 still overfull.
 - **Declared time jumps:** Hausmuell → Klingelsturm, Klingelsturm → Nachtruhe
   and Nachtruhe → Rundschreiben are the named exceptions to "each scene starts
-  where the previous one ended" (`TIME_JUMPS` in src/timeline.ts); inside
+  where the previous one ended" (`TIME_JUMPS` in src/timeline.ts); inside the
+  Klingelsturm the cut from her lighting up to the wide skips about 170 s
+  (story time, `storyTimeIn` in src/toon/shots.ts); inside
   Nachtruhe the shots skip through the evening and night, and its dawn is the
   one time-lapse that takes the story two weeks on. **(test)**
   Klingelsturm starts with Tibik inside, his door shut and latched, Karen on

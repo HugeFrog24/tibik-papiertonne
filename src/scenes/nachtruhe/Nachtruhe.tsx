@@ -20,7 +20,6 @@ import { DayLight } from "../../weather/DayLight";
 import { daylightOf } from "../../weather/overcast";
 import { Rain } from "../../weather/Rain";
 import { rainAt, viewOf } from "../../weather/rainDrops";
-import { rainLight } from "../../weather/rainLight";
 import { streetSolids } from "../streetSolids";
 import { blanketLie } from "./bedroom";
 import { CAPTION, cameraAt, inTheBedroom, lightingAt } from "./cameras";
@@ -48,7 +47,8 @@ const Outside: React.FC<{ readonly t: number; readonly state: NachtruheState }> 
         drops={rainAt(t, cameraAt(t).position, streetSolids(state), [], { share: state.rain, view: viewOf(cameraAt(t)) })}
         eye={cameraAt(t).position}
         fov={cameraAt(t).fov}
-        light={rainLight(state.look, state.lampsOn)}
+        look={state.look}
+        lampsOn={state.lampsOn}
       />
     ) : null}
   </>
@@ -84,7 +84,7 @@ const Lighting: React.FC<{ readonly t: number }> = ({ t }) => {
   return (
     <>
       {lit.street ? <StreetLighting look={state.look} /> : null}
-      {lit.bedroom ? <BedroomLighting {...roomLight(state)} /> : null}
+      {lit.bedroom ? <BedroomLighting {...roomLight(state)} curtain={state.curtains} /> : null}
     </>
   );
 };

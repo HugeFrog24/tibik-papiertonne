@@ -18,7 +18,7 @@ export const PHONE_AT_MOUTH: PhonePlace = {
 };
 
 export const PHONE_AT_HIP: PhonePlace = {
-  position: [-0.26, 0.36, 0.42],
+  position: [-0.22, 0.36, 0.42],
   rotation: [0.3, Math.PI, Math.PI],
 };
 
@@ -72,7 +72,7 @@ const FIST_REACH =
 
 export const PALM: Vec3 = [
   0,
-  -0.03,
+  -0.025,
   -(
     PHONE.size[2] / 2 +
     PHONE.ink +

@@ -10,6 +10,7 @@ import {
   type Sphere,
 } from "../physics/collision";
 import type { Vec3 } from "../toon/primitives";
+import { sphereLattice } from "./scalar";
 
 export type ArmPose = {
   readonly raise: number;
@@ -52,12 +53,21 @@ export type Placement = {
   readonly tilt?: number;
 };
 
+export type Swell = {
+  readonly at: readonly [number, number];
+  readonly width: number;
+  readonly above: number;
+  readonly below: number;
+  readonly height: number;
+};
+
 export type Skeleton = {
   readonly hipHeight: number;
   readonly neckHeight: number;
   readonly torso: {
     readonly profile: readonly (readonly [number, number])[];
     readonly depthScale: number;
+    readonly bulges?: readonly Swell[];
   };
   readonly head: readonly {
     readonly name: string;
@@ -185,7 +195,42 @@ export const torsoRadiusAt = (skeleton: Skeleton, y: number) => {
   };
 };
 
-const torsoDepth = (skeleton: Skeleton, local: Vector3, radius: number) => {
+const HANG = { above: 1.2, below: 0.75, blend: 4 };
+
+const swell = (dx: number, dy: number, b: Swell) => {
+  const r2 = (dx / b.width) ** 2 + (dy / (dy >= 0 ? b.above : b.below)) ** 2;
+  return r2 >= 1 ? 0 : b.height * (1 - r2) ** (dy >= 0 ? HANG.above : HANG.below);
+};
+
+export const bustLift = (skeleton: Skeleton, x: number, y: number) =>
+  (skeleton.torso.bulges ?? []).reduce((sum, b) => sum + swell(x - b.at[0], y - b.at[1], b) ** HANG.blend, 0) ** (1 / HANG.blend);
+
+export const torsoSurface = (skeleton: Skeleton, p: Vector2, angle: number) => {
+  const x = p.x * Math.cos(angle);
+  return new Vector3(
+    x,
+    p.y,
+    p.x * skeleton.torso.depthScale * Math.sin(angle) + bustLift(skeleton, x, p.y) * Math.max(0, Math.sin(angle)),
+  );
+};
+
+const SLOPE_STEP = 0.005;
+
+const unswollen = (skeleton: Skeleton, local: Vector3) => {
+  const scaled = Math.hypot(local.x, local.z / skeleton.torso.depthScale);
+  const lift = local.z > 0 && scaled > 0 ? bustLift(skeleton, local.x, local.y) : 0;
+  if (lift <= 0) return { local, steepness: 1 };
+  const frontness = local.z / skeleton.torso.depthScale / scaled;
+  const dx = (bustLift(skeleton, local.x + SLOPE_STEP, local.y) - bustLift(skeleton, local.x - SLOPE_STEP, local.y)) / (2 * SLOPE_STEP);
+  const dy = (bustLift(skeleton, local.x, local.y + SLOPE_STEP) - bustLift(skeleton, local.x, local.y - SLOPE_STEP)) / (2 * SLOPE_STEP);
+  return {
+    local: new Vector3(local.x, local.y, local.z - lift * frontness),
+    steepness: Math.sqrt(1 + (dx * frontness) ** 2 + (dy * frontness) ** 2),
+  };
+};
+
+const torsoDepth = (skeleton: Skeleton, point: Vector3, radius: number) => {
+  const { local, steepness } = unswollen(skeleton, point);
   const s = skeleton.torso.depthScale;
   const scaled = Math.hypot(local.x, local.z / s);
   const { radius: surface, slope } = torsoRadiusAt(skeleton, local.y);
@@ -194,7 +239,7 @@ const torsoDepth = (skeleton: Skeleton, local: Vector3, radius: number) => {
   }
   const squash = scaled > 0 ? Math.hypot(local.x, local.z) / scaled : 1;
   const distance = ((scaled - surface) / Math.sqrt(1 + slope * slope)) * squash;
-  return radius - distance;
+  return radius - distance / steepness;
 };
 
 const frames = (skeleton: Skeleton, placement: Placement) => {
@@ -358,7 +403,7 @@ type Ring = {
   readonly radius: number;
   readonly centers: readonly (readonly [number, number, number])[];
 };
-type TorsoRings = { readonly lower: Ring[]; readonly upper: Ring[] };
+type TorsoRings = { readonly lower: Ring[]; readonly upper: Ring[]; readonly bust: Ring[] };
 const ringCache = new WeakMap<Skeleton, TorsoRings>();
 const LOWEST = 10;
 const MIDDLE = 24;
@@ -406,9 +451,46 @@ const torsoRings = (skeleton: Skeleton): TorsoRings => {
   const rings = {
     lower: between(LOWEST, MIDDLE).map(ringAt),
     upper: between(MIDDLE, HIGHEST).map(ringAt),
+    bust: bustBalls(skeleton),
   };
   ringCache.set(skeleton, rings);
   return rings;
+};
+
+const BUST_BALL = { radii: [0.085, 0.07, 0.055, 0.04], step: 0.065, least: 0.01, poke: 0.01 };
+
+const SPHERE_POINTS = sphereLattice(64).map(({ polar, azimuth }) => new Vector3().setFromSphericalCoords(1, polar, azimuth));
+
+const pokesOut = (skeleton: Skeleton, center: Vector3, radius: number) =>
+  Math.max(...SPHERE_POINTS.map((d) => torsoClearance(skeleton, center.clone().addScaledVector(d, radius))));
+
+const swollenFront = (skeleton: Skeleton, x: number, y: number) => {
+  const r = torsoRadiusAt(skeleton, y).radius;
+  if (Math.abs(x) >= r) return null;
+  const plain = Math.sqrt(r * r - x * x);
+  return plain * skeleton.torso.depthScale + (bustLift(skeleton, x, y) * plain) / r;
+};
+
+const bustBalls = (skeleton: Skeleton): Ring[] => {
+  const bulges = skeleton.torso.bulges ?? [];
+  if (bulges.length === 0) return [];
+  const xs = [Math.min(...bulges.map((b) => b.at[0] - b.width)), Math.max(...bulges.map((b) => b.at[0] + b.width))];
+  const ys = [Math.min(...bulges.map((b) => b.at[1] - b.below)), Math.max(...bulges.map((b) => b.at[1] + b.above))];
+  const grid = ([from, to]: number[]) => Array.from({ length: Math.ceil((to - from) / BUST_BALL.step) + 1 }, (_, i) => from + i * BUST_BALL.step);
+  const centers = grid(xs).flatMap((x) =>
+    grid(ys).flatMap((y) => {
+      const z = swollenFront(skeleton, x, y);
+      if (z === null || bustLift(skeleton, x, y) < BUST_BALL.least) return [];
+      const zx = ((swollenFront(skeleton, x + SLOPE_STEP, y) ?? z) - (swollenFront(skeleton, x - SLOPE_STEP, y) ?? z)) / (2 * SLOPE_STEP);
+      const zy = ((swollenFront(skeleton, x, y + SLOPE_STEP) ?? z) - (swollenFront(skeleton, x, y - SLOPE_STEP) ?? z)) / (2 * SLOPE_STEP);
+      const normal = new Vector3(-zx, -zy, 1).normalize();
+      const at = (radius: number) => new Vector3(x, y, z).addScaledVector(normal, -radius);
+      const radius = BUST_BALL.radii.find((r) => pokesOut(skeleton, at(r), r) <= BUST_BALL.poke) ?? BUST_BALL.radii[BUST_BALL.radii.length - 1];
+      const c = at(radius);
+      return [{ radius, centers: [[c.x, c.y, c.z] as const] }];
+    }),
+  );
+  return centers;
 };
 
 const ringSpheres = (rings: readonly Ring[], torso: Matrix4) =>
@@ -432,9 +514,9 @@ export const bodyColliders = (
 ): BodyColliders => {
   const { pose } = placement;
   const { body, torso, head } = frames(skeleton, placement);
-  const { lower, upper } = torsoRings(skeleton);
+  const { lower, upper, bust } = torsoRings(skeleton);
   const lowerTorso = ringSpheres(lower, torso);
-  const upperTorso = ringSpheres(upper, torso);
+  const upperTorso = [...ringSpheres(upper, torso), ...ringSpheres(bust, torso)];
   return {
     torso: [...lowerTorso, ...upperTorso.slice(upper[0].centers.length)],
     lowerTorso,
@@ -538,7 +620,8 @@ export const boxIntoTorso = (
 export const torsoDepthAt = (skeleton: Skeleton, local: Vector3) =>
   torsoDepth(skeleton, local, 0);
 
-export const torsoClearance = (skeleton: Skeleton, local: Vector3) => {
+export const torsoClearance = (skeleton: Skeleton, point: Vector3) => {
+  const { local, steepness } = unswollen(skeleton, point);
   const s = skeleton.torso.depthScale;
   const scaled = Math.hypot(local.x, local.z / s);
   const squash = scaled > 0 ? Math.hypot(local.x, local.z) / scaled : 1;
@@ -567,7 +650,7 @@ export const torsoClearance = (skeleton: Skeleton, local: Vector3) => {
     )
       inside = !inside;
   }
-  return (inside ? -nearest : nearest) * squash;
+  return ((inside ? -nearest : nearest) * squash) / steepness;
 };
 
 export const carriedBox = (

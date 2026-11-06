@@ -33,7 +33,7 @@ export const SHIVER = { edge: 0.002, settle: 0.1 };
 
 export const BANG_READY: ArmPose = { raise: 1.7, out: 0.5, elbow: 2.3, inward: 0.3 };
 
-const BLOW_ARM: ArmPose = { raise: 1.25, out: 0.6, elbow: 1.1, inward: 0.45 };
+const BLOW_ARM: ArmPose = { raise: 1.44, out: 0.55, elbow: 1.82, inward: 0.75 };
 
 const shiverOf = (u: number) => (u > 0 && u < 1 ? Math.sin(Math.PI * u) : 0);
 

@@ -80,7 +80,7 @@ export const bellStorm = () => {
 const BUTTON = new Vector3(...doorbellButtonCenter(TIBIK_DOOR)).applyMatrix4(
   doorFrame(TIBIK_DOOR, 0),
 );
-const BELL_ARM = { raise: 1.5, out: 0.8, elbow: 1.55, inward: 0.5 };
+const BELL_ARM = { raise: 1.5, out: 0.8, elbow: 1.55, inward: 0.9 };
 
 const OUTWARD = landingNormal(TIBIK_DOOR);
 
@@ -188,11 +188,10 @@ const SHOUTED = LINES.filter((line) => line.tone === "shout");
 const speaking = speakingIn(SHOUTED);
 const yellingAmount = speakingAmountIn(SHOUTED);
 
-export const KAREN_AT_DOOR: Vec3 = [-2.77, 0, -9.2];
+export const KAREN_AT_DOOR: Vec3 = [-2.76, 0, -9.2];
 const DOOR_FACE: Vec3 = [-3.2, 0, -9.2];
 const PANT = 0.9;
-const RIGHT_ARM_TUCKED = { ...KAREN_ARM_REST, out: 0.45 };
-const RIGHT_ARM_IN = { ...KAREN_ARM_REST, out: 0.3 };
+const RIGHT_HAND_ON_HER_BELLY = { raise: 0.9, out: 0.7, elbow: 1.2, inward: 2.2 };
 
 export const STEP_BACK: readonly [number, number] = [
   STORM.until,
@@ -317,7 +316,7 @@ export const karenAt = (t: number): KarenFrame => {
       [3.1, 7.2, 9.9, 13.8, 18.6, 22.3, 26.0, later(33.1), later(38.5), later(44.6), later(47.4)],
     ),
     leftArm: blendArm(KAREN_ARM_REST, BANG_READY, fistReady(t)),
-    rightArm: blendArm(RIGHT_ARM_TUCKED, RIGHT_ARM_IN, handsFree(t)),
+    rightArm: blendArm(KAREN_ARM_REST, RIGHT_HAND_ON_HER_BELLY, handsFree(t)),
   });
   const placed = { position, rotationY: root.yaw, pose: limitKarenHead(karenTurnedTo({ position, rotationY: root.yaw, pose }, hisHeadAt(t), following, FOLLOWING.turn)) };
   return {

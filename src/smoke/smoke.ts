@@ -1,5 +1,6 @@
 import { Matrix4, Vector3 } from "three";
 import { collide, nearby, obb, type Obb, type Solid, type Sphere } from "../physics/collision";
+import { GOLDEN_ANGLE } from "../characters/scalar";
 
 export const SMOKE = {
   wispEvery: 0.15,
@@ -47,7 +48,6 @@ export type SmokeScene = {
 };
 
 const UP = new Vector3(0, 1, 0);
-const GOLDEN = 2.399963;
 
 export const curlSize = ({ radius, flat }: Pick<Curl, "radius" | "flat">, grow = 0) => {
   const xz = radius * (1 + (SMOKE.flatten.xz - 1) * flat) + grow;
@@ -148,7 +148,7 @@ const trackOf = (scene: SmokeScene, source: SmokeSource, which: number, born: nu
   const track: Track = {
     states: [{ center: start, radius: radiusAt(source, 0), flat: 0 }],
     direction: (source.direction?.(at) ?? UP).clone().normalize(),
-    phase: index * GOLDEN,
+    phase: index * GOLDEN_ANGLE,
     near: nearby(scene.solids, start, SMOKE.reach),
     born,
   };

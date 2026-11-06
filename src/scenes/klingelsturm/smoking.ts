@@ -11,7 +11,7 @@ import { karenAt } from "./choreography";
 import { CODA, ashAt, burnedAt, cigaretteFrame, lighterFrame } from "./cigarette";
 
 const HAND = Math.max(...KAREN_SKELETON.hand.size);
-const HELD_GAP = 0.0005;
+const HELD_GAP = 0.0015;
 const REACH = 0.3;
 const SEARCH = 0.3;
 
@@ -38,7 +38,7 @@ export const standOff = (box: Obb, from: Vector3, direction: Vector3, radius: nu
   return from.clone().addScaledVector(direction, far);
 };
 
-const LIGHTER_ARM: ArmPose = { raise: 1.1, out: 0.3, elbow: 1.9, inward: 1.0 };
+const LIGHTER_ARM: ArmPose = { raise: 1.4, out: 0.86, elbow: 2.01, inward: 1.29 };
 
 const UNDER_THE_LIGHTER = { right: 0.55, down: 0.75, forward: 0.35 };
 

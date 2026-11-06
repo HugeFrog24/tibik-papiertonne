@@ -64,8 +64,8 @@ test("Karen's nose is fat and potato-shaped: a lumpy, flared bulb on her centre 
   expect(NOSE.flare).toBeGreaterThan(0);
   const [left, right] = extent((v) => v.x);
   const [bottom, top] = extent((v) => v.y);
-  expect(right - left).toBeGreaterThan(0.06);
-  expect(top - bottom).toBeGreaterThan(0.03);
+  expect(right - left).toBeGreaterThan(0.05);
+  expect(top - bottom).toBeGreaterThan(0.025);
   expect(Math.abs(right + left)).toBeLessThan(0.006);
   const tip = Math.max(...skinPoints().map((v) => v.z - faceDepth(v.x, v.y)));
   expect(tip).toBeGreaterThan(0.022);

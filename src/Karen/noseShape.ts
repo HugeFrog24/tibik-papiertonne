@@ -17,7 +17,7 @@ export const NOSE = {
   ink: 0.009,
   colour: "#eeb39c",
   center: [AT[0], AT[1], faceDepth(AT[0], AT[1]) + 0.006] as Vec3,
-  size: [0.027, 0.0155, 0.024] as Vec3,
+  size: [0.0229, 0.0132, 0.0204] as Vec3,
   flare: 0.3,
   taper: 0.25,
   bumps: [

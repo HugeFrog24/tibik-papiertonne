@@ -6,6 +6,7 @@ import {
   bodyColliders,
   torsoProfile,
   torsoRadiusAt,
+  torsoSurface,
   type Pose,
   type Skeleton,
 } from "./skeleton";
@@ -42,11 +43,7 @@ const worstUncovered = (skeleton: Skeleton, pose: Pose) => {
     if (p.x < 0.05) continue;
     for (let k = 0; k < 72; k++) {
       const a = (k / 72) * 2 * Math.PI;
-      const point = new Vector3(
-        p.x * Math.cos(a),
-        skeleton.hipHeight + p.y,
-        p.x * skeleton.torso.depthScale * Math.sin(a),
-      );
+      const point = torsoSurface(skeleton, p, a).add(new Vector3(0, skeleton.hipHeight, 0));
       const gap = Math.min(
         ...spheres.map((s) => point.distanceTo(s.center) - s.radius),
       );
@@ -61,7 +58,7 @@ const worstUncovered = (skeleton: Skeleton, pose: Pose) => {
 };
 
 test.each(characters)(
-  "%s: the collision spheres cover the drawn torso to within 2 cm",
+  "%s: the collision spheres cover the drawn torso, bust and all, to within 2 cm",
   (_name, skeleton, pose) => {
     const worst = worstUncovered(skeleton, pose);
     expect(worst.gap, worst.at).toBeLessThanOrEqual(0.02);

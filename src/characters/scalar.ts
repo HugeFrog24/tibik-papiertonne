@@ -21,4 +21,12 @@ export const lerpVec3 = (
 
 export const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 
+export const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+export const sphereLattice = (points: number) =>
+  Array.from({ length: points }, (_, k) => ({
+    polar: Math.acos(1 - (2 * (k + 0.5)) / points),
+    azimuth: wrapAngle(k * GOLDEN_ANGLE),
+  }));
+
 export const round6 = (v: number) => Math.round(v * 1e6) / 1e6;

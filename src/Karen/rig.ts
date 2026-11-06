@@ -1,7 +1,7 @@
 import { Euler, Matrix4, Vector3 } from "three";
 import { eulerFromBasis } from "../toon/orient";
 import { restPose } from "../characters/legs";
-import { wrapAngle } from "../characters/scalar";
+import { sphereLattice } from "../characters/scalar";
 import type { ArmPose, Pose, Skeleton } from "../characters/skeleton";
 import type { Vec3 } from "../toon/primitives";
 import { SCALP, hairlinePolar } from "./scalpShape";
@@ -42,7 +42,7 @@ const fromHead = ([x, y, z]: Vec3): Vec3 => [
   HEAD_CENTER[2] + z,
 ];
 
-const JOWL: Vec3 = [0.108, -0.075, 0.03];
+const JOWL: Vec3 = [0.0994, -0.075, 0.03];
 
 const hair = (
   name: HairPiece["name"],
@@ -271,7 +271,6 @@ const outerLock = (
 };
 
 const LATTICE = { points: 64, inside: -0.05 };
-const GOLDEN = Math.PI * (3 - Math.sqrt(5));
 const SHADES = [0, 1, -1];
 const LOCK_SIZE = {
   crown: [0.062, 0.1, 0.036] as Vec3,
@@ -286,11 +285,8 @@ const TEMPLES: readonly [number, number, number][] = [
 ];
 
 const latticeLocks = (): HairPiece[] =>
-  Array.from({ length: LATTICE.points }, (_, k) => {
-    const polar = Math.acos(1 - (2 * (k + 0.5)) / LATTICE.points);
-    const azimuth = wrapAngle(k * GOLDEN);
-    return { k, polar, azimuth };
-  })
+  sphereLattice(LATTICE.points)
+    .map((p, k) => ({ k, ...p }))
     .filter(
       ({ polar, azimuth }) => polar <= hairlinePolar(azimuth) - LATTICE.inside,
     )
@@ -332,27 +328,31 @@ export const KAREN_SKELETON = {
       [0.47, 0.06],
       [0.51, 0.13],
       [0.53, 0.26],
-      [0.53, 0.4],
-      [0.515, 0.53],
-      [0.47, 0.66],
-      [0.39, 0.77],
-      [0.27, 0.855],
-      [0.13, 0.895],
+      [0.518, 0.4],
+      [0.4671, 0.53],
+      [0.3942, 0.66],
+      [0.3198, 0.77],
+      [0.2214, 0.855],
+      [0.1066, 0.895],
       [0, 0.905],
     ],
     depthScale: 0.55,
+    bulges: [
+      { at: [0.16, 0.44], width: 0.19, above: 0.24, below: 0.13, height: 0.16 },
+      { at: [-0.16, 0.44], width: 0.19, above: 0.24, below: 0.13, height: 0.16 },
+    ],
   },
   headCenter: HEAD_CENTER,
   headSize: HEAD_SIZE,
-  jowl: { center: fromHead(JOWL), size: [0.072, 0.074, 0.06] as Vec3 },
+  jowl: { center: fromHead(JOWL), size: [0.0576, 0.0592, 0.048] as Vec3 },
   head: [
     { name: "head", center: HEAD_CENTER, radius: 0.16 },
     { name: "hair", center: fromHead([0, 0.05, -0.04]), radius: 0.17 },
-    { name: "jowl", center: fromHead(JOWL), radius: 0.074 },
+    { name: "jowl", center: fromHead(JOWL), radius: 0.0592 },
     {
       name: "jowl",
       center: fromHead([-JOWL[0], JOWL[1], JOWL[2]]),
-      radius: 0.074,
+      radius: 0.0592,
     },
     { name: "hair", center: fromHead([0.15, -0.09, 0.02]), radius: 0.06 },
     { name: "hair", center: fromHead([-0.15, -0.09, 0.02]), radius: 0.06 },
@@ -364,10 +364,10 @@ export const KAREN_SKELETON = {
       radius: NOSE.size[2] * 1.15,
     },
   ],
-  shoulder: { x: 0.5, y: 0.62 },
-  upperArm: { length: 0.27, radius: 0.115 },
-  forearm: { length: 0.24, radius: 0.1 },
-  hand: { offset: 0.31, size: [0.075, 0.085, 0.075] as Vec3 },
+  shoulder: { x: 0.4, y: 0.65 },
+  upperArm: { length: 0.324, radius: 0.092 },
+  forearm: { length: 0.288, radius: 0.08 },
+  hand: { offset: 0.372, size: [0.0638, 0.0723, 0.0638] as Vec3 },
   hipX: 0.24,
   hipSplay: HIP_SPLAY,
   thigh: { length: LEG_LENGTH / 2, radius: 0.15 },
@@ -400,14 +400,14 @@ export const KAREN_SKELETON = {
 
 export const KAREN_ARM_REST: ArmPose = {
   raise: 0,
-  out: 0.72,
+  out: 0.94,
   elbow: 0.85,
   inward: 1.57,
 };
 
 export const KAREN_ARM_RUN: ArmPose = {
   raise: 0.15,
-  out: 0.75,
+  out: 0.94,
   elbow: 1.3,
   inward: 0.3,
 };
@@ -419,7 +419,7 @@ export const karenRunArm = (swing: number): ArmPose => ({
 
 export const KAREN_ARM_HIPS: ArmPose = {
   raise: 0,
-  out: 1.1,
+  out: 1.19,
   elbow: 1.5,
   inward: 1.7,
 };
@@ -432,8 +432,8 @@ export const KAREN_ARM_POINT: ArmPose = {
 };
 
 export const KAREN_HEAD_LIMITS = {
-  yaw: 0.22,
-  pitchDown: 0.03,
+  yaw: 0.47,
+  pitchDown: 0.26,
   pitchUp: 0.3,
   roll: 0.25,
 } as const;

@@ -7,7 +7,7 @@ import type { BellCue } from "./doorCues";
 
 export const BLOW_TAKES = [0, 1, 2, 3, 4] as const;
 const RATTLE_AFTER = 0.01;
-const ON_THE_LANDING = { blow: 0.7, rattle: 0.12 };
+const ON_THE_LANDING = { blow: 0.85, rattle: 0.12 };
 const IN_HIS_FLUR = { blow: 0.5, rattle: 0.08 };
 
 export const blowCues = (inTheFlur: (t: number) => boolean): BellCue[] =>
@@ -25,7 +25,7 @@ export const blowCues = (inTheFlur: (t: number) => boolean): BellCue[] =>
       {
         name: `His latch rattles ${i + 1}`,
         at: round6(at + RATTLE_AFTER),
-        sound: flur ? `flur/latch-rattle-${take}` : `stairwell/impactMetal_light_00${take}`,
+        sound: flur ? `pound/latch-rattle-${take}` : `stairwell/pound/latch-rattle-${take}`,
         volume: flur ? IN_HIS_FLUR.rattle : ON_THE_LANDING.rattle,
       },
     ];

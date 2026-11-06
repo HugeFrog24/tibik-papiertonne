@@ -29,6 +29,9 @@ export const rmsDb = (samples: Float32Array, rate: number, from: number, to: num
   return 10 * Math.log10(energy / Math.max(1, end - start));
 };
 
+export const bandShare = (samples: Float32Array, rate: number, from: number, to: number) =>
+  lowShare(samples, rate, to) - lowShare(samples, rate, from);
+
 export const lowShare = (samples: Float32Array, rate: number, cutoff: number) => {
   const a = 1 - Math.exp((-2 * Math.PI * cutoff) / rate);
   let once = 0;

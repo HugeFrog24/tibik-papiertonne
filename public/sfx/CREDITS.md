@@ -15,12 +15,15 @@ its source's licence.
 stairwell/footstep_concrete_000-far.wav to stairwell/footstep_concrete_003-far.wav are the same Kenney steps heard
 from further off (the direct sound low-passed at 1.5 kHz, more of the reverb).
 stairwell/pound/door-pound-0.wav to stairwell/pound/door-pound-4.wav are pound/door-pound-0.wav to
-pound/door-pound-4.wav with a heavy share of the reverb (Karen's fist on his door, heard on the landing).
+pound/door-pound-4.wav with a heavy share of the reverb (Karen's fist on his door, heard on the landing),
+and stairwell/pound/latch-rattle-0.wav to stairwell/pound/latch-rattle-4.wav the latch rattling with it.
 
-The files in pound/ are made by scripts/make-pound.mjs from Kenney sounds above (CC0 like their
-sources): each take layers impactPunch_heavy_00N.ogg (the fist), impactWood_heavy_00N.ogg (the knock)
-and impactPlank_medium_00N.ogg (the door panel), slowed by 15 %, with its low end raised and gently
-saturated.
+The files in pound/ are made by scripts/make-pound.mjs (CC0 like their sources): each door-pound take
+layers a real wooden door slam (wood_slam_04.ogg, wood_slam_01.ogg, wood_slam_03.ogg, wood_close_02.ogg,
+wood_close_01.ogg: "100 CC0 metal and wood SFX" by rubberduck, CC0 1.0,
+https://opengameart.org/content/100-cc0-metal-and-wood-sfx) with Kenney's impactPunch_heavy_00N.ogg (the
+fist) and impactPlank_medium_00N.ogg (the door panel), gently saturated; each latch-rattle take is
+Kenney's impactMetal_light_00N.ogg low-passed at 1.8 kHz (a dull clatter of the latch in its strike plate).
 
 The files in phone/ are synthesised for this project by scripts/make-phone.mjs (no third-party
 material): the doorbell, the DTMF keypad tones, the German line tones (ringback and busy, 425 Hz),
@@ -30,8 +33,7 @@ The files in flur/ other than tape-pull.wav are Kenney sounds above (footstep_co
 footstep_concrete_003.ogg, bookPlace1.ogg, impactSoft_heavy_000.ogg) as heard through a flat door,
 made by scripts/make-flur.mjs (CC0 like their sources); door-pound-0.wav to door-pound-4.wav are
 pound/door-pound-0.wav to pound/door-pound-4.wav as heard from inside the struck door (gently
-low-passed), and latch-rattle-0.wav to latch-rattle-4.wav are impactMetal_light_000.ogg to
-impactMetal_light_004.ogg unchanged.
+low-passed).
 
 street-pigeons.wav and street-pigeons-muffled.wav are synthesised by scripts/make-ambience.mjs from a
 model that scripts/learn-pigeons.mjs learns from two public-domain wood pigeon recordings on

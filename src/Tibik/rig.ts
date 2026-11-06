@@ -76,6 +76,8 @@ export const ARM_TUCK: ArmPose = { raise: 0.35, out: 0.55, elbow: 1.6, inward: 1
 
 const WORKING_HIP_HEIGHT = 0.48;
 
+export const aboveHisHips = (height: number, floor = 0) => floor + RIG.hipHeight + height;
+
 export const TIBIK_CROUCH = RIG.hipHeight - WORKING_HIP_HEIGHT;
 
 export const TIBIK_REST: Pose = restPose(RIG, ARM_REST);

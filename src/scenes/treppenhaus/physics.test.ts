@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
 import { FPS } from "../../timeline";
 import { expect, test } from "vitest";
-import { TOLERANCE, penetrations, seconds, mm } from "../sceneChecks";
+import { TOLERANCE, penetrations, seconds, mm, tibikHeadOutOfFrame } from "../sceneChecks";
 import { FLIGHTS, stairwellGround } from "../../building/stairwell";
 import {
   armColliders,
@@ -285,4 +285,10 @@ test("on the handrail his hand leads, ahead of his elbow and shoulder, with the 
       );
   }
   expect(problems.slice(0, 6)).toEqual([]);
+});
+
+test("in 'His door' once he is out on the landing, and in 'The light switch', the top of his head and his eyes are in frame", () => {
+  const cut = (t: number) => tibikHeadOutOfFrame(solveTreppenhaus(t).tibik, cameraAt(t)).map((part) => `${seconds(t)}: ${part}`);
+  const frames = Array.from({ length: Math.round((5.6 - 2.0) * FPS) }, (_, i) => 2.0 + i / FPS);
+  expect(frames.flatMap(cut).slice(0, 6)).toEqual([]);
 });

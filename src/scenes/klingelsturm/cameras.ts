@@ -32,7 +32,8 @@ const WIDE: CameraSetup = {
 
 const CODA_WIDE: CameraSetup = {
   ...WIDE,
-  target: [-2.09, FLOOR + 1.0, -9.13],
+  position: [-1.2, FLOOR + 1.75, -7.8],
+  target: [-2.09, FLOOR + 1.25, -9.13],
 };
 
 export const SPYHOLE: CameraSetup = {

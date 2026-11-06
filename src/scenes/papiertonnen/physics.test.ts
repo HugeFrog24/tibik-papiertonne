@@ -6,7 +6,9 @@ import {
   framesOf,
   penetrations,
   mm,
+  tibikHeadOutOfFrame,
 } from "../sceneChecks";
+import { cameraAt as papiertonnenCameraAt } from "./cameras";
 import { contacts, deepest, type Solid } from "../../physics/collision";
 import { Vector3 } from "three";
 import { armIntoTorso, torsoMatrix } from "../../characters/skeleton";
@@ -318,3 +320,8 @@ test(
     expect(problems.slice(0, 6)).toEqual([]);
   },
 );
+
+test("in 'Side: open the lid' the top of his head and his eyes are in frame", () => {
+  const frames = Array.from({ length: Math.round((6.3 - 4.7) * FPS) }, (_, i) => 4.7 + i / FPS);
+  expect(frames.flatMap((t) => tibikHeadOutOfFrame(solvePapiertonnen(t).tibik, papiertonnenCameraAt(t)).map((part) => `${t.toFixed(2)} s: ${part}`)).slice(0, 6)).toEqual([]);
+});

@@ -1,4 +1,10 @@
-import type { Vector3 } from "three";
+import { Vector3 } from "three";
+import { allColliders } from "../characters/skeleton";
+import { seenBy } from "../dialogue/screen";
+import { asCharacter, type TibikFrame } from "../Tibik/character";
+import { headSurface } from "../Tibik/headShape";
+import { RIG } from "../Tibik/rig";
+import type { CameraSetup } from "../toon/shots";
 import {
   collide,
   sphere,
@@ -49,4 +55,16 @@ export const lensProblems = (
       .filter(({ clear }) => clear < keepOff)
       .map(({ s, clear }) => `${seconds(t)}: camera ${mm(clear, 0)} from ${s.name}`),
   ];
+};
+
+const HEAD_IN_FRAME = { margin: 0.005 };
+
+export const tibikHeadOutOfFrame = (tibik: TibikFrame, setup: CameraSetup): string[] => {
+  const top = headSurface(tibik).reduce((a, b) => (b.y > a.y ? b : a));
+  const eyes = allColliders(RIG, asCharacter(tibik))
+    .filter((part) => / eye$/.test(part.name))
+    .map((eye) => ({ name: eye.name, point: eye.center.clone().add(new Vector3(0, eye.radius, 0)) }));
+  return [{ name: "top of his head", point: top }, ...eyes]
+    .filter(({ point }) => !seenBy(point, setup, HEAD_IN_FRAME.margin))
+    .map(({ name }) => name);
 };

@@ -2,6 +2,8 @@ import { ambienceOf } from "../../street/sceneAmbience";
 import { treppenhausIndoors } from "./choreography";
 import { filmTimeIn, findShot, fixed, storyTimeIn, type CameraSetup, type Shot } from "../../toon/shots";
 import { STORY_END } from "./choreography";
+import { aboveHisHips } from "../../Tibik/rig";
+import { floorLevel } from "../../street/building";
 
 const LAST_SHOT_FROM = 8.5;
 const LAST_SHOT_STORY = 15.8;
@@ -16,14 +18,14 @@ export const SHOTS: readonly StoryShot[] = [
     from: 0,
     to: 4.1,
     story: 0,
-    at: fixed([-1.05, 4.9, -9.75], [-3.1, 4.25, -8.95], 52),
+    at: fixed([-1.05, aboveHisHips(1.12, floorLevel(1)), -9.75], [-3.1, aboveHisHips(0.47, floorLevel(1)), -8.95], 52),
   },
   {
     name: "The light switch",
     from: 4.1,
     to: 5.6,
     story: 4.1,
-    at: fixed([-2.55, 4.65, -7.0], [-3.05, 4.3, -8.8], 50),
+    at: fixed([-2.55, aboveHisHips(0.87, floorLevel(1)), -7.0], [-3.05, aboveHisHips(0.52, floorLevel(1)), -8.8], 50),
   },
   {
     name: "Down the long flight",

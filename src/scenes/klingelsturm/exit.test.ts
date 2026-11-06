@@ -20,10 +20,12 @@ import { FPS } from "../../timeline";
 import { tuckedParcel } from "./carry";
 import { KLINGELSTURM_DURATION } from "./choreography";
 import { inTheFlur } from "./doorCues";
-import { EXIT, EXIT_HOLDS, swapAt } from "./exit";
+import { DOWN_THE_STAIRS, EXIT, EXIT_HOLDS, swapAt } from "./exit";
+import { cameraAt, shotAt } from "./cameras";
+import { OPEN, SHUT } from "./door";
 import { LIGHT, lightsAt } from "./light";
 import { klingelsturmSolids, solveKlingelsturm } from "./solve";
-import { mm } from "../sceneChecks";
+import { mm, tibikHeadOutOfFrame } from "../sceneChecks";
 import { mouthInWorld } from "../../dialogue/screen";
 import { karenLooksAlong } from "../../Karen/aimHead";
 
@@ -157,4 +159,12 @@ test("as Tibik goes down the stairs Karen's head follows him, turning and dippin
     if (off > FOLLOWED.within) misses.push(`${t.toFixed(2)} s: ${((off * 180) / Math.PI).toFixed(0)} deg`);
   }
   expect(misses).toEqual([]);
+});
+
+test("the top of his head and his eyes are in frame while he faces her through the gap and in 'Wide: the light goes out' from stepping out of his door until he starts down the stairs", () => {
+  const steppedOut = EXIT_HOLDS.find((h) => h.name === "his door knob")!.grip;
+  const span = (from: number, to: number) => Array.from({ length: Math.round((to - from) * FPS) }, (_, i) => from + i / FPS);
+  const frames = [...span(OPEN[1], SHUT[0]), ...span(steppedOut, DOWN_THE_STAIRS)].filter((t) => ["Over Karen: the gap", "Wide: the light goes out"].includes(shotAt(t).name));
+  expect(frames.length).toBeGreaterThan(0);
+  expect(frames.flatMap((t) => tibikHeadOutOfFrame(solveKlingelsturm(t).tibik, cameraAt(t)).map((part) => `${t.toFixed(2)} s: ${part}`)).slice(0, 6)).toEqual([]);
 });

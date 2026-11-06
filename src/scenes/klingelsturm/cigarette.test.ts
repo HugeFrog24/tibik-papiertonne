@@ -1,9 +1,10 @@
 import { Matrix4, PerspectiveCamera, Vector3 } from "three";
 import { expect, test } from "vitest";
-import { allColliders, bodyColliders, handSphere } from "../../characters/skeleton";
+import { allColliders, armColliders, armIntoTorso, bodyColliders, handSphere, torsoDepthAt, torsoMatrix } from "../../characters/skeleton";
+import { OUTLINE } from "../../toon/primitives";
 import { onScreen } from "../../dialogue/screen";
 import { asKaren } from "../../Karen/character";
-import { insideKarenHead, toKarenHead } from "../../Karen/mouthEmitter";
+import { insideKarenHead, karenFaceSurface, karenMouthEmitter, toKarenHead } from "../../Karen/mouthEmitter";
 import { KAREN_SKELETON } from "../../Karen/rig";
 import { sphereObbGap } from "../../physics/collision";
 import { cigaretteObb, cigaretteTip } from "../../props/cigaretteShape";
@@ -59,9 +60,9 @@ test("no cigarette or lighter before the cut into the Medium; the phone rests at
   expect(solveKlingelsturm(CODA.mediumCut).phone).toBeNull();
 });
 
-const lipsWindows: readonly (readonly [number, number])[] = [[CODA.mediumCut, CODA.end - 0.1]];
+const lipsWindows: readonly (readonly [number, number])[] = [[CODA.mediumCut, CODA.takeOut[0]], CODA.laterDraw];
 
-test("from the cut to the end the cigarette stays in the corner of her mouth: the filter between her lips, at most 10 mm inside, the rest outside her head", () => {
+test("while she lights it and while she draws on it the cigarette sits in the corner of her mouth: the filter between her lips, at most 10 mm inside, the rest outside her head", () => {
   for (const window of lipsWindows)
     for (const t of framesOf(window, 2)) {
       const { karen, cigarette } = solveKlingelsturm(t);
@@ -85,7 +86,7 @@ const clearOfHead = (t: number, arm: "leftArm" | "rightArm") => {
 
 test("the lighter is gripped clear of her body until it goes into her pocket, and the flame's tip reaches the cigarette's end while it burns", () => {
   expect(solveKlingelsturm(CODA.lighterDown[1] + 1 / FPS).lighter).toBeNull();
-  for (const t of framesOf([CODA.mediumCut, CODA.lighterDown[1]], 2)) {
+  for (const t of framesOf([CODA.mediumCut, CODA.lighterDown[1]], 1)) {
     const { lighter, karen } = solveKlingelsturm(t);
     const box = lighterObb(lighter!.frame);
     const gap = sphereObbGap(handOf(t, "rightArm"), box);
@@ -112,12 +113,16 @@ test("she lights it one-handed: her right hand passes through neither the flame 
   }
 });
 
-test("the burned length follows BURN.rate over the story time since it was lit, about 23 mm at the second timeout, and the ash is never longer", () => {
+const MEASURED_BURN = { slowest: 0.004 / 60, fastest: 0.005 / 60 };
+
+test("the cigarette burns at the measured 4-5 mm a minute (free-burning to puffed) over the story time since it was lit, about 13 mm by the second timeout, and the ash is never longer", () => {
   expect(burnedAt(CODA.lit - 0.5)).toBe(0);
   const out = storyTime(CODA.outAgain);
   expect(burnedAt(out)).toBeCloseTo(BURN.rate * (out - CODA.lit), 9);
-  expect(burnedAt(out)).toBeGreaterThan(0.02);
-  expect(burnedAt(out)).toBeLessThan(0.026);
+  expect(BURN.rate).toBeGreaterThanOrEqual(MEASURED_BURN.slowest);
+  expect(BURN.rate).toBeLessThanOrEqual(MEASURED_BURN.fastest);
+  expect(burnedAt(out)).toBeGreaterThan(0.011);
+  expect(burnedAt(out)).toBeLessThan(0.015);
   for (const t of framesOf([CODA.lit, CODA.end], 3)) {
     expect(ashAt(storyTime(t))).toBeLessThanOrEqual(burnedAt(storyTime(t)));
     expect(ashAt(storyTime(t))).toBeLessThanOrEqual(ASH.hold);
@@ -158,9 +163,9 @@ test("while she lights it the lighter turns with her: whichever way she faces it
   const about = new Vector3(...karen.position);
   const turning = new Matrix4().makeTranslation(about.x, about.y, about.z).multiply(new Matrix4().makeRotationY(Math.PI / 2)).multiply(new Matrix4().makeTranslation(-about.x, -about.y, -about.z));
   const burned = 0;
-  const facing = lighterFrame(karen, CODA.flick, cigaretteFrame(karen), burned);
+  const facing = lighterFrame(karen, CODA.flick, cigaretteFrame(karen, CODA.flick), burned);
   const expected = turning.clone().multiply(facing);
-  const actual = lighterFrame(turned, CODA.flick, cigaretteFrame(turned), burned);
+  const actual = lighterFrame(turned, CODA.flick, cigaretteFrame(turned, CODA.flick), burned);
   actual.elements.forEach((v, i) => expect(v, `element ${i}`).toBeCloseTo(expected.elements[i], 6));
 });
 
@@ -189,6 +194,56 @@ test("the sparks on the flick stay clear of her head, her hands and the cigarett
       expect(insideKarenHead(center, state.karen), seconds(t)).toBe(false);
       expect(sphereObbGap(spark, paper), seconds(t)).toBeGreaterThan(0);
       for (const part of karenBodyAt(t)) expect(center.distanceTo(part.center) - part.radius - SPARKS.radius, `${seconds(t)} ${part.name}`).toBeGreaterThan(0);
+    }
+  }
+});
+
+const IN_HER_FINGERS = { away: 0.12, every: 3 };
+const awayFromHerLips = (t: number) => t >= CODA.takeOut[1] && (t < CODA.toLips[0] || t > CODA.fromLips[1]);
+
+test("after lighting it she smokes from her right hand: her fist holds the filter from taking it out to the end, and between draws it is well away from her lips", () => {
+  for (const t of framesOf([CODA.takeOut[0], CODA.end - 0.1], IN_HER_FINGERS.every)) {
+    const { cigarette, karen } = solveKlingelsturm(t);
+    const gap = sphereObbGap(handOf(t, "rightArm"), cigaretteObb(cigarette!.frame, cigarette!.burned, cigarette!.ash));
+    expect(gap, seconds(t)).toBeGreaterThanOrEqual(0);
+    expect(gap, seconds(t)).toBeLessThanOrEqual(HELD);
+    if (awayFromHerLips(t)) {
+      const filter = new Vector3(0, 0, 0).applyMatrix4(cigarette!.frame);
+      expect(filter.distanceTo(karenMouthEmitter({ ...karen, mouthOpen: 0 }).origin), seconds(t)).toBeGreaterThan(IN_HER_FINGERS.away);
+    }
+  }
+});
+
+test("held in her fingers the cigarette touches nothing of her but the fist that holds it", () => {
+  for (const t of framesOf([CODA.takeOut[1], CODA.end - 0.1], IN_HER_FINGERS.every).filter(awayFromHerLips)) {
+    const { cigarette, karen } = solveKlingelsturm(t);
+    const box = cigaretteObb(cigarette!.frame, cigarette!.burned, cigarette!.ash);
+    const parts = allColliders(KAREN_SKELETON, asKaren(karen)).filter((c) => c.name !== "right hand");
+    for (const part of parts) expect(sphereObbGap(part, box), `${seconds(t)} ${part.name}`).toBeGreaterThan(0);
+  }
+});
+
+test("her smoking fist never sinks into her drawn face, her jowls, her hair or her body, not even while she draws on the cigarette", () => {
+  for (const t of framesOf([CODA.takeOut[0], CODA.end - 0.1], IN_HER_FINGERS.every)) {
+    const { karen } = solveKlingelsturm(t);
+    const fist = handOf(t, "rightArm");
+    for (const p of karenFaceSurface(karen)) expect(p.distanceTo(fist.center), `${seconds(t)} her face`).toBeGreaterThanOrEqual(fist.radius);
+    for (const hair of headOf(t).filter((part) => part.name === "hair"))
+      expect(hair.center.distanceTo(fist.center), `${seconds(t)} her hair`).toBeGreaterThan(hair.radius + fist.radius);
+    expect(armIntoTorso(KAREN_SKELETON, karen.pose, "rightArm"), seconds(t)).toBeLessThanOrEqual(0.003);
+  }
+});
+
+const AT_THE_SHOULDER = 1.8;
+
+test("while she holds the cigarette out between draws her arm keeps an ink width off her bust and belly below the shoulder, so no line of her body shows across her arm", () => {
+  for (const t of framesOf([CODA.takeOut[1], CODA.end - 0.1], IN_HER_FINGERS.every).filter(awayFromHerLips)) {
+    const karen = asKaren(solveKlingelsturm(t).karen);
+    const toTorso = torsoMatrix(KAREN_SKELETON, karen).invert();
+    const [shoulder, ...arm] = armColliders(KAREN_SKELETON, karen, "rightArm");
+    for (const s of arm.filter((part) => part.center.distanceTo(shoulder.center) > AT_THE_SHOULDER * KAREN_SKELETON.upperArm.radius)) {
+      const off = -torsoDepthAt(KAREN_SKELETON, s.center.clone().applyMatrix4(toTorso)) - s.radius;
+      expect(off, `${seconds(t)} ${s.name}`).toBeGreaterThanOrEqual(OUTLINE);
     }
   }
 });

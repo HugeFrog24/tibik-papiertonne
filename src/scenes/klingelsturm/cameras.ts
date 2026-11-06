@@ -87,7 +87,7 @@ const ON_HER_LATER = lazy((): CameraSetup => {
 
 const AT_HER_MOUTH = lazy((): CameraSetup => {
   const karen = karenAt(CODA.flick);
-  const between = karenMouthEmitter(karen).origin.lerp(cigaretteTip(cigaretteFrame(karen), 0), 0.5);
+  const between = karenMouthEmitter(karen).origin.lerp(cigaretteTip(cigaretteFrame(karen, CODA.flick), 0), 0.5);
   return { position: PHONE_EYE, target: [between.x, between.y, between.z], fov: SMOKING_FOV };
 });
 

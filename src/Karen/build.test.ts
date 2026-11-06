@@ -5,6 +5,8 @@ import { sphereObbGap } from "../physics/collision";
 import { reachArm } from "../physics/grip";
 import { cigaretteObb } from "../props/cigaretteShape";
 import { lipsFrame } from "../scenes/klingelsturm/cigarette";
+import { fingersOn } from "../scenes/klingelsturm/smoking";
+import { karenFaceSurface } from "./mouthEmitter";
 import { RIG } from "../Tibik/rig";
 import { asKaren } from "./character";
 import { KAREN_REST, KAREN_SKELETON as K } from "./rig";
@@ -70,19 +72,18 @@ test("the torso depth sees the bust: a point inside the swell reads as inside he
   expect(torsoClearance(K, new Vector3(HALF, y, plain + lift + 0.02))).toBeGreaterThan(0);
 });
 
-const IN_HER_FIST = { out: 0.06, touching: [-0.002, 0.005], intoHer: 0.003 };
+const IN_HER_FIST = { touching: [0, 0.003], intoHer: 0.003 };
 
-test("her arms are long enough to hold a cigarette at the right corner of her mouth in her right fist, without the fist sinking into her face or the arm into her body", () => {
+test("her arms are long enough to hold a cigarette at the right corner of her mouth in her right fist, without the fist sinking into her face, jowls or hair or the arm into her body", () => {
   const karen = { position: [0, 0, 0] as [number, number, number], rotationY: 0, pose: KAREN_REST, mouthOpen: 0, pointing: false };
   const lips = lipsFrame(karen);
   const cigarette = cigaretteObb(lips, 0);
-  const grip = new Vector3(0, 0, IN_HER_FIST.out).applyMatrix4(lips);
-  const holding = reachArm(asKaren(karen), "rightArm", { touch: cigarette, near: grip }, [], null);
+  const holding = reachArm(asKaren(karen), "rightArm", fingersOn(karen, lips, cigarette), [], null);
   const fist = handSphere(K, holding, "rightArm");
   const gap = sphereObbGap(fist, cigarette);
   expect(gap).toBeGreaterThanOrEqual(IN_HER_FIST.touching[0]);
   expect(gap).toBeLessThanOrEqual(IN_HER_FIST.touching[1]);
-  const intoHead = Math.max(...bodyColliders(K, holding).head.map((h) => h.radius + fist.radius - fist.center.distanceTo(h.center)));
-  expect(intoHead).toBeLessThanOrEqual(IN_HER_FIST.intoHer);
+  for (const p of karenFaceSurface(karen)) expect(p.distanceTo(fist.center)).toBeGreaterThanOrEqual(fist.radius);
+  for (const hair of bodyColliders(K, holding).head.filter((part) => part.name === "hair")) expect(hair.center.distanceTo(fist.center)).toBeGreaterThan(hair.radius + fist.radius);
   expect(armIntoTorso(K, holding.pose, "rightArm")).toBeLessThanOrEqual(IN_HER_FIST.intoHer);
 });

@@ -8,8 +8,21 @@ import { mouthBottom, mouthTop } from "./face";
 import { HEAD_SIZE, faceNormal, facePoint } from "./headShape";
 import { KAREN_SKELETON as K } from "./rig";
 import type { Emitter } from "./spray";
+import { sphereLattice } from "../characters/scalar";
 
 export const SPRAY_AHEAD = 0.012;
+
+const AROUND_HER_FACE = sphereLattice(400).map(({ polar, azimuth }) => new Vector3().setFromSphericalCoords(1, polar, azimuth));
+
+export const karenFaceSurface = (karen: Placement) => {
+  const head = karenHeadMatrix(karen);
+  const pivot = head.clone().multiply(new Matrix4().makeTranslation(-K.headCenter[0], -K.headCenter[1], -K.headCenter[2]));
+  const jowl = (side: 1 | -1) => new Vector3(side * K.jowl.center[0], K.jowl.center[1], K.jowl.center[2]);
+  return [
+    ...AROUND_HER_FACE.map((u) => u.clone().multiply(new Vector3(...HEAD_SIZE)).applyMatrix4(head)),
+    ...([1, -1] as const).flatMap((side) => AROUND_HER_FACE.map((u) => u.clone().multiply(new Vector3(...K.jowl.size)).add(jowl(side)).applyMatrix4(pivot))),
+  ];
+};
 
 export const karenHeadMatrix = (karen: Placement) =>
   torsoMatrix(K, karen)

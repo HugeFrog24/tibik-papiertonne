@@ -1,14 +1,15 @@
-import { Vector3 } from "three";
+import { Vector3, type Matrix4 } from "three";
 import { round6 } from "../../characters/scalar";
-import type { ArmPose } from "../../characters/skeleton";
-import { karenMouthEmitter } from "../../Karen/mouthEmitter";
+import type { ArmPose, Placement } from "../../characters/skeleton";
+import { karenHeadMatrix, karenMouthEmitter } from "../../Karen/mouthEmitter";
 import { KAREN_SKELETON } from "../../Karen/rig";
 import { sphereObbGap, type Obb } from "../../physics/collision";
 import type { Hold } from "../../physics/holds";
+import { cigaretteObb } from "../../props/cigaretteShape";
 import { lighterObb } from "../../props/lighterShape";
 import { storyTime } from "./cameras";
 import { karenAt } from "./choreography";
-import { CODA, ashAt, burnedAt, cigaretteFrame, lighterFrame } from "./cigarette";
+import { CODA, ashAt, burnedAt, cigaretteFrame, lighterFrame, lipsFrame } from "./cigarette";
 
 const HAND = Math.max(...KAREN_SKELETON.hand.size);
 const HELD_GAP = 0.0015;
@@ -20,11 +21,11 @@ export const smokedAt = (t: number) => {
   return { burned: burnedAt(story), ash: ashAt(story) };
 };
 
-export const cigaretteAt = (t: number) => cigaretteFrame(karenAt(t));
+export const cigaretteAt = (t: number) => cigaretteFrame(karenAt(t), t);
 
 export const lighterAt = (t: number) => {
-  const cigarette = cigaretteAt(t);
-  return lighterFrame(karenAt(t), t, cigarette, smokedAt(t).burned);
+  const karen = karenAt(t);
+  return lighterFrame(karen, t, lipsFrame(karen), smokedAt(t).burned);
 };
 
 export const standOff = (box: Obb, from: Vector3, direction: Vector3, radius: number, gap: number) => {
@@ -69,5 +70,33 @@ export const LIGHTER_HOLD: Hold = {
   target: (t) => lighterObb(lighterAt(t)),
   near: underTheLighter,
   pose: LIGHTER_ARM,
+  exact: true,
+};
+
+const ON_THE_FILTER = { along: 0.04 };
+
+export const fingersOn = (karen: Placement, frame: Matrix4, box: Obb) => {
+  const filter = new Vector3(0, 0, ON_THE_FILTER.along).applyMatrix4(frame);
+  const along = new Vector3(0, 0, 1).transformDirection(frame);
+  const fromHerHead = filter.clone().sub(new Vector3().setFromMatrixPosition(karenHeadMatrix(karen)));
+  const away = fromHerHead.addScaledVector(along, -fromHerHead.dot(along)).normalize();
+  return standOff(box, filter, away, HAND, HELD_GAP);
+};
+
+export const fingersOnTheFilter = (t: number) => {
+  const frame = cigaretteAt(t);
+  const { burned, ash } = smokedAt(t);
+  return fingersOn(karenAt(t), frame, cigaretteObb(frame, burned, ash));
+};
+
+export const CIGARETTE_HOLD: Hold = {
+  name: "the cigarette, between her fingers",
+  arm: "rightArm",
+  reach: CODA.lighterDown[1],
+  grip: CODA.takeOut[0],
+  release: CODA.end,
+  done: round6(CODA.end + REACH),
+  target: (t) => cigaretteObb(cigaretteAt(t), smokedAt(t).burned, smokedAt(t).ash),
+  near: fingersOnTheFilter,
   exact: true,
 };

@@ -63,13 +63,16 @@ end, not typed in again.
 ### Offence 2: the cigarette
 
 Built version (2026-11-06, decided during implementation, flagged to the
-user): Karen's arms can't bring a hand to the middle of her face (her
-shoulders sit half a metre either side of it; her phone was always held at
-her cheek), so the cigarette sits in the right corner of her mouth and she
-smokes hands-free; she lights it one-handed, her head turned towards the
-lighter in her right hand, with no cupping hand (a still stairwell needs
-none); the lighter goes into her trouser pocket. The table below is the
-approved design these replace where they differ.
+user; revised the same day after the user's notes and the approved reshape
+of Karen): the cigarette sits in the right corner of her mouth; she lights
+it one-handed, her head turned towards the lighter in her right hand, with
+no cupping hand (a still stairwell needs none); the lighter goes down in
+front of her and into her trouser pocket. Then her right hand takes the
+cigarette from her lips and holds it at chest height, and after the jump
+raises it for the draw during which the light goes out (the user: "I want
+Karen have her hand on the cigarette while she smokes"; first built
+hands-free because her old arms could not reach her mouth). The table
+below is the approved design these replace where they differ.
 
 | Shot | Target length | What happens |
 |---|---|---|

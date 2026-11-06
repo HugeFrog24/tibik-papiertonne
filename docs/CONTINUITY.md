@@ -264,15 +264,19 @@ composition under "Scenes" in the Studio:
 - **Her cigarette (Klingelsturm coda):** once he is down the stairs she puts
   the phone back in her pocket; at the cut into the close-up a king-size
   cigarette sits in the right corner of her mouth (5 mm between her lips,
-  angled down and to her right) and a plain red disposable lighter stands up
+  angled down and well out to her right, about 63 degrees) and a plain red disposable lighter stands up
   out of her right fist. She turns her head towards it, flicks (the wheel
   throws four tiny sparks sideways for two frames, clear of her face and the
   cigarette, as the flame catches), draws twice
   (the tip catches on the first draw), lets the flame die, and the lighter
-  goes into her pocket. Where both came from is never shown. **(test)** She
-  smokes hands-free, the cigarette staying in her mouth corner to the end:
-  her arms can't bring a hand to the middle of her face (her shoulders sit
-  half a metre either side of it), so nobody holds it to her lips. **(test)**
+  goes down in front of her and into her pocket, never through her bust.
+  Where both came from is never shown. **(test)** Then she smokes from her
+  right hand: her fist takes the cigarette from her lips (her fingers 4 cm
+  from the filter end, well clear of the ember) and holds it out to her
+  right at chest height; after the jump she raises it to her lips for the
+  draw and lowers it again. Her fist never sinks into her drawn face, her
+  jowls, her hair or her body, and between draws the cigarette touches only
+  the fist. **(test)**
   The flame stands upright, lights her face at about a ceiling lamp's
   strength, and dies down rather than vanishing; the ember brightens on each
   draw and its light reaches 14 cm, her lips, nose tip and chin. **(test)**
@@ -280,12 +284,13 @@ composition under "Scenes" in the Studio:
   ink pass, and the flame blocks the ink, so no line crosses it.
 - **The hidden jump in the Klingelsturm:** the close-up cuts to the wide about
   2 min 50 s later (story time runs 170 s ahead of film time after the cut):
-  the cigarette has burned 8 mm a minute since it was lit (5-7 min for a
-  cigarette), about 23 mm by the second timeout, with a short ash tip. The
+  the cigarette has burned 4.5 mm a minute since it was lit (measured free
+  and puffed burn rates are 4-5 mm a minute), about 13 mm by the second
+  timeout, with a short ash tip. The
   180 s timer he restarted runs out on her exactly then: the damp relay
   click, no warning blink, and the landing drops to the windows' daylight
   as at the first timeout (the stairwell light rule above), the ember
-  glowing in her mouth corner. Tibik is out of every
+  glowing at her lips mid-draw and then in her hand. Tibik is out of every
   shot from the cut into the close-up. **(test)** The circular in the epilogue
   stays silent on her pounding and her smoking.
 - **Her smoke:** cartoon curls, light grey with an ink shell drawn behind
@@ -458,8 +463,16 @@ composition under "Scenes" in the Studio:
 - Hips never rise or fall faster than 0.75 m/s, and never jump from frame to
   frame. **(test)**
 - Karen is heavy: short strides, slow to speed up, audible breathing. Her head
-  can only turn a little on its own (pass head poses through
-  `limitKarenHead`), so turn her whole body instead.
+  turns about 27 degrees and nods about 15 degrees on its own, until her chin
+  would meet her shoulders and chest (pass head poses through
+  `limitKarenHead`); beyond that she turns her whole body. **(test)**
+- Karen's build: shoulders 0.40 m either side of her centre and slimmer up
+  top than at her belly, long, fairly thin arms (her fist reaches the corner
+  of her mouth), small hands for her size, and a wide, round bust that hangs,
+  swelling slowly from the top to its fullest point low down and curving back
+  in, two lower curves from the front and no crease between them, moulded
+  into her jumper rather than stuck on. The bust is solid: her arms, the
+  props she holds and anyone passing keep off it. **(test)**
 - Karen's eyes are eyeballs set into her head, never flat black buttons: a
   white ball with a grey-blue iris (darker rim) and a small black pupil that
   turn with her gaze, under skin lids. Anger slants the upper lids down toward

@@ -43,8 +43,8 @@ import { memoByFrame } from "../../physics/memoSolve";
 import type { KarenFrame } from "../hausmuell/choreography";
 import { FISHEYE, undistortUv } from "../../toon/fisheye";
 import { FRAME, cameraAt, shotAt } from "./cameras";
-import { CODA, emberGlowAt, flameAmountAt, inHerHands, lighterOut, lightingAt } from "./cigarette";
-import { LIGHTER_HOLD, cigaretteAt, lighterAt, smokedAt } from "./smoking";
+import { CODA, emberGlowAt, flameAmountAt, inHerFingersAt, inHerHands, lighterOut, lightingAt } from "./cigarette";
+import { CIGARETTE_HOLD, LIGHTER_HOLD, cigaretteAt, lighterAt, smokedAt } from "./smoking";
 import { BLOW_HOLDS } from "./banging";
 import { phoneAt, type PhoneState } from "./calls";
 import {
@@ -111,7 +111,7 @@ const solve = (t: number): KlingelsturmState => {
   karen = guardLean(karen, solids);
   const authoredPhone = phoneAt(t).inHand ? phoneAt(t) : null;
   karen = workArm(karen, "leftArm", t, solids, [...BELL_HOLDS, ...BLOW_HOLDS]);
-  karen = workArm(karen, "rightArm", t, solids, [...PHONE_HOLDS, LIGHTER_HOLD]);
+  karen = workArm(karen, "rightArm", t, solids, [...PHONE_HOLDS, LIGHTER_HOLD, CIGARETTE_HOLD]);
   const smoking = inHerHands(t);
   const { burned, ash } = smokedAt(t);
   const solved = {
@@ -136,13 +136,17 @@ const solve = (t: number): KlingelsturmState => {
     parcel,
     taping: t,
     carried,
-    cigarette: smoking ? { frame: cigaretteAt(t), burned, ash, glow: emberGlowAt(t) } : null,
+    cigarette: smoking ? { frame: heldCigarette(solved, t), burned, ash, glow: emberGlowAt(t) } : null,
     lighter: lighterOut(t) ? { frame: heldLighter(solved, t), flame: flameAmountAt(t) } : null,
     tibikHere: t < CODA.mediumCut,
   };
 };
 
 const rightHandOf = (karen: KarenFrame) => handSphere(KAREN_SKELETON, asKaren(karen), "rightArm").center;
+
+
+const heldCigarette = (karen: KarenFrame, t: number) =>
+  followTheHand(cigaretteAt(t), rightHandOf(karen), CIGARETTE_HOLD.near!(t), inHerFingersAt(t));
 
 const heldLighter = (karen: KarenFrame, t: number) =>
   followTheHand(lighterAt(t), rightHandOf(karen), LIGHTER_HOLD.near!(t), 1 - lightingAt(t));

@@ -29,15 +29,18 @@ export const CODA = {
   draws: [span(flick, 0.5, 0.8), span(flick, 1.0, 1.4)] as const,
   lit: at(flick, 0.6),
   lighterDown: span(flameOut, 0, 0.8),
+  takeOut: span(flameOut, 1.0, 1.4),
   exhale: span(flameOut, 0.4, 1.9),
   jumpCut,
+  toLips: span(jumpCut, 0.3, 0.8),
   laterDraw: span(jumpCut, 0.8, 1.7),
+  fromLips: span(jumpCut, 1.7, 2.2),
   outAgain,
   darkExhale: span(jumpCut, 1.9, 3.2),
   end: at(outAgain, 3.3),
 };
 
-export const BURN = { rate: 0.008 / 60 };
+export const BURN = { rate: 0.0045 / 60 };
 export const ASH = { hold: 0.008 };
 
 export const burnedAt = (storyT: number) => (storyT < CODA.lit ? 0 : BURN.rate * (storyT - CODA.lit));
@@ -62,23 +65,23 @@ export const emberGlowAt = (t: number) =>
 export const exhalingAt = (t: number) =>
   Math.max(...[CODA.exhale, CODA.darkExhale].map(([a, b]) => inWindow(t, [a, a + 0.2]) - inWindow(t, [b - 0.3, b])));
 
-export const LIPS = { inside: 0.005, droop: 0.2, aside: -0.7, corner: 0.02, open: 0.08, exhale: 0.18 };
+export const LIPS = { inside: 0.005, droop: 0.2, aside: -1.1, drawAside: 1.2, corner: 0.02, open: 0.08, exhale: 0.18 };
 
 export const TO_HER_HAND = { turn: 0.45, nod: 0.1 };
 
 export const turnedToHerHand = (t: number) =>
   inWindow(t, [CODA.phoneAway[1], CODA.mediumCut]) - inWindow(t, [CODA.flame[1], CODA.flame[1] + 0.4]);
 
-export const lipsFrame = (karen: Placement & { readonly mouthOpen: number }) => {
+export const lipsFrame = (karen: Placement & { readonly mouthOpen: number }, side: 1 | -1 = 1) => {
   const { origin, forward, up } = karenMouthEmitter({ ...karen, mouthOpen: LIPS.open });
   const left = up.clone().cross(forward).normalize();
-  const along = forward.clone().applyAxisAngle(left, LIPS.droop).applyAxisAngle(up, LIPS.aside).normalize();
+  const along = forward.clone().applyAxisAngle(left, LIPS.droop).applyAxisAngle(up, side === 1 ? LIPS.aside : LIPS.drawAside).normalize();
   const x = up.clone().cross(along).normalize();
   const y = along.clone().cross(x).normalize();
   const filterEnd = origin
     .clone()
     .addScaledVector(forward, -(SPRAY_AHEAD + LIPS.inside))
-    .addScaledVector(left, -LIPS.corner);
+    .addScaledVector(left, -side * LIPS.corner);
   return new Matrix4().makeBasis(x, y, along).setPosition(filterEnd);
 };
 
@@ -93,7 +96,15 @@ const blendFrames = (a: Matrix4, b: Matrix4, k: number) => {
 
 export const inHerHands = (t: number) => t >= CODA.mediumCut;
 
-export const cigaretteFrame = (karen: Placement & { readonly mouthOpen: number }): Matrix4 => lipsFrame(karen);
+export const CIGARETTE_HELD: PropPlace = { position: [-0.34, 0.62, 0.45], rotation: [-0.5, -0.5, 0] };
+
+export const atHerLipsAt = (t: number) =>
+  1 - inWindow(t, CODA.takeOut) + inWindow(t, CODA.toLips) - inWindow(t, CODA.fromLips);
+
+export const inHerFingersAt = (t: number) => (t >= CODA.takeOut[0] ? 1 : 0);
+
+export const cigaretteFrame = (karen: Placement & { readonly mouthOpen: number }, t: number): Matrix4 =>
+  blendFrames(placeFrame(torsoMatrix(KAREN_SKELETON, karen), CIGARETTE_HELD), lipsFrame(karen), atHerLipsAt(t));
 
 export const LIGHTER_LOW: PropPlace = { position: [-0.3, 0.52, 0.38], rotation: [0, 0, 0] };
 
@@ -113,6 +124,9 @@ const lighting = (cigarette: Matrix4, burned: number, facing: number) => {
 
 export const lighterFrame = (karen: Placement, t: number, cigarette: Matrix4, burned: number): Matrix4 => {
   const torso = torsoMatrix(KAREN_SKELETON, karen);
-  const raised = blendFrames(placeFrame(torso, LIGHTER_LOW), lighting(cigarette, burned, karen.rotationY), inWindow(t, [CODA.lighterGrip, CODA.flick]));
-  return blendFrames(raised, placeFrame(torso, PHONE_AT_POCKET), inWindow(t, CODA.lighterDown));
+  const low = placeFrame(torso, LIGHTER_LOW);
+  const raised = blendFrames(low, lighting(cigarette, burned, karen.rotationY), inWindow(t, [CODA.lighterGrip, CODA.flick]));
+  const [down, pocketed] = CODA.lighterDown;
+  const halfway = (down + pocketed) / 2;
+  return blendFrames(blendFrames(raised, low, inWindow(t, [down, halfway])), placeFrame(torso, PHONE_AT_POCKET), inWindow(t, [halfway, pocketed]));
 };

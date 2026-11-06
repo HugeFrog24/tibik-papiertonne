@@ -86,7 +86,7 @@ test("the Haustür sounds as in the epilogue, as far off as the dusk wide stands
   expect(HAUSTUER_FAR_OFF).toBeCloseTo(near / far, 9);
   expect(HAUSTUER_FAR_OFF).toBeLessThan(0.5);
   const epilogue = entryCues(EPILOGUE_ENTRY);
-  expect(RUNDSCHREIBEN_CUES.filter((c) => epilogue.some((e) => e.name === c.name))).toEqual(epilogue);
+  expect(RUNDSCHREIBEN_CUES.filter((c) => epilogue.some((e) => e.name === c.name && e.at === c.at))).toEqual(epilogue);
   const heard = entryCues(ENTRY).filter((c) => !inTheBedroom(c.at));
   const played = NACHTRUHE_CUES.filter((c) => heard.some((h) => h.name === c.name));
   expect(played.map((c) => c.at)).toEqual(heard.map((c) => c.at));

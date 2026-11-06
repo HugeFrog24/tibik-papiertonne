@@ -151,7 +151,10 @@ composition under "Scenes" in the Studio:
    curtain anyway), gets up and slides the near curtain half open onto the
    rain. **(test)** No dialogue.
 6. **Rundschreiben** (`src/scenes/rundschreiben/`), the epilogue: on the same
-   rainy day Tibik comes home, takes the Hausverwaltung's
+   rainy day Tibik has just come down for his post: it opens on the Haustür
+   swinging shut on its closer behind him (it latches; only his key opens it
+   from outside) **(test)**, he waits clear of the leaf, walks along the front
+   to the mailbox and shuffles into place, takes the Hausverwaltung's
    circular to all tenants out of his mailbox, reads it (two readable inserts,
    ending in four "Vie-len DANK."), folds it back, kloppt it into the blue
    Papiertonne and goes in; the Haustür shuts behind him. No dialogue.

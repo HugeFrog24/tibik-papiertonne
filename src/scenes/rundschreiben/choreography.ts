@@ -1,4 +1,5 @@
-import { DOOR_STAND, FACING_THE_WALL, enterHouse, pinApproach, shuffle, squareAt, walkLeg } from "../enterHouse";
+import { closerEnd } from "../../street/facade";
+import { DOOR_STAND, FACING_THE_WALL, enterHouse, pinApproach, shuffle, squareAt, walkLeg, type Stand } from "../enterHouse";
 import { SENSOR, sensorLampOn } from "../../street/entranceSensor";
 import { mustReadSeconds } from "./letter";
 import { Euler, Matrix4, Vector3 } from "three";
@@ -14,7 +15,7 @@ import {
   type RootAt,
   type Step,
 } from "../../characters/gait";
-import { after, easeUnit, inWindow } from "../../characters/scalar";
+import { after, easeUnit, inWindow, round6, wrapAngle } from "../../characters/scalar";
 import { armColliders, type ArmPose } from "../../characters/skeleton";
 import { frame, obb } from "../../physics/collision";
 import { TONNE, TONNE_FLOOR, tonneLidParts } from "../../street/tonneShape";
@@ -47,6 +48,7 @@ import { WALK_SWAY, WALK_SWING, swungArms, walkArmKeys, walkingOn } from "../../
 import type { Vec3 } from "../../toon/primitives";
 
 export const ARRIVE = 0;
+export const OUT_OF_THE_HOUSE = { release: -3, held: 1.5, shut: closerEnd(-3), walkOff: 1.2 };
 export const AT_MAILBOX = 4;
 export const KEY_IN = 4.6;
 export const BOX_OPEN = [5.0, 5.6] as const;
@@ -79,20 +81,36 @@ const LID_OPEN = 0.3;
 const LID_LET_GO = KLOPPEN[1] + 0.1;
 const TO_READY: readonly [number, number] = [TO_BIN[1] - 0.4, LID_UP[0]];
 
-export const START = { x: -5.9, z: -0.9 };
+export const START = { x: -1.15, z: -1.15 };
 export const STAND = { x: -2.72, z: -1.27 };
 export const READ_SPOT = { x: -2.3, z: -1.39 };
 const LEAN_IN = 0.25;
-const TURN_IN: readonly [number, number] = [AT_MAILBOX - 0.45, AT_MAILBOX];
+const SHUFFLE_TIMING = { every: 0.18, takes: 0.14 };
+const SHUFFLE_WAY = [0.35, 1, 1] as const;
+const shuffleSpan = (start: number): readonly [number, number] => [
+  start,
+  round6(start + (SHUFFLE_WAY.length - 1) * SHUFFLE_TIMING.every + SHUFFLE_TIMING.takes),
+];
+const shuffleSteps = (start: number, from: Stand, to: Stand, first: Step["side"]): Step[] =>
+  SHUFFLE_WAY.map((k, i) => {
+    const lift = start + i * SHUFFLE_TIMING.every;
+    const stand = { x: from.x + (to.x - from.x) * k, z: from.z + (to.z - from.z) * k };
+    return squareAt(stand)({ side: i % 2 === 0 ? first : opposite(first), lift, land: lift + SHUFFLE_TIMING.takes });
+  });
+
+const SETTLE = shuffleSpan(round6(AT_MAILBOX - (SHUFFLE_WAY.length - 1) * SHUFFLE_TIMING.every - SHUFFLE_TIMING.takes));
+const ALMOST = { x: STAND.x + 0.3, z: STAND.z };
+const TURN_IN: readonly [number, number] = [SETTLE[0] - 0.45, SETTLE[0]];
+const DOORSTEP_LEAD: Step["side"] = -1;
 
 const walkHome: Walk = {
-  from: ARRIVE,
-  to: AT_MAILBOX,
+  from: OUT_OF_THE_HOUSE.walkOff,
+  to: SETTLE[0],
   via: [
     [START.x, START.z],
-    [-4.0, START.z],
-    [STAND.x, -1.0],
-    [STAND.x, STAND.z],
+    [START.x - 0.45, START.z + 0.2],
+    [ALMOST.x + 0.2, ALMOST.z + 0.1],
+    [ALMOST.x, ALMOST.z],
   ],
 };
 
@@ -129,28 +147,26 @@ const rootAt: RootAt = (t) => {
   if (t >= TO_DOOR[0]) return walkLeg(walkToDoor, t);
   if (t >= TO_BIN[0]) return walkLeg(walkToBin, t);
   if (t >= SIDESTEP[0]) return shuffle(t, SIDESTEP, STAND, READ_SPOT);
+  if (t >= SETTLE[0]) return shuffle(t, SETTLE, ALMOST, STAND);
   const { x, z, heading } = walkAt(walkHome, t);
   const turned = easeUnit((t - TURN_IN[0]) / (TURN_IN[1] - TURN_IN[0]));
-  const yaw = heading + (FACING_THE_WALL - heading) * turned;
+  const yaw = heading + wrapAngle(FACING_THE_WALL - heading) * turned;
   return { x, z, yaw, y: 0 };
 };
 
 const tibikSteps = () => {
   const cadence = walkCadence(rootAt);
-  const home = rhythmicSteps({
-    from: ARRIVE,
-    to: AT_MAILBOX,
-    first: -1,
-    cadence,
-    overlap: STEP_OVERLAP,
-  });
-  const aside = [...home, ...sidesteps(opposite(home[home.length - 1].side))];
-  const legs: readonly (readonly [number, number])[] = [TO_BIN, TO_DOOR];
-  const walked = legs.reduce((steps, [from, to]) => {
-    const first = opposite(steps[steps.length - 1].side);
-    const next = rhythmicSteps({ from, to, first, cadence, overlap: STEP_OVERLAP });
-    return [...steps, ...(from === TO_DOOR[0] ? pinApproach(next) : next)];
-  }, aside);
+  const plan = (first: Step["side"]) => {
+    const out = rhythmicSteps({ from: OUT_OF_THE_HOUSE.walkOff, to: SETTLE[0], first, cadence, overlap: STEP_OVERLAP });
+    const home = [...out, ...shuffleSteps(SETTLE[0], ALMOST, STAND, opposite(out[out.length - 1].side))];
+    const aside = [...home, ...sidesteps(opposite(home[home.length - 1].side))];
+    const legs: readonly (readonly [number, number])[] = [TO_BIN, TO_DOOR];
+    return legs.reduce((steps, [from, to]) => {
+      const next = rhythmicSteps({ from, to, first: opposite(steps[steps.length - 1].side), cadence, overlap: STEP_OVERLAP });
+      return [...steps, ...(from === TO_DOOR[0] ? pinApproach(next) : next)];
+    }, aside);
+  };
+  const walked = ([1, -1] as const).map(plan).find((steps) => steps[steps.length - 1].side === DOORSTEP_LEAD)!;
   return [...walked, ...ENTRY.steps(opposite(walked[walked.length - 1].side), cadence)];
 };
 
@@ -228,19 +244,9 @@ export const KEY_OUT: readonly [number, number] = [
   BOX_SHUT[1] + 0.6,
 ];
 
-const SIDESTEP_TIMING = { every: 0.18, takes: 0.14 };
-const SIDESTEP_WAY = [0.35, 1, 1] as const;
-export const SIDESTEP: readonly [number, number] = [
-  KEY_OUT[1],
-  KEY_OUT[1] + (SIDESTEP_WAY.length - 1) * SIDESTEP_TIMING.every + SIDESTEP_TIMING.takes,
-];
+export const SIDESTEP = shuffleSpan(KEY_OUT[1]);
 
-const sidesteps = (first: Step["side"]): Step[] =>
-  SIDESTEP_WAY.map((k, i) => {
-    const lift = SIDESTEP[0] + i * SIDESTEP_TIMING.every;
-    const stand = { x: STAND.x + (READ_SPOT.x - STAND.x) * k, z: STAND.z + (READ_SPOT.z - STAND.z) * k };
-    return squareAt(stand)({ side: i % 2 === 0 ? first : opposite(first), lift, land: lift + SIDESTEP_TIMING.takes });
-  });
+const sidesteps = (first: Step["side"]): Step[] => shuffleSteps(SIDESTEP[0], STAND, READ_SPOT, first);
 
 export const BOX_PULLED_OPEN = (80 * Math.PI) / 180;
 const ROUND_THE_DOOR = { taking: 0.15, inward: 0.13, out: 0.08, up: 0.04 };

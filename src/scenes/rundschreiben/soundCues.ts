@@ -9,6 +9,7 @@ import {
   ENVELOPE_LANDS,
   ENVELOPE_OUT,
   FLAP,
+  OUT_OF_THE_HOUSE,
   FOLD,
   KEY_IN,
   KEY_OUT,
@@ -20,7 +21,7 @@ import {
 } from "./choreography";
 import { FACADE_Z } from "../../street/building";
 import { HAUSTUER_WIDE, haustuerAt, indoorsAt } from "./home";
-import { entryCues } from "../entrySounds";
+import { entryCues, haustuerShutCues } from "../entrySounds";
 import { RAIN } from "../../sound/rain";
 
 
@@ -51,6 +52,7 @@ export const RUNDSCHREIBEN_CUES: readonly FileCue[] = [
   { name: "Lid lifted", at: LID_UP[0], file: "creak1.ogg", volume: 0.25 },
   { name: "Envelope lands in the bin", at: ENVELOPE_LANDS, file: "bookPlace1.ogg", volume: 0.4 },
   { name: "Lid thuds shut", at: LID_THUD, file: "impactSoft_heavy_000.ogg", volume: 0.9 },
+  ...haustuerShutCues(OUT_OF_THE_HOUSE.shut),
   ...entryCues(ENTRY),
 ];
 

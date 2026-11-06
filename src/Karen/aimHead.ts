@@ -1,4 +1,5 @@
 import { Vector3 } from "three";
+import { wrapAngle } from "../characters/scalar";
 import type { Placement, Pose } from "../characters/skeleton";
 import { karenHeadMatrix } from "./mouthEmitter";
 import { KAREN_HEAD_LIMITS } from "./rig";
@@ -8,7 +9,6 @@ export const KAREN_TURN = { twist: 0.8, lean: 0.35, gaze: 0.5 };
 const STEPS = 4;
 
 const clamp = (v: number, low: number, high: number) => Math.min(high, Math.max(low, v));
-const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const yawOf = (v: Vector3) => Math.atan2(v.x, v.z);
 const pitchOf = (v: Vector3) => Math.atan2(v.y, Math.hypot(v.x, v.z));
 
@@ -20,7 +20,7 @@ export const karenLooksAlong = (karen: Placement) => {
 const errorsOf = (karen: Placement, target: Vector3) => {
   const { origin, forward } = karenLooksAlong(karen);
   const toward = target.clone().sub(origin);
-  return { yaw: wrap(yawOf(toward) - yawOf(forward)), pitch: pitchOf(toward) - pitchOf(forward) };
+  return { yaw: wrapAngle(yawOf(toward) - yawOf(forward)), pitch: pitchOf(toward) - pitchOf(forward) };
 };
 
 export const karenTurnedTo = (karen: Placement, target: Vector3, weight: number, turn = KAREN_TURN): Pose => {

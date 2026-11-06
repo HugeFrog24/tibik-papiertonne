@@ -23,6 +23,9 @@ import {
 } from "../../street/mailboxDoorShape";
 import { BINS, ENTRANCE_LAMP, ENTRANCE_X, MAILBOXES, binByName } from "../../street/layout";
 import { DOORSTEP, FACADE_Z } from "../../street/building";
+import { HAUSTUER } from "../../street/facade";
+import { haustuerAt } from "./home";
+import { RUNDSCHREIBEN_CUES } from "./soundCues";
 import { entranceGround } from "../../street/layout";
 import { characterViolations } from "../../physics/guards";
 import { RIG } from "../../Tibik/rig";
@@ -33,6 +36,9 @@ import { expectGoesIn, expectKeyTurnsByHand, keysAwayFromFist } from "../entryCh
 import { lensProblems, penetrations, seconds } from "../sceneChecks";
 import { cameraAt, shotAt } from "./cameras";
 import {
+  OUT_OF_THE_HOUSE,
+  AT_MAILBOX,
+  rundschreibenTibikAt,
   SIDESTEP,
   tibikGait,
   BOX_OPEN,
@@ -64,11 +70,12 @@ import { rundschreibenSolids, solveRundschreiben } from "./solve";
 
 const frames = Array.from({ length: Math.round(RUNDSCHREIBEN_DURATION * FPS) }, (_, f) => f / FPS);
 
-test("the time jump's start: he is outside on the pavement, the Haustür and every lid shut, the bins emptied", () => {
+test("the time jump's start: he has just come out onto the pavement, the Haustür swinging shut behind him, every lid shut, the bins emptied", () => {
   const state = solveRundschreiben(0);
-  expect(state.haustuer).toBe(0);
+  expect(state.haustuer).toBeGreaterThan(0.8);
+  expect(solveRundschreiben(0.5).haustuer).toBeLessThan(state.haustuer);
   expect(state.lids.every((l) => l === 0)).toBe(true);
-  expect(state.tibik.position[2]).toBeGreaterThan(FACADE_Z + DOORSTEP.depth + 0.3);
+  expect(state.tibik.position[2]).toBeGreaterThan(FACADE_Z + DOORSTEP.depth + 0.2);
   expect(state.mailboxDoor).toBe(0);
   expect(state.envelope).toBeNull();
   expect(state.letter).toBeNull();
@@ -392,17 +399,11 @@ test("from the mailbox to the throw, the envelope and the letter keep an ink out
 
 const wholeScene = frames;
 
-test("the entrance lamp switches on as he comes within its sensor's range and stays on", { timeout: 300_000 }, () => {
+test("he comes out right under the entrance lamp: its sensor has him from the first frame, so it is on from the start and stays on", { timeout: 300_000 }, () => {
   const [lx, , lz] = ENTRANCE_LAMP.center;
-  const away = (t: number) => {
-    const [x, , z] = solveRundschreiben(t).tibik.position;
-    return Math.hypot(x - lx, z - lz);
-  };
-  expect(solveRundschreiben(0).lampOn).toBe(false);
-  const first = wholeScene.find((t) => away(t) <= LAMP_SENSOR.range)!;
-  expect(first).toBeGreaterThan(0.8);
-  expect(first).toBeLessThan(3);
-  for (const t of wholeScene) expect(solveRundschreiben(t).lampOn, t.toFixed(2)).toBe(t >= first);
+  const [x, , z] = solveRundschreiben(0).tibik.position;
+  expect(Math.hypot(x - lx, z - lz)).toBeLessThanOrEqual(LAMP_SENSOR.range);
+  for (const t of wholeScene) expect(solveRundschreiben(t).lampOn, t.toFixed(2)).toBe(true);
 });
 
 test("he holds the letter steady while reading", () => {
@@ -586,4 +587,32 @@ test("he shuffles aside to read the letter, never hops: one foot is always on th
     const down = Object.values(plants).some((list) => list.some((p) => p.on <= t + 1e-9 && t <= p.off + 1e-9));
     expect(down, t.toFixed(3)).toBe(true);
   }
+});
+
+const THE_DOORWAY = { from: HAUSTUER.hinge[0], to: HAUSTUER.hinge[0] + HAUSTUER.width, clear: 0.5, body: 0.25 };
+
+test("the epilogue opens on the Haustuer swinging shut behind him on its closer: well open at the first frame, latched before he reaches the mailbox, and below 30 degrees whenever he is in front of the doorway", () => {
+  expect(haustuerAt(0)).toBeGreaterThan(0.8);
+  expect(haustuerAt(OUT_OF_THE_HOUSE.shut)).toBe(0);
+  expect(OUT_OF_THE_HOUSE.shut).toBeLessThan(AT_MAILBOX);
+  for (let t = 0; t <= AT_MAILBOX; t += 1 / FPS) {
+    const [x] = rundschreibenTibikAt(t).position;
+    if (x > THE_DOORWAY.from - THE_DOORWAY.body && x < THE_DOORWAY.to) expect(haustuerAt(t), seconds(t)).toBeLessThan(THE_DOORWAY.clear);
+  }
+});
+
+test("he starts just outside the Haustuer, clear of its swing", () => {
+  const [x, , z] = rundschreibenTibikAt(0).position;
+  expect(Math.hypot(x - HAUSTUER.hinge[0], z - HAUSTUER.hinge[2])).toBeGreaterThan(HAUSTUER.width + THE_DOORWAY.body);
+  expect(Math.hypot(x - (THE_DOORWAY.from + THE_DOORWAY.to) / 2, z - FACADE_Z)).toBeLessThan(1.5);
+});
+
+test("the Haustuer's latch catches on the frame it shuts as the epilogue opens", () => {
+  const latch = RUNDSCHREIBEN_CUES.find((c) => c.name === "Haustuer latch catches" || c.name === "Haustür latch catches");
+  expect(latch?.at).toBeCloseTo(OUT_OF_THE_HOUSE.shut, 6);
+});
+
+test("turning in to his box he takes the short way round, never swinging round to face the street", () => {
+  for (let t = OUT_OF_THE_HOUSE.walkOff; t <= AT_MAILBOX; t += 1 / FPS)
+    expect(Math.cos(rundschreibenTibikAt(t).rotationY), seconds(t)).toBeLessThan(0.5);
 });

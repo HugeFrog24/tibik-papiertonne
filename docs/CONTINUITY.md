@@ -409,6 +409,12 @@ composition under "Scenes" in the Studio:
 - Bins are **anthracite with coloured lids**: blue = Papier,
   yellow = Wertstoffe (Gelbe Tonne), dark = Restmüll. Colours differ between
   real cities; Musterstadt uses these, always.
+- Each bin is a standard 240 l two-wheeled Tonne (DIN EN 840): 1.10 m to the
+  top of the shut lid, 58 cm wide, 74 cm deep. The lid has two grips standing
+  on its top at the front left and right corners (not on its front edge), and
+  a transport bar runs across the back top, a hand's width off the body. The
+  row stands a few centimetres off the house wall (the bar keeps it off), so a
+  flung-open lid can lean back against the wall. **(test)**
 - Each bin has the house number "12" painted on and a sticker naming what
   goes in, from the fictional "Abfallwirtschaft Musterstadt". Never use a
   real operator's logo.

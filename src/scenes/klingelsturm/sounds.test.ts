@@ -18,7 +18,7 @@ import { lightsAt } from "./light";
 import { PACKING } from "./parcel";
 import { BANGING } from "./banging";
 import { readWav } from "../../sound/wavFile";
-import { brightness, peakOf, tail } from "../../sound/toneChecks";
+import { brightness, lowShare, peakOf, rmsDb, tail } from "../../sound/toneChecks";
 import { expectFilesCredited, expectSfx } from "../../sound/creditChecks";
 import { BLOW_TAKES } from "./offenceCues";
 
@@ -100,16 +100,29 @@ test("every sound the landing's cues name exists in public/sfx", () => {
   expect([...new Set(missing)]).toEqual([]);
 });
 
-const BLOW_SOUND = /impactWood_heavy|door-blow/;
+const BLOW_SOUND = /door-pound/;
 const RATTLE_SOUND = /impactMetal_light|latch-rattle/;
 const blowCue = (at: number) => cueNear(BLOW_SOUND, at);
 const loudness = (cue: { readonly sound: string; readonly volume: number }) => cue.volume * peakOf(readWav(`${cue.sound}.wav`).samples);
+
+const POUNDING = { hit: [0, 0.4] as const, loud: -14, bass: 0.5, below: 150, ring: [1.0, 1.5] as const, rings: -32 };
+
+test("her fist on his door booms: every blow take is loud and bass-heavy, and on the landing the stairwell still rings a second later", () => {
+  BANGING.blows.forEach((at, i) => {
+    const cue = blowCue(at)!;
+    const { rate, samples } = readWav(`${cue.sound}.wav`);
+    const level = rmsDb(samples, rate, ...POUNDING.hit) + 20 * Math.log10(cue.volume);
+    expect(level, `blow ${i + 1} (${cue.sound}) level`).toBeGreaterThan(POUNDING.loud);
+    expect(lowShare(samples, rate, POUNDING.below), `blow ${i + 1} (${cue.sound}) bass`).toBeGreaterThan(POUNDING.bass);
+    if (!inTheFlur(at)) expect(rmsDb(samples, rate, ...POUNDING.ring), `blow ${i + 1} (${cue.sound}) ring`).toBeGreaterThan(POUNDING.rings);
+  });
+});
 
 test("each blow sounds on its contact frame, the stairwell take on the landing, the door take in the Flur", () => {
   BANGING.blows.forEach((at, i) => {
     const cue = blowCue(at);
     expect(cue, `blow ${i + 1}`).toBeDefined();
-    expect(cue!.sound).toMatch(i < 4 ? /^stairwell\/impactWood_heavy_00\d$/ : /^flur\/door-blow-\d$/);
+    expect(cue!.sound).toMatch(i < 4 ? /^stairwell\/pound\/door-pound-\d$/ : /^flur\/door-pound-\d$/);
     expect(existsSync(`public/sfx/${cue!.sound}.wav`), cue!.sound).toBe(true);
   });
   expect(new Set(BANGING.blows.map((at) => blowCue(at)!.sound)).size).toBeGreaterThanOrEqual(5);
@@ -127,22 +140,32 @@ test("the latch rattle follows each blow, quieter than the blow", () => {
 
 test("heard in his Flur a blow is duller than on the landing and has no stairwell tail", () => {
   for (const n of BLOW_TAKES) {
-    const door = readWav(`flur/door-blow-${n}.wav`);
-    const landing = readWav(`stairwell/impactWood_heavy_00${n}.wav`);
+    const door = readWav(`flur/door-pound-${n}.wav`);
+    const landing = readWav(`stairwell/pound/door-pound-${n}.wav`);
     expect(brightness(door.samples, door.rate), `take ${n}`).toBeLessThan(brightness(landing.samples, landing.rate));
     expect(tail(door.samples, door.rate), `take ${n}`).toBeLessThan(tail(landing.samples, landing.rate));
   }
 });
 
-test("a blow on the landing plays about as loud as her stomp: from 0.85 to 1.5 times as loud", () => {
-  const stomp = Math.max(
-    peakOf(readWav("stairwell/footstep_concrete_000.wav").samples),
-    0.6 * peakOf(readWav("stairwell/impactSoft_heavy_000.wav").samples),
-  );
+const hitLevel = (sound: string, volume: number) => {
+  const { rate, samples } = readWav(`${sound}.wav`);
+  return rmsDb(samples, rate, ...POUNDING.hit) + 20 * Math.log10(volume);
+};
+
+test("a blow on the landing hits clearly harder than her stomp: at least 6 dB louder over the hit", () => {
+  const stomp = Math.max(hitLevel("stairwell/footstep_concrete_000", 1), hitLevel("stairwell/impactSoft_heavy_000", 0.6));
   for (const at of BANGING.blows.slice(0, 4)) {
-    const blow = loudness(blowCue(at)!);
-    expect(blow, `blow @${at}`).toBeGreaterThanOrEqual(0.85 * stomp);
-    expect(blow, `blow @${at}`).toBeLessThanOrEqual(1.5 * stomp);
+    const cue = blowCue(at)!;
+    expect(hitLevel(cue.sound, cue.volume), `blow @${at}`).toBeGreaterThan(stomp + 6);
+  }
+});
+
+test("a blow's stairwell echo stops at the cut into his Flur, where the door takes over", () => {
+  const flurCut = SHOTS.find((s) => s.name === "Flur: the banging")!.from;
+  for (const at of BANGING.blows.filter((t) => t < flurCut)) {
+    const cue = blowCue(at)!;
+    expect(cue.length, `blow @${at}`).toBeDefined();
+    expect(at + cue.length!, `blow @${at}`).toBeLessThanOrEqual(flurCut + 1e-9);
   }
 });
 
@@ -153,8 +176,10 @@ test("she pants through the beat and the walk back", () => {
 });
 
 test("every new banging file exists and the Kenney takes are credited", () => {
-  expectFilesCredited(BLOW_TAKES.flatMap((n) => [`impactWood_heavy_00${n}.ogg`, `impactMetal_light_00${n}.ogg`]));
-  expectSfx(BLOW_TAKES.flatMap((n) => [`stairwell/impactWood_heavy_00${n}.wav`, `stairwell/impactMetal_light_00${n}.wav`, `flur/door-blow-${n}.wav`, `flur/latch-rattle-${n}.wav`]));
+  expectFilesCredited(
+    BLOW_TAKES.flatMap((n) => [`impactPunch_heavy_00${n}.ogg`, `impactWood_heavy_00${n}.ogg`, `impactPlank_medium_00${n}.ogg`, `impactMetal_light_00${n}.ogg`]),
+  );
+  expectSfx(BLOW_TAKES.flatMap((n) => [`pound/door-pound-${n}.wav`, `stairwell/pound/door-pound-${n}.wav`, `stairwell/impactMetal_light_00${n}.wav`, `flur/door-pound-${n}.wav`, `flur/latch-rattle-${n}.wav`]));
 });
 
 const coda = (sound: string) => doorCues().filter((c) => c.sound === `stairwell/coda/${sound}`);

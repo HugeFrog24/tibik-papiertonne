@@ -16,6 +16,13 @@ export const pole = (frequency) => 1 - Math.exp((-2 * Math.PI * frequency) / RAT
 
 export const peakOf = (samples) => samples.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
 
+export const fullScale = (samples) => {
+  const peak = peakOf(samples);
+  return samples.map((v) => (v * 0.98) / peak);
+};
+
+export const driven = (samples, drive) => fullScale(fullScale(samples).map((v) => Math.tanh(drive * v)));
+
 export const passage = (samples, { from, seconds, fadeIn, fadeOut }) => {
   const start = Math.round(from * RATE);
   const envelope = (t) => Math.min(1, t / fadeIn, (seconds - t) / fadeOut);

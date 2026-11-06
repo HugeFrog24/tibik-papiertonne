@@ -7,8 +7,8 @@ import type { BellCue } from "./doorCues";
 
 export const BLOW_TAKES = [0, 1, 2, 3, 4] as const;
 const RATTLE_AFTER = 0.01;
-const ON_THE_LANDING = { blow: 1.0, rattle: 0.15 };
-const IN_HIS_FLUR = { blow: 0.85, rattle: 0.12 };
+const ON_THE_LANDING = { blow: 0.7, rattle: 0.12 };
+const IN_HIS_FLUR = { blow: 0.5, rattle: 0.08 };
 
 export const blowCues = (inTheFlur: (t: number) => boolean): BellCue[] =>
   BANGING.blows.flatMap((at, i) => {
@@ -18,8 +18,9 @@ export const blowCues = (inTheFlur: (t: number) => boolean): BellCue[] =>
       {
         name: `Her fist on his door ${i + 1}`,
         at,
-        sound: flur ? `flur/door-blow-${take}` : `stairwell/impactWood_heavy_00${take}`,
+        sound: flur ? `flur/door-pound-${take}` : `stairwell/pound/door-pound-${take}`,
         volume: flur ? IN_HIS_FLUR.blow : ON_THE_LANDING.blow,
+        ...(!flur && at < BANGING.flurCut[0] ? { length: round6(BANGING.flurCut[0] - at) } : {}),
       },
       {
         name: `His latch rattles ${i + 1}`,

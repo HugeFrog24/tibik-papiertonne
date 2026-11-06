@@ -14,6 +14,13 @@ sounds below) run through a synthetic stairwell reverb by scripts/make-stairwell
 its source's licence.
 stairwell/footstep_concrete_000-far.wav to stairwell/footstep_concrete_003-far.wav are the same Kenney steps heard
 from further off (the direct sound low-passed at 1.5 kHz, more of the reverb).
+stairwell/pound/door-pound-0.wav to stairwell/pound/door-pound-4.wav are pound/door-pound-0.wav to
+pound/door-pound-4.wav with a heavy share of the reverb (Karen's fist on his door, heard on the landing).
+
+The files in pound/ are made by scripts/make-pound.mjs from Kenney sounds above (CC0 like their
+sources): each take layers impactPunch_heavy_00N.ogg (the fist), impactWood_heavy_00N.ogg (the knock)
+and impactPlank_medium_00N.ogg (the door panel), slowed by 15 %, with its low end raised and gently
+saturated.
 
 The files in phone/ are synthesised for this project by scripts/make-phone.mjs (no third-party
 material): the doorbell, the DTMF keypad tones, the German line tones (ringback and busy, 425 Hz),
@@ -21,8 +28,8 @@ the answering machine's beep, the receiver click and Karen's panting (filtered n
 
 The files in flur/ other than tape-pull.wav are Kenney sounds above (footstep_concrete_000.ogg to
 footstep_concrete_003.ogg, bookPlace1.ogg, impactSoft_heavy_000.ogg) as heard through a flat door,
-made by scripts/make-flur.mjs (CC0 like their sources); door-blow-0.wav to door-blow-4.wav are
-impactWood_heavy_000.ogg to impactWood_heavy_004.ogg as heard from inside the struck door (gently
+made by scripts/make-flur.mjs (CC0 like their sources); door-pound-0.wav to door-pound-4.wav are
+pound/door-pound-0.wav to pound/door-pound-4.wav as heard from inside the struck door (gently
 low-passed), and latch-rattle-0.wav to latch-rattle-4.wav are impactMetal_light_000.ogg to
 impactMetal_light_004.ogg unchanged.
 
@@ -71,6 +78,10 @@ impactWood_heavy_000.ogg, impactWood_heavy_001.ogg, impactWood_heavy_002.ogg, im
 impactWood_heavy_004.ogg, impactMetal_light_000.ogg, impactMetal_light_001.ogg, impactMetal_light_002.ogg,
 impactMetal_light_003.ogg and impactMetal_light_004.ogg ("Impact Sounds", Kenney, CC0 1.0,
 https://kenney.nl/assets/impact-sounds) were added for the Klingelsturm: Karen's fist on his door and the latch rattling in its strike plate.
+impactPunch_heavy_000.ogg, impactPunch_heavy_001.ogg, impactPunch_heavy_002.ogg, impactPunch_heavy_003.ogg,
+impactPunch_heavy_004.ogg, impactPlank_medium_000.ogg, impactPlank_medium_001.ogg, impactPlank_medium_002.ogg,
+impactPlank_medium_003.ogg and impactPlank_medium_004.ogg ("Impact Sounds", Kenney, CC0 1.0,
+https://kenney.nl/assets/impact-sounds) were added so that her fist booms on his door (layered into pound/).
 
 rain.wav and rain-muffled.wav (heard from inside the building) are made by scripts/make-rain.mjs from
 "Rain" by ezwa, public domain (released worldwide by its author, originally on PDSounds.org),

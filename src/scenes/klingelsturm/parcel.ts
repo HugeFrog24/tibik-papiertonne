@@ -10,7 +10,7 @@ import {
   type FlapOrder,
 } from "../../street/kartonShape";
 import type { ArmName } from "../../characters/skeleton";
-import type { Hold } from "../../physics/holds";
+import { holdWindow, type Hold } from "../../physics/holds";
 import type { Vec3 } from "../../toon/primitives";
 
 const chestTop = CHEST.center[1] + CHEST.size[1] / 2;
@@ -182,10 +182,7 @@ const flapHold = (
 ): Hold => ({
   name,
   arm,
-  reach: window[0],
-  grip: window[1],
-  release: window[2],
-  done: window[3],
+  ...holdWindow(window),
   target: (t) => flapsAt(t)[pick(chosen())],
   near: (t) => {
     const flap = flapsAt(t)[pick(chosen())];

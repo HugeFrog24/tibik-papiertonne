@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import { armColliders } from "../characters/skeleton";
 import { KAREN_REST, KAREN_SKELETON } from "../Karen/rig";
 import { frame, obb } from "./collision";
-import { followTheHand, workArm, type Hold } from "./holds";
+import { followTheHand, holdWindow, workArm, type Hold } from "./holds";
 
 const karen = {
   position: [0, 0, 0] as [number, number, number],
@@ -52,10 +52,7 @@ test("handing over from one exact grip to the next, the hand goes straight from 
   const grip = (name: string, point: Vector3, window: readonly [number, number, number, number]): Hold => ({
     name,
     arm: "leftArm",
-    reach: window[0],
-    grip: window[1],
-    release: window[2],
-    done: window[3],
+    ...holdWindow(window),
     target: () => obb(name, frame(new Matrix4(), point.toArray() as [number, number, number]), [0.03, 0.03, 0.03]),
     near: () => point,
     exact: true,

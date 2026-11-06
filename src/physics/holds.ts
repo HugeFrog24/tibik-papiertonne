@@ -26,6 +26,8 @@ export const followTheHand = (frame: Matrix4, hand: Vector3, near: Vector3, weig
   return new Matrix4().makeTranslation(miss.x, miss.y, miss.z).multiply(frame);
 };
 
+export const holdWindow = ([reach, grip, release, done]: readonly [number, number, number, number]) => ({ reach, grip, release, done });
+
 export const handHold = ({
   window: [grip, release],
   lead = 0.3,

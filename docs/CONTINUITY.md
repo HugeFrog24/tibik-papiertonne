@@ -734,13 +734,32 @@ Ideas (proposed, not built; the user picks):
   to the room).
 - Her smoke: the wisp's puffs bunch and thin by about 10 % on a seeded
   pattern (uneven burning).
+- Her jumper over the bust: the knit stretched a shade lighter at the fullest
+  point, soft drag creases running from her arm into the shading under the
+  bust (shading only, no ink line), a small pilling patch on the forearm side
+  where her arm rubs her body.
+- Her smoking hand: between draws the cigarette sits deep between her
+  fingers; the hand settles a few degrees lower each time (her arm tiring);
+  a faint yellow-brown stain on her first two fingers; her right cuff pushed
+  a little up the forearm and rucked (she smokes with that arm raised), the
+  left one down.
+- Her free hand on her belly on the way to his door and back: fingers loosely
+  curled, the jumper bunched a little under the palm, the hand drifting a
+  centimetre or two with her steps.
+- Her lowered phone: a few degrees off square in her palm, swinging a degree
+  or two with each step; a faint thumb smudge on the dark glass.
+- Pocketing the lighter: a short catch on the pocket's lip before her hand
+  comes out empty.
+- Her hair: a loose lock resting on her upper bust, lifting a little as she
+  breathes.
 - The coda's sounds: each draw's crackle starts from a different point of
   the recording (the first, as the paper catches, thinner; the later one
   fuller); the gas hiss dips or flutters slightly during the draws (the draw
   pulls the flame to the tip); the second exhale is a different, shorter and
   lazier breath than the first.
 - Story changes (only if you want them): the first strike doesn't catch; a
-  throat-clear after the exhale.
+  throat-clear after the exhale; she taps the ash off once onto the landing
+  floor (one more small offence).
 
 ## Continuity between scenes
 

@@ -1,24 +1,8 @@
 import { useDisposable } from "../toon/useDisposable";
-import {
-  LatheGeometry,
-  Vector2,
-  type WebGLProgramParametersWithUniforms,
-} from "three";
+import { Vector2, type WebGLProgramParametersWithUniforms } from "three";
 import { InkHull, OUTLINE, type Paint } from "../toon/primitives";
-import { bustLift, torsoProfile, type Skeleton } from "./skeleton";
-
-const bulged = (geometry: LatheGeometry, skeleton: Skeleton) => {
-  if (!skeleton.torso.bulges?.length) return geometry;
-  const position = geometry.attributes.position;
-  for (let i = 0; i < position.count; i++) {
-    const x = position.getX(i);
-    const z = position.getZ(i);
-    if (z <= 0) continue;
-    position.setZ(i, z + (bustLift(skeleton, x, position.getY(i)) * z) / Math.hypot(x, z) / skeleton.torso.depthScale);
-  }
-  geometry.computeVertexNormals();
-  return geometry;
-};
+import { torsoProfile, type Skeleton } from "./skeleton";
+import { torsoLathe } from "./torsoShape";
 
 export const TorsoMesh: React.FC<{
   readonly skeleton: Skeleton;
@@ -38,8 +22,8 @@ export const TorsoMesh: React.FC<{
         p.y - tangent.x * OUTLINE,
       );
     });
-    const body = bulged(new LatheGeometry(points, 64), skeleton);
-    const hull = bulged(new LatheGeometry(hullPoints, 64), skeleton);
+    const body = torsoLathe(points, skeleton);
+    const hull = torsoLathe(hullPoints, skeleton);
     return {
       body,
       hull,

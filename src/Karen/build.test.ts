@@ -1,6 +1,6 @@
 import { Vector2, Vector3 } from "three";
 import { expect, test } from "vitest";
-import { armIntoTorso, bodyColliders, bustLift, handSphere, torsoClearance, torsoDepthAt, torsoRadiusAt, torsoSurface } from "../characters/skeleton";
+import { armIntoTorso, bodyColliders, bustLift, handSphere, sphereDirections, torsoClearance, torsoDepthAt, torsoRadiusAt, torsoSurface } from "../characters/skeleton";
 import { sphereObbGap } from "../physics/collision";
 import { reachArm } from "../physics/grip";
 import { cigaretteObb } from "../props/cigaretteShape";
@@ -86,4 +86,28 @@ test("her arms are long enough to hold a cigarette at the right corner of her mo
   for (const p of karenFaceSurface(karen)) expect(p.distanceTo(fist.center)).toBeGreaterThanOrEqual(fist.radius);
   for (const hair of bodyColliders(K, holding).head.filter((part) => part.name === "hair")) expect(hair.center.distanceTo(fist.center)).toBeGreaterThan(hair.radius + fist.radius);
   expect(armIntoTorso(K, holding.pose, "rightArm")).toBeLessThanOrEqual(IN_HER_FIST.intoHer);
+});
+
+const BUST_BALL_POKE = 0.01;
+
+const drawnFront = (x: number, y: number) => {
+  const r = torsoRadiusAt(K, y).radius;
+  return Math.abs(x) < r ? torsoSurface(K, new Vector2(r, y), Math.acos(x / r)).z : null;
+};
+
+test("no collision sphere of her bust pokes out of the drawn bust by more than 1 cm, so nothing bumps into empty jumper", () => {
+  const place = { position: [0, 0, 0] as [number, number, number], rotationY: 0, pose: KAREN_REST };
+  const plain = bodyColliders({ ...K, torso: { ...K.torso, bulges: [] } }, place).upperTorso.length;
+  const balls = bodyColliders(K, place).upperTorso.slice(plain);
+  expect(balls.length).toBeGreaterThan(0);
+  const step = 0.002;
+  for (const ball of balls)
+    for (const d of sphereDirections(200)) {
+      const p = ball.center.clone().addScaledVector(d, ball.radius).sub(new Vector3(0, K.hipHeight, 0));
+      const z = drawnFront(p.x, p.y);
+      if (z === null || p.z <= 0) continue;
+      const zx = ((drawnFront(p.x + step, p.y) ?? z) - (drawnFront(p.x - step, p.y) ?? z)) / (2 * step);
+      const zy = ((drawnFront(p.x, p.y + step) ?? z) - (drawnFront(p.x, p.y - step) ?? z)) / (2 * step);
+      expect((p.z - z) / Math.hypot(1, zx, zy), `ball of ${ball.radius} m at ${p.toArray().map((v) => v.toFixed(3))}`).toBeLessThanOrEqual(BUST_BALL_POKE);
+    }
 });

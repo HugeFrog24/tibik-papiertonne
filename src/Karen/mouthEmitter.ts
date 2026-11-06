@@ -1,6 +1,7 @@
 import { Matrix4, Vector3 } from "three";
 import {
   headRotation,
+  sphereDirections,
   torsoMatrix,
   type Placement,
 } from "../characters/skeleton";
@@ -8,11 +9,10 @@ import { mouthBottom, mouthTop } from "./face";
 import { HEAD_SIZE, faceNormal, facePoint } from "./headShape";
 import { KAREN_SKELETON as K } from "./rig";
 import type { Emitter } from "./spray";
-import { sphereLattice } from "../characters/scalar";
 
 export const SPRAY_AHEAD = 0.012;
 
-const AROUND_HER_FACE = sphereLattice(400).map(({ polar, azimuth }) => new Vector3().setFromSphericalCoords(1, polar, azimuth));
+const AROUND_HER_FACE = sphereDirections(400);
 
 export const karenFaceSurface = (karen: Placement) => {
   const head = karenHeadMatrix(karen);

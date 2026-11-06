@@ -64,6 +64,8 @@ export const filmTime = (u: number) =>
 
 export const AT_THE_SWITCH_AT = filmTime(LEAVING.toTheSwitch[1]);
 
+export const DOWN_THE_STAIRS = filmTime(LEAVING.descentStart);
+
 export const EXIT_SOUNDS = {
   doorOpens: filmTime(LEAVING.leverPull[0]),
   doorShuts: filmTime(LEAVING.shut[1]),

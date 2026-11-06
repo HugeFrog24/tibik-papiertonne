@@ -12,7 +12,11 @@ import {
   phoneAt,
   readingAt,
 } from "./calls";
-import { AT_THE_SWITCH_AT, EXIT } from "./exit";
+import { AT_THE_SWITCH_AT, DOWN_THE_STAIRS, EXIT } from "./exit";
+import { tibikAt } from "./door";
+import { mouthInWorld } from "../../dialogue/screen";
+import { RIG } from "../../Tibik/rig";
+import { KAREN_TURN, karenTurnedTo } from "../../Karen/aimHead";
 import { CODA, LIPS, TO_HER_HAND, exhalingAt, turnedToHerHand } from "./cigarette";
 import { obb, type Obb } from "../../physics/collision";
 import { planGait, plantFeet } from "../../characters/gait";
@@ -261,7 +265,10 @@ export const karenStandGait = lazy(() =>
   ),
 );
 
+
 const WATCHING = { twist: 0.5, head: 0.4, gaze: 0.3 };
+
+const FOLLOWING = { ease: 0.4, settle: 0.2, turn: { ...KAREN_TURN, lean: 0.2 } };
 
 const EXHALE = { pitch: 0.2 };
 
@@ -278,6 +285,8 @@ const fistReady = (t: number) =>
     [0, 1, 1, 0],
   );
 
+const hisHeadAt = (t: number) => mouthInWorld(RIG, tibikAt(t));
+
 export const karenAt = (t: number): KarenFrame => {
   const root = karenRoot(t);
   const glaring = Math.max(
@@ -290,6 +299,7 @@ export const karenAt = (t: number): KarenFrame => {
   const lookingBack = 1 - kf(t, CODA.phoneAway, [0, 1]);
   const watching = kf(t, [EXIT.offset - 0.1, EXIT.offset + 0.7], [0, 1]) * lookingBack;
   const turning = kf(t, [AT_THE_SWITCH_AT, AT_THE_SWITCH_AT + 0.6], [0, 1]) * lookingBack;
+  const following = kf(t, [DOWN_THE_STAIRS - FOLLOWING.ease, DOWN_THE_STAIRS + FOLLOWING.settle], [0, 1]) * lookingBack;
   const exhaling = exhalingAt(t);
   const pose: Pose = limitKarenHead({
     ...KAREN_REST,
@@ -309,7 +319,7 @@ export const karenAt = (t: number): KarenFrame => {
     leftArm: blendArm(KAREN_ARM_REST, BANG_READY, fistReady(t)),
     rightArm: blendArm(RIGHT_ARM_TUCKED, RIGHT_ARM_IN, handsFree(t)),
   });
-  const placed = { position, rotationY: root.yaw, pose };
+  const placed = { position, rotationY: root.yaw, pose: limitKarenHead(karenTurnedTo({ position, rotationY: root.yaw, pose }, hisHeadAt(t), following, FOLLOWING.turn)) };
   return {
     ...placed,
     pose: plantFeet(karenStandGait(), t, placed),

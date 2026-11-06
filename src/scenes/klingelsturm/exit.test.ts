@@ -24,6 +24,8 @@ import { EXIT, EXIT_HOLDS, swapAt } from "./exit";
 import { LIGHT, lightsAt } from "./light";
 import { klingelsturmSolids, solveKlingelsturm } from "./solve";
 import { mm } from "../sceneChecks";
+import { mouthInWorld } from "../../dialogue/screen";
+import { karenLooksAlong } from "../../Karen/aimHead";
 
 const TOLERANCE = 0.002;
 
@@ -134,3 +136,25 @@ test(
     expect(problems.slice(0, 8)).toEqual([]);
   },
 );
+
+const FOLLOWED = { until: 0.3, within: (20 * Math.PI) / 180, every: 5, down: 0.05 };
+
+const offHim = (t: number) => {
+  const state = solveKlingelsturm(t);
+  const { origin, forward } = karenLooksAlong(state.karen);
+  return forward.angleTo(mouthInWorld(RIG, asCharacter(state.tibik)).sub(origin));
+};
+
+const firstStepDown = () => {
+  for (let t = EXIT.walk; t < EXIT.end; t += 1 / FPS) if (solveKlingelsturm(t).tibik.position[1] < floorLevel(1) - FOLLOWED.down) return t;
+  return EXIT.end;
+};
+
+test("as Tibik goes down the stairs Karen's head follows him, turning and dipping after his head until he is gone", () => {
+  const misses: string[] = [];
+  for (let t = firstStepDown(); t <= EXIT.end - FOLLOWED.until; t += FOLLOWED.every / FPS) {
+    const off = offHim(t);
+    if (off > FOLLOWED.within) misses.push(`${t.toFixed(2)} s: ${((off * 180) / Math.PI).toFixed(0)} deg`);
+  }
+  expect(misses).toEqual([]);
+});

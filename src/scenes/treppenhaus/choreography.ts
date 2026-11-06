@@ -99,7 +99,7 @@ const ARRIVE: Walk = {
 };
 const PIVOT_END = 18.0;
 const HAUSTUER_PUSH: readonly [number, number] = [18.25, 18.4];
-const LEVER_UP_BEFORE_THE_END = 0.05;
+const LEVER_UP_BEFORE_THE_END = 0.03;
 const HAUSTUER_LEVER_UP = HAUSTUER_PUSH[1] - LEVER_UP_BEFORE_THE_END;
 const HIS_LEVER_UP = LEVER_PULL[1] - LEVER_UP_BEFORE_THE_END;
 export const HAUSTUER_SWUNG_AT =
@@ -222,7 +222,7 @@ export const HOLDS: readonly Hold[] = [
     reach: -0.3,
     grip: 0,
     release: HIS_LEVER_UP,
-    done: 0.85,
+    done: 0.95,
     target: (t) =>
       gripSolid(TIBIK_DOOR, tibikDoorAt(t), "inner", tibikLeverAt(t)),
   },
@@ -395,7 +395,7 @@ export const footstepStoryTimes = (): number[] =>
     .filter((t) => t >= 0 && t <= STORY_END);
 
 export const RAIL_SPAN: readonly [number, number] = [
-  DESCENT_START + 0.7,
+  DESCENT_START + 1.1,
   DESCENT_START + (DESCENT_STEPS - 1) * STEP - 0.1,
 ];
 

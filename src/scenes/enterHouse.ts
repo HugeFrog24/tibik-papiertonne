@@ -19,7 +19,7 @@ const ONTO_THE_STEP = [0.26, 0.3] as const;
 const STANCE = 0.17;
 
 export const DOOR_STAND: Stand = { x: -1.25, z: -1.8 };
-const AT_THE_LOCK = { crouch: TIBIK_CROUCH, rise: 0.3 };
+const AT_THE_LOCK = { crouch: TIBIK_CROUCH, rise: 0.5 };
 export const ON_THE_PAVEMENT = -1.42;
 const ON_THE_STEP = DOOR_STAND.z - 0.05;
 const INSIDE = { x: -1.45, z: -3.4 };

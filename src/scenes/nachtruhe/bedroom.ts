@@ -156,7 +156,7 @@ const toWindow: Walk = {
   to: WALK_ROUND[1],
   via: [
     [STAND.x, STAND.z],
-    [STAND.x + 0.4, STAND.z - 0.6],
+    [STAND.x + 0.55, STAND.z - 0.6],
     [(BED_RECT.x1 + BED.frame + BEDROOM.x1) / 2, STAND.z - 0.2],
     [AT_THE_WINDOW.x, AT_THE_WINDOW.z],
   ],

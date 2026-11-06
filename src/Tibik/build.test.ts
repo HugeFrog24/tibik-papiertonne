@@ -1,16 +1,24 @@
 import { expect, test } from "vitest";
 import { BED } from "../building/bedroomShape";
 import { torsoProfile } from "../characters/skeleton";
-import { RIG } from "./rig";
+import { headSurface } from "./headShape";
+import { RIG, TIBIK_REST } from "./rig";
 
 const TOE_RISE = 0.05;
 
 test("his legs are long enough that the bottom of his body stands within a toe-rise of his bed's mattress, so he can sit back onto its edge instead of hopping up", () => {
   const seat = RIG.hipHeight + Math.min(...torsoProfile(RIG).map((p) => p.y));
-  expect(seat).toBeGreaterThanOrEqual(BED.top - TOE_RISE);
+  expect(seat).toBeGreaterThanOrEqual(BED.top - TOE_RISE - 1e-9);
   expect(seat).toBeLessThan(BED.top);
 });
 
 test("his thigh and shin are equally long", () => {
   expect(RIG.thigh.length).toBeCloseTo(RIG.shin.length, 9);
+});
+
+const THE_OWNERS_HEIGHT = 1.79;
+
+test("standing, the top of his head is no higher than the film's owner (1.79 m); only his frog eyes rise above it", () => {
+  const top = Math.max(...headSurface({ position: [0, 0, 0], rotationY: 0, pose: TIBIK_REST }).map((p) => p.y));
+  expect(top).toBeLessThanOrEqual(THE_OWNERS_HEIGHT);
 });

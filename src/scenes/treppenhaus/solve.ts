@@ -1,7 +1,7 @@
 import { indoorSolids } from "../../building/flurShape";
 import { Vector3 } from "three";
-import { HANDRAIL, STAIRWELL_RAILINGS } from "../../building/stairwell";
-import { armColliders, type ArmPose } from "../../characters/skeleton";
+import { HANDRAIL, HANDRAIL_HEIGHT, STAIRWELL_RAILINGS } from "../../building/stairwell";
+import { armColliders } from "../../characters/skeleton";
 import {
   sphereObbGap,
   type Contact,
@@ -17,6 +17,7 @@ import { restingLids } from "../../street/restingLids";
 import { asCharacter, type TibikFrame } from "../../Tibik/character";
 import {
   HOLDS,
+  ARM_TO_RAIL,
   RAIL_SPAN,
   STORY_END,
   haustuerAt,
@@ -49,13 +50,8 @@ const solidsFor = (
   ...indoorSolids({ tibik: tibikDoor, tibikLever }),
 ];
 
-export const RAIL_GRIP: ArmPose = {
-  raise: -0.4,
-  out: 0.5,
-  elbow: 1.8,
-  inward: 0,
-};
-const GRIP_BELOW_SHOULDER = 0.2;
+const GRIP_DOWN_THE_RAIL = 0.04;
+const GRIP_BELOW_SHOULDER = RIG.hipHeight + RIG.shoulder.y - HANDRAIL_HEIGHT + GRIP_DOWN_THE_RAIL;
 const OFF_WALL = new Vector3(0.008, 0, 0);
 const RAIL_END = 0.03;
 
@@ -95,7 +91,7 @@ const solve = (t: number): TreppenhausState => {
   tibik = workArm(tibik, "leftArm", t, solids, HOLDS);
   tibik = onRail(t)
     ? reachArm(
-        { ...tibik, pose: { ...tibik.pose, rightArm: RAIL_GRIP } },
+        { ...tibik, pose: { ...tibik.pose, rightArm: ARM_TO_RAIL } },
         "rightArm",
         { touch: EG_RAIL, near: railTarget(tibik) },
         solids,

@@ -60,7 +60,7 @@ const FACING_DOWN = 4 * TURN;
 const BESIDE_HIS_DOOR: Point = [-3.85, -8.5];
 const IN_HIS_DOORWAY: Point = [-3.45, -9.14];
 const OUT_ON_THE_LANDING: Point = [-2.62, -9.14];
-const AT_THE_SWITCH: Point = [-2.72, -8.85];
+const AT_THE_SWITCH: Point = [-2.72, -8.98];
 const STAIR_TOP: Point = [STAIR_X, -8.79];
 
 const CRACKED = 0.22;
@@ -99,7 +99,9 @@ const ARRIVE: Walk = {
 };
 const PIVOT_END = 18.0;
 const HAUSTUER_PUSH: readonly [number, number] = [18.25, 18.4];
-const HAUSTUER_LEVER_UP = HAUSTUER_PUSH[1] - 0.05;
+const LEVER_UP_BEFORE_THE_END = 0.05;
+const HAUSTUER_LEVER_UP = HAUSTUER_PUSH[1] - LEVER_UP_BEFORE_THE_END;
+const HIS_LEVER_UP = LEVER_PULL[1] - LEVER_UP_BEFORE_THE_END;
 export const HAUSTUER_SWUNG_AT =
   HAUSTUER_PUSH[1] + coastTime(HAUSTUER_PUSH, HAUSTUER_CRACKED, HAUSTUER_HELD);
 const CATCH_STEP: readonly [number, number] = [18.6, 19.2];
@@ -159,6 +161,7 @@ const SHOULDER_TO_HAUSTUER = -0.4;
 const HAUSTUER_LET_GO = 18.75;
 const HAUSTUER_REACH = 17.85;
 const HAUSTUER_GRIP = 18.08;
+const LETS_THE_DOOR_SWING_SHUT = 2.5;
 const YAW_KEYS: readonly (readonly [number, number])[] = [
   [0, FACING_BACK + SHOULDER_TO_LEVER],
   [SIDLE_IN[0], FACING_BACK + SHOULDER_TO_LEVER],
@@ -189,7 +192,7 @@ const leverAt = (t: number, pull: readonly [number, number]) => {
   return LEVER.down * (1 - smoothstep((t - pull[1]) / LEVER.back));
 };
 
-export const tibikLeverAt = (t: number) => leverAt(t, LEVER_PULL);
+export const tibikLeverAt = (t: number) => leverAt(t, [LEVER_PULL[0], HIS_LEVER_UP]);
 export const haustuerLeverAt = (t: number) =>
   leverAt(t, [HAUSTUER_PUSH[0], HAUSTUER_LEVER_UP]);
 
@@ -218,7 +221,7 @@ export const HOLDS: readonly Hold[] = [
     arm: "rightArm",
     reach: -0.3,
     grip: 0,
-    release: LEVER_PULL[1],
+    release: HIS_LEVER_UP,
     done: 0.85,
     target: (t) =>
       gripSolid(TIBIK_DOOR, tibikDoorAt(t), "inner", tibikLeverAt(t)),
@@ -228,8 +231,8 @@ export const HOLDS: readonly Hold[] = [
     arm: "leftArm",
     reach: 1.55,
     grip: SHUT[0],
-    release: SHUT[1],
-    done: SHUT[1] + 0.25,
+    release: LETS_THE_DOOR_SWING_SHUT,
+    done: LETS_THE_DOOR_SWING_SHUT + 0.25,
     target: (t) => gripSolid(TIBIK_DOOR, tibikDoorAt(t), "outer"),
   },
   {
@@ -393,7 +396,7 @@ export const footstepStoryTimes = (): number[] =>
 
 export const RAIL_SPAN: readonly [number, number] = [
   DESCENT_START + 0.7,
-  DESCENT_START + (DESCENT_STEPS - 1) * STEP - 0.05,
+  DESCENT_START + (DESCENT_STEPS - 1) * STEP - 0.1,
 ];
 
 const walking = (t: number) =>
@@ -408,7 +411,7 @@ const ARM_ON_STAIRS: ArmPose = {
   elbow: 0.35,
   inward: 0.1,
 };
-const ARM_TO_RAIL: ArmPose = { raise: -0.4, out: 0.5, elbow: 1.8, inward: 0 };
+export const ARM_TO_RAIL: ArmPose = { raise: 0, out: 0.9, elbow: 1.0, inward: 0 };
 const ARM_KEYS: readonly (readonly [number, ArmPose])[] = [
   [0, ARM_TUCK],
   [SHUT[1], ARM_TUCK],

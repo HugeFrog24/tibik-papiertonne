@@ -294,7 +294,8 @@ export const CURTAIN_OPENS_TO = STROKE / EDGE_TRAVEL;
 
 export const curtainOpenAt = (t: number) => (STROKE * drawnSoFar(t)) / EDGE_TRAVEL;
 
-const GRIP = { height: 1, size: [0.04, 0.06, 0.01] as const };
+const BELOW_HIS_SHOULDER = 0.06;
+const GRIP = { height: RIG.hipHeight + RIG.shoulder.y - BELOW_HIS_SHOULDER, size: [0.04, 0.06, 0.01] as const };
 const REACH = { lead: 0.35, tail: 0.4 };
 
 export const curtainGrip = (t: number) => {

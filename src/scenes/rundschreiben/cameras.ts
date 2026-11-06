@@ -9,6 +9,7 @@ import {
 } from "../../props/letterShape";
 import { FRAME_SIZE } from "../../dialogue/screen";
 import type { Vec3 } from "../../toon/primitives";
+import { RIG } from "../../Tibik/rig";
 import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../../toon/shots";
 import {
   FOLD,
@@ -82,6 +83,8 @@ const body = roleLines("salutation", "body");
 const thanks = roleLines("thanks", "signature");
 const punchline = Math.min(...thanks.map((l) => l.y));
 
+const ABOVE_HIS_HIPS = (height: number) => RIG.hipHeight + height;
+
 export const SHOTS: readonly RundschreibenShot[] = [
   {
     name: "Wide: Zwei Wochen später",
@@ -100,8 +103,8 @@ export const SHOTS: readonly RundschreibenShot[] = [
     from: OPENING,
     to: READ[0],
     at: dolly(
-      { position: [-2.42, 0.92, -2.14], target: [-2.34, 1.06, -1.73], fov: 50 },
-      { position: [-2.42, 1.2, -2.14], target: [-2.32, 1.08, -1.72], fov: 50 },
+      { position: [-2.42, ABOVE_HIS_HIPS(0.44), -2.14], target: [-2.34, ABOVE_HIS_HIPS(0.58), -1.73], fov: 50 },
+      { position: [-2.42, ABOVE_HIS_HIPS(0.72), -2.14], target: [-2.32, ABOVE_HIS_HIPS(0.6), -1.72], fov: 50 },
       FLAP[1],
       UNFOLD[0],
     ),
@@ -124,13 +127,13 @@ export const SHOTS: readonly RundschreibenShot[] = [
     name: "Tibik",
     from: DEADPAN,
     to: FOLDING_SHOT,
-    at: fixed([-2.62, 1.6, -2.04], [-2.33, 1.56, -1.68], 44),
+    at: fixed([-2.62, ABOVE_HIS_HIPS(1.12), -2.04], [-2.33, ABOVE_HIS_HIPS(1.08), -1.68], 44),
   },
   {
     name: "His hands: folding it back",
     from: FOLDING_SHOT,
     to: CODA,
-    at: fixed([-2.42, 1.2, -2.14], [-2.32, 1.08, -1.72], 50),
+    at: fixed([-2.42, ABOVE_HIS_HIPS(0.72), -2.14], [-2.32, ABOVE_HIS_HIPS(0.6), -1.72], 50),
   },
   {
     name: "Coda",

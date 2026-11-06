@@ -9,6 +9,7 @@ import { stepLift } from "../building/stairwell";
 import type { Hold } from "../physics/holds";
 import { KEY_APPROACH, KEY_GRIP, keyBowGrip, keyDepthAt, keyInLock } from "../props/keyRingShape";
 import { HAUSTUER, closerEnd, closerSwing } from "../street/facade";
+import { TIBIK_CROUCH } from "../Tibik/rig";
 
 export type Stand = { readonly x: number; readonly z: number };
 export type Root = { readonly x: number; readonly z: number; readonly yaw: number; readonly y: number };
@@ -18,6 +19,7 @@ const ONTO_THE_STEP = [0.26, 0.3] as const;
 const STANCE = 0.17;
 
 export const DOOR_STAND: Stand = { x: -1.25, z: -1.8 };
+const AT_THE_LOCK = { crouch: TIBIK_CROUCH, rise: 0.3 };
 export const ON_THE_PAVEMENT = -1.42;
 const ON_THE_STEP = DOOR_STAND.z - 0.05;
 const INSIDE = { x: -1.45, z: -3.4 };
@@ -173,6 +175,7 @@ export const enterHouse = (unlock: number) => {
     keysInLock: [UNLOCK[0], KEY_OUT[1]] as const,
     sounds: { keyIn: INSERTED, unlocked: TURN[1], opens: BACK_STEP[0], keyOut: KEY_OUT[0], shut: DOOR_SHUT },
     doorShut: DOOR_SHUT,
+    crouchAt: (t: number) => AT_THE_LOCK.crouch * kf(t, [hold.reach, UNLOCK[0], KEY_OUT[1], KEY_OUT[1] + AT_THE_LOCK.rise], [0, 1, 1, 0]),
     tuckedAt: (t: number) =>
       kf(t, [THROUGH_THE_DOORWAY[0], THROUGH_THE_DOORWAY[0] + 0.3, THROUGH_THE_DOORWAY[1] - 0.3, THROUGH_THE_DOORWAY[1]], [0, 1, 1, 0]),
     indoors: INDOORS,

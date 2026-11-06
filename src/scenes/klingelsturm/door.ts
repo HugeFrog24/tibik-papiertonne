@@ -22,7 +22,7 @@ import { inWindow } from "../../characters/scalar";
 import type { Hold } from "../../physics/holds";
 import { floorLevel } from "../../street/building";
 import { tibikGaitOf, plantedTibik, type TibikFrame } from "../../Tibik/character";
-import { TIBIK_REST } from "../../Tibik/rig";
+import { TIBIK_CROUCH, TIBIK_REST } from "../../Tibik/rig";
 
 export const AJAR = { slit: 0.12 };
 export const AJAR_ANGLE = Math.acos(1 - AJAR.slit / TIBIK_DOOR.width);
@@ -45,7 +45,7 @@ export const tibikLeverAt = (t: number) =>
 export const TIBIK_AT_THE_GAP = { x: -4.05, z: -8.715, yaw: Math.PI / 2 };
 
 export const TURN: readonly [number, number] = [4.7, 5.2];
-const PACKING_LEAN = 0.25;
+const PACKING = { lean: 0.25, crouch: TIBIK_CROUCH };
 const packing = (t: number) =>
   inWindow(t, [2.0, 2.4]) -
   inWindow(t, [4.4, 4.75]) +
@@ -106,7 +106,8 @@ export const tibikAt = (t: number): TibikFrame => {
     rotationY: yaw,
     pose: {
       ...TIBIK_REST,
-      lean: PACKING_LEAN * packing(t),
+      lean: PACKING.lean * packing(t),
+      bob: TIBIK_REST.bob - PACKING.crouch * packing(t),
       ...(leaving ? { ...exitArms(t, TIBIK_REST), ...exitHead(t) } : {}),
     },
   };

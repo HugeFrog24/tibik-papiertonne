@@ -8,7 +8,7 @@ export type TibikPose = Pose;
 const HEAD_CENTER_Y = 0.234;
 
 export const RIG = {
-  hipHeight: 0.48,
+  hipHeight: 0.63,
   neckHeight: 0.7,
   torso: {
     profile: [
@@ -52,8 +52,8 @@ export const RIG = {
   hand: { offset: 0.24, size: [0.075, 0.08, 0.065] as Vec3 },
   hipX: 0.17,
   hipSplay: 0,
-  thigh: { length: 0.15, radius: 0.115 },
-  shin: { length: 0.15, radius: 0.1 },
+  thigh: { length: 0.225, radius: 0.115 },
+  shin: { length: 0.225, radius: 0.1 },
   foot: { offset: [0, -0.09, 0.06] as Vec3, size: [0.12, 0.07, 0.17] as Vec3 },
 } as const satisfies Skeleton & {
   readonly headCenterY: number;
@@ -73,5 +73,7 @@ export const ARM_REST: ArmPose = { raise: 0.8, out: 0.8, elbow: 1.5, inward: 1.2
 export const ARM_WALK: ArmPose = { raise: 0.1, out: 0.95, elbow: 0.35, inward: 0 };
 
 export const ARM_TUCK: ArmPose = { raise: 0.35, out: 0.55, elbow: 1.6, inward: 1.0 };
+
+export const TIBIK_CROUCH = 0.15;
 
 export const TIBIK_REST: Pose = restPose(RIG, ARM_REST);

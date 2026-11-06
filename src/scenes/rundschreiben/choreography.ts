@@ -43,7 +43,7 @@ import {
 } from "../../street/mailboxDoorShape";
 import { entranceGround } from "../../street/layout";
 import { TIBIK_GAIT, tibikGaitOf, plantedTibik, type TibikFrame } from "../../Tibik/character";
-import { ARM_REST, ARM_WALK, RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
+import { ARM_REST, ARM_WALK, RIG, TIBIK_CROUCH, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { WALK_SWAY, WALK_SWING, swungArms, walkArmKeys, walkingOn } from "../../Tibik/walkingArms";
 import type { Vec3 } from "../../toon/primitives";
 
@@ -180,6 +180,7 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
   const arms = armKf(t, [AT_MAILBOX - 0.6, AT_MAILBOX, ...legArms.times], [ARM_WALK, ARM_REST, ...legArms.poses]);
   const pose: TibikPose = {
     ...TIBIK_REST,
+    bob: TIBIK_REST.bob - ENTRY.crouchAt(t) - atTheMailbox(t),
     sway: step * WALK_SWAY * walking,
     lean: kf(
       t,
@@ -284,6 +285,9 @@ export const KEY_HOLD: Hold = {
   near: keyGripAt,
   exact: true,
 };
+
+const atTheMailbox = (t: number) =>
+  TIBIK_CROUCH * kf(t, [KEY_HOLD.reach, KEY_HOLD.grip, KEY_OUT[1], KEY_OUT[1] + 0.3], [0, 1, 1, 0]);
 
 export const KEY_SHUT_HOLD: Hold = {
   name: "his keys, shutting the box",
@@ -403,8 +407,8 @@ const heldPose = (t: number) => {
 
 const READY = {
   x: PAPER_BIN.position[0] + 0.316,
-  y: 1.1,
-  z: PAPER_BIN.position[2] + 0.47,
+  y: RIG.hipHeight + 0.52,
+  z: PAPER_BIN.position[2] + 0.44,
 };
 const FLIGHT = 0.42;
 export const ENVELOPE_LANDS = KLOPPEN[0] + FLIGHT;

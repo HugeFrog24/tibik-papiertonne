@@ -43,12 +43,12 @@ exports[`papiertonnen ends exactly as before the re-staging 1`] = `
       "ankle": [
         0,
         0,
-        -4.625929269271484e-16,
+        -3.0839528461809893e-16,
       ],
       "hip": [
         -0,
         0,
-        4.625929269271486e-16,
+        3.0839528461809903e-16,
       ],
       "knee": 0,
     },
@@ -62,12 +62,12 @@ exports[`papiertonnen ends exactly as before the re-staging 1`] = `
       "ankle": [
         0,
         0,
-        -2.7755575615628904e-16,
+        -1.8503717077085938e-16,
       ],
       "hip": [
         -0,
         0,
-        2.7755575615628914e-16,
+        1.8503717077085943e-16,
       ],
       "knee": 0,
     },

@@ -79,7 +79,7 @@ const duskGait = tibikGaitOf(
 
 const duskTibikAt = (t: number): TibikFrame => {
   const { x, y, z, yaw } = duskRootAt(t);
-  const pose = { ...TIBIK_REST, blink: blinkAt(t, DUSK_BLINKS), ...walkingPose(t, DUSK_LEGS, strideAt(duskGait(), t), ENTRY.tuckedAt(t)) };
+  const pose = { ...TIBIK_REST, bob: TIBIK_REST.bob - ENTRY.crouchAt(t), blink: blinkAt(t, DUSK_BLINKS), ...walkingPose(t, DUSK_LEGS, strideAt(duskGait(), t), ENTRY.tuckedAt(t)) };
   return plantedTibik(duskGait(), t, { position: [x, y, z], rotationY: yaw, pose });
 };
 

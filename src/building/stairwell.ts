@@ -483,6 +483,8 @@ export const FLIGHT_SLABS: readonly Obb[] = FLIGHTS.filter(
   );
 });
 
+export const HANDRAIL_HEIGHT = 0.9;
+
 export const HANDRAIL: readonly {
   readonly flight: string;
   readonly from: Vec3;
@@ -492,8 +494,8 @@ export const HANDRAIL: readonly {
   const x = f.lane === LANE_A ? CORE.x0 + 0.08 : CORE.x1 - 0.08;
   return {
     flight: f.name,
-    from: [x, a[1] + 0.9, a[2]],
-    to: [x, b[1] + 0.9, b[2]],
+    from: [x, a[1] + HANDRAIL_HEIGHT, a[2]],
+    to: [x, b[1] + HANDRAIL_HEIGHT, b[2]],
   };
 });
 

@@ -50,7 +50,10 @@ test("his window glows exactly while his bedside lamp is on, and the far lamp st
   }
   expect(nachtruheWorldAt(shot("Bedroom: evening").from + 0.5).lamps[HIS]).toBe(true);
   expect(nachtruheWorldAt(shot("Bedroom: evening").to - 0.2).lamps[HIS]).toBe(false);
-  expect(nachtruheWorldAt(shot("Bedroom: morning").to - 0.5).lamps[HIS]).toBe(true);
+});
+
+test("in the morning he leaves his lamp off: the day is up, and he opens the curtains anyway", () => {
+  for (const t of frames.filter((f) => f >= shot("Dawn").from)) expect(nachtruheWorldAt(t).lamps[HIS], t.toFixed(2)).toBe(false);
 });
 
 test("dusk turns to night, one grey dawn blends into the rain, and the morning hands the epilogue its rainy world", () => {

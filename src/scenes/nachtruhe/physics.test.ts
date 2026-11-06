@@ -22,7 +22,7 @@ import { cameraAt } from "./cameras";
 import { BED_SEAT, duskRootAt } from "./choreography";
 import { CORNER, CURTAIN_OPENS_TO, PULLING, PUSHING, STAND, blanketLie, curtainGrip } from "./bedroom";
 import { solveNachtruhe, type NachtruheState } from "./solve";
-import { BLANKET_BACK, CURTAIN_PULL, CURTAIN_PULLS, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND } from "./timeline";
+import { BLANKET_BACK, CURTAIN_PULL, CURTAIN_PULLS, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND } from "./timeline";
 
 const dusk = Array.from({ length: Math.round(DUSK[1] * FPS) }, (_, f) => f / FPS);
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
@@ -153,17 +153,12 @@ test("in the morning he pushes the blanket back from beneath, left hand then rig
 
 const pressGap = (click: number) => sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(click).tibik), "leftArm"), cordSwitchSolid());
 
-test("his fingers are on the cord switch when his lamp clicks off at night and on in the morning", () => {
+test("his fingers are on the cord switch when his lamp clicks off at night", () => {
   const off = Math.ceil(LAMP_OFF * FPS) / FPS;
   expect(solveNachtruhe(off - 1 / FPS).lamps[1]).toBe(true);
   expect(solveNachtruhe(off).lamps[1]).toBe(false);
-  const on = Math.ceil(LAMP_ON * FPS) / FPS;
-  expect(solveNachtruhe(on - 1 / FPS).lamps[1]).toBe(false);
-  expect(solveNachtruhe(on).lamps[1]).toBe(true);
-  for (const click of [off, on]) {
-    expect(pressGap(click), click.toFixed(2)).toBeLessThan(0.005);
-    expect(pressGap(click), click.toFixed(2)).toBeGreaterThan(-0.005);
-  }
+  expect(pressGap(off), off.toFixed(2)).toBeLessThan(0.005);
+  expect(pressGap(off), off.toFixed(2)).toBeGreaterThan(-0.005);
 });
 
 test("his eyes close in the dark and stay shut until he opens them in the morning, where he fell asleep", () => {

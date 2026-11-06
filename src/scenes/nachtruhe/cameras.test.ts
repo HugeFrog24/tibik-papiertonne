@@ -14,7 +14,7 @@ import { lensProblems } from "../sceneChecks";
 import { CAPTION, KEY_MOMENTS, NACHTRUHE_DURATION, NACHTRUHE_SHOTS, cameraAt, lightingAt, shotAt } from "./cameras";
 import { SWITCH_PRESS, bedroomAt, curtainGrip } from "./bedroom";
 import { solveNachtruhe } from "./solve";
-import { CURTAIN_PULL, EYES_OPEN, LAMP_OFF, LAMP_ON, LIE_DOWN, SIT_UP } from "./timeline";
+import { CURTAIN_PULL, EYES_OPEN, LAMP_OFF, LIE_DOWN, SIT_UP } from "./timeline";
 import { allColliders } from "../../characters/skeleton";
 import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
@@ -107,14 +107,12 @@ test("evening and morning are filmed from the same place, the morning panning af
 
 const headAt = (t: number) => allColliders(RIG, asCharacter(bedroomAt(t))).find((c) => c.name.includes("head"))!.center.toArray();
 
-test("the bedroom's key moments are where the action is: his head as he lies down and wakes, the cord switch at each press, his head as he sits up, his hand on the curtain", () => {
+test("the bedroom's key moments are where the action is: his head as he lies down and wakes, the cord switch as he switches off, his head as he sits up, his hand on the curtain", () => {
   const at = (name: string) => KEY_MOMENTS.find((m) => m.name === name)!;
   expect(at("he lies down").at).toEqual(headAt(LIE_DOWN[1] + 0.7));
   expect(at("he opens his eyes").at).toEqual(headAt(EYES_OPEN[1]));
   expect(at("he switches his lamp off").at).toEqual(SWITCH_PRESS.toArray());
-  expect(at("he switches his lamp on").at).toEqual(SWITCH_PRESS.toArray());
   expect(at("he switches his lamp off").from).toBeLessThanOrEqual(LAMP_OFF - 0.4);
-  expect(at("he switches his lamp on").to).toBeGreaterThanOrEqual(LAMP_ON);
   expect(at("he gets up").at).toEqual(headAt(SIT_UP[1]));
   expect(at("he opens the curtain").at).toEqual(curtainGrip((CURTAIN_PULL[0] + CURTAIN_PULL[1]) / 2).center.toArray());
 });

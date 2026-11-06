@@ -21,7 +21,6 @@ import {
   ENTRY,
   KAREN_OUT,
   LAMP_OFF,
-  LAMP_ON,
   LAMP_ON_AT_DUSK,
   STAIRWELL_ON,
   STREET_LAMPS_ON,
@@ -34,10 +33,7 @@ export const HIS = 1;
 export const LIGHTS = {
   streetLamps: [STREET_LAMPS_ON, DAWN[0] + 1.6],
   stairwell: [STAIRWELL_ON, DUSK[1]],
-  hisLamp: [
-    [LAMP_ON_AT_DUSK, LAMP_OFF],
-    [LAMP_ON, Infinity],
-  ],
+  hisLamp: [[LAMP_ON_AT_DUSK, LAMP_OFF]],
   karen: [-Infinity, KAREN_OUT],
 } as const;
 

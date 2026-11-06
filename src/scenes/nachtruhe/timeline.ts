@@ -23,8 +23,7 @@ export const KAREN_OUT = DRONE[0] + 6.5;
 export const DAWN = after(DRONE[1], 3);
 
 export const EYES_OPEN = after(DAWN[1] + 1, 0.3);
-export const LAMP_ON = atFrame(EYES_OPEN[1] + 0.7);
-export const BLANKET_BACK = after(LAMP_ON + 0.5, 1.2);
+export const BLANKET_BACK = after(EYES_OPEN[1] + 0.8, 1.2);
 export const SIT_UP = after(BLANKET_BACK[1] + 0.2, 1.3);
 export const SWING_OUT = after(SIT_UP[1] + 0.1, 1);
 export const HOP_DOWN = after(SWING_OUT[1] + 0.2, 0.5);

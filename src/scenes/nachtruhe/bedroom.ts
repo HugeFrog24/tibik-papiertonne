@@ -17,7 +17,7 @@ import { RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { walkingOn, walkingPose } from "../../Tibik/walkingArms";
 import { OUTLINE } from "../../toon/primitives";
 import { FACING_THE_WALL, pinEnd, type Stand } from "../enterHouse";
-import { BLANKET_BACK, CURTAIN_PULLS, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, LIE_DOWN, MORNING, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND, WALK_TO_BED } from "./timeline";
+import { BLANKET_BACK, CURTAIN_PULLS, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LIE_DOWN, MORNING, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND, WALK_TO_BED } from "./timeline";
 
 export const BED_SEAT = sittingOnBed(BED_RECT.x0 + 1.3);
 
@@ -108,7 +108,7 @@ const swingAt = (t: number, k: number): TibikFrame => {
 };
 
 const PRESS = { lead: 0.37, grip: 0.08, release: 0.12, tail: 0.43 };
-const PRESSES = [LAMP_OFF, LAMP_ON].map((click) => ({ reach: click - PRESS.grip - PRESS.lead, grip: click - PRESS.grip, release: click + PRESS.release, done: click + PRESS.release + PRESS.tail }));
+const PRESSES = [LAMP_OFF].map((click) => ({ reach: click - PRESS.grip - PRESS.lead, grip: click - PRESS.grip, release: click + PRESS.release, done: click + PRESS.release + PRESS.tail }));
 const TOWARD_THE_SWITCH = 0.15;
 const twistAt = (t: number) => Math.max(...PRESSES.map((p) => kf(t, [p.reach, p.grip, p.release, p.done], [0, TOWARD_THE_SWITCH, TOWARD_THE_SWITCH, 0])));
 

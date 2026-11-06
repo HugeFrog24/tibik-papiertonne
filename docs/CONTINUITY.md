@@ -147,8 +147,9 @@ composition under "Scenes" in the Studio:
    pulls the turned-back fleece over himself and clicks his lamp off by its
    cord switch; the drone rises past Karen's window, the last to go out, and a
    grey dawn brings the rain; the caption "Zwei Wochen später." opens the
-   morning, when he switches the lamp on, gets up and slides the near curtain
-   half open onto the rain. No dialogue.
+   morning, when he leaves the lamp off (the day is up, and he opens the
+   curtain anyway), gets up and slides the near curtain half open onto the
+   rain. **(test)** No dialogue.
 6. **Rundschreiben** (`src/scenes/rundschreiben/`), the epilogue: on the same
    rainy day Tibik comes home, takes the Hausverwaltung's
    circular to all tenants out of his mailbox, reads it (two readable inserts,

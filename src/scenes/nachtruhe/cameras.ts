@@ -6,7 +6,7 @@ import { SWITCH_PRESS, bedroomAt, curtainGrip } from "./bedroom";
 import { ENTRANCE_X, FACADE_Z, flatWindow } from "../../street/building";
 import type { Vec3 } from "../../toon/primitives";
 import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../../toon/shots";
-import { CURTAIN_PULL, DAWN, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, KAREN_OUT, LAMP_OFF, LAMP_ON, LAMP_ON_AT_DUSK, LIE_DOWN, MORNING, SIT_UP, WALK_ROUND } from "./timeline";
+import { CURTAIN_PULL, DAWN, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, KAREN_OUT, LAMP_OFF, LAMP_ON_AT_DUSK, LIE_DOWN, MORNING, SIT_UP, WALK_ROUND } from "./timeline";
 
 export { NACHTRUHE_DURATION } from "./timeline";
 
@@ -67,7 +67,6 @@ export const KEY_MOMENTS: readonly KeyMoment[] = [
   { name: "he lies down", from: LIE_DOWN[0], to: LIE_DOWN[1] + 0.7, at: AT.lying },
   { name: "he switches his lamp off", from: LAMP_OFF - 0.45, to: LAMP_OFF + 0.12, at: AT.switch },
   { name: "he opens his eyes", from: EYES_OPEN[0], to: EYES_OPEN[1], at: AT.waking },
-  { name: "he switches his lamp on", from: LAMP_ON - 0.45, to: LAMP_ON + 0.12, at: AT.switch },
   { name: "Karen's window goes out last", from: KAREN_OUT, to: KAREN_OUT + 1, at: [hers.x, hers.y, FACADE_Z] },
   { name: "he gets up", from: SIT_UP[0], to: HOP_DOWN[1], at: AT.sittingUp },
   { name: "he opens the curtain", from: CURTAIN_PULL[0], to: CURTAIN_PULL[1], at: AT.curtain },

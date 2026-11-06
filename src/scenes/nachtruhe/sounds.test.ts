@@ -15,7 +15,7 @@ import { curtainOpenAt } from "./bedroom";
 import { cameraAt, inTheBedroom } from "./cameras";
 import { nachtruheWorldAt } from "./choreography";
 import { BLACKBIRD, EPILOGUE_RAIN_START, HAUSTUER_FAR_OFF, NACHTRUHE_CUES, RAIN_FROM, footstepsByPlace, hushAt, rainLevelAt } from "./soundCues";
-import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, LAMP_OFF, LAMP_ON, NACHTRUHE_DURATION } from "./timeline";
+import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, LAMP_OFF, NACHTRUHE_DURATION } from "./timeline";
 
 const frameOf = (t: number) => Math.round(t * FPS);
 
@@ -35,9 +35,9 @@ test("every cue has its file and every file is credited", () => {
   }
 });
 
-test("each click lands on the frame his hand presses the switch, the gliders run with each pull of the curtain", () => {
+test("the click lands on the frame his hand presses the switch, the gliders run with each pull of the curtain", () => {
   const clicks = NACHTRUHE_CUES.filter((c) => c.name.startsWith("His lamp clicks"));
-  expect(clicks.map((c) => frameOf(c.at))).toEqual([frameOf(LAMP_OFF), frameOf(LAMP_ON)]);
+  expect(clicks.map((c) => frameOf(c.at))).toEqual([frameOf(LAMP_OFF)]);
   for (const click of clicks) {
     const f = frameOf(click.at);
     expect(nachtruheWorldAt(f / FPS).lamps[1], click.name).not.toBe(nachtruheWorldAt((f - 1) / FPS).lamps[1]);

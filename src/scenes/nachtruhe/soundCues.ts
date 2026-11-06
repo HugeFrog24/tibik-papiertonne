@@ -13,7 +13,7 @@ import { ENTRY as EPILOGUE_ENTRY } from "../rundschreiben/choreography";
 import { PULLING, PUSHING, bedroomStepTimes } from "./bedroom";
 import { cameraAt, inTheBedroom } from "./cameras";
 import { duskStepTimes, rainShareAt } from "./choreography";
-import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, HOP_DOWN, HOP_UP, LAMP_OFF, LAMP_ON, NACHTRUHE_DURATION } from "./timeline";
+import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, HOP_DOWN, HOP_UP, LAMP_OFF, NACHTRUHE_DURATION } from "./timeline";
 
 export const BLACKBIRD = { name: "Blackbird", file: "blackbird", volume: 0.3 } as const;
 
@@ -56,7 +56,6 @@ export const NACHTRUHE_CUES: readonly FileCue[] = [
   { name: "Fleece drawn up by his right hand", at: PULLING.right[0], file: "cloth1.ogg", volume: 0.3 },
   { name: "Fleece drawn over by his left hand", at: PULLING.left[0], file: "cloth3.ogg", volume: 0.3 },
   { name: "His lamp clicks off", at: LAMP_OFF, file: "switch_002.ogg", volume: 0.2 },
-  { name: "His lamp clicks on", at: LAMP_ON, file: "switch_002.ogg", volume: 0.2 },
   { name: "Fleece pushed back by his left hand", at: PUSHING.left[0], file: "cloth4.ogg", volume: 0.3 },
   { name: "Fleece pushed back by his right hand", at: PUSHING.right[0], file: "cloth2.ogg", volume: 0.3 },
   { name: "The bed creaks as he gets up", at: HOP_DOWN[0], file: "creak3.ogg", volume: 0.12 },

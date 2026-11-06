@@ -11,7 +11,7 @@ import {
   partObb,
 } from "../physics/collision";
 import type { Vec3 } from "../toon/primitives";
-import { tonneColliders, type TonneKind } from "./tonneShape";
+import { TONNE, tonneColliders, type TonneKind } from "./tonneShape";
 import {
   BALCONIES,
   BALCONY,
@@ -333,12 +333,14 @@ export type BinSpec = {
   readonly contents: readonly BinItem[];
 };
 
-export const BIN_Z = -1.76;
+export const BIN_Z = -1.72;
 export const NEIGHBOURS = [-3, -2, -1, 1, 2, 3];
 export const NEIGHBOUR_BINS: readonly TonneKind[] = ["rest", "papier", "papier", "gelb"];
 export const BIN_SPACING = 0.7;
 export const SEARCHED_BIN = "Papier 2";
 export const FOUND_SHEET = "sheet lying on top";
+
+const BELOW_THE_RIM = (depth: number) => TONNE.height - depth;
 
 const FOUND_ROTATION = (() => {
   const standing = new Matrix4()
@@ -358,14 +360,14 @@ const SEARCHED_BIN_CONTENTS: readonly BinItem[] = [
   },
   {
     name: "sheet against the back",
-    position: [0, 0.8, -0.29],
+    position: [0, BELOW_THE_RIM(0.18), -0.29],
     rotation: [-0.08, 0, 0],
     size: [0.44, 0.3, 0.024],
     material: "cardboard",
   },
   {
     name: FOUND_SHEET,
-    position: [0, 0.93, 0.27],
+    position: [0, BELOW_THE_RIM(0.05), 0.27],
     rotation: FOUND_ROTATION,
     size: kartonBounds(FOUND_KARTON_SIZE, 0).size,
     material: "karton",
@@ -388,7 +390,7 @@ export const BINS: readonly BinSpec[] = [
     contents: [
       {
         name: "sheet sticking out",
-        position: [0, 0.985, 0.175],
+        position: [0, BELOW_THE_RIM(-0.005), 0.175],
         rotation: [-0.22, 0, 0],
         size: [0.45, 0.024, 0.77],
         material: "cardboard",

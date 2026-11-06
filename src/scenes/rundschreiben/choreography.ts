@@ -18,7 +18,7 @@ import {
 import { after, easeUnit, inWindow, round6, wrapAngle } from "../../characters/scalar";
 import { armColliders, type ArmPose } from "../../characters/skeleton";
 import { frame, obb } from "../../physics/collision";
-import { TONNE, TONNE_FLOOR, tonneLidParts } from "../../street/tonneShape";
+import { TONNE, TONNE_FLOOR, tonneLidGrip } from "../../street/tonneShape";
 import {
   A4,
   DL,
@@ -77,9 +77,9 @@ export const RUNDSCHREIBEN_DURATION = IN[1] + 6.25;
 export const BACK_STEP = ENTRY.backStep;
 const WALKING_IN = ENTRY.walkingIn;
 
-const LID_OPEN = 0.3;
+const LID_OPEN = 0.26;
 const LID_LET_GO = KLOPPEN[1] + 0.1;
-const TO_READY: readonly [number, number] = [TO_BIN[1] - 0.4, LID_UP[0]];
+const TO_READY: readonly [number, number] = [LID_UP[0] + 0.3, LID_UP[1]];
 
 export const START = { x: -1.15, z: -1.15 };
 export const STAND = { x: -2.72, z: -1.27 };
@@ -103,7 +103,7 @@ const walkHome: Walk = {
 
 export const PAPER_BIN = binByName("Papier 1");
 export const BIN_FLOOR = PAPER_BIN.position[1] + TONNE_FLOOR;
-const BIN_STAND = { x: PAPER_BIN.position[0] + 0.15, z: -0.85 };
+const BIN_STAND = { x: PAPER_BIN.position[0] + 0.2, z: PAPER_BIN.position[2] + 0.9 };
 const BIN_LEAN = 0.12;
 
 const walkToBin: Walk = {
@@ -407,12 +407,13 @@ const heldPose = (t: number) => {
 
 const READY = {
   x: PAPER_BIN.position[0] + 0.316,
-  y: RIG.hipHeight + 0.52,
+  y: RIG.hipHeight + 0.62,
   z: PAPER_BIN.position[2] + 0.44,
 };
 const FLIGHT = 0.42;
 export const ENVELOPE_LANDS = KLOPPEN[0] + FLIGHT;
-const THROW = 3.4;
+const LANDS = { z: PAPER_BIN.position[2] - 0.27 };
+const THROW = (2 * (READY.z - LANDS.z)) / FLIGHT;
 const DRIFT = 0.18;
 const GRAVITY = 9.81;
 const LANDED = BIN_FLOOR + ENVELOPE.thickness + 0.0005;
@@ -449,23 +450,28 @@ export const paperLidAt = (t: number) => {
   return LID_OPEN * (1 - u * u);
 };
 
-const LID_GRIP_X = -0.13;
+const HIS_LEFT = -1;
+const HOOKED_FROM_THE_FRONT = Math.PI / 6;
 
 export const lidHandleGripAt = (t: number) => {
-  const { center, size } = TONNE.lid.handle;
-  return new Vector3(LID_GRIP_X, center[1], center[2] + size[2] / 2 + HAND_TOUCH).applyMatrix4(
+  const { center, size } = TONNE.lid.grips[TONNE.lid.grips.findIndex((grip) => Math.sign(grip.center[0]) === HIS_LEFT)];
+  return new Vector3(
+    center[0],
+    center[1] + size[1] / 2 + HAND_TOUCH * Math.sin(HOOKED_FROM_THE_FRONT),
+    center[2] + size[2] / 2 + HAND_TOUCH * Math.cos(HOOKED_FROM_THE_FRONT),
+  ).applyMatrix4(
     frame(frame(new Matrix4(), PAPER_BIN.position), TONNE.lid.hinge, new Euler(-paperLidAt(t), 0, 0)),
   );
 };
 
 export const LID_HOLD: Hold = {
-  name: "Papier 1's lid, by its handle",
+  name: "Papier 1's lid, by its left grip",
   arm: "leftArm",
   reach: LID_UP[0] - 0.35,
   grip: LID_UP[0],
   release: LID_LET_GO,
   done: LID_LET_GO + 0.3,
-  target: (t) => tonneLidParts(PAPER_BIN.name, PAPER_BIN.position, paperLidAt(t))[1],
+  target: (t) => tonneLidGrip(PAPER_BIN.name, PAPER_BIN.position, paperLidAt(t), HIS_LEFT),
   near: lidHandleGripAt,
   exact: true,
 };

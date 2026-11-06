@@ -86,7 +86,7 @@ export const kartonFlapsOf = (
 
 const CHIN_CLEARANCE = OUTLINE + 0.014;
 
-const RIM_TOP = 1.0;
+const RIM_TOP = TONNE.height + 0.02;
 const TIP_END = 0.15;
 const outOfBin = (u: number): Matrix4 => {
   const bin = binByName(SEARCHED_BIN);

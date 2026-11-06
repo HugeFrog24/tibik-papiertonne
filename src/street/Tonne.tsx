@@ -148,18 +148,15 @@ export const Tonne: React.FC<{
           size={TONNE.lid.size}
           color={look.lid}
         />
-        <ToonBox
-          position={TONNE.lid.handle.center}
-          size={TONNE.lid.handle.size}
-          color={look.lid}
-        />
+        {TONNE.lid.grips.map((grip) => (
+          <ToonBox key={grip.center[0]} position={grip.center} size={grip.size} color={look.lid} />
+        ))}
       </group>
 
-      <ToonBox
-        position={[0, HEIGHT - 0.07, -DEPTH / 2 - 0.04]}
-        size={[0.5, 0.04, 0.04]}
-        color={look.lid}
-      />
+      <ToonBox position={TONNE.backBar.center} size={TONNE.backBar.size} color={look.body} />
+      {TONNE.backBar.posts.map((post) => (
+        <ToonBox key={post.center[0]} position={post.center} size={post.size} color={look.body} />
+      ))}
       <ToonBox
         position={[0, 0.1, -DEPTH / 2 + 0.03]}
         size={[0.62, 0.03, 0.03]}

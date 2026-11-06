@@ -3,6 +3,7 @@ import { lazy } from "../../physics/lazy";
 import { seeded } from "../../physics/seeded";
 import { FLY } from "../../street/flyShape";
 import { binByName, SEARCHED_BIN } from "../../street/layout";
+import { TONNE } from "../../street/tonneShape";
 import type { Vec3 } from "../../toon/primitives";
 import { FPS } from "../../timeline";
 import {
@@ -14,13 +15,15 @@ import {
 
 type Zone = { readonly min: Vec3; readonly max: Vec3 };
 
+const BELOW_THE_RIM = (depth: number) => TONNE.height - depth;
+
 export const FLY_ZONES: {
   readonly inside: Zone;
   readonly mouth: Zone;
   readonly lens: Zone;
 } = {
-  inside: { min: [-0.17, 0.78, -0.1], max: [0.17, 0.92, 0.15] },
-  mouth: { min: [-0.18, 0.97, -0.15], max: [0.18, 1.2, 0.08] },
+  inside: { min: [-0.17, BELOW_THE_RIM(0.2), -0.1], max: [0.17, BELOW_THE_RIM(0.06), 0.15] },
+  mouth: { min: [-0.18, BELOW_THE_RIM(0.01), -0.15], max: [0.18, BELOW_THE_RIM(-0.22), 0.08] },
   lens: { min: [-0.015, 0.927, -0.203], max: [0.015, 0.94, -0.19] },
 };
 

@@ -464,7 +464,7 @@ test("he walks past the Haustür to Papier 1 and stands at its lid", { timeout: 
   expect(Math.abs(at.rotationY - Math.PI)).toBeLessThan(0.05);
 });
 
-test("the lid lifts by its handle and drops shut, never trimmed by anything", { timeout: 300_000 }, () => {
+test("the lid lifts by its grip and drops shut, never trimmed by anything", { timeout: 300_000 }, () => {
   const lidAt = (t: number) => solveRundschreiben(t).lids[paperBinIndex];
   expect(lidAt(LID_UP[0] - 0.1)).toBe(0);
   expect(Math.max(...window(LID_UP[0], KLOPPEN[1]).map(lidAt))).toBeGreaterThan(0.25);

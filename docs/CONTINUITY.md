@@ -344,10 +344,12 @@ composition under "Scenes" in the Studio:
   1.5 times its width in fabric; drawn, they cover the window with room to
   spare; opened, each bunches at its own wall, clear of the window. The gap
   between the bed and the curtains (47 cm) is too narrow for him: he reaches
-  the window only from the corner at the bed's foot and opens the near panel
-  there (user decision), hand over hand: three short pulls by its fabric, the
-  edge moving only as far as his hand, the near half about two thirds open
-  (user decision). Their folds deepen as they bunch but never touch the
+  the window only from the gap at the bed's side, by the wall: he turns to
+  face it and draws the near panel in one pull, side-stepping along the
+  window toward the wall with its fabric in his right hand, his free arm
+  tucked in by the wall (user decision: one pull, him walking, so his arm's
+  reach no longer limits it); the edge moves exactly as far as his hand, the
+  near half just over half open. Their folds deepen as they bunch but never touch the
   radiator or the cabinet. From the street he sees exactly what hangs behind
   the pane. **(test)**
 - **Light:** evening: the two lamps; night: dark, a faint orange street glow

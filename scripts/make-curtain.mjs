@@ -1,6 +1,6 @@
 import { RATE, peakOf, pole, randomFrom, sfx, writeWav } from "./sfx-audio.mjs";
 
-const PULL = { seconds: 0.6, travel: 0.25 };
+const PULL = { seconds: 2.0, travel: 0.6 };
 const GLIDER_SPACING = 0.06;
 const HISS = { low: 2200, high: 6500, level: 0.05 };
 const RUMBLE = { low: 350, high: 900, level: 0.04 };

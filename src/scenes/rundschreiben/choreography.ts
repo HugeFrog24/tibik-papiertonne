@@ -1,5 +1,5 @@
 import { closerEnd } from "../../street/facade";
-import { DOOR_STAND, FACING_THE_WALL, enterHouse, pinApproach, shuffle, squareAt, walkLeg, type Stand } from "../enterHouse";
+import { DOOR_STAND, FACING_THE_WALL, SHUFFLE, enterHouse, pinApproach, shuffle, shuffleSpan, shuffleSteps, walkLeg } from "../enterHouse";
 import { SENSOR, sensorLampOn } from "../../street/entranceSensor";
 import { mustReadSeconds } from "./letter";
 import { Euler, Matrix4, Vector3 } from "three";
@@ -85,20 +85,7 @@ export const START = { x: -1.15, z: -1.15 };
 export const STAND = { x: -2.72, z: -1.27 };
 export const READ_SPOT = { x: -2.3, z: -1.39 };
 const LEAN_IN = 0.25;
-const SHUFFLE_TIMING = { every: 0.18, takes: 0.14 };
-const SHUFFLE_WAY = [0.35, 1, 1] as const;
-const shuffleSpan = (start: number): readonly [number, number] => [
-  start,
-  round6(start + (SHUFFLE_WAY.length - 1) * SHUFFLE_TIMING.every + SHUFFLE_TIMING.takes),
-];
-const shuffleSteps = (start: number, from: Stand, to: Stand, first: Step["side"]): Step[] =>
-  SHUFFLE_WAY.map((k, i) => {
-    const lift = start + i * SHUFFLE_TIMING.every;
-    const stand = { x: from.x + (to.x - from.x) * k, z: from.z + (to.z - from.z) * k };
-    return squareAt(stand)({ side: i % 2 === 0 ? first : opposite(first), lift, land: lift + SHUFFLE_TIMING.takes });
-  });
-
-const SETTLE = shuffleSpan(round6(AT_MAILBOX - (SHUFFLE_WAY.length - 1) * SHUFFLE_TIMING.every - SHUFFLE_TIMING.takes));
+const SETTLE = shuffleSpan(round6(AT_MAILBOX - (SHUFFLE.way.length - 1) * SHUFFLE.every - SHUFFLE.takes));
 const ALMOST = { x: STAND.x + 0.3, z: STAND.z };
 const TURN_IN: readonly [number, number] = [SETTLE[0] - 0.45, SETTLE[0]];
 const DOORSTEP_LEAD: Step["side"] = -1;

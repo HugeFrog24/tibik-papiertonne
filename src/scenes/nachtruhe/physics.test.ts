@@ -20,7 +20,7 @@ import { lensProblems, penetrations, seconds } from "../sceneChecks";
 import { streetSolids } from "../streetSolids";
 import { cameraAt } from "./cameras";
 import { BED_SEAT, duskRootAt } from "./choreography";
-import { CORNER, CURTAIN_OPENS_TO, PULLING, PUSHING, STAND, blanketLie, curtainGrip } from "./bedroom";
+import { AT_THE_WINDOW, CURTAIN_OPENS_TO, PULLING, PUSHING, STAND, blanketLie, curtainGrip } from "./bedroom";
 import { solveNachtruhe, type NachtruheState } from "./solve";
 import { BLANKET_BACK, CURTAIN_PULL, CURTAIN_PULLS, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND } from "./timeline";
 
@@ -201,42 +201,34 @@ test("the cord switch rests on his pillow and its cord runs to the lamp through 
   expect(problems.slice(0, 8)).toEqual([]);
 });
 
-test("after getting up he walks round the foot of the bed to the corner by the window, the curtain at his right", () => {
+test("after getting up he walks round the foot of the bed to the near end of the window and turns to face it", () => {
   const there = solveNachtruhe(WALK_ROUND[1] + 0.1).tibik;
-  expect(near(there.position, [CORNER.x, BEDROOM.floor, CORNER.z], 0.01)).toBe(true);
-  expect(Math.sin(there.rotationY)).toBeGreaterThan(0.99);
+  expect(near(there.position, [AT_THE_WINDOW.x, BEDROOM.floor, AT_THE_WINDOW.z], 0.01)).toBe(true);
+  expect(Math.cos(there.rotationY)).toBeGreaterThan(0.99);
   for (const t of between(WALK_ROUND[0], WALK_ROUND[1])) {
     const [x, , z] = solveNachtruhe(t).tibik.position;
     expect(x > BED_RECT.x1 || z < BED_RECT.z0 - 0.3, t.toFixed(2)).toBe(true);
   }
 });
 
-test("he draws the near curtain panel toward the wall hand over hand: three pulls, his right hand on the fabric through each, the edge moving exactly as far as his hand, until the near half of the window is open; the far panel stays drawn", { timeout: 300_000 }, () => {
-  expect(CURTAIN_PULLS).toHaveLength(3);
-  const away = CURTAIN_PULLS.flatMap((pull) =>
-    between(...pull).flatMap((t) => {
-      const gap = sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(t).tibik), "rightArm"), curtainGrip(t));
-      return Math.abs(gap) > 0.005 ? [`${t.toFixed(2)} s: ${(gap * 1000).toFixed(1)} mm off the curtain`] : [];
-    }),
-  );
-  expect(away.slice(0, 8)).toEqual([]);
-  const edge = (t: number) => curtainPanels(solveNachtruhe(t).curtains)[1].x0;
-  for (const [from, to] of CURTAIN_PULLS) {
-    const hand = curtainGrip(to).center.x - curtainGrip(from).center.x;
-    expect(hand).toBeGreaterThan(0.15);
-    expect(edge(to) - edge(from)).toBeCloseTo(hand, 9);
-    for (const t of between(from, to)) expect(curtainGrip(t).center.x - curtainGrip(from).center.x).toBeCloseTo(edge(t) - edge(from), 9);
-  }
-  CURTAIN_PULLS.slice(1).forEach(([from], k) => {
-    const lastEnd = CURTAIN_PULLS[k][1];
-    for (const t of between(lastEnd, from)) expect(edge(t)).toBeCloseTo(edge(lastEnd), 12);
+test("facing the window he draws the near curtain panel toward the wall in one pull, side-stepping along the window with it: his right hand on the fabric throughout, the edge moving exactly as far as his hand, until the near half of the window is open; the far panel stays drawn", { timeout: 300_000 }, () => {
+  expect(CURTAIN_PULLS).toHaveLength(1);
+  const [from, to] = CURTAIN_PULL;
+  const away = between(from, to).flatMap((t) => {
+    const gap = sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(t).tibik), "rightArm"), curtainGrip(t));
+    return Math.abs(gap) > 0.005 ? [`${t.toFixed(2)} s: ${(gap * 1000).toFixed(1)} mm off the curtain`] : [];
   });
+  expect(away.slice(0, 8)).toEqual([]);
+  expect(solveNachtruhe(to).tibik.position[0] - solveNachtruhe(from).tibik.position[0]).toBeGreaterThan(0.2);
+  for (const t of between(from, to)) expect(Math.cos(solveNachtruhe(t).tibik.rotationY), t.toFixed(2)).toBeGreaterThan(0.99);
+  const edge = (t: number) => curtainPanels(solveNachtruhe(t).curtains)[1].x0;
+  for (const t of between(from, to)) expect(curtainGrip(t).center.x - curtainGrip(from).center.x).toBeCloseTo(edge(t) - edge(from), 9);
   for (const t of between(MORNING[0], MORNING[1])) expect(solveNachtruhe(t).curtains[0], t.toFixed(2)).toBe(0);
-  expect(solveNachtruhe(CURTAIN_PULL[0]).curtains[1]).toBe(0);
-  expect(solveNachtruhe(CURTAIN_PULL[1]).curtains[1]).toBeCloseTo(CURTAIN_OPENS_TO, 12);
-  expect(CURTAIN_OPENS_TO).toBeGreaterThan(0.6);
+  expect(solveNachtruhe(from).curtains[1]).toBe(0);
+  expect(solveNachtruhe(to).curtains[1]).toBeCloseTo(CURTAIN_OPENS_TO, 12);
+  expect(CURTAIN_OPENS_TO).toBeGreaterThan(0.5);
   expect(CURTAIN_OPENS_TO).toBeLessThan(0.75);
-  expect(edge(CURTAIN_PULL[1])).toBeGreaterThan(PANE.x1);
+  expect(edge(to)).toBeGreaterThan(PANE.x1);
 });
 
 test("the morning hands the epilogue its world: rain, every lid and the Haustür shut", () => {

@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
 import { kf } from "../characters/animate";
 import { STEP_OVERLAP, opposite, rhythmicSteps, type Step } from "../characters/gait";
-import { inWindow } from "../characters/scalar";
+import { inWindow, round6 } from "../characters/scalar";
 import type { Side } from "../characters/skeleton";
 import { walkFacing, type Walk } from "../characters/walkPath";
 import { coastTime, doorFrame, fittingsOf, gripSolid, pulledThenCoasting } from "../building/doors";
@@ -47,6 +47,22 @@ export const squareAt =
     facing === FACING_THE_WALL
       ? { ...s, at: { x: stand.x - s.side * STANCE, z: stand.z } }
       : { ...s, at: { x: stand.x + s.side * STANCE * Math.cos(facing), z: stand.z - s.side * STANCE * Math.sin(facing) } };
+
+export type ShuffleTiming = { readonly every: number; readonly takes: number; readonly way: readonly number[] };
+
+export const SHUFFLE: ShuffleTiming = { every: 0.18, takes: 0.14, way: [0.35, 1, 1] };
+
+export const shuffleSpan = (start: number, timing = SHUFFLE): readonly [number, number] => [
+  start,
+  round6(start + (timing.way.length - 1) * timing.every + timing.takes),
+];
+
+export const shuffleSteps = (start: number, from: Stand, to: Stand, first: Side, facing = FACING_THE_WALL, timing = SHUFFLE): Step[] =>
+  timing.way.map((k, i) => {
+    const lift = start + i * timing.every;
+    const stand = { x: from.x + (to.x - from.x) * k, z: from.z + (to.z - from.z) * k };
+    return squareAt(stand, facing)({ side: i % 2 === 0 ? first : opposite(first), lift, land: lift + timing.takes });
+  });
 
 export const pinEnd = (steps: readonly Step[], stands: readonly Stand[], facing = FACING_THE_WALL): Step[] =>
   steps.map((s, i) => {

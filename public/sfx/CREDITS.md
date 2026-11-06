@@ -105,4 +105,4 @@ pauses, a few distant birds behind) are faded in and out for the dusk.
 
 curtain-gliders.wav is synthesised for this project by scripts/make-curtain.mjs (no third-party
 material): the plastic gliders of his curtain's ceiling track running along the rail and clicking
-into one another as the panel gathers, over the 1.2 s he draws it.
+into one another as the panel gathers, over the 2 s he draws it, side-stepping along the window.

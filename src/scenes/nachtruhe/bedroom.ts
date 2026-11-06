@@ -3,21 +3,21 @@ import { DOOR_FRAME } from "../../building/doorwayFrame";
 import { ROOM_DOOR } from "../../building/doors";
 import { Euler, Matrix4, Vector3 } from "three";
 import { blinkAt, kf } from "../../characters/animate";
-import { STEP_OVERLAP, rhythmicSteps, strideAt, touchdownTimes, walkCadence, type RootAt } from "../../characters/gait";
+import { STEP_OVERLAP, opposite, rhythmicSteps, strideAt, touchdownTimes, walkCadence, type RootAt, type Step } from "../../characters/gait";
 import { blendPose } from "../../characters/poseBlend";
 import { easeUnit, inWindow, lerp, windowUnit } from "../../characters/scalar";
 import { allColliders, armColliders, type ArmName } from "../../characters/skeleton";
 import { frame, obb } from "../../physics/collision";
-import { handHold, type Hold } from "../../physics/holds";
+import { blendArm, handHold, type Hold } from "../../physics/holds";
 import { BLANKET, blanketEdge, blanketSurface } from "../../props/blanketShape";
 import { walkFacing, type Walk } from "../../characters/walkPath";
 import { BACK_DEPTH, SITTING, SITTING_UP, lyingInBed, settledInBed, sittingOnBed, sittingUpInBed } from "../../Tibik/bedPoses";
 import { plantedTibik, tibikGaitOf, type TibikFrame } from "../../Tibik/character";
-import { RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
+import { ARM_TUCK, RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { walkingOn, walkingPose } from "../../Tibik/walkingArms";
 import { OUTLINE } from "../../toon/primitives";
-import { FACING_THE_WALL, pinEnd, type Stand } from "../enterHouse";
-import { BLANKET_BACK, CURTAIN_PULLS, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LIE_DOWN, MORNING, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND, WALK_TO_BED } from "./timeline";
+import { FACING_THE_WALL, pinEnd, shuffleSpan, shuffleSteps, type ShuffleTiming, type Stand } from "../enterHouse";
+import { BLANKET_BACK, CURTAIN_PULL, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LIE_DOWN, MORNING, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND, WALK_TO_BED } from "./timeline";
 
 export const BED_SEAT = sittingOnBed(BED_RECT.x0 + 1.3);
 
@@ -136,16 +136,20 @@ const evening = (t: number): TibikFrame =>
             : lieAt(t, inWindow(t, LIE_DOWN));
 
 const drawn = curtainPanels([0, 0])[1];
-const FACING_THE_STACK = Math.PI / 2;
-const GRIP_AHEAD = 0.02;
-const STROKE = 0.25;
-const SIDE_REACH = RIG.shoulder.x + 0.42;
+const FACING_THE_WINDOW = 0;
+const STROKE = 0.6;
 const FABRIC_PULLED = 0.03;
+const CURTAIN_Z = drawn.z - drawn.amplitude - FABRIC_PULLED;
+const AT_ARMS_LENGTH = 0.38;
+const HAND_STARTS = -0.46;
+const PASSING = { bed: 0.42, wall: 0.48 };
 
-export const CORNER = {
-  x: (BED_RECT.x1 + BED.frame + BEDROOM.x1) / 2,
-  z: drawn.z - drawn.amplitude - FABRIC_PULLED - SIDE_REACH,
-};
+export const AT_THE_WINDOW = { x: BED_RECT.x1 + BED.frame + PASSING.bed, z: CURTAIN_Z - AT_ARMS_LENGTH };
+export const BY_THE_WALL = { x: BEDROOM.x1 - PASSING.wall, z: AT_THE_WINDOW.z };
+
+const TUCKING = 0.4;
+const SIDE_STEPS: ShuffleTiming = { every: 0.5, takes: 0.35, way: [0.5, 0.5, 1, 1] };
+const LEADS_TO_THE_WALL: Step["side"] = 1;
 
 const toWindow: Walk = {
   from: WALK_ROUND[0],
@@ -154,18 +158,33 @@ const toWindow: Walk = {
     [STAND.x, STAND.z],
     [STAND.x + 0.4, STAND.z - 0.6],
     [(BED_RECT.x1 + BED.frame + BEDROOM.x1) / 2, STAND.z - 0.2],
-    [CORNER.x, CORNER.z],
+    [AT_THE_WINDOW.x, AT_THE_WINDOW.z],
   ],
 };
 
-const toWindowRoot = (t: number) => ({ ...walkFacing(toWindow, t, FACING_THE_STACK, true, FACING_THE_WALL), y: BEDROOM.floor });
+const drawnSoFar = (t: number) => easeUnit(inWindow(t, CURTAIN_PULL));
 
-const toWindowGait = legGait(toWindowRoot, WALK_ROUND, [CORNER, CORNER], FACING_THE_STACK, MORNING[1]);
+const toWindowRoot = (t: number) =>
+  t < CURTAIN_PULL[0]
+    ? { ...walkFacing(toWindow, t, FACING_THE_WINDOW, true, FACING_THE_WALL), y: BEDROOM.floor }
+    : { x: AT_THE_WINDOW.x + (BY_THE_WALL.x - AT_THE_WINDOW.x) * drawnSoFar(t), z: AT_THE_WINDOW.z, yaw: FACING_THE_WINDOW, y: BEDROOM.floor };
+
+const toWindowSteps = () => {
+  const cadence = walkCadence(toWindowRoot);
+  const round = (first: Step["side"]) =>
+    pinEnd(rhythmicSteps({ from: WALK_ROUND[0], to: WALK_ROUND[1], first, cadence, overlap: STEP_OVERLAP }), [AT_THE_WINDOW, AT_THE_WINDOW], FACING_THE_WINDOW);
+  const walked = ([-1, 1] as const).map(round).find((steps) => steps[steps.length - 1].side === opposite(LEADS_TO_THE_WALL))!;
+  const sideways = shuffleSteps(CURTAIN_PULL[0] + (CURTAIN_PULL[1] - CURTAIN_PULL[0] - shuffleSpan(0, SIDE_STEPS)[1]) / 2, AT_THE_WINDOW, BY_THE_WALL, LEADS_TO_THE_WALL, FACING_THE_WINDOW, SIDE_STEPS);
+  return [...walked, ...sideways];
+};
+
+const toWindowGait = tibikGaitOf(toWindowRoot, toWindowSteps, MORNING[1], floorAt);
 
 const walkingRound = (t: number): TibikFrame => {
   const { x, y, z, yaw } = toWindowRoot(t);
   const inTheGap = easeUnit((x - (BED_RECT.x1 + BED.frame)) / 0.4) * Math.max(...walkingOn(t, [WALK_ROUND]));
-  const pose = { ...TIBIK_REST, blink: blinkFor(t), ...walkingPose(t, [WALK_ROUND], strideAt(toWindowGait(), t), inTheGap) };
+  const walking = { ...TIBIK_REST, blink: blinkFor(t), ...walkingPose(t, [WALK_ROUND], strideAt(toWindowGait(), t), inTheGap) };
+  const pose = { ...walking, leftArm: blendArm(walking.leftArm, ARM_TUCK, inWindow(t, [CURTAIN_PULL[0], CURTAIN_PULL[0] + TUCKING])) };
   return plantedTibik(toWindowGait(), t, { position: [x, y, z], rotationY: yaw, pose });
 };
 
@@ -270,38 +289,30 @@ export const BEDROOM_HOLDS_IN_BED: readonly Hold[] = [
 
 const opened = curtainPanels([0, 1])[1];
 const EDGE_TRAVEL = opened.x0 - drawn.x0;
-const TAKES_HOLD = CORNER.x + GRIP_AHEAD;
 
-export const CURTAIN_OPENS_TO = (STROKE * CURTAIN_PULLS.length) / EDGE_TRAVEL;
+export const CURTAIN_OPENS_TO = STROKE / EDGE_TRAVEL;
 
-const pulled = (t: number) => CURTAIN_PULLS.reduce((sum, pull) => sum + inWindow(t, pull), 0);
-
-export const curtainOpenAt = (t: number) => (STROKE * pulled(t)) / EDGE_TRAVEL;
+export const curtainOpenAt = (t: number) => (STROKE * drawnSoFar(t)) / EDGE_TRAVEL;
 
 const GRIP = { height: 1, size: [0.04, 0.06, 0.01] as const };
-const REACH_BACK = { first: 0.35, again: 0.25 };
-const LET_GO = { between: 0.2, last: 0.4 };
+const REACH = { lead: 0.35, tail: 0.4 };
 
-const gripOf = (k: number) => (t: number) => {
+export const curtainGrip = (t: number) => {
   const panel = curtainPanels([0, curtainOpenAt(t)])[1];
-  const x = TAKES_HOLD + STROKE * inWindow(t, CURTAIN_PULLS[k]);
+  const x = AT_THE_WINDOW.x + HAND_STARTS + STROKE * drawnSoFar(t);
   return obb("curtain grip", frame(new Matrix4(), [x, BEDROOM.floor + GRIP.height, panel.z - panel.amplitude - FABRIC_PULLED], new Euler()), [...GRIP.size]);
 };
 
-const strokeAt = (t: number) => CURTAIN_PULLS.reduce((k, [from], i) => (t >= from - REACH_BACK.again ? i : k), 0);
-
-export const curtainGrip = (t: number) => gripOf(strokeAt(t))(t);
-
-export const MORNING_HOLDS: readonly Hold[] = CURTAIN_PULLS.map((pull, k) =>
+export const MORNING_HOLDS: readonly Hold[] = [
   handHold({
-    name: `the near curtain panel in his right hand, pull ${k + 1}`,
+    name: "the near curtain panel in his right hand, drawn as he side-steps along the window",
     arm: "rightArm",
-    window: pull,
-    lead: k === 0 ? REACH_BACK.first : REACH_BACK.again,
-    tail: k === CURTAIN_PULLS.length - 1 ? LET_GO.last : LET_GO.between,
-    target: gripOf(k),
-    near: (t) => gripOf(k)(t).center.clone().add(new Vector3(0, 0, -(GRIP.size[2] / 2 + HAND))),
+    window: CURTAIN_PULL,
+    lead: REACH.lead,
+    tail: REACH.tail,
+    target: curtainGrip,
+    near: (t) => curtainGrip(t).center.clone().add(new Vector3(0, 0, -(GRIP.size[2] / 2 + HAND))),
   }),
-);
+];
 
 export const bedroomStepTimes = (fps: number) => [...touchdownTimes(toBedGait(), HOP_UP[0], fps), ...touchdownTimes(toWindowGait(), MORNING[1], fps)];

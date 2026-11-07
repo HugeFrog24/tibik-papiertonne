@@ -1,6 +1,8 @@
+import { Euler, Matrix3, Matrix4, Quaternion, Vector3, type LatheGeometry } from "three";
 import { ONE_UNIT } from "../toon/inkWidth";
+import { blendedNormal } from "./blendNormals";
 import type { ReactNode } from "react";
-import { Blob, Segment, type Paint } from "../toon/primitives";
+import { Blob, Segment, TaperedSegment, type Paint } from "../toon/primitives";
 import {
   ankleRotation,
   elbowRotation,
@@ -14,33 +16,48 @@ import {
   type Skeleton,
 } from "./skeleton";
 
+const Limb: React.FC<{ readonly length: number; readonly top: number; readonly bottom: number; readonly color: Paint; readonly reshade?: (geometry: LatheGeometry) => void }> = ({ length, top, bottom, color, reshade }) =>
+  top === bottom && !reshade ? <Segment length={length} radius={top} color={color} /> : <TaperedSegment length={length} top={top} bottom={bottom} color={color} reshade={reshade} />;
+
+const intoTheTorso = (skeleton: Skeleton, side: Side, pose: ArmPose) => (geometry: LatheGeometry) => {
+  const joint = new Vector3(side * skeleton.shoulder.x, skeleton.shoulder.y, 0);
+  const toTorso = new Matrix4().compose(joint, new Quaternion().setFromEuler(new Euler().copy(shoulderRotation(pose, side))), new Vector3(1, 1, 1));
+  const turn = new Matrix3().getNormalMatrix(toTorso);
+  const back = turn.clone().invert();
+  const position = geometry.attributes.position;
+  const normal = geometry.attributes.normal;
+  const p = new Vector3();
+  const n = new Vector3();
+  for (let i = 0; i < position.count; i++) {
+    p.fromBufferAttribute(position, i).applyMatrix4(toTorso);
+    n.fromBufferAttribute(normal, i).applyMatrix3(turn);
+    const blended = blendedNormal(skeleton, p, n, joint).applyMatrix3(back).normalize();
+    normal.setXYZ(i, blended.x, blended.y, blended.z);
+  }
+  normal.needsUpdate = true;
+};
+
 export const SkeletonArm: React.FC<{
   readonly skeleton: Skeleton;
   readonly side: Side;
   readonly pose: ArmPose;
   readonly sleeve: Paint;
   readonly hand: Paint;
+  readonly inkUnit?: boolean;
+  readonly blend?: boolean;
   readonly children?: ReactNode;
-}> = ({ skeleton, side, pose, sleeve, hand, children }) => (
+}> = ({ skeleton, side, pose, sleeve, hand, inkUnit = true, blend = false, children }) => (
   <group
     position={[side * skeleton.shoulder.x, skeleton.shoulder.y, 0]}
     rotation={shoulderRotation(pose, side)}
-    userData={ONE_UNIT}
+    userData={inkUnit ? ONE_UNIT : undefined}
   >
-    <Segment
-      length={skeleton.upperArm.length}
-      radius={skeleton.upperArm.radius}
-      color={sleeve}
-    />
+    <Limb length={skeleton.upperArm.length} top={skeleton.upperArm.shoulder ?? skeleton.upperArm.radius} bottom={skeleton.upperArm.radius} color={sleeve} reshade={blend ? intoTheTorso(skeleton, side, pose) : undefined} />
     <group
       position={[0, -skeleton.upperArm.length, 0]}
       rotation={elbowRotation(pose, side)}
     >
-      <Segment
-        length={skeleton.forearm.length}
-        radius={skeleton.forearm.radius}
-        color={sleeve}
-      />
+      <Limb length={skeleton.forearm.length} top={skeleton.forearm.radius} bottom={skeleton.forearm.wrist ?? skeleton.forearm.radius} color={sleeve} />
       <Blob
         position={[0, -skeleton.hand.offset, 0]}
         scale={skeleton.hand.size}

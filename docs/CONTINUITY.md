@@ -487,9 +487,17 @@ composition under "Scenes" in the Studio:
   turns about 27 degrees and nods about 15 degrees on its own, until her chin
   would meet her shoulders and chest (pass head poses through
   `limitKarenHead`); beyond that she turns her whole body. **(test)**
-- Karen's build: shoulders 0.40 m either side of her centre and slimmer up
-  top than at her belly, long, fairly thin arms (her fist reaches the corner
-  of her mouth), small hands for her size, and a wide, round bust that hangs,
+- Karen's build: real shoulders — a rounded mass at each side of her torso
+  top (her chest and back keep their old shape, so her chin clears them) —
+  with the arm joints 0.36 m either side of her centre, 11.5 cm below her
+  neck base; her torso slimmer up top than at her belly; long arms (her fist
+  reaches the corner of her mouth) that taper from 11.5 cm at the shoulder
+  to 8.5 cm at the elbow and 6.2 cm at the wrist and grow out of the
+  shoulders: torso, shoulders and arms are one part for the outlines (no
+  line where they join) and the shading runs across the join, while a
+  hanging arm still keeps its own outline and shading against her body
+  (user, 2026-11-07: "the arms look bolted on"); small hands for her size,
+  and a wide, round bust that hangs,
   swelling slowly from the top to its fullest point low down and curving back
   in, two lower curves from the front and no crease between them, moulded
   into her jumper rather than stuck on. The bust is solid: her arms, the

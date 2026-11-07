@@ -1,6 +1,6 @@
 import { Matrix4, PerspectiveCamera, Vector3 } from "three";
 import { expect, test } from "vitest";
-import { allColliders, armColliders, armIntoTorso, bodyColliders, handSphere, torsoDepthAt, torsoMatrix } from "../../characters/skeleton";
+import { allColliders, armColliders, armIntoTorso, armRootReach, bodyColliders, handSphere, torsoDepthAt, torsoMatrix } from "../../characters/skeleton";
 import { OUTLINE } from "../../toon/primitives";
 import { asKaren } from "../../Karen/character";
 import { insideKarenHead, karenFaceSurface, karenMouthEmitter, toKarenHead } from "../../Karen/mouthEmitter";
@@ -232,14 +232,12 @@ test("her smoking fist never sinks into her drawn face, her jowls, her hair or h
   }
 });
 
-const AT_THE_SHOULDER = 1.8;
-
 test("while she holds the cigarette out between draws her arm keeps an ink width off her bust and belly below the shoulder, so no line of her body shows across her arm", () => {
   for (const t of framesOf([CODA.takeOut[1], CODA.end - 0.1], IN_HER_FINGERS.every).filter(awayFromHerLips)) {
     const karen = asKaren(solveKlingelsturm(t).karen);
     const toTorso = torsoMatrix(KAREN_SKELETON, karen).invert();
     const [shoulder, ...arm] = armColliders(KAREN_SKELETON, karen, "rightArm");
-    for (const s of arm.filter((part) => part.center.distanceTo(shoulder.center) > AT_THE_SHOULDER * KAREN_SKELETON.upperArm.radius)) {
+    for (const s of arm.filter((part) => part.center.distanceTo(shoulder.center) > armRootReach(KAREN_SKELETON))) {
       const off = -torsoDepthAt(KAREN_SKELETON, s.center.clone().applyMatrix4(toTorso)) - s.radius;
       expect(off, `${seconds(t)} ${s.name}`).toBeGreaterThanOrEqual(OUTLINE);
     }

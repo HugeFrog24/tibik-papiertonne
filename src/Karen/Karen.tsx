@@ -476,6 +476,8 @@ const Arm: React.FC<{
     pose={pose}
     sleeve={KAREN_LILAC}
     hand={KAREN_SKIN}
+    inkUnit={false}
+    blend
   >
     {pointing ? (
       <group position={[0, -K.hand.offset - 0.04, 0.02]}>
@@ -530,9 +532,11 @@ export const Karen: React.FC<{
       hipHeight={K.hipHeight}
       Leg={Leg}
     >
-      <TorsoMesh skeleton={K} color={KAREN_LILAC} onBeforeCompile={paintBody} />
-      <Arm side={1} pose={pose.leftArm} pointing={false} />
-      <Arm side={-1} pose={pose.rightArm} pointing={pointing} />
+      <group userData={ONE_UNIT}>
+        <TorsoMesh skeleton={K} color={KAREN_LILAC} onBeforeCompile={paintBody} />
+        <Arm side={1} pose={pose.leftArm} pointing={false} />
+        <Arm side={-1} pose={pose.rightArm} pointing={pointing} />
+      </group>
       {carrying}
       <Head
         pose={pose}

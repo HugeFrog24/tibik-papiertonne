@@ -1,3 +1,4 @@
+import { taperedProfile } from "./taper";
 import { useLayoutEffect, useMemo, type ReactNode } from "react";
 import { useDisposable } from "./useDisposable";
 import { useThree } from "@react-three/fiber";
@@ -9,6 +10,7 @@ import {
   CanvasTexture,
   Color,
   Euler,
+  LatheGeometry,
   type PerspectiveCamera,
   Quaternion,
   RepeatWrapping,
@@ -213,6 +215,35 @@ export const Segment: React.FC<
     )}
   />
 );
+
+const TAPER_STEPS = 8;
+const AROUND = 24;
+
+export const TaperedSegment: React.FC<
+  {
+    readonly length: number;
+    readonly top: number;
+    readonly bottom: number;
+    readonly color: Paint;
+    readonly ink?: number;
+    readonly reshade?: (geometry: LatheGeometry) => void;
+  } & MeshLook
+> = ({ length, top, bottom, color, ink = OUTLINE, castShadow = true, userData, reshade }) => {
+  const body = useDisposable(() => {
+    const geometry = new LatheGeometry(taperedProfile(top, bottom, length, TAPER_STEPS).reverse(), AROUND);
+    reshade?.(geometry);
+    return geometry;
+  }, [top, bottom, length, reshade]);
+  return (
+    <InkedMesh
+      color={color}
+      ink={ink}
+      castShadow={castShadow}
+      userData={userData}
+      shape={(grow) => (grow === 0 ? <primitive object={body} attach="geometry" /> : <latheGeometry args={[taperedProfile(top + grow, bottom + grow, length, TAPER_STEPS).reverse(), AROUND]} />)}
+    />
+  );
+};
 
 const SEGMENT_AXIS = new Vector3(0, -1, 0);
 

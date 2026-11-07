@@ -1,6 +1,7 @@
 import { CatmullRomCurve3, Euler, Matrix4, Vector2, Vector3 } from "three";
 import {
   capsule,
+  taperedCapsule,
   frame,
   obb,
   origin,
@@ -68,6 +69,7 @@ export type Skeleton = {
     readonly profile: readonly (readonly [number, number])[];
     readonly depthScale: number;
     readonly bulges?: readonly Swell[];
+    readonly shoulders?: { readonly x: number; readonly y: number; readonly size: Vec3 };
   };
   readonly head: readonly {
     readonly name: string;
@@ -75,8 +77,8 @@ export type Skeleton = {
     readonly radius: number;
   }[];
   readonly shoulder: { readonly x: number; readonly y: number };
-  readonly upperArm: { readonly length: number; readonly radius: number };
-  readonly forearm: { readonly length: number; readonly radius: number };
+  readonly upperArm: { readonly length: number; readonly radius: number; readonly shoulder?: number };
+  readonly forearm: { readonly length: number; readonly radius: number; readonly wrist?: number };
   readonly hand: { readonly offset: number; readonly size: Vec3 };
   readonly hipX: number;
   readonly hipSplay: number;
@@ -286,17 +288,19 @@ const armSpheres = (
     elbowRotation(arm, side),
   );
   return [
-    ...capsule(
+    ...taperedCapsule(
       `${name} upper arm`,
       origin(shoulder),
       origin(elbow),
+      skeleton.upperArm.shoulder ?? skeleton.upperArm.radius,
       skeleton.upperArm.radius,
     ),
-    ...capsule(
+    ...taperedCapsule(
       `${name} forearm`,
       origin(elbow),
       pointIn(elbow, [0, -skeleton.forearm.length, 0]),
       skeleton.forearm.radius,
+      skeleton.forearm.wrist ?? skeleton.forearm.radius,
     ),
     sphere(
       `${name} hand`,
@@ -511,9 +515,22 @@ const bustBalls = (skeleton: Skeleton): Ring[] => {
   return centers;
 };
 
-const ringSpheres = (rings: readonly Ring[], torso: Matrix4) =>
+const SHOULDER_END = 0.75;
+
+const shoulderRings = (skeleton: Skeleton): Ring[] => {
+  const mass = skeleton.torso.shoulders;
+  if (!mass) return [];
+  const radius = Math.min(mass.size[1], mass.size[2]);
+  const end = radius * SHOULDER_END;
+  return ([1, -1] as const).flatMap((side) => [
+    { radius, centers: [[side * mass.x, mass.y, 0] as const] },
+    { radius: end, centers: [-1, 1].map((k) => [side * (mass.x + k * (mass.size[0] - end)), mass.y, 0] as const) },
+  ]);
+};
+
+const ringSpheres = (rings: readonly Ring[], torso: Matrix4, name = "body") =>
   rings.flatMap(({ radius, centers }) =>
-    centers.map((c) => sphere("body", pointIn(torso, c), radius)),
+    centers.map((c) => sphere(name, pointIn(torso, c), radius)),
   );
 
 export type BodyColliders = {
@@ -526,6 +543,10 @@ export type BodyColliders = {
   readonly legs: Sphere[];
 };
 
+const ROOT_OVERLAP = 1.8;
+
+export const armRootReach = (skeleton: Skeleton) => (skeleton.upperArm.shoulder ?? skeleton.upperArm.radius) * ROOT_OVERLAP;
+
 export const bodyColliders = (
   skeleton: Skeleton,
   placement: Placement,
@@ -534,7 +555,7 @@ export const bodyColliders = (
   const { body, torso, head } = frames(skeleton, placement);
   const { lower, upper, bust } = torsoRings(skeleton);
   const lowerTorso = ringSpheres(lower, torso);
-  const upperTorso = [...ringSpheres(upper, torso), ...ringSpheres(bust, torso)];
+  const upperTorso = [...ringSpheres(upper, torso), ...ringSpheres(bust, torso), ...ringSpheres(shoulderRings(skeleton), torso, "shoulder")];
   return {
     torso: [...lowerTorso, ...upperTorso.slice(upper[0].centers.length)],
     lowerTorso,
@@ -600,7 +621,7 @@ export const armIntoTorso = (
   const spheres = armSpheres(skeleton, torso, pose[which], side, which);
   let deepest = 0;
   for (const s of spheres) {
-    if (s.center.distanceTo(shoulder) < skeleton.upperArm.radius * 1.8) {
+    if (s.center.distanceTo(shoulder) < armRootReach(skeleton)) {
       continue;
     }
     const local = s.center.clone().sub(new Vector3(0, skeleton.hipHeight, 0));

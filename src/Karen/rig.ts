@@ -337,6 +337,7 @@ export const KAREN_SKELETON = {
       [0, 0.905],
     ],
     depthScale: 0.55,
+    shoulders: { x: 0.3, y: 0.74, size: [0.15, 0.085, 0.11] as Vec3 },
     bulges: [
       { at: [0.16, 0.44], width: 0.19, above: 0.24, below: 0.13, height: 0.16 },
       { at: [-0.16, 0.44], width: 0.19, above: 0.24, below: 0.13, height: 0.16 },
@@ -364,9 +365,9 @@ export const KAREN_SKELETON = {
       radius: NOSE.size[2] * 1.15,
     },
   ],
-  shoulder: { x: 0.4, y: 0.65 },
-  upperArm: { length: 0.324, radius: 0.092 },
-  forearm: { length: 0.288, radius: 0.08 },
+  shoulder: { x: 0.36, y: 0.7 },
+  upperArm: { length: 0.324, radius: 0.085, shoulder: 0.115 },
+  forearm: { length: 0.288, radius: 0.085, wrist: 0.062 },
   hand: { offset: 0.372, size: [0.0638, 0.0723, 0.0638] as Vec3 },
   hipX: 0.24,
   hipSplay: HIP_SPLAY,
@@ -419,7 +420,7 @@ export const karenRunArm = (swing: number): ArmPose => ({
 
 export const KAREN_ARM_HIPS: ArmPose = {
   raise: 0,
-  out: 1.19,
+  out: 1.29,
   elbow: 1.5,
   inward: 1.7,
 };

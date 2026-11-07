@@ -43,19 +43,29 @@ export const sphere = (
   radius,
 });
 
+export const taperedCapsule = (
+  name: string,
+  a: Vector3,
+  b: Vector3,
+  from: number,
+  to: number,
+): Sphere[] => {
+  if (!(from > 0 && to > 0)) throw new Error(`capsule ${name} needs a radius`);
+  const count = Math.max(2, Math.ceil(a.distanceTo(b) / (Math.min(from, to) * 0.5)) + 1);
+  const spheres: Sphere[] = [];
+  for (let i = 0; i < count; i++) {
+    const k = i / (count - 1);
+    spheres.push(sphere(name, a.clone().lerp(b, k), from + (to - from) * k));
+  }
+  return spheres;
+};
+
 export const capsule = (
   name: string,
   a: Vector3,
   b: Vector3,
   radius: number,
-): Sphere[] => {
-  if (!(radius > 0)) throw new Error(`capsule ${name} needs a radius`);
-  const count = Math.max(2, Math.ceil(a.distanceTo(b) / (radius * 0.5)) + 1);
-  const spheres: Sphere[] = [];
-  for (let i = 0; i < count; i++)
-    spheres.push(sphere(name, a.clone().lerp(b, i / (count - 1)), radius));
-  return spheres;
-};
+): Sphere[] => taperedCapsule(name, a, b, radius, radius);
 
 export const obb = (
   name: string,

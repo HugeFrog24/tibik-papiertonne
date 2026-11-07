@@ -28,7 +28,7 @@ test("an exact hold puts the centre of the hand on its point, not just anywhere 
         [0.05, 0.12, 0.016],
       ),
     near: () => point,
-    pose: { raise: 0.8, out: 0.3, elbow: 0.8, inward: 0.3 },
+    pose: { raise: 0.8, out: 0.3, elbow: 0.8, inward: 0.6 },
     exact: true,
   };
   const solved = workArm(karen, "leftArm", 0.5, [], [hold]);

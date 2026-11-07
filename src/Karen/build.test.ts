@@ -98,7 +98,7 @@ const drawnFront = (x: number, y: number) => {
 test("no collision sphere of her bust pokes out of the drawn bust by more than 1 cm, so nothing bumps into empty jumper", () => {
   const place = { position: [0, 0, 0] as [number, number, number], rotationY: 0, pose: KAREN_REST };
   const plain = bodyColliders({ ...K, torso: { ...K.torso, bulges: [] } }, place).upperTorso.length;
-  const balls = bodyColliders(K, place).upperTorso.slice(plain);
+  const balls = bodyColliders(K, place).upperTorso.slice(plain).filter((ball) => ball.name !== "shoulder");
   expect(balls.length).toBeGreaterThan(0);
   const step = 0.002;
   for (const ball of balls)

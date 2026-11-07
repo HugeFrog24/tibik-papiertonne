@@ -14,6 +14,7 @@ import {
   guardBody,
   guardGround,
   guardLean,
+  settleArm,
 } from "../../physics/guards";
 import { Euler, Matrix4, Quaternion, Vector3 } from "three";
 import {
@@ -44,7 +45,9 @@ import { TONNE, tonneColliders, tonneLidParts } from "../../street/tonneShape";
 import { headSurface } from "../../Tibik/headShape";
 import { memoWithArms, openingOn } from "../../physics/memoSolve";
 import { treppenhausEnd } from "../treppenhaus/solve";
-import type { ArmClock, ArmHistory } from "../../physics/armHistory";
+import { FINAL_ARM, type ArmClock, type ArmHistory } from "../../physics/armHistory";
+import { blendArm } from "../../physics/armDescent";
+import { kf } from "../../characters/animate";
 import { FPS } from "../../frameRate";
 import { guardLid } from "../../street/restingLids";
 import { asCharacter } from "../../Tibik/character";
@@ -61,6 +64,7 @@ import {
   tibikAt,
   type KartonState,
   type TibikFrame,
+  SHOT_FOUND_BOX,
 } from "./choreography";
 
 export type PapiertonnenState = {
@@ -212,6 +216,8 @@ export const sceneSolids = (
   ...(indoors ? indoorSolids({ tibik: 0 }) : []),
 ];
 
+const REACH_FOR_THE_BOX = 0.4;
+
 const solve = (t: number, history: ArmHistory): PapiertonnenState => {
   const clock = { history: history.of("Tibik"), at: t };
   const lids = BINS.map((bin) =>
@@ -226,7 +232,16 @@ const solve = (t: number, history: ArmHistory): PapiertonnenState => {
   const solids = sceneSolids(lids, authored.holdingBox, haustuer, indoors);
   const tibik = solveTibik(authored, solids, t, PAPIERTONNEN_HOLDS, GROUND, clock);
   if (!tibik.holdingBox) {
-    return { lids, haustuer, indoors, tibik, karton: null };
+    const reaching = kf(t, [SHOT_FOUND_BOX - REACH_FOR_THE_BOX, SHOT_FOUND_BOX], [0, 1]);
+    if (reaching <= 0) return { lids, haustuer, indoors, tibik, karton: null };
+    const onTheBox = holdKarton(tibik, kartonAt(t), solids, clock).tibik.pose;
+    let reached = asCharacter(tibik);
+    for (const which of ["leftArm", "rightArm"] as const) {
+      const toward = { ...reached, pose: { ...reached.pose, [which]: blendArm(tibik.pose[which], onTheBox[which], reaching) } };
+      reached = settleArm(toward, solids, which, clock.history.before(t, which, FINAL_ARM, -Infinity));
+      clock.history.remember(t, which, FINAL_ARM, reached.pose[which]);
+    }
+    return { lids, haustuer, indoors, tibik: { ...tibik, pose: reached.pose }, karton: null };
   }
   return { lids, haustuer, indoors, ...holdKarton(tibik, kartonAt(t), solids, clock) };
 };

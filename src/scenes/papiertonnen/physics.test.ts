@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { wrapAngle } from "../../characters/scalar";
 import {
   TOLERANCE,
+  armJumps,
   frameLabel,
   framesOf,
   penetrations,
@@ -348,4 +349,13 @@ test("walking out along the row of bins to the Papiertonne, he keeps far enough 
     if (depth > TOLERANCE) into.push(`${t.toFixed(2)} s: ${(depth * 1000).toFixed(0)} mm`);
   }
   expect(into.slice(0, 6)).toEqual([]);
+});
+
+test("he takes hold of the box in the bin before he lifts it: his hands go onto it over a moment, so neither arm jumps as he grips it", { timeout: 300_000 }, () => {
+  const from = SHOT_FOUND_BOX - 0.6;
+  const frames = Array.from({ length: Math.round(0.9 * FPS) + 1 }, (_, f) => {
+    const t = from + f / FPS;
+    return { t, characters: { Tibik: asCharacter(solvePapiertonnen(t).tibik) } };
+  });
+  expect(armJumps(frames)).toEqual([]);
 });

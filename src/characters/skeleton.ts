@@ -515,17 +515,28 @@ const bustBalls = (skeleton: Skeleton): Ring[] => {
   return centers;
 };
 
-const SHOULDER_END = 0.75;
+const SHOULDER_BALL = { step: 0.02, least: 0.01 };
+
+const shoulderCache = new WeakMap<Skeleton, Ring[]>();
 
 const shoulderRings = (skeleton: Skeleton): Ring[] => {
+  const cached = shoulderCache.get(skeleton);
+  if (cached) return cached;
+  const rings = fitShoulders(skeleton);
+  shoulderCache.set(skeleton, rings);
+  return rings;
+};
+
+const fitShoulders = (skeleton: Skeleton): Ring[] => {
   const mass = skeleton.torso.shoulders;
   if (!mass) return [];
-  const radius = Math.min(mass.size[1], mass.size[2]);
-  const end = radius * SHOULDER_END;
-  return ([1, -1] as const).flatMap((side) => [
-    { radius, centers: [[side * mass.x, mass.y, 0] as const] },
-    { radius: end, centers: [-1, 1].map((k) => [side * (mass.x + k * (mass.size[0] - end)), mass.y, 0] as const) },
-  ]);
+  const [wide, high, deep] = mass.size;
+  const surface = sphereDirections(400).map((d) => new Vector3(d.x * wide, d.y * high, d.z * deep));
+  const count = Math.floor(wide / SHOULDER_BALL.step);
+  const balls = Array.from({ length: 2 * count + 1 }, (_, i) => (i - count) * SHOULDER_BALL.step)
+    .map((along) => ({ along, radius: Math.min(...surface.map((p) => Math.hypot(p.x - along, p.y, p.z))) }))
+    .filter(({ radius }) => radius >= SHOULDER_BALL.least);
+  return ([1, -1] as const).flatMap((side) => balls.map(({ along, radius }) => ({ radius, centers: [[side * (mass.x + along), mass.y, 0] as const] })));
 };
 
 const ringSpheres = (rings: readonly Ring[], torso: Matrix4, name = "body") =>
@@ -658,6 +669,21 @@ export const boxIntoTorso = (
 
 export const torsoDepthAt = (skeleton: Skeleton, local: Vector3) =>
   torsoDepth(skeleton, local, 0);
+
+export const shoulderDepthAt = (skeleton: Skeleton, local: Vector3) => {
+  const mass = skeleton.torso.shoulders;
+  if (!mass) return -Infinity;
+  const [wide, high, deep] = mass.size;
+  return Math.max(
+    ...([1, -1] as const).map((side) => {
+      const spread = Math.hypot((local.x - side * mass.x) / wide, (local.y - mass.y) / high, local.z / deep);
+      return (1 - spread) * Math.min(high, deep);
+    }),
+  );
+};
+
+export const bodyDepthAt = (skeleton: Skeleton, local: Vector3) =>
+  Math.max(torsoDepthAt(skeleton, local), shoulderDepthAt(skeleton, local));
 
 export const torsoClearance = (skeleton: Skeleton, point: Vector3) => {
   const { local, steepness, scaled, squash } = squashed(skeleton, point);

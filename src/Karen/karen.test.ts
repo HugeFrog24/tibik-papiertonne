@@ -10,7 +10,7 @@ import {
   hipPosition,
   legFrames,
   torsoClearance,
-  torsoDepthAt,
+  bodyDepthAt,
   torsoMatrix,
   type ArmName,
   type ArmPose,
@@ -135,7 +135,7 @@ const ellipsoid = (
 const intoTorso = (pose: Pose) => {
   const toTorso = torsoMatrix(K, placed(pose)).invert();
   return (p: Vector3) =>
-    Math.max(0, torsoDepthAt(K, p.clone().applyMatrix4(toTorso)));
+    Math.max(0, bodyDepthAt(K, p.clone().applyMatrix4(toTorso)));
 };
 
 const headParts = (pose: Pose, hair: readonly HairPiece[] = K.hair) => {

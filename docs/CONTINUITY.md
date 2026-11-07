@@ -27,7 +27,9 @@ Items marked **(test)** are enforced by `npm test`.
   (towards +x, slightly towards the houses), with gusts. One breeze runs on
   film time across all scenes (src/physics/wind.ts). The tree crown sways a
   few centimetres and Karen's locks and strands sway on their own springs.
-  Hair blown onto her shoulders rests on them. **(test)**
+  Hair blown onto her shoulders rests on them, pressing at most a few
+  millimetres into her knit, and slides over them without popping as she
+  walks. **(test)**
 - **Parking:** cars park along the kerb (Längsparken) or on a Mieterparkplatz,
   not in garages. They face the direction of travel with the kerb on their
   right (StVO § 12 (4); this is no one-way street). Plates are white with a
@@ -796,6 +798,11 @@ Ideas (proposed, not built; the user picks):
   terrazzo, a shade lighter, no outline (the impact powders some of it).
 - His doormat: the coir trodden a shade flatter and darker in the band in
   front of his door.
+- Karen's sleeves and shoulders: the lilac knit cuff ridden up a few
+  millimetres off the wrist, the same in every shot; one shoulder 3-5 mm
+  higher than the other (a habit from carrying her bag on that side); a
+  faint pulled-knit drag from the bust towards the underarm on one side,
+  shading only.
 - Story changes (only if you want them): the first strike doesn't catch; a
   throat-clear after the exhale.
 

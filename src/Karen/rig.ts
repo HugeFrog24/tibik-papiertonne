@@ -337,7 +337,7 @@ export const KAREN_SKELETON = {
       [0, 0.905],
     ],
     depthScale: 0.55,
-    shoulders: { x: 0.3, y: 0.74, size: [0.15, 0.085, 0.11] as Vec3 },
+    shoulders: { x: 0.3, y: 0.74, size: [0.15, 0.085, 0.085] as Vec3 },
     bulges: [
       { at: [0.16, 0.44], width: 0.19, above: 0.24, below: 0.13, height: 0.16 },
       { at: [-0.16, 0.44], width: 0.19, above: 0.24, below: 0.13, height: 0.16 },

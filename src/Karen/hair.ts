@@ -3,7 +3,7 @@ import { frame } from "../physics/collision";
 import { WIND, swayOf, type Spring } from "../physics/wind";
 import {
   headRotation,
-  torsoDepthAt,
+  bodyDepthAt,
   torsoRotation,
   type Pose,
 } from "../characters/skeleton";
@@ -84,18 +84,18 @@ const sinking = (piece: HairPiece, headInTorso: Matrix4) => {
     .premultiply(headInTorso);
   return SURFACE.reduce(
     (deepest, u) =>
-      Math.max(deepest, torsoDepthAt(K, scratch.copy(u).applyMatrix4(placed))),
+      Math.max(deepest, bodyDepthAt(K, scratch.copy(u).applyMatrix4(placed))),
     0,
   );
 };
 
 const REST_MARGIN = 0.001;
-const DRAPE = { most: 1.2, steps: 12 };
+const DRAPE = { most: 1.2, steps: 12, give: 0.0025 };
 const HANGING: readonly HairPiece["name"][] = ["curtain", "strand"];
 
 const draped = (piece: HairPiece, headInTorso: Matrix4): HairPiece => {
   if (!HANGING.includes(piece.name)) return piece;
-  if (sinking(piece, headInTorso) <= REST_MARGIN) return piece;
+  if (sinking(piece, headInTorso) <= DRAPE.give) return piece;
   const { root, hang } = rootedOf(piece);
   const outward = new Vector3(
     root.x - K.headCenter[0],
@@ -108,7 +108,7 @@ const draped = (piece: HairPiece, headInTorso: Matrix4): HairPiece => {
   let [low, high] = [0, DRAPE.most];
   for (let k = 0; k < DRAPE.steps; k++) {
     const mid = (low + high) / 2;
-    if (sinking(bent(piece, axis, mid), headInTorso) <= REST_MARGIN) high = mid;
+    if (sinking(bent(piece, axis, mid), headInTorso) <= DRAPE.give) high = mid;
     else low = mid;
   }
   return bent(piece, axis, high);

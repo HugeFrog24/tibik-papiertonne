@@ -42,7 +42,7 @@ test("her shoulders: seen from the front, the line from her neck runs out over a
 test("her shoulders' collision spheres stay inside the drawn shoulder, poking out of it by at most 1 cm", () => {
   const mass = K.torso.shoulders!;
   const balls = bodyColliders(K, { position: [0, 0, 0], rotationY: 0, pose: KAREN_REST }).upperTorso.filter((s) => s.name === "shoulder");
-  expect(balls).toHaveLength(6);
+  expect(balls.length).toBeGreaterThan(6);
   const grown = mass.size.map((r) => r + 0.01);
   for (const ball of balls)
     for (const d of sphereDirections(200)) {
@@ -50,6 +50,21 @@ test("her shoulders' collision spheres stay inside the drawn shoulder, poking ou
       const inside = ((Math.abs(p.x) - mass.x) / grown[0]) ** 2 + ((p.y - mass.y) / grown[1]) ** 2 + (p.z / grown[2]) ** 2;
       expect(inside, `${p.toArray().map((v) => v.toFixed(3))}`).toBeLessThanOrEqual(1);
     }
+});
+
+test("what is drawn of her shoulders is what collides: every point of a drawn shoulder outside her torso lies within 1 cm of its collision spheres", () => {
+  const mass = K.torso.shoulders!;
+  const balls = bodyColliders(K, { position: [0, 0, 0], rotationY: 0, pose: KAREN_REST }).upperTorso.filter((s) => s.name === "shoulder");
+  const lift = new Vector3(0, K.hipHeight, 0);
+  const uncovered = sphereDirections(400).flatMap((d) =>
+    ([1, -1] as const).flatMap((side) => {
+      const p = new Vector3(side * mass.x + d.x * mass.size[0], mass.y + d.y * mass.size[1], d.z * mass.size[2]);
+      const outsideTorso = Math.hypot(p.x, p.z / K.torso.depthScale) > torsoRadiusAt(K, p.y).radius;
+      const gap = Math.min(...balls.map((b) => b.center.distanceTo(p.clone().add(lift)) - b.radius));
+      return outsideTorso && gap > 0.01 ? [`${p.toArray().map((v) => v.toFixed(3))}: ${(gap * 1000).toFixed(1)} mm outside its spheres`] : [];
+    }),
+  );
+  expect(uncovered.slice(0, 6)).toEqual([]);
 });
 
 test("her shoulder masses sit at her sides only, so her chest and back stay as they were", () => {

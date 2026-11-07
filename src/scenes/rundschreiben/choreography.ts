@@ -45,7 +45,7 @@ import {
 import { entranceGround } from "../../street/layout";
 import { TIBIK_GAIT, tibikGaitOf, plantedTibik, type TibikFrame } from "../../Tibik/character";
 import { ARM_REST, ARM_WALK, RIG, TIBIK_CROUCH, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
-import { WALK_SWAY, WALK_SWING, swungArms, walkArmKeys, walkingOn } from "../../Tibik/walkingArms";
+import { WALK_SWAY, WALK_SWING, swungArm, walkArmKeys, walkingOn } from "../../Tibik/walkingArms";
 import type { Vec3 } from "../../toon/primitives";
 
 export const ARRIVE = 0;
@@ -178,8 +178,11 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
   const step = strideAt(tibikGait(), t);
   const tucked = ENTRY.tuckedAt(t);
   const swing = WALK_SWING * walking * step * (1 - tucked);
-  const legArms = walkArmKeys(WALK_LEGS);
-  const arms = armKf(t, [AT_MAILBOX - 0.6, AT_MAILBOX, ...legArms.times], [ARM_WALK, ARM_REST, ...legArms.poses]);
+  const kept = ([from, to]: readonly [number, number]) => kf(t, [from - 0.3, from, to - 0.5, to], [0, 1, 1, 0]);
+  const holding = (held: readonly (readonly [number, number])[]) => {
+    const legArms = walkArmKeys(WALK_LEGS, held);
+    return armKf(t, [AT_MAILBOX - 0.6, AT_MAILBOX, ...legArms.times], [ARM_WALK, ARM_REST, ...legArms.poses]);
+  };
   const pose: TibikPose = {
     ...TIBIK_REST,
     bob: TIBIK_REST.bob - ENTRY.crouchAt(t) - atTheMailbox(t),
@@ -213,7 +216,8 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
       [0, 0.12, 0.12, 0, 0, 0.3, 0.3, 0],
     ),
     blink: blinkAt(t, [1.4, 3.1, 6.6, 9.9, 17.2, 25.8, 29.95, 34.6, 38.9, 42.7]),
-    ...swungArms(arms, swing, tucked),
+    leftArm: swungArm(holding([TO_BIN]), -swing * (1 - kept(TO_BIN)), tucked),
+    rightArm: swungArm(holding([TO_DOOR]), swing * (1 - kept(TO_DOOR)), tucked),
   };
   const placed = { position: [x, y, z] as Vec3, rotationY, pose };
   return plantedTibik(tibikGait(), t, placed);

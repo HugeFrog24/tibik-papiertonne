@@ -11,7 +11,7 @@ import {
   letterPanels,
 } from "../../props/letterShape";
 import { expect, test } from "vitest";
-import { bodyColliders, handPosition, handSphere } from "../../characters/skeleton";
+import { armColliders, bodyColliders, handPosition, handSphere } from "../../characters/skeleton";
 import { headSurface } from "../../Tibik/headShape";
 import { keyParts } from "../../props/keyRingShape";
 import {
@@ -615,4 +615,17 @@ test("the Haustuer's latch catches on the frame it shuts as the epilogue opens",
 test("turning in to his box he takes the short way round, never swinging round to face the street", () => {
   for (let t = OUT_OF_THE_HOUSE.walkOff; t <= AT_MAILBOX; t += 1 / FPS)
     expect(Math.cos(rundschreibenTibikAt(t).rotationY), seconds(t)).toBeLessThan(0.5);
+});
+
+test("walking to the Papiertonne past the Restmüll and back to the door, his bin-side arm stays in: as he plays it, neither arm ever reaches into a bin, its lid or what sticks out of it", { timeout: 300_000 }, () => {
+  const into: string[] = [];
+  for (let t = 0; t <= RUNDSCHREIBEN_DURATION; t += 1 / FPS) {
+    const bins = rundschreibenSolids(solveRundschreiben(t)).filter((s) => /Papier|Restmüll|Bio/.test(s.name));
+    const authored = asCharacter(rundschreibenTibikAt(t));
+    for (const which of ["leftArm", "rightArm"] as const) {
+      const depth = Math.max(0, ...contacts(armColliders(RIG, authored, which), bins).map((c) => c.depth));
+      if (depth > 0.005) into.push(`${seconds(t)} ${which}: ${(depth * 1000).toFixed(0)} mm`);
+    }
+  }
+  expect(into.slice(0, 6)).toEqual([]);
 });

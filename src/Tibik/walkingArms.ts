@@ -12,14 +12,16 @@ const legKeys = ([a, b]: Leg) => [a, a + 0.3, b - 0.5, b];
 
 export const walkingOn = (t: number, legs: readonly Leg[]) => legs.map((leg) => kf(t, legKeys(leg), [0, 1, 1, 0]));
 
-export const walkArmKeys = (legs: readonly Leg[]) => ({
+export const walkArmKeys = (legs: readonly Leg[], held: readonly Leg[] = []) => ({
   times: legs.flatMap(legKeys),
-  poses: legs.flatMap(() => [ARM_REST, ARM_WALK, ARM_WALK, ARM_REST]),
+  poses: legs.flatMap((leg) => (held.includes(leg) ? [ARM_REST, ARM_REST, ARM_REST, ARM_REST] : [ARM_REST, ARM_WALK, ARM_WALK, ARM_REST])),
 });
 
+export const swungArm = (arm: ArmPose, swing: number, tucked: number) => blendArm({ ...arm, raise: arm.raise + swing }, ARM_TUCK, tucked);
+
 export const swungArms = (arms: ArmPose, swing: number, tucked: number) => ({
-  leftArm: blendArm({ ...arms, raise: arms.raise - swing }, ARM_TUCK, tucked),
-  rightArm: blendArm({ ...arms, raise: arms.raise + swing }, ARM_TUCK, tucked),
+  leftArm: swungArm(arms, -swing, tucked),
+  rightArm: swungArm(arms, swing, tucked),
 });
 
 export const walkingPose = (t: number, legs: readonly Leg[], step: number, tucked = 0) => {

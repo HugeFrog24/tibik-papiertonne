@@ -223,8 +223,11 @@ composition under "Scenes" in the Studio:
   the dispatcher stays calm and asks whether anyone is hurt or in danger.
   The dispatcher's greeting is cut, a deliberate film liberty for the pace
   (user decision, 2026-11-07): after the three DTMF tones and a short ring
-  she is already shouting her complaint; the tones, the "110" on her phone's
-  screen and "verletzt / Gefahr / kein Notfall" make clear whom she called.
+  she is already shouting her complaint; the tones and "verletzt / Gefahr /
+  kein Notfall" make clear whom she called. Her phone's screen shows the
+  number as she dials, but no shot films it: in "Medium: back to the phone"
+  the phone sits at the bottom edge of the frame, mostly cut off, its screen out of view
+  (an insert on the screen while she dials is an open idea for the user).
   The cut is 99 frames (3.3 s, about three of her 0.9 Hz panting breaths, so
   her breathing carries on almost seamlessly). After hanging up she lowers
   the phone to her belly.

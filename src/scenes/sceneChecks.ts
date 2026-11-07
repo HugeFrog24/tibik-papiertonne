@@ -2,6 +2,8 @@ import { Vector3 } from "three";
 import { allColliders, handPosition, torsoMatrix, type ArmName } from "../characters/skeleton";
 import type { Character } from "../physics/guards";
 import { FRAME_SIZE, onScreen, seenBy } from "../dialogue/screen";
+import { FPS } from "../frameRate";
+import { raySphere } from "../physics/rays";
 import { asCharacter, type TibikFrame } from "../Tibik/character";
 import { headSurface } from "../Tibik/headShape";
 import { RIG } from "../Tibik/rig";
@@ -37,6 +39,22 @@ export const framesOf = (duration: number, fps: number, step = 1) =>
     { length: Math.ceil((duration * fps) / step) },
     (_, i) => i * step,
   );
+
+export const framesIn = (from: number, to: number, fps = FPS) => {
+  const frames: number[] = [];
+  for (let f = Math.ceil(from * fps - 1e-6); f < to * fps - 1e-6; f++) frames.push(f / fps);
+  return frames;
+};
+
+const SIGHT_SLACK = 0.01;
+
+export const hidersOf = (eye: Vector3, target: Vector3, blockers: readonly Sphere[]) => {
+  const reach = eye.distanceTo(target) - SIGHT_SLACK;
+  const along = target.clone().sub(eye).normalize();
+  return blockers.filter((s) => raySphere(eye, along, s) < reach);
+};
+
+export const hiddenBy = (eye: Vector3, target: Vector3, blockers: readonly Sphere[]) => hidersOf(eye, target, blockers).length > 0;
 
 export const lensProblems = (
   t: number,

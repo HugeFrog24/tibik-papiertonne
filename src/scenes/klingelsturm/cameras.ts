@@ -16,10 +16,12 @@ import { doorFrame } from "../../building/doors";
 import { mouthInWorld } from "../../dialogue/screen";
 import { RIG } from "../../Tibik/rig";
 import { BANGING } from "./banging";
-import { CLICK, KEYS, POCKET } from "./calls";
+import { CLICK, CONNECTED, KEYS, POCKET, phoneAt } from "./calls";
 import { AJAR_ANGLE, tibikAt } from "./door";
 import { TAPING, parcelBody } from "./parcel";
-import { KLINGELSTURM_DURATION, karenAt } from "./choreography";
+import { KLINGELSTURM_DURATION, karenAt, phoneFrame } from "./choreography";
+import { SCREEN_CENTRE } from "../../Karen/phoneShape";
+import { round6 } from "../../characters/scalar";
 
 export const FRAME = FRAME_SIZE;
 
@@ -116,6 +118,30 @@ const DIALLING: readonly [number, number] = [
   KEYS[1].at - 0.15,
   KEYS[KEYS.length - 1].at + 0.3,
 ];
+const PHONE_INSERT = { after: 0.4, length: 1.4, over: new Vector3(-0.2, 0.82, -0.54), distance: 0.42, fov: 24 };
+const ON_HER_PHONE: readonly [number, number] = [
+  round6(CONNECTED + PHONE_INSERT.after),
+  round6(CONNECTED + PHONE_INSERT.after + PHONE_INSERT.length),
+];
+const UP = new Vector3(0, 1, 0);
+
+const OVER_HER_SHOULDER = lazy((): CameraSetup => {
+  const t = ON_HER_PHONE[0];
+  const karen = karenAt(t);
+  const screen = new Vector3(...SCREEN_CENTRE).applyMatrix4(phoneFrame(karen, phoneAt(t)));
+  const eye = PHONE_INSERT.over
+    .clone()
+    .normalize()
+    .applyAxisAngle(UP, karen.rotationY)
+    .multiplyScalar(PHONE_INSERT.distance)
+    .add(screen);
+  return {
+    position: [eye.x, eye.y, eye.z],
+    target: [screen.x, screen.y, screen.z],
+    fov: PHONE_INSERT.fov,
+  };
+});
+
 const FLUR_CUT: readonly [number, number] = [2.4, 4.6];
 const BELL_CUT = 1.2;
 const BELL_EYE = new Vector3(0.3, 0.45, 0.35);
@@ -210,8 +236,20 @@ export const SHOTS: readonly Shot[] = [
     at: PHONE_SHOT,
   },
   {
-    name: "Medium: the police",
+    name: "Medium: ringing the police",
     from: DIALLING[1],
+    to: ON_HER_PHONE[0],
+    at: PHONE_SHOT,
+  },
+  {
+    name: "Insert: her phone",
+    from: ON_HER_PHONE[0],
+    to: ON_HER_PHONE[1],
+    at: OVER_HER_SHOULDER,
+  },
+  {
+    name: "Medium: the police",
+    from: ON_HER_PHONE[1],
     to: CLICK,
     at: PHONE_SHOT,
   },

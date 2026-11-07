@@ -57,14 +57,25 @@ export const keyPixel = (key: Key): [number, number] => {
   ];
 };
 
-export const keyLocal = (key: Key): Vec3 => {
-  const [px, py] = keyPixel(key);
-  return [
-    (px / FACE.width - 0.5) * PHONE.size[0] * FACE.cover[0],
-    (0.5 - py / FACE.height) * PHONE.size[1] * FACE.cover[1],
-    PHONE.size[2] / 2,
-  ];
-};
+export const faceLocal = ([px, py]: readonly [number, number]): Vec3 => [
+  (px / FACE.width - 0.5) * PHONE.size[0] * FACE.cover[0],
+  (0.5 - py / FACE.height) * PHONE.size[1] * FACE.cover[1],
+  PHONE.size[2] / 2,
+];
+
+export const keyLocal = (key: Key): Vec3 => faceLocal(keyPixel(key));
+
+const SCREEN_RIGHT = SCREEN.left + SCREEN.width;
+const SCREEN_BOTTOM = SCREEN.top + SCREEN.height;
+
+export const SCREEN_CENTRE = faceLocal([SCREEN.left + SCREEN.width / 2, SCREEN.top + SCREEN.height / 2]);
+
+export const SCREEN_CORNERS: readonly Vec3[] = [
+  faceLocal([SCREEN.left, SCREEN.top]),
+  faceLocal([SCREEN_RIGHT, SCREEN.top]),
+  faceLocal([SCREEN.left, SCREEN_BOTTOM]),
+  faceLocal([SCREEN_RIGHT, SCREEN_BOTTOM]),
+];
 
 const FIST_CLEARANCE = 0.002;
 const FIST_REACH =

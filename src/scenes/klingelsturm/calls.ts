@@ -167,6 +167,8 @@ const firstAfter = (call: KeyPress) => {
   return line;
 };
 
+export const CONNECTED = firstAfter(KEYS[KEYS.length - 1]).from;
+
 const RING_DELAY = 0.4;
 const ringback = (call: KeyPress, answered: string): PhoneCue => {
   const at = round6(call.at + RING_DELAY);

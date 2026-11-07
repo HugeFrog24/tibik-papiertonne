@@ -13,7 +13,7 @@ import {
   torsoMatrix,
 } from "../../characters/skeleton";
 import type { Line } from "../../dialogue/line";
-import { mouthInWorld, onScreen, seenBy } from "../../dialogue/screen";
+import { inFront, mouthInWorld, onScreen, seenBy, withinFrame } from "../../dialogue/screen";
 import type { CameraSetup } from "../../toon/shots";
 import { asKaren } from "../../Karen/character";
 import { KAREN_SKELETON } from "../../Karen/rig";
@@ -226,14 +226,16 @@ export const tailTo = (line: Line, t: number): [number, number] | null => {
   if (spyhole && line.speaker === "tibik") return null;
   const state = solveKlingelsturm(t);
   if (line.speaker === "phone" && state.phone === null) return null;
+  const setup = cameraAt(t);
   const point =
     line.speaker === "karen"
-      ? karenVoice(state, cameraAt(t))
+      ? karenVoice(state, setup)
       : line.speaker === "phone" && state.phone
         ? phoneObb(state.karen, state.phone).center
         : mouthInWorld(RIG, state.tibik);
-  const projected = onScreen(point, cameraAt(t));
-  return spyhole ? throughLens(projected) : projected;
+  const projected = onScreen(point, setup);
+  const tail = spyhole ? throughLens(projected) : projected;
+  return inFront(point, setup) && withinFrame(tail) ? tail : null;
 };
 
 export const phoneGap = (state: KlingelsturmState) =>

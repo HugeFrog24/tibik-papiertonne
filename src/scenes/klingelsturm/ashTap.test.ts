@@ -7,11 +7,10 @@ import { allColliders, bodyColliders } from "../../characters/skeleton";
 import { onScreen, seenBy } from "../../dialogue/screen";
 import { FPS } from "../../frameRate";
 import { asKaren } from "../../Karen/character";
-import { contacts, obbCorners, sphere, type Sphere } from "../../physics/collision";
-import { raySphere } from "../../physics/rays";
+import { contacts, obbCorners, sphere } from "../../physics/collision";
 import { cigaretteParts, cigaretteTip } from "../../props/cigaretteShape";
 import { floorLevel } from "../../street/building";
-import { VERTICAL_CROP, ndcX, seconds } from "../sceneChecks";
+import { VERTICAL_CROP, framesIn, hiddenBy, ndcX, seconds } from "../sceneChecks";
 import { SHOTS, cameraAt } from "./cameras";
 import { KLINGELSTURM_DURATION } from "./choreography";
 import { ASH, CODA } from "./cigarette";
@@ -19,11 +18,6 @@ import { smokedAt } from "./smoking";
 import { klingelsturmSolids, solveKlingelsturm } from "./solve";
 
 const FLOOR = floorLevel(1);
-const framesIn = (from: number, to: number) => {
-  const frames: number[] = [];
-  for (let f = Math.ceil(from * FPS - 1e-6); f < to * FPS - 1e-6; f++) frames.push(f / FPS);
-  return frames;
-};
 const INSERT = () => SHOTS.find((s) => s.name === "Insert: the ash")!;
 
 const tipAt = (t: number) => {
@@ -82,11 +76,6 @@ test("the ash leaves the cigarette where it broke off and falls under gravity on
   }
 });
 
-const hiddenBy = (eye: Vector3, target: Vector3, blockers: readonly Sphere[]) => {
-  const reach = eye.distanceTo(target) - 0.01;
-  const along = target.clone().sub(eye).normalize();
-  return blockers.some((s) => raySphere(eye, along, s) < reach);
-};
 
 const pixelsBetween = (a: Vector3, b: Vector3, t: number) => {
   const [ax, ay] = onScreen(a, cameraAt(t));

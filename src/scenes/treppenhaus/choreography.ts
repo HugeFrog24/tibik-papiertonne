@@ -161,7 +161,7 @@ const SHOULDER_TO_HAUSTUER = -0.4;
 const HAUSTUER_LET_GO = 18.75;
 const HAUSTUER_REACH = 17.85;
 const HAUSTUER_GRIP = 18.08;
-const LETS_THE_DOOR_SWING_SHUT = 2.5;
+const LETS_THE_DOOR_SWING_SHUT = 2.25;
 const YAW_KEYS: readonly (readonly [number, number])[] = [
   [0, FACING_BACK + SHOULDER_TO_LEVER],
   [SIDLE_IN[0], FACING_BACK + SHOULDER_TO_LEVER],
@@ -396,7 +396,7 @@ export const footstepStoryTimes = (): number[] =>
 
 export const RAIL_SPAN: readonly [number, number] = [
   DESCENT_START + 1.1,
-  DESCENT_START + (DESCENT_STEPS - 1) * STEP - 0.1,
+  DESCENT_START + (DESCENT_STEPS - 1) * STEP - 0.2,
 ];
 
 const walking = (t: number) =>

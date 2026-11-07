@@ -149,7 +149,9 @@ export const reachArm = <C extends Character>(
 
 const REACHED = 0.004;
 const AS_GOOD = 0.001;
-const worthSwitching = (tracked: number, cold: number) => cold < tracked - AS_GOOD;
+const ON_TARGET = 0.01;
+
+const worthSwitching = (tracked: number, cold: number) => cold < tracked - AS_GOOD && (cold <= ON_TARGET || cold < tracked / 2);
 
 const REACH_STARTS: ArmPose[] = [
   { raise: 1.5, out: 0.1, elbow: 0.3, inward: 0.2 },

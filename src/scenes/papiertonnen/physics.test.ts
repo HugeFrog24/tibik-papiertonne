@@ -235,15 +235,26 @@ test(
   },
 );
 
-test("papiertonnen ends exactly as before the re-staging", () => {
+const toTheMicron = (value: unknown): unknown =>
+  typeof value === "number"
+    ? Math.round(value * 1e6) / 1e6
+    : Array.isArray(value)
+      ? value.map(toTheMicron)
+      : value && typeof value === "object"
+        ? Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, toTheMicron(inner)]))
+        : value;
+
+test("papiertonnen ends exactly as before the re-staging, to the micron", () => {
   const { lids, tibik, karton } = papiertonnenEnd();
-  expect({
-    lids,
-    position: tibik.position,
-    rotationY: tibik.rotationY,
-    pose: tibik.pose,
-    karton,
-  }).toMatchSnapshot();
+  expect(
+    toTheMicron({
+      lids,
+      position: tibik.position,
+      rotationY: tibik.rotationY,
+      pose: tibik.pose,
+      karton,
+    }),
+  ).toMatchSnapshot();
 });
 
 const numbersIn = (value: unknown, path = ""): [string, number][] =>

@@ -11,7 +11,7 @@ import { reachArm } from "../../physics/grip";
 import { characterViolations, guardLean } from "../../physics/guards";
 import { FPS } from "../../frameRate";
 import { memoWithArms } from "../../physics/memoSolve";
-import { FINAL_ARM, type ArmHistory } from "../../physics/armHistory";
+import { AUTHORED_ARM, FINAL_ARM, type ArmHistory } from "../../physics/armHistory";
 import { worldSolids } from "../../street/layout";
 import { RIG } from "../../Tibik/rig";
 import { workArm, type Hold } from "../../physics/holds";
@@ -101,6 +101,7 @@ const solve = (t: number, history: ArmHistory): TreppenhausState => {
         { authoredOnly: true, lastFrame: history.before(t, "rightArm", FINAL_ARM, -Infinity) },
       )
     : workArm(tibik, "rightArm", t, solids, HOLDS, history);
+  if (onRail(t)) history.remember(t, "rightArm", AUTHORED_ARM, ARM_TO_RAIL);
   history.remember(t, "rightArm", FINAL_ARM, tibik.pose.rightArm);
   const { position, rotationY, pose, holdingBox } = tibik;
   return {

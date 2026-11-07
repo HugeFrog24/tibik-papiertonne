@@ -51,11 +51,11 @@ const SCENES: readonly Scene[] = [
 ];
 
 const STILL_FLIPPING: Readonly<Record<string, number>> = {
-  Treppenhaus: 6,
+  Treppenhaus: 2,
   Papiertonnen: 6,
   Hausmuell: 0,
-  Klingelsturm: 13,
-  Nachtruhe: 7,
+  Klingelsturm: 7,
+  Nachtruhe: 6,
   Rundschreiben: 15,
 };
 

@@ -1,4 +1,5 @@
 import { Vector3 } from "three";
+import { storyJumpsIn } from "../../toon/shots";
 import { FPS } from "../../timeline";
 import { expect, test } from "vitest";
 import { TOLERANCE, penetrations, seconds, mm, tibikHeadOutOfFrame } from "../sceneChecks";
@@ -27,6 +28,7 @@ import {
   haustuerAt,
   haustuerLeverAt,
   tibikDoorAt,
+  footstepStoryTimes,
   tibikLeverAt,
   treppenhausTibikGait,
 } from "./choreography";
@@ -183,6 +185,17 @@ test("story moments map back to the film time that shows them, skipped ones to n
   const skipped =
     (SHOTS[2].story + (SHOTS[2].to - SHOTS[2].from) + SHOTS[3].story) / 2;
   expect(filmTimeOf(skipped)).toBeNull();
+});
+
+test("across the jump to the Haustür his walk goes on: the first step after the cut follows the last one before it no later than his rhythm on the flight, so that step's echo runs into the next footfall and needs no trimming", () => {
+  const [cut] = storyJumpsIn(SHOTS);
+  const heard = footstepStoryTimes().map(filmTimeOf).filter((t): t is number => t !== null);
+  const before = Math.max(...heard.filter((t) => t < cut));
+  const after = Math.min(...heard.filter((t) => t >= cut));
+  const onTheFlight = heard.filter((t) => t >= SHOTS[2].from && t < cut);
+  const stride = Math.max(...onTheFlight.slice(1).map((t, i) => t - onTheFlight[i]));
+  expect(onTheFlight.length).toBeGreaterThan(3);
+  expect(after - before).toBeLessThanOrEqual(stride + 1e-9);
 });
 
 test("once his pull has run out, the closer lets the Haustür open only while he holds it", () => {

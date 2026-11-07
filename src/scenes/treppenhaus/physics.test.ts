@@ -324,3 +324,16 @@ test("walking from the stair foot along the facade to the Haustür, his wall-sid
   expect(into.slice(0, 6)).toEqual([]);
   expect(jumps).toEqual([]);
 });
+
+test("turning from the light switch to the stairs beside his shut door, he already has his arms in: as he plays it, neither arm brushes his door's knob", () => {
+  const knob: string[] = [];
+  for (let t = 4.6; t <= 5.45; t += 1 / FPS) {
+    const solids = treppenhausSolids(solveTreppenhaus(t)).filter((s) => s.name.includes("knob"));
+    const authored = asCharacter(tibikAt(t));
+    for (const which of ["leftArm", "rightArm"] as const) {
+      const depth = Math.max(0, ...contacts(armColliders(RIG, authored, which), solids).map((c) => c.depth));
+      if (depth > 0) knob.push(`${seconds(t)} ${which}: ${mm(depth)} into the knob`);
+    }
+  }
+  expect(knob).toEqual([]);
+});

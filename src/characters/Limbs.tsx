@@ -1,6 +1,6 @@
 import { Euler, Matrix3, Matrix4, Quaternion, Vector3, type LatheGeometry } from "three";
-import { ONE_UNIT } from "../toon/inkWidth";
-import { blendedNormal } from "./blendNormals";
+import { ONE_UNIT, inkJoin } from "../toon/inkWidth";
+import { ARM_INK_JOIN, blendedNormal } from "./blendNormals";
 import { useMemo, type ReactNode } from "react";
 import { Blob, Segment, TaperedSegment, type Paint } from "../toon/primitives";
 import {
@@ -16,8 +16,10 @@ import {
   type Skeleton,
 } from "./skeleton";
 
-const Limb: React.FC<{ readonly length: number; readonly top: number; readonly bottom: number; readonly color: Paint; readonly reshade?: (geometry: LatheGeometry) => void }> = ({ length, top, bottom, color, reshade }) =>
-  top === bottom && !reshade ? <Segment length={length} radius={top} color={color} /> : <TaperedSegment length={length} top={top} bottom={bottom} color={color} reshade={reshade} />;
+const Limb: React.FC<{ readonly length: number; readonly top: number; readonly bottom: number; readonly color: Paint; readonly reshade?: (geometry: LatheGeometry) => void; readonly userData?: Record<string, unknown> }> = ({ length, top, bottom, color, reshade, userData }) =>
+  top === bottom && !reshade ? <Segment length={length} radius={top} color={color} userData={userData} /> : <TaperedSegment length={length} top={top} bottom={bottom} color={color} reshade={reshade} userData={userData} />;
+
+const ROOT_JOIN = inkJoin(ARM_INK_JOIN);
 
 const intoTheTorso = (skeleton: Skeleton, side: Side, raise: number, out: number) => (geometry: LatheGeometry) => {
   const joint = new Vector3(side * skeleton.shoulder.x, skeleton.shoulder.y, 0);
@@ -43,19 +45,18 @@ export const SkeletonArm: React.FC<{
   readonly pose: ArmPose;
   readonly sleeve: Paint;
   readonly hand: Paint;
-  readonly inkUnit?: boolean;
   readonly blend?: boolean;
   readonly children?: ReactNode;
-}> = ({ skeleton, side, pose, sleeve, hand, inkUnit = true, blend = false, children }) => {
+}> = ({ skeleton, side, pose, sleeve, hand, blend = false, children }) => {
   const { raise, out } = pose;
   const reshade = useMemo(() => (blend ? intoTheTorso(skeleton, side, raise, out) : undefined), [blend, skeleton, side, raise, out]);
   return (
   <group
     position={[side * skeleton.shoulder.x, skeleton.shoulder.y, 0]}
     rotation={shoulderRotation(pose, side)}
-    userData={inkUnit ? ONE_UNIT : undefined}
+    userData={ONE_UNIT}
   >
-    <Limb length={skeleton.upperArm.length} top={skeleton.upperArm.shoulder ?? skeleton.upperArm.radius} bottom={skeleton.upperArm.radius} color={sleeve} reshade={reshade} />
+    <Limb length={skeleton.upperArm.length} top={skeleton.upperArm.shoulder ?? skeleton.upperArm.radius} bottom={skeleton.upperArm.radius} color={sleeve} reshade={reshade} userData={blend ? ROOT_JOIN : undefined} />
     <group
       position={[0, -skeleton.upperArm.length, 0]}
       rotation={elbowRotation(pose, side)}

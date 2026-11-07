@@ -4,6 +4,7 @@ import { torsoRadiusAt, type Skeleton } from "./skeleton";
 
 export const BLEND_REACH = 0.06;
 export const ROOT_REACH = [0.1, 0.2] as const;
+export const ARM_INK_JOIN = (ROOT_REACH[0] + ROOT_REACH[1]) / 2;
 
 export const torsoNormalAt = (skeleton: Skeleton, p: Vector3) => {
   const { radius, slope } = torsoRadiusAt(skeleton, p.y);

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test } from "vitest";
 import { Vector3 } from "three";
-import { blendedNormal, BLEND_REACH, ROOT_REACH, torsoNormalAt } from "../characters/blendNormals";
+import { ARM_INK_JOIN, blendedNormal, BLEND_REACH, ROOT_REACH, torsoNormalAt } from "../characters/blendNormals";
 import { bodyColliders, sphereDirections, torsoProfile, torsoRadiusAt } from "../characters/skeleton";
 import { RIG } from "../Tibik/rig";
 import { taperedProfile } from "../toon/taper";
@@ -130,8 +130,12 @@ test("a tapered limb is one smooth shape: round at the top, round at the bottom,
   profile.slice(widest + 1).forEach((p, i) => expect(p.x, `point ${widest + i + 1}`).toBeLessThanOrEqual(profile[widest + i].x + 1e-12));
 });
 
-test("Karen's torso and arms are one ink unit, so no line is drawn where her shoulders merge into her body", () => {
+test("only the root of her arm belongs to her torso's outline: the cap of her shoulder lies within the join, her elbow well beyond it, so no line is drawn at the shoulder but an arm lying across her body keeps its outline", () => {
   const karen = readFileSync(path.join("src", "Karen", "Karen.tsx"), "utf8").replace(/\s+/g, " ");
   expect(karen).toMatch(/<group userData=\{ONE_UNIT\}> <TorsoMesh/);
-  expect(karen).toMatch(/inkUnit=\{false\}/);
+  expect(karen).not.toMatch(/inkUnit/);
+  expect(ARM_INK_JOIN).toBeGreaterThan(K.upperArm.shoulder! + 0.02);
+  expect(ARM_INK_JOIN).toBeLessThan(K.upperArm.length / 2);
+  const limbs = readFileSync(path.join("src", "characters", "Limbs.tsx"), "utf8");
+  expect(limbs).toMatch(/inkJoin\(ARM_INK_JOIN\)/);
 });

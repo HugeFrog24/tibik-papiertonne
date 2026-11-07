@@ -32,6 +32,23 @@ export const NO_INK = { noInk: true } as const;
 
 export const INK_BLOCKER = { inkBlocker: true } as const;
 
+export const inkJoin = (reach: number) => ({ inkJoin: reach });
+
+const unitAbove = (object: Object3D | null) => {
+  for (let o = object; o; o = o.parent) if (o.userData.inkGroup) return o;
+  return null;
+};
+
+export const inkIdsOf = (mesh: Object3D) => {
+  const unit = unitAbove(mesh);
+  const reach = mesh.userData.inkJoin;
+  const outer = unit && typeof reach === "number" ? unitAbove(unit.parent) : null;
+  return {
+    id: unit?.id ?? mesh.id,
+    join: outer ? { id: outer.id, reach: reach as number } : null,
+  };
+};
+
 export const inkOf = (object: Object3D) => {
   for (let o: Object3D | null = object; o; o = o.parent) {
     if (o.userData.inkBlocker === true) return -1;

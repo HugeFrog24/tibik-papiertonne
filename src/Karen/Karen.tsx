@@ -476,7 +476,6 @@ const Arm: React.FC<{
     pose={pose}
     sleeve={KAREN_LILAC}
     hand={KAREN_SKIN}
-    inkUnit={false}
     blend
   >
     {pointing ? (

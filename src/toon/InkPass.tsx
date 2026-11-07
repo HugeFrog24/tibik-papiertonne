@@ -17,7 +17,7 @@ import {
   type Object3D,
 } from "three";
 import { FISHEYE, fisheyeTargetSize } from "./fisheye";
-import { INK_PASS, inkOf, inkRadius, skipsInkIds } from "./inkWidth";
+import { INK_PASS, inkIdsOf, inkOf, inkRadius, skipsInkIds } from "./inkWidth";
 import { OUTLINE } from "./primitives";
 
 const QUAD_VERTEX =
@@ -26,18 +26,23 @@ const QUAD_VERTEX =
 const ID_VERTEX = [
   "#include <common>",
   "varying float vDepth;",
+  "varying vec3 vLocal;",
   "void main() {",
   "#include <begin_vertex>",
   "#include <project_vertex>",
   "  vDepth = -mvPosition.z;",
+  "  vLocal = transformed;",
   "}",
 ].join("\n");
 
 const ID_FRAGMENT = [
   "uniform float uId;",
+  "uniform float uJoinId;",
+  "uniform float uJoinReach;",
   "uniform float uInk;",
   "varying float vDepth;",
-  "void main() { gl_FragColor = vec4(uId, vDepth, uInk, 1.0); }",
+  "varying vec3 vLocal;",
+  "void main() { gl_FragColor = vec4(uId, vDepth, uInk, length(vLocal) < uJoinReach ? uJoinId : 0.0); }",
 ].join("\n");
 
 const RINGS = INK_PASS.rings.map((r) => r.toFixed(2)).join(", ");
@@ -81,6 +86,7 @@ const COMPOSITE = [
   "      float a = 6.2831853 * (float(k) + 0.5 * float(ring)) / float(TURNS);",
   "      vec4 there = texture2D(idMap, uv + vec2(cos(a), sin(a)) * reach * texel);",
   "      if (there.r < 0.5 || abs(there.r - here.r) < 0.5 || there.b < 0.0) continue;",
+  "      if ((there.a > 0.5 && abs(there.a - here.r) < 0.5) || (here.a > 0.5 && abs(here.a - there.r) < 0.5)) continue;",
   "      if (there.g > depth - jump) continue;",
   "      float own = there.b > 0.0 ? there.b / outline : 1.0;",
   "      if (reach <= min(maxRadius, own * inkPerDepth / there.g)) {",
@@ -98,19 +104,19 @@ const COMPOSITE = [
   "}",
 ].join("\n");
 
-const inkIdOf = (mesh: Object3D) => {
-  for (let o: Object3D | null = mesh; o; o = o.parent)
-    if (o.userData.inkGroup) return o.id;
-  return mesh.id;
-};
-
 const idMaterialFor = (
   cache: Map<Mesh, ShaderMaterial>,
   mesh: Mesh,
   from: Material,
 ) => {
+  const { id, join } = inkIdsOf(mesh);
   const material = new ShaderMaterial({
-    uniforms: { uId: { value: inkIdOf(mesh) }, uInk: { value: inkOf(mesh) } },
+    uniforms: {
+      uId: { value: id },
+      uJoinId: { value: join?.id ?? id },
+      uJoinReach: { value: join?.reach ?? 0 },
+      uInk: { value: inkOf(mesh) },
+    },
     vertexShader: ID_VERTEX,
     fragmentShader: ID_FRAGMENT,
     side: from.side,

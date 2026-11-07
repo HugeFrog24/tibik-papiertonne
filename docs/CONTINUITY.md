@@ -495,9 +495,10 @@ composition under "Scenes" in the Studio:
   neck base; her torso slimmer up top than at her belly; long arms (her fist
   reaches the corner of her mouth) that taper from 11.5 cm at the shoulder
   to 8.5 cm at the elbow and 6.2 cm at the wrist and grow out of the
-  shoulders: torso, shoulders and arms are one part for the outlines (no
-  line where they join) and the shading runs across the join, while a
-  hanging arm still keeps its own outline and shading against her body
+  shoulders: no outline is drawn where an arm grows out of her shoulder
+  (within 15 cm of the joint the arm counts as her torso for the outlines)
+  and the shading runs across the join, while the rest of the arm keeps its
+  own outline and shading wherever it hangs against or crosses her body
   (user, 2026-11-07: "the arms look bolted on"); small hands for her size,
   and a wide, round bust that hangs,
   swelling slowly from the top to its fullest point low down and curving back

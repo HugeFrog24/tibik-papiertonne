@@ -10,7 +10,7 @@ import {
   MeshBasicMaterial,
   MeshToonMaterial,
 } from "three";
-import { INK_BLOCKER, INK_PASS, NO_INK, inkOf, inkRadius, skipsInkIds } from "./inkWidth";
+import { INK_BLOCKER, INK_PASS, NO_INK, ONE_UNIT, inkIdsOf, inkJoin, inkOf, inkRadius, skipsInkIds } from "./inkWidth";
 import { selfClosingTags, sourceFiles } from "../tooling/sourceFiles";
 
 test("the drawn line is one outline wide on screen: 1.4 cm at the part's depth, in pixels", () => {
@@ -75,7 +75,7 @@ test("a part draws its own line width when it or a group above it sets one, a se
 
 test("the ink pass reads each part's own width from the id target and never inks across a see-through part", () => {
   const pass = readFileSync(path.join("src", "toon", "InkPass.tsx"), "utf8");
-  expect(pass).toContain("vec4(uId, vDepth, uInk, 1.0)");
+  expect(pass).toContain("vec4(uId, vDepth, uInk, ");
   expect(pass).toContain("there.b < 0.0");
   expect(pass).toContain("here.b < 0.0");
   expect(pass).toContain("there.b / outline");
@@ -84,4 +84,32 @@ test("the ink pass reads each part's own width from the id target and never inks
 test("a doormat's coir and the box under it are one ink unit, so the id pass never stripes the coir where the two lie at the same depth", () => {
   const mats = readFileSync(path.join("src", "building", "Doormats.tsx"), "utf8");
   expect(mats.replace(/\s+/g, " ")).toMatch(/<group key=\{`[^`]*mat\.side[^`]*`\}\s*userData=\{ONE_UNIT\}\s*>/);
+});
+
+test("a part can grow out of the unit around it: near its own origin it counts as that outer unit, so no line is drawn where it joins, and further out as its own unit, so it keeps its outline", () => {
+  const body = new Group();
+  body.userData = { ...ONE_UNIT };
+  const arm = new Group();
+  arm.userData = { ...ONE_UNIT };
+  const root = new Mesh();
+  root.userData = inkJoin(0.15);
+  const hand = new Mesh();
+  body.add(arm);
+  arm.add(root, hand);
+  expect(inkIdsOf(root)).toEqual({ id: arm.id, join: { id: body.id, reach: 0.15 } });
+  expect(inkIdsOf(hand)).toEqual({ id: arm.id, join: null });
+  const alone = new Group();
+  alone.userData = { ...ONE_UNIT };
+  const loose = new Mesh();
+  loose.userData = inkJoin(0.15);
+  alone.add(loose);
+  expect(inkIdsOf(loose)).toEqual({ id: alone.id, join: null });
+  expect(inkIdsOf(new Mesh()).join).toBeNull();
+});
+
+test("a joining part keeps its own id everywhere, so no line runs across it where the join ends; within reach of its origin it also carries the outer unit's id, and the ink pass draws no line between it and that unit there", () => {
+  const pass = readFileSync(path.join("src", "toon", "InkPass.tsx"), "utf8");
+  expect(pass).toContain("vec4(uId, vDepth, uInk, length(vLocal) < uJoinReach ? uJoinId : 0.0)");
+  expect(pass).toContain("(there.a > 0.5 && abs(there.a - here.r) < 0.5) || (here.a > 0.5 && abs(here.a - there.r) < 0.5)");
+  expect(pass).toMatch(/inkIdsOf\(mesh\)/);
 });

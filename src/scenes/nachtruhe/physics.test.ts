@@ -1,8 +1,8 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
-import { BED_RECT, BEDROOM, CORD_SWITCH, PANE, bedroomSolids, cordPath, cordSwitchSolid, curtainPanels } from "../../building/bedroomShape";
+import { BED_RECT, BEDROOM, CORD_SWITCH, MATTRESS, PANE, bedroomSolids, cordPath, cordSwitchSolid, curtainPanels } from "../../building/bedroomShape";
 import { allColliders, armColliders, bodyColliders, handPosition, handSphere, legFramesOf, type Placement, type Side } from "../../characters/skeleton";
-import { contacts, sphere, sphereObbGap, type Obb, type Solid } from "../../physics/collision";
+import { contacts, sphere, sphereObbGap, type Solid } from "../../physics/collision";
 import { OUTLINE } from "../../toon/primitives";
 import { blanketProblems } from "../../props/blanketChecks";
 import { blanketGrid, blanketSurface } from "../../props/blanketShape";
@@ -92,7 +92,6 @@ test("he comes in through the bedroom door, walks along his side of the bed, sto
   expect(sat.pose.bob).toBeCloseTo(SITTING.bob, 3);
 });
 
-const MATTRESS = bedroomSolids({ door: 0, curtain: [0, 0] }).find((s) => s.name === "mattress") as Obb;
 const SIDES = [1, -1] as const;
 const ON_THE_FLOOR = soleHeight(TIBIK_FOOT, { position: [0, 0, 0], rotationY: 0, pose: TIBIK_REST }, 1, () => 0) + 0.002;
 const RESTING_ON_IT = 0.01;
@@ -126,6 +125,19 @@ test("he rises on his toes and sits back onto the edge: his toes stay on the flo
   expect(unsupported(SIT_BACK).slice(0, 6)).toEqual([]);
   expect(onTiptoe(SIT_BACK)).toBeGreaterThan(3);
   expect(Math.max(...between(...SIT_BACK).map((t) => solveNachtruhe(t).tibik.pose.bob))).toBeLessThanOrEqual(SITTING.bob + 0.001);
+});
+
+test("his feet don't jump where the shuffle hands over to the sit-back, nor where the get-down hands back to standing", () => {
+  const ankles = (t: number) => SIDES.map((side) => new Vector3().setFromMatrixPosition(legFramesOf(RIG, solveNachtruhe(t).tibik, side).ankle));
+  const jumps = [SIT_BACK[0], GET_DOWN[1]].flatMap((edge) => {
+    const [a, b, c, d] = [-2, -1, 0, 1].map((k) => ankles(edge + k / FPS));
+    return SIDES.flatMap((side, i) => {
+      const across = b[i].distanceTo(c[i]);
+      const around = Math.max(a[i].distanceTo(b[i]), c[i].distanceTo(d[i]));
+      return across > around + 0.0005 ? [`${edge.toFixed(2)} s: foot ${side} jumps ${mm(across)} (${mm(around)} either side)`] : [];
+    });
+  });
+  expect(jumps).toEqual([]);
 });
 
 test("the doorway camera keeps 30 cm off Tibik and out of every solid while he goes to bed", { timeout: 300_000 }, () => {

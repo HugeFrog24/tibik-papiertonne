@@ -245,16 +245,20 @@ const torsoDepth = (skeleton: Skeleton, point: Vector3, radius: number) => {
   return radius - distance / steepness;
 };
 
-const frames = (skeleton: Skeleton, placement: Placement) => {
+export const bodyFrameOf = (skeleton: Skeleton, placement: Placement) => {
   const root = frame(
     new Matrix4(),
     placement.position,
     new Euler(0, placement.rotationY, 0),
   );
   const lifted = frame(root, [0, placement.pose.bob, 0]);
-  const body = placement.tilt
+  return placement.tilt
     ? frame(frame(lifted, [0, skeleton.hipHeight, 0], new Euler(-placement.tilt, 0, 0)), [0, -skeleton.hipHeight, 0])
     : lifted;
+};
+
+const frames = (skeleton: Skeleton, placement: Placement) => {
+  const body = bodyFrameOf(skeleton, placement);
   const torso = frame(
     body,
     [0, skeleton.hipHeight, 0],

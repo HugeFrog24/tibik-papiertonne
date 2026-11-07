@@ -1,4 +1,4 @@
-import { BED, BED_RECT, BEDROOM, BEDROOM_DOOR, BEDROOM_DOORWAY, CORD_SWITCH, bedroomSolids, cordSwitchSolid, curtainPanels } from "../../building/bedroomShape";
+import { BED, BED_RECT, BEDROOM, BEDROOM_DOOR, BEDROOM_DOORWAY, CORD_SWITCH, MATTRESS, cordSwitchSolid, curtainPanels } from "../../building/bedroomShape";
 import { DOOR_FRAME } from "../../building/doorwayFrame";
 import { ROOM_DOOR } from "../../building/doors";
 import { Euler, Matrix4, Vector3 } from "three";
@@ -21,14 +21,13 @@ import { BACK_UP, BLANKET_BACK, CURTAIN_PULL, EYES_OPEN, GET_DOWN, ONTO_THE_EDGE
 
 export const BED_SEAT = sittingOnBed(BED_RECT.x0 + 1.3);
 
-const MATTRESS = bedroomSolids({ door: 0, curtain: [0, 0] }).filter((s) => s.name === "mattress");
 const BACK_GAP = 0.01;
 const LIFT_ONTO_IT = 0.15;
 const BACKS_UP_BY = 0.14;
 
 const intoTheMattress = (placement: Placement, grow = 0) => {
   const body = bodyColliders(RIG, placement);
-  return deepest(contacts([...body.torso, ...body.lowerTorso].map((s) => sphere(s.name, s.center, s.radius + grow)), MATTRESS));
+  return deepest(contacts([...body.torso, ...body.lowerTorso].map((s) => sphere(s.name, s.center, s.radius + grow)), [MATTRESS]));
 };
 
 const withBob = (placement: Placement, bob: number) => ({ ...placement, pose: { ...placement.pose, bob } });

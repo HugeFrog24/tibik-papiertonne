@@ -1,9 +1,10 @@
 import { smallestClearing } from "../physics/collision";
 import { clamp, easeUnit, smoothstep, wrapAngle } from "./scalar";
-import { Matrix4, Quaternion, Vector3 } from "three";
+import { Quaternion, Vector3 } from "three";
 import { legLength, restAnkle, solveLeg } from "./legs";
 import {
   footCapsule,
+  bodyFrameOf,
   footCenter,
   hipPosition,
   type LegName,
@@ -668,15 +669,6 @@ export const bobLimit = (plan: GaitPlan, t: number) => {
   return values[i] + (values[i + 1] - values[i]) * (at - i);
 };
 
-const bodyFrame = (placement: Placement, bob: number) => {
-  const [x, y, z] = placement.position;
-  return new Matrix4().compose(
-    new Vector3(x, y + bob, z),
-    new Quaternion().setFromAxisAngle(Y_AXIS, placement.rotationY),
-    new Vector3(1, 1, 1),
-  );
-};
-
 type Foot = { readonly ankle: Vector3; readonly rotation: Quaternion };
 
 const legReaching = (
@@ -689,9 +681,10 @@ const legReaching = (
   solveLeg(
     skeleton,
     side,
-    foot.ankle.clone().applyMatrix4(bodyFrame(placement, bob).invert()),
+    foot.ankle.clone().applyMatrix4(bodyFrameOf(skeleton, { ...placement, pose: { ...placement.pose, bob } }).invert()),
     new Quaternion()
-      .setFromAxisAngle(Y_AXIS, -placement.rotationY)
+      .setFromRotationMatrix(bodyFrameOf(skeleton, placement))
+      .invert()
       .multiply(foot.rotation),
   );
 
@@ -704,7 +697,7 @@ const lowestOnTheSole = (ry: number, rz: number, pitch: number) => {
 };
 
 const rolledAlong = (ry: number, rz: number, pitch: number) => {
-  const end = Math.atan2((-ry * Math.cos(pitch)) / ry, (rz * Math.sin(pitch)) / rz);
+  const end = Math.atan2(-ry * Math.cos(pitch), rz * Math.sin(pitch));
   const start = -Math.PI / 2;
   const step = (end - start) / ARC_STEPS;
   let length = 0;
@@ -737,7 +730,7 @@ export const legOnToes = (
   plant: Plant,
 ): LegPose => {
   const hip = new Vector3(...hipPosition(skeleton, side)).applyMatrix4(
-    bodyFrame(placement, placement.pose.bob),
+    bodyFrameOf(skeleton, placement),
   );
   const pitch = smallestClearing(
     (p) => hip.distanceTo(rolled(skeleton, plant, p).ankle) - legLength(skeleton),

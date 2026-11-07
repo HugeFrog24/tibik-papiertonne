@@ -382,6 +382,8 @@ export const cordPath = (): Vector3[] =>
     return curve.getSpacedPoints(Math.max(2, Math.ceil(curve.getLength() / SAMPLE)));
   });
 
+export const MATTRESS = partObb(bedParts().find((p) => p.name === "mattress")!);
+
 export const bedroomParts = (): readonly Part[] => [
   ...shellParts(),
   ...windowParts(),

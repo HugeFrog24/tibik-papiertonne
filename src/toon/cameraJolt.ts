@@ -1,11 +1,11 @@
 import { random } from "remotion";
 import { Vector3 } from "three";
-import { WORLD_UP, type Vec3 } from "./primitives";
-import type { CameraSetup } from "./shots";
+import type { Vec3 } from "./primitives";
+import { WORLD_UP, type CameraSetup } from "./shots";
 
 export type Jolt = { readonly at: number; readonly strength: number };
 
-export const JOLT = { hertz: 9, decay: 0.05, lasts: 0.3, lift: 0.01, turn: (0.3 * Math.PI) / 180 };
+export const JOLT = { hertz: 9, decay: 0.05, lasts: 0.3, lift: 0.01, turn: (0.3 * Math.PI) / 180, vary: 0.12 };
 
 const bump = (since: number) =>
   since < 0 || since > JOLT.lasts ? 0 : Math.exp(-since / JOLT.decay) * Math.sin(2 * Math.PI * JOLT.hertz * since);
@@ -17,7 +17,7 @@ const spread = (jolt: Jolt, axis: string) => random(`jolt-${jolt.at}-${axis}`) *
 export const joltAt = (t: number, jolts: readonly Jolt[]) =>
   jolts.reduce(
     (sum, jolt) => {
-      const k = (jolt.strength * bump(t - jolt.at)) / PEAK;
+      const k = (jolt.strength * (1 + JOLT.vary * spread(jolt, "size")) * bump(t - jolt.at)) / PEAK;
       if (k === 0) return sum;
       const way = new Vector3(0.35 * spread(jolt, "x"), 1, 0.25 * spread(jolt, "z")).normalize();
       return {

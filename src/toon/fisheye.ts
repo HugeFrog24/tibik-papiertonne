@@ -9,7 +9,7 @@ export const barrel = ([x, y]: Point2, strength: number): [number, number] => {
 
 export const insideLens = ([x, y]: Point2) => x * x + y * y <= 1;
 
-export const fisheyeTargetSize = (
+export const canvasPixels = (
   width: number,
   height: number,
   pixelRatio: number,

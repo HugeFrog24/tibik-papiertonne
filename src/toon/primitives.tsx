@@ -1,5 +1,6 @@
 import { taperedProfile } from "./taper";
-import type { CameraSetup } from "./shots";
+import { aimLens, type CameraSetup } from "./shots";
+import { setExposure } from "./exposure";
 import { useLayoutEffect, useMemo, type ReactNode } from "react";
 import { useDisposable } from "./useDisposable";
 import { useThree } from "@react-three/fiber";
@@ -570,24 +571,16 @@ export const usePavingTexture = (repeatX: number, repeatY: number) => {
   }, [repeatX, repeatY]);
 };
 
-export const WORLD_UP: Vec3 = [0, 1, 0];
-
-export const aimCamera = (camera: PerspectiveCamera, { position, target, fov, up = WORLD_UP }: CameraSetup) => {
-  camera.position.set(...position);
-  camera.fov = fov;
-  camera.near = 0.03;
-  camera.up.set(...up);
-  camera.lookAt(...target);
-  camera.updateProjectionMatrix();
-};
+export const CAMERA_NEAR = 0.03;
 
 export const CameraRig: React.FC<
   CameraSetup & { readonly exposure?: readonly CameraSetup[] }
 > = ({ exposure, ...setup }) => {
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
   useLayoutEffect(() => {
-    camera.userData.exposure = exposure;
-    aimCamera(camera, setup);
+    setExposure(camera, exposure);
+    aimLens(camera, setup, { near: CAMERA_NEAR });
+    return () => setExposure(camera, undefined);
   });
   return null;
 };

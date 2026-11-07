@@ -1,6 +1,8 @@
 import type { PerspectiveCamera } from "three";
 import { easeUnit, lerpVec3 } from "../characters/scalar";
-import { WORLD_UP, type Vec3 } from "./primitives";
+import type { Vec3 } from "./primitives";
+
+export const WORLD_UP: Vec3 = [0, 1, 0];
 
 export type CameraSetup = {
   readonly position: Vec3;

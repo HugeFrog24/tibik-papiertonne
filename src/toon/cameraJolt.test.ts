@@ -12,7 +12,7 @@ test("a jolt is still before the blow, starts without a jump at the blow, peaks 
   expect(size(1)).toBeLessThan(1e-9);
   const peak = Math.max(...Array.from({ length: 70 }, (_, i) => size(1 + (i + 1) / 1000)));
   expect(peak).toBeGreaterThan(0.004);
-  expect(peak).toBeLessThanOrEqual(JOLT.lift + 1e-9);
+  expect(peak).toBeLessThanOrEqual(JOLT.lift * (1 + JOLT.vary) + 1e-9);
   const peakAt = Array.from({ length: 70 }, (_, i) => 1 + (i + 1) / 1000).find((t) => size(t) === peak)!;
   expect(peakAt - 1).toBeLessThan(2 / 30);
   expect(size(1.25)).toBeLessThan(peak * 0.05);
@@ -26,6 +26,14 @@ test("a weaker jolt moves the camera proportionally less, and each blow jolts it
   const b = joltAt(2.02, [{ at: 2, strength: 1 }]).shift.normalize();
   expect(a.angleTo(b)).toBeGreaterThan(0.01);
   expect(a.y).toBeGreaterThan(0.8);
+});
+
+test("no two blows land alike: each jolt's size differs a little too, within a sixth either way", () => {
+  const peakOf = (at: number) => Math.max(...Array.from({ length: 70 }, (_, i) => joltAt(at + (i + 1) / 1000, [{ at, strength: 1 }]).shift.length()));
+  const peaks = [31.4, 31.8, 32.2, 32.6, 33.6, 34].map(peakOf);
+  expect(Math.max(...peaks) / Math.min(...peaks)).toBeGreaterThan(1.05);
+  peaks.forEach((p) => expect(Math.abs(p / JOLT.lift - 1)).toBeLessThanOrEqual(JOLT.vary + 1e-9));
+  expect(JOLT.vary).toBeLessThanOrEqual(1 / 6);
 });
 
 test("a jolted camera shifts and tips but keeps looking the same distance ahead, its up still a unit vector across its view", () => {

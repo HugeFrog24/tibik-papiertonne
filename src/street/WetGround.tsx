@@ -2,6 +2,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import { AddEquation, Color, CustomBlending, DataTexture, LinearFilter, Matrix4, Mesh, OneFactor, PerspectiveCamera, Plane, RedFormat, ShaderMaterial, SrcColorFactor, UnsignedByteType, Vector3, Vector4, WebGLRenderTarget, ZeroFactor } from "three";
 import { NO_INK } from "../toon/inkWidth";
+import { withClearColor } from "../toon/renderState";
 import { aimLens } from "../toon/shots";
 import { PUDDLES } from "../weather/overcast";
 import type { WeatherLook } from "../weather/overcast";
@@ -188,25 +189,23 @@ export const WetGround: React.FC<{ readonly look: WeatherLook; readonly time: nu
     const height = Math.max(1, Math.round(size.height * gl.getPixelRatio() * WET_FILM.resolution));
     const ahead = camera.getWorldDirection(new Vector3()).add(camera.position);
     const clipping = gl.clippingPlanes;
-    const clear = gl.getClearColor(new Color());
-    const alpha = gl.getClearAlpha();
     const before = gl.getRenderTarget();
     films.current.forEach((film) => {
       film.visible = false;
     });
-    gl.setClearColor(new Color(0, 0, 0), 0);
-    for (const mirror of mirrors) {
-      const view = mirrorCamera({ position: camera.position.toArray(), target: ahead.toArray(), up: camera.up.toArray() }, mirror.y);
-      const lens = aimLens(mirror.lens, { ...view, fov: camera.fov }, { aspect: camera.aspect, near: camera.near, far: camera.far });
-      mirror.matrix.copy(BIAS).multiply(lens.projectionMatrix).multiply(lens.matrixWorldInverse);
-      mirror.target.setSize(width, height);
-      gl.clippingPlanes = [new Plane(new Vector3(0, 1, 0), -(mirror.y + 0.002))];
-      gl.setRenderTarget(mirror.target);
-      gl.clear();
-      gl.render(scene, lens);
-    }
+    withClearColor(gl, new Color(0, 0, 0), 0, () => {
+      for (const mirror of mirrors) {
+        const view = mirrorCamera({ position: camera.position.toArray(), target: ahead.toArray(), up: camera.up.toArray() }, mirror.y);
+        const lens = aimLens(mirror.lens, { ...view, fov: camera.fov }, { aspect: camera.aspect, near: camera.near, far: camera.far });
+        mirror.matrix.copy(BIAS).multiply(lens.projectionMatrix).multiply(lens.matrixWorldInverse);
+        mirror.target.setSize(width, height);
+        gl.clippingPlanes = [new Plane(new Vector3(0, 1, 0), -(mirror.y + 0.002))];
+        gl.setRenderTarget(mirror.target);
+        gl.clear();
+        gl.render(scene, lens);
+      }
+    });
     gl.clippingPlanes = clipping;
-    gl.setClearColor(clear, alpha);
     gl.setRenderTarget(before);
     films.current.forEach((film) => {
       film.visible = true;

@@ -813,6 +813,11 @@ Ideas (proposed, not built; the user picks):
   on tables, the knit a few millimetres slack inside the bend.
 - Karen's hair where it lies on her shoulders: the last few centimetres a
   little frizzed and a shade duller from rubbing the wool every day.
+- The camera on her blows: in his Flur it stands on floating laminate over
+  screed, so its jolt rings a touch lower and longer (about 6-7 Hz, settled
+  in about 0.35 s) than on the stone landing; on the landing the tripod's
+  tilt lock is not quite tight, so after her hardest blow the wide settles
+  about 0.03 degrees (1 px) lower and stays there.
 - Story changes (only if you want them): the first strike doesn't catch; a
   throat-clear after the exhale.
 

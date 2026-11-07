@@ -20,10 +20,14 @@ import {
   type WebGLRenderer,
   type Object3D,
 } from "three";
-import { FISHEYE, fisheyeTargetSize } from "./fisheye";
+import { FISHEYE, canvasPixels } from "./fisheye";
 import { INK_PASS, inkIdsOf, inkOf, inkRadius, skipsInkIds } from "./inkWidth";
-import { OUTLINE, aimCamera } from "./primitives";
-import type { CameraSetup } from "./shots";
+import { CAMERA_NEAR, OUTLINE } from "./primitives";
+import { exposureOn } from "./exposure";
+import { withClearColor, withShadowsKept } from "./renderState";
+import { aimLens } from "./shots";
+
+const NOTHING = new Color(0, 0, 0);
 
 const QUAD_VERTEX =
   "varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }";
@@ -195,7 +199,7 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
   }, []);
   const idMaterials = useMemo(() => new Map<Mesh, ShaderMaterial>(), []);
   const exposure = useMemo(() => {
-    const target = () => new WebGLRenderTarget(1, 1, { type: HalfFloatType });
+    const target = () => new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false });
     const accumulate = new ShaderMaterial({
       uniforms: { map: { value: null }, weight: { value: 1 } },
       vertexShader: QUAD_VERTEX,
@@ -261,12 +265,12 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
       swapped.push({ mesh: object, material: from });
       object.material = idMaterial;
     });
-    const clear = gl.getClearColor(new Color());
-    const alpha = gl.getClearAlpha();
-    gl.setClearColor(new Color(0, 0, 0), 0);
-    gl.setRenderTarget(ids);
-    gl.render(scene, camera);
-    gl.setClearColor(clear, alpha);
+    withClearColor(gl, NOTHING, 0, () =>
+      withShadowsKept(gl, () => {
+        gl.setRenderTarget(ids);
+        gl.render(scene, camera);
+      }),
+    );
     swapped.forEach(({ mesh, material: m }) => {
       mesh.material = m;
     });
@@ -289,15 +293,10 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
     gl.render(quad, view);
   };
   useFrame(({ gl, size, scene, camera }) => {
-    const pixels: readonly [number, number] = fisheye
-      ? fisheyeTargetSize(size.width, size.height, gl.getPixelRatio())
-      : [
-          Math.round(size.width * gl.getPixelRatio()),
-          Math.round(size.height * gl.getPixelRatio()),
-        ];
+    const pixels = canvasPixels(size.width, size.height, gl.getPixelRatio());
     colour.setSize(...pixels);
     ids.setSize(...pixels);
-    const poses = camera.userData.exposure as readonly CameraSetup[] | undefined;
+    const poses = exposureOn(camera);
     if (!poses || poses.length < 2 || !(camera instanceof PerspectiveCamera)) {
       drawInked(gl, scene, camera, size, pixels, null);
       return;
@@ -305,26 +304,31 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
     exposure.sample.setSize(...pixels);
     exposure.sum.setSize(...pixels);
     const frame = { position: camera.position.clone(), quaternion: camera.quaternion.clone(), up: camera.up.clone(), fov: camera.fov };
-    const [clear, alpha, autoClear] = [gl.getClearColor(new Color()), gl.getClearAlpha(), gl.autoClear];
-    gl.setRenderTarget(exposure.sum);
-    gl.setClearColor(new Color(0, 0, 0), 0);
-    gl.clear();
-    gl.setClearColor(clear, alpha);
+    const autoClear = gl.autoClear;
+    withClearColor(gl, NOTHING, 0, () => {
+      gl.setRenderTarget(exposure.sum);
+      gl.clear();
+    });
     exposure.accumulate.uniforms.weight.value = 1 / poses.length;
-    for (const pose of poses) {
-      aimCamera(camera, pose);
-      drawInked(gl, scene, camera, size, pixels, exposure.sample);
+    poses.forEach((pose, i) => {
+      const draw = () => {
+        aimLens(camera, pose, { near: CAMERA_NEAR });
+        drawInked(gl, scene, camera, size, pixels, exposure.sample);
+      };
+      if (i === 0) draw();
+      else withShadowsKept(gl, draw);
       exposure.accumulate.uniforms.map.value = exposure.sample.texture;
       gl.setRenderTarget(exposure.sum);
       gl.autoClear = false;
       gl.render(exposure.adding, view);
       gl.autoClear = autoClear;
-    }
+    });
     camera.position.copy(frame.position);
     camera.quaternion.copy(frame.quaternion);
     camera.up.copy(frame.up);
     camera.fov = frame.fov;
     camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
     exposure.present.uniforms.map.value = exposure.sum.texture;
     gl.setRenderTarget(null);
     gl.render(exposure.showing, view);

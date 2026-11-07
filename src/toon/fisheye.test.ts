@@ -3,7 +3,7 @@ import {
   FISHEYE,
   barrel,
   distortUv,
-  fisheyeTargetSize,
+  canvasPixels,
   insideLens,
   lensPoint,
   unbarrel,
@@ -34,8 +34,8 @@ test("the frame is round", () => {
 });
 
 test("the render target follows the canvas size", () => {
-  expect(fisheyeTargetSize(1920, 1080, 1)).toEqual([1920, 1080]);
-  expect(fisheyeTargetSize(960, 540, 2)).toEqual([1920, 1080]);
+  expect(canvasPixels(1920, 1080, 1)).toEqual([1920, 1080]);
+  expect(canvasPixels(960, 540, 2)).toEqual([1920, 1080]);
 });
 
 test("on a wide frame the lens is round in pixels and samples stay on screen", () => {

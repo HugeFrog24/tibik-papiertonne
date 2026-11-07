@@ -1,6 +1,13 @@
+import type { Camera } from "three";
 import type { CameraSetup } from "./shots";
 
-export const SHUTTER = { angle: 180, samples: 6 };
+export const SHUTTER = { angle: 180, samples: 8 };
+
+export const setExposure = (camera: Camera, poses: readonly CameraSetup[] | undefined) => {
+  camera.userData.exposure = poses;
+};
+
+export const exposureOn = (camera: Camera) => camera.userData.exposure as readonly CameraSetup[] | undefined;
 
 const same = (a: CameraSetup, b: CameraSetup) => JSON.stringify(a) === JSON.stringify(b);
 

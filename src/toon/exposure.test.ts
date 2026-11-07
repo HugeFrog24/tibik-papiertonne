@@ -22,13 +22,26 @@ test("a moving camera is exposed at evenly spread moments across a 180 degree sh
   expect(Math.min(...times)).toBeGreaterThan(2 - open);
 });
 
-test("the camera rig hands the exposure to the ink pass, which renders the frame once per pose and averages them in linear light", () => {
-  const rig = readFileSync(path.join("src", "toon", "primitives.tsx"), "utf8");
-  expect(rig).toContain("camera.userData.exposure = exposure");
+test("every pose's share of a blurred frame is a power of two, so in the half-float sum an opaque pixel adds up to exactly 1 and the sky never shows through it", () => {
+  expect(Number.isInteger(Math.log2(SHUTTER.samples))).toBe(true);
+  expect(SHUTTER.samples).toBeGreaterThanOrEqual(4);
+});
+
+test("the camera rig hands the exposure to the ink pass and takes it back when its shot ends, so a later camera is never steered by an old shot's poses", () => {
+  const rig = readFileSync(path.join("src", "toon", "primitives.tsx"), "utf8").replace(/\s+/g, " ");
+  expect(rig).toContain("setExposure(camera, exposure);");
+  expect(rig).toMatch(/return \(\) => setExposure\(camera, undefined\);/);
   const pass = readFileSync(path.join("src", "toon", "InkPass.tsx"), "utf8");
-  expect(pass).toContain("camera.userData.exposure");
+  expect(pass).toContain("exposureOn(camera)");
+  expect(pass).not.toContain("userData.exposure");
   expect(pass).toMatch(/blendSrc: OneFactor/);
-  expect(pass).toMatch(/weight: \{ value: 1 \/ poses\.length \}|weight\.value = 1 \/ poses\.length/);
+  expect(pass).toMatch(/weight\.value = 1 \/ poses\.length/);
+});
+
+test("the ink pass draws the shadow maps once a frame: its id pass and every further pose of a blurred frame reuse them", () => {
+  const pass = readFileSync(path.join("src", "toon", "InkPass.tsx"), "utf8").replace(/\s+/g, " ");
+  expect(pass).toMatch(/withShadowsKept\(gl, \(\) => \{ gl\.setRenderTarget\(ids\); gl\.render\(scene, camera\);/);
+  expect(pass).toMatch(/if \(i === 0\) draw\(\); else withShadowsKept\(gl, draw\);/);
 });
 
 test("a shot that asks for blur gets its camera's exposure from the shot cameras", () => {

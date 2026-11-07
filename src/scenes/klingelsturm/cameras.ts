@@ -4,6 +4,7 @@ import { FRAME_SIZE } from "../../dialogue/screen";
 import { floorLevel } from "../../street/building";
 import type { Vec3 } from "../../toon/primitives";
 import { camerasOf, storyTimeIn, type CameraSetup, type Shot } from "../../toon/shots";
+import { jolted } from "../../toon/cameraJolt";
 import { karenMouthEmitter } from "../../Karen/mouthEmitter";
 import { ASH, CODA, ON_THE_FILTER, cigaretteFrame } from "./cigarette";
 import { cigaretteTip } from "../../props/cigaretteShape";
@@ -149,6 +150,10 @@ const FLUR_ON_THE_PARCEL = lazy((): CameraSetup => {
   return { ...FLUR_SHOT, target: [between.x, between.y, between.z] };
 });
 
+const BLOW_JOLT = { landing: 1, flur: 0.6 };
+
+const blowJolts = (strength: number) => BANGING.blows.map((at) => ({ at, strength }));
+
 export const SHOTS: readonly Shot[] = [
   { name: "Wide: Klingelsturm", from: 0, to: BELL_CUT, at: () => WIDE },
   {
@@ -188,13 +193,15 @@ export const SHOTS: readonly Shot[] = [
     name: "Wide: the banging",
     from: BANGING.wideCut,
     to: BANGING.flurCut[0],
-    at: () => WIDE,
+    at: jolted(() => WIDE, blowJolts(BLOW_JOLT.landing)),
+    blur: true,
   },
   {
     name: "Flur: the banging",
     from: BANGING.flurCut[0],
     to: BANGING.flurCut[1],
-    at: FLUR_ON_THE_PARCEL,
+    at: jolted(FLUR_ON_THE_PARCEL, blowJolts(BLOW_JOLT.flur)),
+    blur: true,
   },
   {
     name: "Medium: back to the phone",

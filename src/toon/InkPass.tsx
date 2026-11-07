@@ -2,23 +2,28 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import {
   Color,
+  CustomBlending,
   FloatType,
   FogExp2,
   HalfFloatType,
   Mesh,
   NearestFilter,
+  OneFactor,
   OrthographicCamera,
   PerspectiveCamera,
   PlaneGeometry,
   Scene,
   ShaderMaterial,
   WebGLRenderTarget,
+  type Camera,
   type Material,
+  type WebGLRenderer,
   type Object3D,
 } from "three";
 import { FISHEYE, fisheyeTargetSize } from "./fisheye";
 import { INK_PASS, inkIdsOf, inkOf, inkRadius, skipsInkIds } from "./inkWidth";
-import { OUTLINE } from "./primitives";
+import { OUTLINE, aimCamera } from "./primitives";
+import type { CameraSetup } from "./shots";
 
 const QUAD_VERTEX =
   "varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }";
@@ -43,6 +48,22 @@ const ID_FRAGMENT = [
   "varying float vDepth;",
   "varying vec3 vLocal;",
   "void main() { gl_FragColor = vec4(uId, vDepth, uInk, length(vLocal) < uJoinReach ? uJoinId : 0.0); }",
+].join("\n");
+
+const ACCUMULATE = [
+  "uniform sampler2D map;",
+  "uniform float weight;",
+  "varying vec2 vUv;",
+  "void main() { gl_FragColor = texture2D(map, vUv) * weight; }",
+].join("\n");
+
+const PRESENT = [
+  "uniform sampler2D map;",
+  "varying vec2 vUv;",
+  "void main() {",
+  "  gl_FragColor = texture2D(map, vUv);",
+  "#include <colorspace_fragment>",
+  "}",
 ].join("\n");
 
 const RINGS = INK_PASS.rings.map((r) => r.toFixed(2)).join(", ");
@@ -173,6 +194,31 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
     };
   }, []);
   const idMaterials = useMemo(() => new Map<Mesh, ShaderMaterial>(), []);
+  const exposure = useMemo(() => {
+    const target = () => new WebGLRenderTarget(1, 1, { type: HalfFloatType });
+    const accumulate = new ShaderMaterial({
+      uniforms: { map: { value: null }, weight: { value: 1 } },
+      vertexShader: QUAD_VERTEX,
+      fragmentShader: ACCUMULATE,
+      blending: CustomBlending,
+      blendSrc: OneFactor,
+      blendDst: OneFactor,
+      blendSrcAlpha: OneFactor,
+      blendDstAlpha: OneFactor,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const present = new ShaderMaterial({
+      uniforms: { map: { value: null } },
+      vertexShader: QUAD_VERTEX,
+      fragmentShader: PRESENT,
+    });
+    const adding = new Scene();
+    adding.add(new Mesh(plane, accumulate));
+    const showing = new Scene();
+    showing.add(new Mesh(plane, present));
+    return { sample: target(), sum: target(), accumulate, present, adding, showing };
+  }, [plane]);
   useEffect(
     () => () => {
       colour.dispose();
@@ -180,18 +226,21 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
       material.dispose();
       plane.dispose();
       idMaterials.forEach((m) => m.dispose());
+      exposure.sample.dispose();
+      exposure.sum.dispose();
+      exposure.accumulate.dispose();
+      exposure.present.dispose();
     },
-    [colour, ids, material, plane, idMaterials],
+    [colour, ids, material, plane, idMaterials, exposure],
   );
-  useFrame(({ gl, size, scene, camera }) => {
-    const [width, height] = fisheye
-      ? fisheyeTargetSize(size.width, size.height, gl.getPixelRatio())
-      : [
-          Math.round(size.width * gl.getPixelRatio()),
-          Math.round(size.height * gl.getPixelRatio()),
-        ];
-    colour.setSize(width, height);
-    ids.setSize(width, height);
+  const drawInked = (
+    gl: WebGLRenderer,
+    scene: Scene,
+    camera: Camera,
+    size: { width: number; height: number },
+    [width, height]: readonly [number, number],
+    target: WebGLRenderTarget | null,
+  ) => {
     gl.setRenderTarget(colour);
     gl.render(scene, camera);
 
@@ -224,7 +273,6 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
     hidden.forEach((object) => {
       object.visible = true;
     });
-    gl.setRenderTarget(null);
 
     const fov =
       camera instanceof PerspectiveCamera ? camera.fov : INK_PASS.fallbackFov;
@@ -237,7 +285,49 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
     material.uniforms.hazeDensity.value = fog instanceof FogExp2 ? fog.density : 0;
     if (fog instanceof FogExp2) material.uniforms.haze.value.copy(fog.color);
     material.uniforms.aspect.value = size.width / size.height;
+    gl.setRenderTarget(target);
     gl.render(quad, view);
+  };
+  useFrame(({ gl, size, scene, camera }) => {
+    const pixels: readonly [number, number] = fisheye
+      ? fisheyeTargetSize(size.width, size.height, gl.getPixelRatio())
+      : [
+          Math.round(size.width * gl.getPixelRatio()),
+          Math.round(size.height * gl.getPixelRatio()),
+        ];
+    colour.setSize(...pixels);
+    ids.setSize(...pixels);
+    const poses = camera.userData.exposure as readonly CameraSetup[] | undefined;
+    if (!poses || poses.length < 2 || !(camera instanceof PerspectiveCamera)) {
+      drawInked(gl, scene, camera, size, pixels, null);
+      return;
+    }
+    exposure.sample.setSize(...pixels);
+    exposure.sum.setSize(...pixels);
+    const frame = { position: camera.position.clone(), quaternion: camera.quaternion.clone(), up: camera.up.clone(), fov: camera.fov };
+    const [clear, alpha, autoClear] = [gl.getClearColor(new Color()), gl.getClearAlpha(), gl.autoClear];
+    gl.setRenderTarget(exposure.sum);
+    gl.setClearColor(new Color(0, 0, 0), 0);
+    gl.clear();
+    gl.setClearColor(clear, alpha);
+    exposure.accumulate.uniforms.weight.value = 1 / poses.length;
+    for (const pose of poses) {
+      aimCamera(camera, pose);
+      drawInked(gl, scene, camera, size, pixels, exposure.sample);
+      exposure.accumulate.uniforms.map.value = exposure.sample.texture;
+      gl.setRenderTarget(exposure.sum);
+      gl.autoClear = false;
+      gl.render(exposure.adding, view);
+      gl.autoClear = autoClear;
+    }
+    camera.position.copy(frame.position);
+    camera.quaternion.copy(frame.quaternion);
+    camera.up.copy(frame.up);
+    camera.fov = frame.fov;
+    camera.updateProjectionMatrix();
+    exposure.present.uniforms.map.value = exposure.sum.texture;
+    gl.setRenderTarget(null);
+    gl.render(exposure.showing, view);
   }, 1);
   return null;
 };

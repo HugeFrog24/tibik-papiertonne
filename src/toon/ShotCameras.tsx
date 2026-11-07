@@ -1,4 +1,5 @@
 import { Sequence, useVideoConfig } from "remotion";
+import { exposureOf } from "./exposure";
 import { useSeconds } from "../useSeconds";
 import { CameraRig } from "./primitives";
 import { shotFrames, type CutShot } from "./shotFrames";
@@ -13,7 +14,9 @@ const ShotCamera = <S extends CutShot>({
   readonly camera: (shot: S, sinceCut: number) => Framing;
 }) => {
   const sinceCut = useSeconds();
-  return <CameraRig {...camera(shot, sinceCut)} />;
+  const { fps } = useVideoConfig();
+  const exposure = shot.blur ? exposureOf((s) => camera(shot, s), sinceCut, fps) : undefined;
+  return <CameraRig {...camera(shot, sinceCut)} exposure={exposure} />;
 };
 
 export const ShotCameras = <S extends CutShot>({

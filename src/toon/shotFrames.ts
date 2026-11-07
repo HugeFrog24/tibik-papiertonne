@@ -2,6 +2,7 @@ export type CutShot = {
   readonly name: string;
   readonly from: number;
   readonly to: number;
+  readonly blur?: boolean;
 };
 
 export const shotFrames = (shots: readonly CutShot[], fps: number) =>

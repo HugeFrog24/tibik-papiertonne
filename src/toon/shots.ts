@@ -14,6 +14,7 @@ export type Shot = {
   readonly to: number;
   readonly story?: number;
   readonly at: (t: number) => CameraSetup;
+  readonly blur?: boolean;
 };
 
 export const fixed =

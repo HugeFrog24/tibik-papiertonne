@@ -231,7 +231,11 @@ composition under "Scenes" in the Studio:
   strike from a fist drawn back by her head (at least 20 cm of swing,
   1.5 m/s or more at the leaf), touches the leaf (0-2 mm) and never goes past
   it. **(test)** In the beat she squares up, her left foot stepping out to her
-  wide stance. **(test)** Back at her door she draws the phone again, her hand
+  wide stance. **(test)** Every blow jolts the camera: about 1 cm and 0.3
+  degrees on the landing, six tenths of that in his Flur behind the door,
+  peaking within a frame and settled in a quarter of a second, each blow a
+  little different, and those frames carry the motion blur of a 180-degree
+  shutter (user, 2026-11-07). **(test)** Back at her door she draws the phone again, her hand
   on its grip whenever she holds it. **(test)** The
   locked leaf gives at most 2 mm at its latch edge (the play in the strike
   plate) and is still again 0.1 s later. **(test)** The Wide shows the first

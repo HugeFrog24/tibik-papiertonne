@@ -3,8 +3,11 @@ import { LINES } from "../scenes/hausmuell/choreography";
 import type { Line } from "./line";
 import { bubbleShapes, depthIn } from "./SpeechBubble";
 import { lineFrames } from "./DialogueTrack";
+import { LINES as KLINGELSTURM_LINES } from "../scenes/klingelsturm/choreography";
+import { LETTER_LINES } from "../scenes/rundschreiben/letter";
 import {
   duzen,
+  foreignQuotes,
   karenNotShouting,
   morePhrasesThanOne,
   outOfOrder,
@@ -166,4 +169,14 @@ test("a tail grows out of its bubble: its base is buried in the body, ink line a
         }
       }
   expect(problems.slice(0, 8)).toEqual([]);
+});
+
+test("on-screen German quotes with „…“ only: no straight, English or French quotation marks, every „ closed by a “", () => {
+  expect(foreignQuotes(["Er sagte „Nein“.", "Geht’s?", "‚Kurz‘ zitiert."])).toEqual([]);
+  expect(foreignQuotes(['Er sagte "Nein".'])).not.toEqual([]);
+  expect(foreignQuotes(["Er sagte “Nein”."])).not.toEqual([]);
+  expect(foreignQuotes(["Er sagte «Nein»."])).not.toEqual([]);
+  expect(foreignQuotes(["Er sagte „Nein."])).not.toEqual([]);
+  const film = [...LINES, ...KLINGELSTURM_LINES].map((l) => l.text).concat(LETTER_LINES.map((l) => l.text));
+  expect(foreignQuotes(film)).toEqual([]);
 });

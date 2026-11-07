@@ -460,9 +460,9 @@ composition under "Scenes" in the Studio:
 
 ## Language
 
-- Strangers say **Sie**. Names are surnames ("Frau Becker").
+- Strangers say **Sie**. Names are surnames ("Frau Becker"). **(test)**
 - Real umlauts and ß, also in capitals: DÜRFEN, not DUERFEN.
-- German quotation marks („…") in on-screen text.
+- German quotation marks („…“) in on-screen text. **(test)**
 - Floors: Erdgeschoss = ground floor, "1. Stock" = the first floor above it.
 
 ## Physical realism
@@ -863,7 +863,7 @@ Ideas (proposed, not built; the user picks):
   Haustür opens (`filmIndoors` in src/timeline.ts). **(test)**
 - Karen's footsteps are always loud, heavy stomps. Every scene plays them
   through `KarenStomp` (src/Karen/KarenStomp.tsx), so they sound the same
-  everywhere.
+  everywhere. **(test)**
 
 ## Open items
 

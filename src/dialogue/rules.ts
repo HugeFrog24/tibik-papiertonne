@@ -30,7 +30,12 @@ export const duzen = (lines: readonly Line[]) =>
     .filter((line) => DU.test(line.text))
     .map((line) => `${line.name} says du`);
 
-const PHRASE_END = /[.!?…]["“”»]?\s\S/u;
+const count = (text: string, mark: string) => text.split(mark).length - 1;
+
+export const foreignQuotes = (texts: readonly string[]) =>
+  texts.filter((text) => /["”«»]/.test(text) || count(text, "„") !== count(text, "“"));
+
+const PHRASE_END =/[.!?…]["“”»]?\s\S/u;
 
 export const morePhrasesThanOne = (lines: readonly Line[]) =>
   lines

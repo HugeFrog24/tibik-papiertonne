@@ -42,7 +42,10 @@ import {
 import { restingLid } from "../../street/lids";
 import { TONNE, tonneColliders, tonneLidParts } from "../../street/tonneShape";
 import { headSurface } from "../../Tibik/headShape";
-import { memoByFrame } from "../../physics/memoSolve";
+import { memoWithArms, openingOn } from "../../physics/memoSolve";
+import { treppenhausEnd } from "../treppenhaus/solve";
+import type { ArmClock, ArmHistory } from "../../physics/armHistory";
+import { FPS } from "../../frameRate";
 import { guardLid } from "../../street/restingLids";
 import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
@@ -157,6 +160,7 @@ export const solveTibik = (
   t = 0,
   holds: readonly Hold[] = [],
   ground: Solid | readonly Solid[] = GROUND,
+  clock?: ArmClock,
 ): TibikFrame => {
   const grounds: readonly Solid[] = Array.isArray(ground) ? ground : [ground];
   let tibik = asCharacter(authored);
@@ -166,8 +170,8 @@ export const solveTibik = (
     solids.filter((s) => !grounds.includes(s)),
   );
   tibik = guardLean(tibik, solids);
-  tibik = workArm(tibik, "leftArm", t, solids, holds);
-  tibik = workArm(tibik, "rightArm", t, solids, holds);
+  tibik = workArm(tibik, "leftArm", t, solids, holds, clock?.history, clock?.at);
+  tibik = workArm(tibik, "rightArm", t, solids, holds, clock?.history, clock?.at);
   return {
     ...authored,
     position: tibik.position,
@@ -180,9 +184,12 @@ export const holdKarton = (
   tibik: TibikFrame,
   authored: KartonState,
   solids: readonly Solid[],
+  clock?: ArmClock,
 ) => {
   const karton = placeKarton(tibik, authored);
   const held = holdCarried(asCharacter(tibik), karton, kartonBoundsOf, solids, {
+    history: clock?.history,
+    at: clock?.at,
     sideGrip: karton.sideGrip,
     movable: karton.pickup > 0,
   });
@@ -205,7 +212,8 @@ export const sceneSolids = (
   ...(indoors ? indoorSolids({ tibik: 0 }) : []),
 ];
 
-const solve = (t: number): PapiertonnenState => {
+const solve = (t: number, history: ArmHistory): PapiertonnenState => {
+  const clock = { history: history.of("Tibik"), at: t };
   const lids = BINS.map((bin) =>
     guardLid(
       bin,
@@ -216,14 +224,14 @@ const solve = (t: number): PapiertonnenState => {
   const haustuer = papiertonnenHaustuerAt(t);
   const indoors = nearTheDoor(t);
   const solids = sceneSolids(lids, authored.holdingBox, haustuer, indoors);
-  const tibik = solveTibik(authored, solids, t, PAPIERTONNEN_HOLDS);
+  const tibik = solveTibik(authored, solids, t, PAPIERTONNEN_HOLDS, GROUND, clock);
   if (!tibik.holdingBox) {
     return { lids, haustuer, indoors, tibik, karton: null };
   }
-  return { lids, haustuer, indoors, ...holdKarton(tibik, kartonAt(t), solids) };
+  return { lids, haustuer, indoors, ...holdKarton(tibik, kartonAt(t), solids, clock) };
 };
 
-export const solvePapiertonnen = memoByFrame(solve);
+export const solvePapiertonnen = memoWithArms(FPS, solve, [], openingOn(() => ({ Tibik: treppenhausEnd().tibik })));
 
 export const papiertonnenEnd = () => solvePapiertonnen(PAPIERTONNEN_LAST_T);
 

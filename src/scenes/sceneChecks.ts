@@ -1,5 +1,6 @@
 import { Vector3 } from "three";
-import { allColliders } from "../characters/skeleton";
+import { allColliders, handPosition, torsoMatrix, type ArmName } from "../characters/skeleton";
+import type { Character } from "../physics/guards";
 import { FRAME_SIZE, onScreen, seenBy } from "../dialogue/screen";
 import { asCharacter, type TibikFrame } from "../Tibik/character";
 import { headSurface } from "../Tibik/headShape";
@@ -74,3 +75,27 @@ export const VERTICAL_CROP = (9 / 16) ** 2;
 export const ndcX = (point: Vector3, setup: CameraSetup) => (2 * onScreen(point, setup)[0]) / FRAME_SIZE.width - 1;
 
 export const inVerticalCrop = (point: Vector3, setup: CameraSetup) => Math.abs(ndcX(point, setup)) <= VERTICAL_CROP;
+
+export const ARM_JERK = { turn: 0.65, hand: 0.3 };
+
+const handInTorso = (c: Character, which: ArmName) =>
+  handPosition(c.skeleton, c, which).applyMatrix4(torsoMatrix(c.skeleton, c).clone().invert());
+
+export const armJumps = (
+  frames: readonly { readonly t: number; readonly characters: Readonly<Record<string, Character>> }[],
+  cuts: readonly number[] = [],
+) =>
+  frames.slice(1, -1).flatMap(({ t, characters }, i) => {
+    const [before, after] = [frames[i], frames[i + 2]];
+    if (cuts.some((cut) => cut > before.t && cut <= after.t)) return [];
+    return Object.entries(characters).flatMap(([who, now]) => {
+      const [was, next] = [before.characters[who], after.characters[who]];
+      if (!was || !next) return [];
+      return (["leftArm", "rightArm"] as const).flatMap((which) => {
+        const [a, b, c] = [was.pose[which], now.pose[which], next.pose[which]];
+        const turn = Math.max(...(["raise", "out", "elbow", "inward"] as const).map((k) => Math.abs(c[k] - 2 * b[k] + a[k])));
+        const hand = handInTorso(next, which).add(handInTorso(was, which)).sub(handInTorso(now, which).multiplyScalar(2)).length();
+        return turn > ARM_JERK.turn || hand > ARM_JERK.hand ? [`${seconds(t)} ${who} ${which}: turns ${turn.toFixed(2)} rad off its course, hand ${mm(hand, 0)}`] : [];
+      });
+    });
+  });

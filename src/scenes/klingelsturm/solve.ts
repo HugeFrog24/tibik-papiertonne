@@ -39,7 +39,8 @@ import { EXIT_HOLDS, carriedAt } from "./exit";
 import { armLimb } from "../../physics/grip";
 import { followTheHand, workArm } from "../../physics/holds";
 import { lazy } from "../../physics/lazy";
-import { memoByFrame } from "../../physics/memoSolve";
+import { memoByFrame, memoWithArms } from "../../physics/memoSolve";
+import type { ArmHistory } from "../../physics/armHistory";
 import type { KarenFrame } from "../hausmuell/choreography";
 import { FISHEYE, undistortUv } from "../../toon/fisheye";
 import { FRAME, cameraAt, shotAt } from "./cameras";
@@ -90,7 +91,8 @@ const solidsAt = (
   ...(carried ? [tapeRollSolid(taping)] : parcelSolids(parcel, taping)),
 ];
 
-const solve = (t: number): Omit<KlingelsturmState, "ash"> => {
+const solve = (t: number, history: ArmHistory): Omit<KlingelsturmState, "ash"> => {
+  const [tibikArms, karenArms] = [history.of("Tibik"), history.of("Karen")];
   const tibikT = Math.min(t, CODA.mediumCut);
   const door = tibikDoorAt(t);
   const lever = tibikLeverAt(t);
@@ -103,18 +105,18 @@ const solve = (t: number): Omit<KlingelsturmState, "ash"> => {
     LEVER_HOLD,
     ...TAPING_HOLDS,
     ...EXIT_HOLDS,
-  ]);
+  ], tibikArms, t);
   tibik = workArm(tibik, "rightArm", tibikT, solids, [
     ...PACKING_HOLDS,
     ...TAPING_HOLDS,
     ...EXIT_HOLDS,
-  ]);
+  ], tibikArms, t);
   const authored = karenAt(t);
   let karen = asKaren(authored);
   karen = guardLean(karen, solids);
   const authoredPhone = phoneAt(t).inHand ? phoneAt(t) : null;
-  karen = workArm(karen, "leftArm", t, solids, [...BELL_HOLDS, ...BLOW_HOLDS]);
-  karen = workArm(karen, "rightArm", t, solids, [...PHONE_HOLDS, LIGHTER_HOLD, CIGARETTE_HOLD]);
+  karen = workArm(karen, "leftArm", t, solids, [...BELL_HOLDS, ...BLOW_HOLDS], karenArms);
+  karen = workArm(karen, "rightArm", t, solids, [...PHONE_HOLDS, LIGHTER_HOLD, CIGARETTE_HOLD], karenArms);
   const smoking = inHerHands(t);
   const { burned, ash } = smokedAt(t);
   const solved = {
@@ -154,7 +156,7 @@ const heldCigarette = (karen: KarenFrame, t: number) =>
 const heldLighter = (karen: KarenFrame, t: number) =>
   followTheHand(lighterAt(t), rightHandOf(karen), LIGHTER_HOLD.near!(t), 1 - lightingAt(t));
 
-const solveCore = memoByFrame(solve);
+const solveCore = memoWithArms(FPS, solve, [CODA.jumpCut]);
 
 const releaseAt = memoByFrame((off: number) => {
   const { frame, burned } = solveCore(off).cigarette!;

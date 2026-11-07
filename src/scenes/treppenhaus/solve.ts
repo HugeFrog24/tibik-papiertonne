@@ -9,7 +9,9 @@ import {
 } from "../../physics/collision";
 import { reachArm } from "../../physics/grip";
 import { characterViolations, guardLean } from "../../physics/guards";
-import { memoByFrame } from "../../physics/memoSolve";
+import { FPS } from "../../frameRate";
+import { memoWithArms } from "../../physics/memoSolve";
+import { FINAL_ARM, type ArmHistory } from "../../physics/armHistory";
 import { worldSolids } from "../../street/layout";
 import { RIG } from "../../Tibik/rig";
 import { workArm, type Hold } from "../../physics/holds";
@@ -80,7 +82,7 @@ const railTarget = (tibik: TibikFrame) => {
     .add(OFF_WALL);
 };
 
-const solve = (t: number): TreppenhausState => {
+const solve = (t: number, history: ArmHistory): TreppenhausState => {
   const tibikDoor = tibikDoorAt(t);
   const haustuer = haustuerAt(t);
   const tibikLever = tibikLeverAt(t);
@@ -88,7 +90,7 @@ const solve = (t: number): TreppenhausState => {
   const solids = solidsFor(tibikDoor, haustuer, tibikLever, haustuerLever);
   let tibik = asCharacter(tibikAt(t));
   tibik = guardLean(tibik, solids);
-  tibik = workArm(tibik, "leftArm", t, solids, HOLDS);
+  tibik = workArm(tibik, "leftArm", t, solids, HOLDS, history);
   tibik = onRail(t)
     ? reachArm(
         { ...tibik, pose: { ...tibik.pose, rightArm: ARM_TO_RAIL } },
@@ -96,10 +98,10 @@ const solve = (t: number): TreppenhausState => {
         { touch: EG_RAIL, near: railTarget(tibik) },
         solids,
         null,
-        [],
-        true,
+        { authoredOnly: true, lastFrame: history.before(t, "rightArm", FINAL_ARM, -Infinity) },
       )
-    : workArm(tibik, "rightArm", t, solids, HOLDS);
+    : workArm(tibik, "rightArm", t, solids, HOLDS, history);
+  history.remember(t, "rightArm", FINAL_ARM, tibik.pose.rightArm);
   const { position, rotationY, pose, holdingBox } = tibik;
   return {
     tibik: { position, rotationY, pose, holdingBox },
@@ -111,7 +113,7 @@ const solve = (t: number): TreppenhausState => {
   };
 };
 
-export const solveTreppenhaus = memoByFrame(solve);
+export const solveTreppenhaus = memoWithArms(FPS, solve);
 
 export const treppenhausEnd = () => solveTreppenhaus(STORY_END);
 

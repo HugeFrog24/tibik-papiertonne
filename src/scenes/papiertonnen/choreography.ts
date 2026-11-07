@@ -72,7 +72,7 @@ export const kartonAt = (t: number): KartonState => {
   const u = t - OPENING;
   const times = [8.0, 8.2];
   return {
-    position: [0, kf(u, times, [0.5, 0.6]), kf(u, times, [0.38, 0.43])],
+    position: [0, kf(u, times, [0.5, 0.6]), kf(u, times, [0.38, 0.4])],
     rotation: [
       kf(u, [9.6, 9.75, 9.9], [0, 0.04, 0]),
       kf(u, [9.6, 9.75, 9.9], [0, 0.1, 0]),

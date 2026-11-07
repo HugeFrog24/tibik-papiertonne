@@ -1,4 +1,4 @@
-import { blendArm } from "../physics/holds";
+import { blendArm } from "../physics/armDescent";
 import type { Vec3 } from "../toon/primitives";
 import { lerp } from "./scalar";
 import type { ArmPose, LegPose, Pose } from "./skeleton";

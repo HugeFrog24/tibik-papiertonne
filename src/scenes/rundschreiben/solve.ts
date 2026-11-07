@@ -1,7 +1,9 @@
 import type { Matrix4 } from "three";
 import type { Solid } from "../../physics/collision";
 import type { Hold } from "../../physics/holds";
-import { memoByFrame } from "../../physics/memoSolve";
+import { FPS } from "../../frameRate";
+import { memoWithArms } from "../../physics/memoSolve";
+import type { ArmHistory } from "../../physics/armHistory";
 import { BINS } from "../../street/layout";
 import type { TibikFrame } from "../../Tibik/character";
 import { solveTibik } from "../papiertonnen/solve";
@@ -79,7 +81,7 @@ const keysAt = (t: number, tibik: TibikFrame) => keysInHand(t, tibik, LOCKS, t <
 
 export const rundschreibenSolids: (state: StreetState) => Solid[] = streetSolids;
 
-const solve = (t: number): RundschreibenState => {
+const solve = (t: number, history: ArmHistory): RundschreibenState => {
   const scene = {
     lids: BINS.map((bin) => (bin === PAPER_BIN ? paperLidAt(t) : 0)),
     haustuer: haustuerAt(t),
@@ -92,6 +94,8 @@ const solve = (t: number): RundschreibenState => {
     rundschreibenSolids(scene),
     t,
     RUNDSCHREIBEN_HOLDS,
+    undefined,
+    { history: history.of("Tibik"), at: t },
   );
   return {
     ...scene,
@@ -103,4 +107,4 @@ const solve = (t: number): RundschreibenState => {
   };
 };
 
-export const solveRundschreiben = memoByFrame(solve);
+export const solveRundschreiben = memoWithArms(FPS, solve);

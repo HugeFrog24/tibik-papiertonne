@@ -1,4 +1,5 @@
 import { Vector3 } from "three";
+import { ARM_KEYS, armDistance, clampArm, offsetArm, pushClear, trackArm } from "./armDescent";
 import {
   armColliders,
   armIntoTorso,
@@ -112,12 +113,7 @@ const ARM_ESCAPES: ((arm: ArmPose, amount: number) => ArmPose)[] = [
   }),
 ];
 
-export const guardArm = <C extends Character>(
-  c: C,
-  solids: readonly Solid[],
-  which: ArmName,
-): C => {
-  const arm = c.pose[which];
+const armDepths = (c: Character, solids: readonly Solid[], which: ArmName) => {
   const reachable = nearby(
     solids,
     new Vector3(
@@ -127,13 +123,27 @@ export const guardArm = <C extends Character>(
     ),
     1.2,
   );
-  const hits = (moved: ArmPose) => {
+  return (moved: ArmPose) => {
     const pose = { ...c.pose, [which]: moved };
-    const intoWorld = deepest(
-      contacts(armColliders(c.skeleton, withPose(c, pose), which), reachable),
-    );
-    return Math.max(intoWorld, armIntoTorso(c.skeleton, pose, which));
+    const spheres = armColliders(c.skeleton, withPose(c, pose), which);
+    return [armIntoTorso(c.skeleton, pose, which), ...reachable.map((solid) => deepest(contacts(spheres, [solid])))];
   };
+};
+
+
+const armHits = (c: Character, solids: readonly Solid[], which: ArmName) => {
+  const depths = armDepths(c, solids, which);
+  return (moved: ArmPose) => Math.max(...depths(moved));
+};
+
+export const guardArm = <C extends Character>(
+  c: C,
+  solids: readonly Solid[],
+  which: ArmName,
+  lastFrame?: ArmPose,
+): C => {
+  const arm = c.pose[which];
+  const hits = armHits(c, solids, which);
   if (hits(arm) <= 0) {
     return c;
   }
@@ -142,8 +152,33 @@ export const guardArm = <C extends Character>(
     const moved = escape(arm, amount);
     return { moved, amount, remaining: hits(moved) };
   });
-  options.sort((a, b) => a.remaining - b.remaining || a.amount - b.amount);
+  const away = (o: { readonly moved: ArmPose; readonly amount: number }) => (lastFrame ? armDistance(o.moved, lastFrame) : o.amount);
+  options.sort((a, b) => a.remaining - b.remaining || away(a) - away(b));
   return withPose(c, { ...c.pose, [which]: options[0].moved });
+};
+
+export const SETTLE = { hit: 100, keep: 0.8 };
+
+export const settleArm = <C extends Character>(
+  c: C,
+  solids: readonly Solid[],
+  which: ArmName,
+  lastFrame?: ArmPose,
+  authoredBefore?: ArmPose,
+): C => {
+  const authored = c.pose[which];
+  const wanted = clampArm(lastFrame && authoredBefore ? offsetArm(authored, authoredBefore, lastFrame, SETTLE.keep) : authored);
+  const depths = armDepths(c, solids, which);
+  const hits = (arm: ArmPose) => Math.max(...depths(arm));
+  const placed = (arm: ArmPose) => withPose(c, { ...c.pose, [which]: arm });
+  if (hits(wanted) <= 0) return placed(wanted);
+  if (!lastFrame) return guardArm(c, solids, which);
+  const settled = trackArm(lastFrame, (arm) => [...depths(arm).map((d) => SETTLE.hit * d), ...ARM_KEYS.map((key) => arm[key] - wanted[key])]);
+  const pushed = pushClear(settled, depths);
+  if (hits(pushed) <= 0) return placed(pushed);
+  const nudged = pushClear(lastFrame, depths);
+  if (hits(nudged) <= 0) return placed(nudged);
+  return guardArm(placed(pushed), solids, which, lastFrame);
 };
 
 export type Carried = { readonly position: Vec3; readonly rotation: Vec3 };

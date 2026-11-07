@@ -10,7 +10,7 @@ import {
   torsoMatrix,
 } from "../../characters/skeleton";
 import { asCharacter } from "../../Tibik/character";
-import { collide, sphere } from "../../physics/collision";
+import { collide, contacts, sphere } from "../../physics/collision";
 import { RIG } from "../../Tibik/rig";
 import {
   SHOTS,
@@ -29,6 +29,7 @@ import {
   haustuerLeverAt,
   tibikDoorAt,
   footstepStoryTimes,
+  tibikAt,
   tibikLeverAt,
   treppenhausTibikGait,
 } from "./choreography";
@@ -304,4 +305,22 @@ test("in 'His door' once he is out on the landing, and in 'The light switch', th
   const cut = (t: number) => tibikHeadOutOfFrame(solveTreppenhaus(t).tibik, cameraAt(t)).map((part) => `${seconds(t)}: ${part}`);
   const frames = Array.from({ length: Math.round((5.6 - 2.0) * FPS) }, (_, i) => 2.0 + i / FPS);
   expect(frames.flatMap(cut).slice(0, 6)).toEqual([]);
+});
+
+test("walking from the stair foot along the facade to the Haustür, his wall-side right arm is held in: as he plays it, it never reaches into the wall, and it comes in without a jump", () => {
+  const solids = treppenhausSolids(solveTreppenhaus(16)).filter((s) => s.name === "facade");
+  const into: string[] = [];
+  const jumps: string[] = [];
+  let before = tibikAt(15.2).pose.rightArm;
+  for (let t = 15.2; t <= 17.45; t += 1 / FPS) {
+    const authored = asCharacter(tibikAt(t));
+    const deepest = Math.max(0, ...contacts(armColliders(RIG, authored, "rightArm"), solids).map((c) => c.depth));
+    if (deepest > TOLERANCE) into.push(`${seconds(t)}: ${mm(deepest)} into the facade`);
+    const arm = authored.pose.rightArm;
+    const step = Math.max(...(["raise", "out", "elbow", "inward"] as const).map((k) => Math.abs(arm[k] - before[k])));
+    if (step > 0.25) jumps.push(`${seconds(t)}: ${step.toFixed(2)} rad in one frame`);
+    before = arm;
+  }
+  expect(into.slice(0, 6)).toEqual([]);
+  expect(jumps).toEqual([]);
 });

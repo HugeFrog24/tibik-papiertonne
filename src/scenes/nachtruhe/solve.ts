@@ -2,7 +2,9 @@ import type { Matrix4 } from "three";
 import { bedroomSolids, type CurtainOpen } from "../../building/bedroomShape";
 import type { Solid } from "../../physics/collision";
 import type { Hold } from "../../physics/holds";
-import { memoByFrame } from "../../physics/memoSolve";
+import { FPS } from "../../frameRate";
+import { memoWithArms } from "../../physics/memoSolve";
+import type { ArmHistory } from "../../physics/armHistory";
 import { BINS } from "../../street/layout";
 import type { TibikFrame } from "../../Tibik/character";
 import { keysInHand, type Lock } from "../../Tibik/keysInHand";
@@ -36,16 +38,17 @@ const roomAt = (door: number, curtain: CurtainOpen) => {
   return room;
 };
 
-const solve = (t: number): NachtruheState => {
+const solve = (t: number, history: ArmHistory): NachtruheState => {
+  const clock = { history: history.of("Tibik"), at: t };
   const world = nachtruheWorldAt(t);
   const street: StreetState = { lids: SHUT_LIDS, haustuer: ENTRY.haustuerAt(t), haustuerLever: 0, mailboxDoor: 0, indoors: ENTRY.indoorsAt(t) };
   if (t < DUSK[1]) {
-    const tibik = solveTibik(nachtruheTibikAt(t), streetSolids(street), t, NACHTRUHE_HOLDS);
+    const tibik = solveTibik(nachtruheTibikAt(t), streetSolids(street), t, NACHTRUHE_HOLDS, undefined, clock);
     return { ...world, ...street, tibik, keys: keysInHand(t, tibik, [HOUSE_LOCK], "house") };
   }
   const room = roomAt(world.bedroomDoor, world.curtains);
-  const tibik = solveTibik(nachtruheTibikAt(t), room.solids, t, NACHTRUHE_HOLDS, room.ground);
+  const tibik = solveTibik(nachtruheTibikAt(t), room.solids, t, NACHTRUHE_HOLDS, room.ground, clock);
   return { ...world, ...street, tibik, keys: null };
 };
 
-export const solveNachtruhe = memoByFrame(solve);
+export const solveNachtruhe = memoWithArms(FPS, solve);

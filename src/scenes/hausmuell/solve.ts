@@ -12,7 +12,6 @@ import { contacts, type Contact, type Solid } from "../../physics/collision";
 import { armLimb, gripGapViolations } from "../../physics/grip";
 import {
   characterViolations,
-  guardArm,
   guardBody,
   guardGround,
   guardLean,
@@ -32,7 +31,10 @@ import {
   solveTibik,
 } from "../papiertonnen/solve";
 import { GROUND } from "../../street/layout";
-import { memoByFrame } from "../../physics/memoSolve";
+import { memoWithArms, openingOn } from "../../physics/memoSolve";
+import type { ArmClock, ArmHistory } from "../../physics/armHistory";
+import { workArm } from "../../physics/holds";
+import { FPS } from "../../frameRate";
 import { RIG } from "../../Tibik/rig";
 import {
   HAUSMUELL_DURATION,
@@ -66,6 +68,7 @@ export const tibikBox = (tibik: TibikFrame, karton: KartonState) => {
 const solveKaren = (
   authored: KarenFrame,
   solids: readonly Solid[],
+  { history, at }: ArmClock,
 ): KarenFrame => {
   let karen = asKaren(authored);
   karen = guardGround(karen, GROUND);
@@ -74,8 +77,8 @@ const solveKaren = (
     solids.filter((s) => s !== GROUND),
   );
   karen = guardLean(karen, solids);
-  karen = guardArm(karen, solids, "leftArm");
-  karen = guardArm(karen, solids, "rightArm");
+  karen = workArm(karen, "leftArm", at, solids, [], history);
+  karen = workArm(karen, "rightArm", at, solids, [], history);
   return {
     ...authored,
     position: karen.position,
@@ -86,26 +89,28 @@ const solveKaren = (
 
 const LIDS = () => papiertonnenEnd().lids;
 
-const solve = (t: number): HausmuellState => {
+const solve = (t: number, history: ArmHistory): HausmuellState => {
+  const tibikClock = { history: history.of("Tibik"), at: t };
   const lids = LIDS();
   const world = sceneSolids(lids, true);
   const karenAuthored = karenAt(t);
   const forTibik = [...world, ...allSpheres(asKaren(karenAuthored))];
   const tibikSolved = holdKarton(
-    solveTibik(tibikAt(t), forTibik),
+    solveTibik(tibikAt(t), forTibik, t, [], GROUND, tibikClock),
     kartonAt(t),
     forTibik,
+    tibikClock,
   );
   const karen = solveKaren(karenAuthored, [
     ...world,
     ...allSpheres(asCharacter(tibikSolved.tibik)),
     tibikBox(tibikSolved.tibik, tibikSolved.karton),
     ...kartonFlapsOf(tibikSolved.tibik, tibikSolved.karton),
-  ]);
+  ], { history: history.of("Karen"), at: t });
   return { lids, tibik: tibikSolved.tibik, karton: tibikSolved.karton, karen };
 };
 
-export const solveHausmuell = memoByFrame(solve);
+export const solveHausmuell = memoWithArms(FPS, solve, [], openingOn(() => ({ Tibik: papiertonnenEnd().tibik })));
 export const hausmuellEnd = () => solveHausmuell(HAUSMUELL_DURATION);
 
 export const hausmuellViolations = (state: HausmuellState): Contact[] => {

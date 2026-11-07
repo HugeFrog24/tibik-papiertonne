@@ -1,6 +1,6 @@
 import { armKf, kf } from "../characters/animate";
 import type { ArmPose } from "../characters/skeleton";
-import { blendArm } from "../physics/holds";
+import { blendArm } from "../physics/armDescent";
 import { ARM_REST, ARM_TUCK, ARM_WALK } from "./rig";
 
 type Leg = readonly [number, number];

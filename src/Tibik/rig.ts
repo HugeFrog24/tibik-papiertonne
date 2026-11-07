@@ -72,7 +72,7 @@ export const ARM_REST: ArmPose = { raise: 0.8, out: 0.8, elbow: 1.5, inward: 1.2
 
 export const ARM_WALK: ArmPose = { raise: 0.1, out: 0.95, elbow: 0.35, inward: 0 };
 
-export const ARM_TUCK: ArmPose = { raise: 0.35, out: 0.55, elbow: 1.6, inward: 1.0 };
+export const ARM_TUCK: ArmPose = { raise: 1.25, out: 0.55, elbow: 1.6, inward: 1.0 };
 
 const WORKING_HIP_HEIGHT = 0.48;
 

@@ -459,11 +459,11 @@ export const tibikAt = (t: number): TibikFrame => {
     blink: blinkAt(t, [0.9, 3.8, 7.2, 11.5, 16.4, 18.8]),
     leftArm: treppenhausArm(t),
     rightArm:
-      t >= ARMS_IN && t < ARRIVE.from
+      t >= ARMS_IN && t < ARRIVE.to
         ? armKf(
             t,
-            [ARMS_IN, ...RIGHT_HAND_ON_RAIL, RIGHT_ARM_DOWN],
-            [ARM_TUCK, ARM_TO_RAIL, ARM_TO_RAIL, ARM_REST],
+            [ARMS_IN, ...RIGHT_HAND_ON_RAIL, RIGHT_ARM_DOWN, ARRIVE.to - 0.2, ARRIVE.to],
+            [ARM_TUCK, ARM_TO_RAIL, ARM_TO_RAIL, ARM_REST, ARM_REST, ARM_TUCK],
           )
         : treppenhausArm(t),
   };

@@ -45,7 +45,8 @@ import {
   KAREN_SKELETON,
   limitKarenHead,
 } from "../../Karen/rig";
-import { blendArm, type Hold } from "../../physics/holds";
+import { blendArm } from "../../physics/armDescent";
+import type { Hold } from "../../physics/holds";
 import { lazy } from "../../physics/lazy";
 import { placeFrame } from "../../characters/propPlace";
 import { floorLevel } from "../../street/building";

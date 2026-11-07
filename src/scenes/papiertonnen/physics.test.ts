@@ -11,7 +11,8 @@ import {
 import { cameraAt as papiertonnenCameraAt } from "./cameras";
 import { contacts, deepest, type Solid } from "../../physics/collision";
 import { Vector3 } from "three";
-import { armIntoTorso, torsoMatrix } from "../../characters/skeleton";
+import { armColliders, armIntoTorso, torsoMatrix } from "../../characters/skeleton";
+import { asCharacter } from "../../Tibik/character";
 import {
   BINS,
   FOUND_SHEET,
@@ -45,6 +46,7 @@ import {
   headToKarton,
   papiertonnenEnd,
   papiertonnenViolations,
+  sceneSolids,
   solvePapiertonnen,
 } from "./solve";
 
@@ -324,4 +326,15 @@ test(
 test("in 'Side: open the lid' the top of his head and his eyes are in frame", () => {
   const frames = Array.from({ length: Math.round((6.3 - 4.7) * FPS) }, (_, i) => 4.7 + i / FPS);
   expect(frames.flatMap((t) => tibikHeadOutOfFrame(solvePapiertonnen(t).tibik, papiertonnenCameraAt(t)).map((part) => `${t.toFixed(2)} s: ${part}`)).slice(0, 6)).toEqual([]);
+});
+
+test("walking out along the row of bins to the Papiertonne, he keeps far enough off them that his bin-side left arm has room: as he plays it, it never reaches into a bin, its lid or what sticks out of it", () => {
+  const into: string[] = [];
+  for (let t = 2.4; t <= 4.4; t += 1 / FPS) {
+    const s = solvePapiertonnen(t);
+    const bins = sceneSolids(s.lids, false, s.haustuer, s.indoors).filter((solid) => /Papier|Restmüll|Bio/.test(solid.name));
+    const depth = deepest(contacts(armColliders(RIG, asCharacter(tibikAt(t)), "leftArm"), bins));
+    if (depth > TOLERANCE) into.push(`${t.toFixed(2)} s: ${(depth * 1000).toFixed(0)} mm`);
+  }
+  expect(into.slice(0, 6)).toEqual([]);
 });

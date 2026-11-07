@@ -90,6 +90,8 @@ const DOOR_RELEASE = 0.6;
 export const HAUSTUER_LATCHED = closerEnd(DOOR_RELEASE);
 const CLEAR_OF_THE_FRAME: readonly [number, number] = [1.6, 2.1];
 
+const ALONG_THE_BINS = -0.58;
+
 const walkingOut = lazy((): Walk => {
   const [x, , z] = treppenhausEnd().tibik.position;
   return {
@@ -97,9 +99,9 @@ const walkingOut = lazy((): Walk => {
     to: OPENING_END,
     via: [
       [x, z],
-      [x, -1.25],
-      [-0.55, -0.75],
-      [0.6, -0.75],
+      [x, -0.95],
+      [-0.55, ALONG_THE_BINS],
+      [0.6, ALONG_THE_BINS],
     ],
     endSpeed: 2 * (TARGET_BIN_X - 0.6),
   };
@@ -137,7 +139,7 @@ const walkZ = (t: number) =>
   kf(
     t,
     [2.9, 3.35, 7.4, 7.9, 8.2, 9.0],
-    [-0.75, -0.95, -0.95, -0.82, -0.82, -0.7],
+    [ALONG_THE_BINS, -0.95, -0.95, -0.82, -0.82, -0.7],
   );
 const rootAt: RootAt = (t) => {
   if (t < OPENING_END) {
@@ -239,11 +241,11 @@ export const tibikAt = (t: number): TibikFrame => {
     ),
     blink: blinkAt(u, [1.6, 5.45, 6.4, 8.3]),
     leftArm: opening
-      ? armKf(t, CLEAR_OF_THE_FRAME, [ARM_TUCK, ARM_WALK])
+      ? armKf(t, CLEAR_OF_THE_FRAME, [ARM_TUCK, ARM_REST])
       : armKf(
           u,
-          [2.6, 3.1, 4.3, 4.75, 6.9, 7.1, 7.9],
-          [ARM_WALK, ARM_REST, ARM_REST, ON_RIM, ON_RIM, INTO_BIN, HUG_BOX],
+          [4.3, 4.75, 6.9, 7.1, 7.9],
+          [ARM_REST, ON_RIM, ON_RIM, INTO_BIN, HUG_BOX],
         ),
     rightArm: {
       ...rightArm,

@@ -34,10 +34,10 @@ exports[`papiertonnen ends exactly as before the re-staging 1`] = `
     "headYaw": 0,
     "lean": 0,
     "leftArm": {
-      "elbow": 0.8959300142863172,
-      "inward": 1.534200725784419,
-      "out": 0.2157853946894465,
-      "raise": 1.7285245750042078,
+      "elbow": 0.8959300142851374,
+      "inward": 1.5342007257875978,
+      "out": 0.21578539468876481,
+      "raise": 1.7285245750056726,
     },
     "leftLeg": {
       "ankle": [
@@ -53,10 +53,10 @@ exports[`papiertonnen ends exactly as before the re-staging 1`] = `
       "knee": 0,
     },
     "rightArm": {
-      "elbow": 0.8643418231420558,
+      "elbow": 0.8643418231441146,
       "inward": 1.6,
-      "out": 0.20199489989459915,
-      "raise": 1.758546047114689,
+      "out": 0.20199489989634398,
+      "raise": 1.7585460471109509,
     },
     "rightLeg": {
       "ankle": [

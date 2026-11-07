@@ -144,11 +144,12 @@ export const reachArm = <C extends Character>(
   const best = results.reduce((a, b) => (b.best < a.best ? b : a));
   const cold = pushClear(trackArm(best.arm, (arm) => residuals(arm)), (a) => placedArm(a).depths);
   const coldMiss = missAt(placedArm(cold).hand);
-  return withArm(c, which, tracked && tracked.miss <= coldMiss + AS_GOOD ? tracked.arm : cold);
+  return withArm(c, which, tracked && !worthSwitching(tracked.miss, coldMiss) ? tracked.arm : cold);
 };
 
 const REACHED = 0.004;
 const AS_GOOD = 0.001;
+const worthSwitching = (tracked: number, cold: number) => cold < tracked - AS_GOOD;
 
 const REACH_STARTS: ArmPose[] = [
   { raise: 1.5, out: 0.1, elbow: 0.3, inward: 0.2 },

@@ -34,15 +34,17 @@ export const INK_BLOCKER = { inkBlocker: true } as const;
 
 export const inkJoin = (reach: number) => ({ inkJoin: reach });
 
-const unitAbove = (object: Object3D | null) => {
-  for (let o = object; o; o = o.parent) if (o.userData.inkGroup) return o;
+const ancestorWith = (object: Object3D | null, test: (o: Object3D) => boolean) => {
+  for (let o = object; o; o = o.parent) if (test(o)) return o;
   return null;
 };
 
+const isUnit = (o: Object3D) => Boolean(o.userData.inkGroup);
+
 export const inkIdsOf = (mesh: Object3D) => {
-  const unit = unitAbove(mesh);
+  const unit = ancestorWith(mesh, isUnit);
   const reach = mesh.userData.inkJoin;
-  const outer = unit && typeof reach === "number" ? unitAbove(unit.parent) : null;
+  const outer = unit && typeof reach === "number" ? ancestorWith(unit.parent, isUnit) : null;
   return {
     id: unit?.id ?? mesh.id,
     join: outer ? { id: outer.id, reach: reach as number } : null,
@@ -50,11 +52,9 @@ export const inkIdsOf = (mesh: Object3D) => {
 };
 
 export const inkOf = (object: Object3D) => {
-  for (let o: Object3D | null = object; o; o = o.parent) {
-    if (o.userData.inkBlocker === true) return -1;
-    if (typeof o.userData.ink === "number") return o.userData.ink as number;
-  }
-  return 0;
+  const set = ancestorWith(object, (o) => o.userData.inkBlocker === true || typeof o.userData.ink === "number");
+  if (!set) return 0;
+  return set.userData.inkBlocker === true ? -1 : (set.userData.ink as number);
 };
 
 export const skipsInkIds = (object: Object3D) =>

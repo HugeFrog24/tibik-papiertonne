@@ -3,7 +3,7 @@ import path from "node:path";
 import { expect, test } from "vitest";
 import { Vector3 } from "three";
 import { ARM_INK_JOIN, blendedNormal, BLEND_REACH, ROOT_REACH, torsoNormalAt } from "../characters/blendNormals";
-import { bodyColliders, sphereDirections, torsoProfile, torsoRadiusAt } from "../characters/skeleton";
+import { bodyColliders, shoulderDepthAt, sphereDirections, torsoProfile, torsoRadiusAt } from "../characters/skeleton";
 import { RIG } from "../Tibik/rig";
 import { taperedProfile } from "../toon/taper";
 import { KAREN_REST, KAREN_SKELETON as K } from "./rig";
@@ -65,6 +65,18 @@ test("what is drawn of her shoulders is what collides: every point of a drawn sh
     }),
   );
   expect(uncovered.slice(0, 6)).toEqual([]);
+});
+
+test("how deep something lies in her shoulder is measured across its surface: 2.5 mm inside the shoulder's inner end, its top or its front reads 2.5 mm", () => {
+  const mass = K.torso.shoulders!;
+  const [wide, high, deep] = mass.size;
+  const inside = 0.0025;
+  const points = [
+    new Vector3(mass.x - wide + inside, mass.y, 0),
+    new Vector3(mass.x, mass.y + high - inside, 0),
+    new Vector3(-mass.x, mass.y, deep - inside),
+  ];
+  for (const p of points) expect(shoulderDepthAt(K, p) * 1000, p.toArray().join(", ")).toBeCloseTo(inside * 1000, 1);
 });
 
 test("her shoulder masses sit at her sides only, so her chest and back stay as they were", () => {
@@ -138,4 +150,11 @@ test("only the root of her arm belongs to her torso's outline: the cap of her sh
   expect(ARM_INK_JOIN).toBeLessThan(K.upperArm.length / 2);
   const limbs = readFileSync(path.join("src", "characters", "Limbs.tsx"), "utf8");
   expect(limbs).toMatch(/inkJoin\(ARM_INK_JOIN\)/);
+});
+
+test("her upper arm draws no back-face hull, so seen from the side no arc is inked over her shoulder cap; the id pass alone outlines the arm against the room and her body", () => {
+  const limbs = readFileSync(path.join("src", "characters", "Limbs.tsx"), "utf8").replace(/\s+/g, " ");
+  expect(limbs).toMatch(/<Limb length=\{skeleton\.upperArm\.length\}[^>]*outline=\{!blend\}/);
+  const primitives = readFileSync(path.join("src", "toon", "primitives.tsx"), "utf8").replace(/\s+/g, " ");
+  expect(primitives).toMatch(/export const TaperedSegment[\s\S]*?<InkedMesh[^>]*outline=\{outline\}/);
 });

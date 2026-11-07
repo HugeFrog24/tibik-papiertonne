@@ -803,7 +803,12 @@ Ideas (proposed, not built; the user picks):
   millimetres off the wrist, the same in every shot; one shoulder 3-5 mm
   higher than the other (a habit from carrying her bag on that side); a
   faint pulled-knit drag from the bust towards the underarm on one side,
-  shading only.
+  shading only; along the set-in sleeve seam a 1 mm pucker of knit, shading
+  only (no outline is drawn there, so the seam is the one place the sewn join
+  shows); at each elbow two faint creases and a slight sheen from resting it
+  on tables, the knit a few millimetres slack inside the bend.
+- Karen's hair where it lies on her shoulders: the last few centimetres a
+  little frizzed and a shade duller from rubbing the wool every day.
 - Story changes (only if you want them): the first strike doesn't catch; a
   throat-clear after the exhale.
 

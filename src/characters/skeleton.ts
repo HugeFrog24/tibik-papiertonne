@@ -91,7 +91,7 @@ export const torsoRotation = (p: Pose) =>
   new Euler(p.lean, p.twist, p.sway, "YXZ");
 export const headRotation = (p: Pose) =>
   new Euler(p.headPitch, p.headYaw, p.headRoll, "YXZ");
-export const shoulderRotation = (a: ArmPose, side: Side) =>
+export const shoulderRotation = (a: Pick<ArmPose, "raise" | "out">, side: Side) =>
   new Euler(-a.raise, 0, side * a.out, "XYZ");
 export const elbowRotation = (a: ArmPose, side: Side) =>
   new Euler(-a.elbow, -side * a.inward, 0, "YXZ");
@@ -104,6 +104,12 @@ export const ankleRotation = (leg: LegPose) =>
 export const hipPosition = (skeleton: Skeleton, side: Side): Vec3 => [
   side * skeleton.hipX,
   skeleton.hipHeight,
+  0,
+];
+
+export const shoulderPosition = (skeleton: Skeleton, side: Side): Vec3 => [
+  side * skeleton.shoulder.x,
+  skeleton.shoulder.y,
   0,
 ];
 
@@ -279,7 +285,7 @@ const armSpheres = (
 ) => {
   const shoulder = frame(
     torso,
-    [side * skeleton.shoulder.x, skeleton.shoulder.y, 0],
+    shoulderPosition(skeleton, side),
     shoulderRotation(arm, side),
   );
   const elbow = frame(
@@ -472,6 +478,15 @@ const BUST_BALL = { radii: [0.085, 0.07, 0.055, 0.04], step: 0.065, least: 0.01,
 
 export const sphereDirections = (count: number) => sphereLattice(count).map(({ polar, azimuth }) => new Vector3().setFromSphericalCoords(1, polar, azimuth));
 
+export const latLongDirections = (bands: number, around: number) =>
+  Array.from({ length: bands + 1 }, (_, i) =>
+    Array.from({ length: around }, (_, j) => {
+      const polar = (i / bands) * Math.PI;
+      const turn = (j / around) * 2 * Math.PI;
+      return new Vector3(Math.sin(polar) * Math.cos(turn), Math.cos(polar), Math.sin(polar) * Math.sin(turn));
+    }),
+  ).flat();
+
 const SPHERE_POINTS = sphereDirections(200);
 
 const aboveTheFront = (skeleton: Skeleton, p: Vector3) => {
@@ -623,11 +638,7 @@ export const armIntoTorso = (
   which: ArmName,
 ) => {
   const side: Side = which === "leftArm" ? 1 : -1;
-  const shoulder = new Vector3(
-    side * skeleton.shoulder.x,
-    skeleton.hipHeight + skeleton.shoulder.y,
-    0,
-  );
+  const shoulder = new Vector3(...shoulderPosition(skeleton, side)).add(new Vector3(0, skeleton.hipHeight, 0));
   const torso = new Matrix4().makeTranslation(0, skeleton.hipHeight, 0);
   const spheres = armSpheres(skeleton, torso, pose[which], side, which);
   let deepest = 0;
@@ -676,8 +687,10 @@ export const shoulderDepthAt = (skeleton: Skeleton, local: Vector3) => {
   const [wide, high, deep] = mass.size;
   return Math.max(
     ...([1, -1] as const).map((side) => {
-      const spread = Math.hypot((local.x - side * mass.x) / wide, (local.y - mass.y) / high, local.z / deep);
-      return (1 - spread) * Math.min(high, deep);
+      const [u, v, w] = [(local.x - side * mass.x) / wide, (local.y - mass.y) / high, local.z / deep];
+      const spread = Math.hypot(u, v, w);
+      const steepness = Math.hypot(u / wide, v / high, w / deep);
+      return steepness > 0 ? ((1 - spread) * spread) / steepness : Math.min(wide, high, deep);
     }),
   );
 };

@@ -1,4 +1,5 @@
-import { Euler, Matrix3, Matrix4, Quaternion, Vector3, type LatheGeometry } from "three";
+import { Matrix3, Matrix4, Vector3, type LatheGeometry } from "three";
+import { frame } from "../physics/collision";
 import { ONE_UNIT, inkJoin } from "../toon/inkWidth";
 import { ARM_INK_JOIN, blendedNormal } from "./blendNormals";
 import { useMemo, type ReactNode } from "react";
@@ -9,6 +10,7 @@ import {
   hipPosition,
   hipRotation,
   kneeRotation,
+  shoulderPosition,
   shoulderRotation,
   type ArmPose,
   type LegPose,
@@ -16,14 +18,15 @@ import {
   type Skeleton,
 } from "./skeleton";
 
-const Limb: React.FC<{ readonly length: number; readonly top: number; readonly bottom: number; readonly color: Paint; readonly reshade?: (geometry: LatheGeometry) => void; readonly userData?: Record<string, unknown> }> = ({ length, top, bottom, color, reshade, userData }) =>
-  top === bottom && !reshade ? <Segment length={length} radius={top} color={color} userData={userData} /> : <TaperedSegment length={length} top={top} bottom={bottom} color={color} reshade={reshade} userData={userData} />;
+const Limb: React.FC<{ readonly length: number; readonly top: number; readonly bottom: number; readonly color: Paint; readonly reshade?: (geometry: LatheGeometry) => void; readonly userData?: Record<string, unknown>; readonly outline?: boolean }> = ({ length, top, bottom, color, reshade, userData, outline = true }) =>
+  top === bottom && !reshade && outline ? <Segment length={length} radius={top} color={color} userData={userData} /> : <TaperedSegment length={length} top={top} bottom={bottom} color={color} reshade={reshade} userData={userData} outline={outline} />;
 
 const ROOT_JOIN = inkJoin(ARM_INK_JOIN);
 
 const intoTheTorso = (skeleton: Skeleton, side: Side, raise: number, out: number) => (geometry: LatheGeometry) => {
-  const joint = new Vector3(side * skeleton.shoulder.x, skeleton.shoulder.y, 0);
-  const toTorso = new Matrix4().compose(joint, new Quaternion().setFromEuler(new Euler().copy(shoulderRotation({ raise, out, elbow: 0, inward: 0 }, side))), new Vector3(1, 1, 1));
+  const at = shoulderPosition(skeleton, side);
+  const joint = new Vector3(...at);
+  const toTorso = frame(new Matrix4(), at, shoulderRotation({ raise, out }, side));
   const turn = new Matrix3().getNormalMatrix(toTorso);
   const back = turn.clone().invert();
   const position = geometry.attributes.position;
@@ -52,11 +55,11 @@ export const SkeletonArm: React.FC<{
   const reshade = useMemo(() => (blend ? intoTheTorso(skeleton, side, raise, out) : undefined), [blend, skeleton, side, raise, out]);
   return (
   <group
-    position={[side * skeleton.shoulder.x, skeleton.shoulder.y, 0]}
+    position={shoulderPosition(skeleton, side)}
     rotation={shoulderRotation(pose, side)}
     userData={ONE_UNIT}
   >
-    <Limb length={skeleton.upperArm.length} top={skeleton.upperArm.shoulder ?? skeleton.upperArm.radius} bottom={skeleton.upperArm.radius} color={sleeve} reshade={reshade} userData={blend ? ROOT_JOIN : undefined} />
+    <Limb length={skeleton.upperArm.length} top={skeleton.upperArm.shoulder ?? skeleton.upperArm.radius} bottom={skeleton.upperArm.radius} color={sleeve} reshade={reshade} userData={blend ? ROOT_JOIN : undefined} outline={!blend} />
     <group
       position={[0, -skeleton.upperArm.length, 0]}
       rotation={elbowRotation(pose, side)}

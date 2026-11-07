@@ -227,8 +227,9 @@ export const TaperedSegment: React.FC<
     readonly color: Paint;
     readonly ink?: number;
     readonly reshade?: (geometry: LatheGeometry) => void;
+    readonly outline?: boolean;
   } & MeshLook
-> = ({ length, top, bottom, color, ink = OUTLINE, castShadow = true, userData, reshade }) => {
+> = ({ length, top, bottom, color, ink = OUTLINE, castShadow = true, userData, reshade, outline = true }) => {
   const body = useDisposable(() => {
     const geometry = new LatheGeometry(taperedProfile(top, bottom, length, TAPER_STEPS).reverse(), AROUND);
     reshade?.(geometry);
@@ -238,6 +239,7 @@ export const TaperedSegment: React.FC<
     <InkedMesh
       color={color}
       ink={ink}
+      outline={outline}
       castShadow={castShadow}
       userData={userData}
       shape={(grow) => (grow === 0 ? <primitive object={body} attach="geometry" /> : <latheGeometry args={[taperedProfile(top + grow, bottom + grow, length, TAPER_STEPS).reverse(), AROUND]} />)}

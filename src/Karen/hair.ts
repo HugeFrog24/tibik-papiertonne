@@ -4,6 +4,7 @@ import { WIND, swayOf, type Spring } from "../physics/wind";
 import {
   headRotation,
   bodyDepthAt,
+  latLongDirections,
   torsoRotation,
   type Pose,
 } from "../characters/skeleton";
@@ -60,17 +61,7 @@ const blown = (piece: HairPiece, wind: Vector3, amount: number): HairPiece => {
   return angle === 0 ? piece : bent(piece, axis.normalize(), angle);
 };
 
-const SURFACE = Array.from({ length: 9 }, (_, i) =>
-  Array.from({ length: 12 }, (_, j) => {
-    const polar = (i / 8) * Math.PI;
-    const around = (j / 12) * 2 * Math.PI;
-    return new Vector3(
-      Math.sin(polar) * Math.cos(around),
-      Math.cos(polar),
-      Math.sin(polar) * Math.sin(around),
-    );
-  }),
-).flat();
+const SURFACE = latLongDirections(8, 12);
 
 const scratch = new Vector3();
 
@@ -89,13 +80,13 @@ const sinking = (piece: HairPiece, headInTorso: Matrix4) => {
   );
 };
 
-const REST_MARGIN = 0.001;
-const DRAPE = { most: 1.2, steps: 12, give: 0.0025 };
+const BLOW_MARGIN = 0.001;
+const DRAPE = { most: 1.2, steps: 12, pressing: 0.0025 };
 const HANGING: readonly HairPiece["name"][] = ["curtain", "strand"];
 
 const draped = (piece: HairPiece, headInTorso: Matrix4): HairPiece => {
   if (!HANGING.includes(piece.name)) return piece;
-  if (sinking(piece, headInTorso) <= DRAPE.give) return piece;
+  if (sinking(piece, headInTorso) <= DRAPE.pressing) return piece;
   const { root, hang } = rootedOf(piece);
   const outward = new Vector3(
     root.x - K.headCenter[0],
@@ -108,7 +99,7 @@ const draped = (piece: HairPiece, headInTorso: Matrix4): HairPiece => {
   let [low, high] = [0, DRAPE.most];
   for (let k = 0; k < DRAPE.steps; k++) {
     const mid = (low + high) / 2;
-    if (sinking(bent(piece, axis, mid), headInTorso) <= DRAPE.give) high = mid;
+    if (sinking(bent(piece, axis, mid), headInTorso) <= DRAPE.pressing) high = mid;
     else low = mid;
   }
   return bent(piece, axis, high);
@@ -127,7 +118,7 @@ export const restingHair = (
   return K.hair.map((original, i) => {
     const piece = draped(original, headInTorso);
     if (amounts[i] === 0) return piece;
-    const allowed = sinking(piece, headInTorso) + REST_MARGIN;
+    const allowed = sinking(piece, headInTorso) + BLOW_MARGIN;
     const full = blown(piece, wind, amounts[i]);
     if (sinking(full, headInTorso) <= allowed) return full;
     let [low, high] = [0, amounts[i]];

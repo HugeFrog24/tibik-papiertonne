@@ -11,6 +11,7 @@ import {
   legFrames,
   torsoClearance,
   bodyDepthAt,
+  latLongDirections,
   torsoMatrix,
   type ArmName,
   type ArmPose,
@@ -106,24 +107,10 @@ describe("her arms never sink into her own torso", () => {
   });
 });
 
-const ellipsoidPoints = (matrix: Matrix4, front = false) => {
-  const points: Vector3[] = [];
-  for (let i = 0; i <= 8; i++) {
-    for (let j = 0; j < 16; j++) {
-      const polar = (i / 8) * Math.PI;
-      const around = (j / 16) * Math.PI * 2;
-      const u = new Vector3(
-        Math.sin(polar) * Math.cos(around),
-        Math.cos(polar),
-        Math.sin(polar) * Math.sin(around),
-      );
-      if (!front || u.z >= 0) {
-        points.push(u.applyMatrix4(matrix));
-      }
-    }
-  }
-  return points;
-};
+const ellipsoidPoints = (matrix: Matrix4, front = false) =>
+  latLongDirections(8, 16)
+    .filter((u) => !front || u.z >= 0)
+    .map((u) => u.applyMatrix4(matrix));
 
 const ellipsoid = (
   parent: Matrix4,

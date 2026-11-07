@@ -2,6 +2,7 @@ import { Matrix4 } from "three";
 import { expect, test } from "vitest";
 import { contacts, obbCorners, type Obb } from "../physics/collision";
 import {
+  OLD_LABEL_DRAWING,
   FOUND_KARTON_SIZE,
   PANEL,
   flapSplay,
@@ -91,4 +92,25 @@ test("a reused box gets its new A6 address label right over the old blacked-out 
   const centre = SHIPPING_LABELS.along * panel.length;
   expect(Math.abs(centre) + fw / 2).toBeLessThan(panel.length / 2);
   expect(fh).toBeLessThan(FOUND_KARTON_SIZE[1]);
+});
+
+test("the thrown-away box's old address is blacked out (Datenschutz): every address line on its label lies under the marker scribble", () => {
+  const { address, scribble } = OLD_LABEL_DRAWING;
+  const nearest = (x: number, y: number) =>
+    Math.min(
+      ...scribble.path.slice(1).map(([bx, by], i) => {
+        const [ax, ay] = scribble.path[i];
+        const t = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / ((bx - ax) ** 2 + (by - ay) ** 2)));
+        return Math.hypot(x - (ax + t * (bx - ax)), y - (ay + t * (by - ay)));
+      }),
+    );
+  const showing = address.flatMap((line, row) =>
+    Array.from({ length: Math.ceil(line.width / 2) + 1 }, (_, i) => line.x + Math.min(i * 2, line.width)).flatMap((x) =>
+      [line.y, line.y + line.height / 2, line.y + line.height]
+        .filter((y) => nearest(x, y) > scribble.pen / 2)
+        .map((y) => `row ${row + 1} at ${x}, ${y}`),
+    ),
+  );
+  expect(address.length).toBe(4);
+  expect(showing.slice(0, 5)).toEqual([]);
 });

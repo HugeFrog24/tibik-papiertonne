@@ -438,11 +438,11 @@ composition under "Scenes" in the Studio:
   flung-open lid can lean back against the wall. **(test)**
 - Each bin has the house number "12" painted on and a sticker naming what
   goes in, from the fictional "Abfallwirtschaft Musterstadt". Never use a
-  real operator's logo.
+  real operator's logo. **(test)**
 - Cardboard is **flattened** in the Papiertonne. An overfull bin has
   cardboard sticking out and its lid propped open.
 - Shipping labels on thrown-away boxes have the address **blacked out**
-  (Datenschutz).
+  (Datenschutz). **(test)**
 - Pfand bottles never go into bins; if any appear, they stand next to the
   bins for collectors.
 

@@ -12,6 +12,15 @@ export const SHIPPING_LABELS = {
   fresh: { size: [0.148, 0.105] as const, lift: 0.0032 },
 };
 
+export const OLD_LABEL_DRAWING = {
+  size: [300, 200] as const,
+  address: [80, 108, 136, 164].map((y, i) => ({ x: 18, y, width: 240 - i * 18, height: 8 })),
+  scribble: {
+    pen: 22,
+    path: [[14, 86], [278, 84], [20, 110], [262, 116], [22, 138], [244, 142], [24, 166], [226, 170]] as readonly (readonly [number, number])[],
+  },
+};
+
 export type KartonPanel = {
   readonly center: Vec3;
   readonly angle: number;

@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { obbCorners, type Obb } from "../physics/collision";
-import { TONNE, tonneColliders, tonneLidParts } from "./tonneShape";
+import { TONNE, TONNE_ISSUER, TONNE_STICKER, tonneColliders, tonneLidParts } from "./tonneShape";
 
 const AT = [0, 0, 0] as [number, number, number];
 
@@ -56,4 +56,15 @@ test("a transport bar runs across the back top, standing off the back wall by a 
   expect(TONNE.height - barTop).toBeLessThan(0.1);
   expect(barBottom).toBeGreaterThan(TONNE.height - 0.15);
   expect(named(bins, /back bar post/)).toHaveLength(2);
+});
+
+test("every bin's sticker names what goes in and comes from the fictional Abfallwirtschaft Musterstadt, never from a real operator", () => {
+  expect(TONNE_ISSUER).toBe("Abfallwirtschaft Musterstadt");
+  const REAL = /\b(AWB|BSR|AWM|AHA|SRH|Remondis|ALBA|Veolia|SUEZ|PreZero|Stadtreinigung|Grüne[rn]? Punkt)\b/i;
+  for (const [kind, sticker] of Object.entries(TONNE_STICKER)) {
+    expect(sticker.label.length, kind).toBeGreaterThan(3);
+    expect(sticker.rules.length, kind).toBeGreaterThan(10);
+    expect(`${sticker.label} ${sticker.rules} ${TONNE_ISSUER}`, kind).not.toMatch(REAL);
+  }
+  expect(Object.keys(TONNE_STICKER).sort()).toEqual(["gelb", "papier", "rest"]);
 });

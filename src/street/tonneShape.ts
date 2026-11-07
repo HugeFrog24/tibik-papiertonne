@@ -4,6 +4,14 @@ import type { Vec3 } from "../toon/primitives";
 
 export type TonneKind = "papier" | "rest" | "gelb";
 
+export const TONNE_ISSUER = "Abfallwirtschaft Musterstadt";
+
+export const TONNE_STICKER: Record<TonneKind, { readonly label: string; readonly rules: string }> = {
+  papier: { label: "PAPIER", rules: "Papier · Pappe · Kartonagen – bitte zerkleinern" },
+  rest: { label: "RESTMÜLL", rules: "Keine Wertstoffe, kein Papier" },
+  gelb: { label: "WERTSTOFFE", rules: "Verpackungen aus Kunststoff & Metall" },
+};
+
 const LID = { thickness: 0.05, overhang: 0.08, wider: 0.06, above: 0.005 };
 const GRIP = { size: [0.035, 0.03, 0.12] as Vec3, fromSide: 0.07, fromFront: 0.03 };
 const GRIP_SIDES = [1, -1] as const;

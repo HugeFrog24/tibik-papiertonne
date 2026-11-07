@@ -5,6 +5,7 @@ import {
   type Vec3,
 } from "../toon/primitives";
 import {
+  OLD_LABEL_DRAWING,
   PANEL,
   SHIPPING_LABELS,
   bottomFold,
@@ -17,7 +18,7 @@ import { useSignColor } from "../weather/DayLight";
 const CARDBOARD = "#c49a6c";
 
 const shippingLabelTexture = () =>
-  drawnTexture("shipping-label", 300, 200, (ctx, w, h) => {
+  drawnTexture("shipping-label", ...OLD_LABEL_DRAWING.size, (ctx, w, h) => {
     ctx.fillStyle = "#f6f3ec";
     ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = "#222222";
@@ -25,19 +26,13 @@ const shippingLabelTexture = () =>
       ctx.fillRect(x, 16, 2 + (i % 2), 40);
     }
     ctx.fillStyle = "#555555";
-    [80, 108, 136, 164].forEach((y, i) =>
-      ctx.fillRect(18, y, w - 60 - i * 18, 8),
-    );
+    OLD_LABEL_DRAWING.address.forEach((line) => ctx.fillRect(line.x, line.y, line.width, line.height));
     ctx.strokeStyle = "#111111";
-    ctx.lineWidth = 22;
+    ctx.lineWidth = OLD_LABEL_DRAWING.scribble.pen;
     ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.beginPath();
-    ctx.moveTo(14, 88);
-    ctx.lineTo(w - 30, 96);
-    ctx.lineTo(18, 120);
-    ctx.lineTo(w - 50, 132);
-    ctx.lineTo(24, 160);
-    ctx.lineTo(w - 70, 166);
+    OLD_LABEL_DRAWING.scribble.path.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
     ctx.stroke();
   });
 const freshLabelTexture = () =>

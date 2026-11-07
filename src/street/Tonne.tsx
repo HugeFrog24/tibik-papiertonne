@@ -10,7 +10,7 @@ import {
   type Vec3,
   ToonCylinder,
 } from "../toon/primitives";
-import { TONNE, type TonneKind } from "./tonneShape";
+import { TONNE, TONNE_ISSUER, TONNE_STICKER, type TonneKind } from "./tonneShape";
 import { useSignColor } from "../weather/DayLight";
 
 const WIDTH = TONNE.width;
@@ -20,46 +20,38 @@ const TAPER = TONNE.taper;
 
 const ANTHRACITE = "#3a3d42";
 
-const LOOK: Record<
-  TonneKind,
-  { body: string; lid: string; label: string; ink: string; rules: string }
-> = {
+const LOOK: Record<TonneKind, { body: string; lid: string; ink: string }> = {
   papier: {
     body: ANTHRACITE,
     lid: "#2560b0",
-    label: "PAPIER",
     ink: "#2560b0",
-    rules: "Papier · Pappe · Kartonagen – bitte zerkleinern",
   },
   rest: {
     body: ANTHRACITE,
     lid: "#2a2d31",
-    label: "RESTMÜLL",
     ink: "#222222",
-    rules: "Keine Wertstoffe, kein Papier",
   },
   gelb: {
     body: ANTHRACITE,
     lid: "#f2c318",
-    label: "WERTSTOFFE",
     ink: "#b88a00",
-    rules: "Verpackungen aus Kunststoff & Metall",
   },
 };
 
 const stickerTexture = (kind: TonneKind) => {
   const look = LOOK[kind];
+  const sticker = TONNE_STICKER[kind];
   return drawnTexture(`tonne-sticker-${kind}`, 640, 280, (ctx, w, h) => {
     framedCard(ctx, w, h, "#ffffff", look.ink, 14);
     ctx.fillStyle = look.ink;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    fitText(ctx, look.label, w / 2, 100, w - 70, 130);
+    fitText(ctx, sticker.label, w / 2, 100, w - 70, 130);
     ctx.fillStyle = "#333333";
-    fitText(ctx, look.rules, w / 2, 192, w - 70, 34, "normal");
+    fitText(ctx, sticker.rules, w / 2, 192, w - 70, 34, "normal");
     fitText(
       ctx,
-      "Abfallwirtschaft Musterstadt",
+      TONNE_ISSUER,
       w / 2,
       238,
       w - 70,

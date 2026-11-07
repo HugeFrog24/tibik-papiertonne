@@ -9,15 +9,13 @@ export const ARM_LIMITS: Record<keyof ArmPose, readonly [number, number]> = {
 
 export const ARM_KEYS = Object.keys(ARM_LIMITS) as (keyof ArmPose)[];
 
-export const blendArm = (a: ArmPose, b: ArmPose, w: number): ArmPose => ({
-  raise: a.raise + (b.raise - a.raise) * w,
-  out: a.out + (b.out - a.out) * w,
-  elbow: a.elbow + (b.elbow - a.elbow) * w,
-  inward: a.inward + (b.inward - a.inward) * w,
-});
+export const mapArm = (each: (key: keyof ArmPose, k: number) => number): ArmPose =>
+  Object.fromEntries(ARM_KEYS.map((key, k) => [key, each(key, k)])) as ArmPose;
 
 export const offsetArm = (arm: ArmPose, from: ArmPose, to: ArmPose, share: number): ArmPose =>
-  Object.fromEntries(ARM_KEYS.map((key) => [key, arm[key] + share * (to[key] - from[key])])) as ArmPose;
+  mapArm((key) => arm[key] + (to[key] - from[key]) * share);
+
+export const blendArm = (a: ArmPose, b: ArmPose, w: number): ArmPose => offsetArm(a, a, b, w);
 
 export const armDistance = (a: ArmPose, b: ArmPose) => ARM_KEYS.reduce((sum, key) => sum + Math.abs(a[key] - b[key]), 0);
 
@@ -47,8 +45,7 @@ export const descendArm = (start: ArmPose, cost: (arm: ArmPose) => number) => {
 
 const sumSquares = (r: readonly number[]) => r.reduce((sum, v) => sum + v * v, 0);
 
-export const clampArm = (arm: ArmPose): ArmPose =>
-  Object.fromEntries(ARM_KEYS.map((key) => [key, Math.min(ARM_LIMITS[key][1], Math.max(ARM_LIMITS[key][0], arm[key]))])) as ArmPose;
+export const clampArm = (arm: ArmPose): ArmPose => mapArm((key) => Math.min(ARM_LIMITS[key][1], Math.max(ARM_LIMITS[key][0], arm[key])));
 
 const solveLinear = (matrix: readonly (readonly number[])[], rhs: readonly number[]) => {
   const rows = matrix.map((row, i) => [...row, rhs[i]]);
@@ -98,7 +95,7 @@ export const trackArm = (start: ArmPose, residuals: (arm: ArmPose) => readonly n
       const raw = boundedStep(arm, normal, gradient, damping);
       const longest = Math.max(...raw.map(Math.abs));
       const delta = longest > TRACK.step ? raw.map((v) => (v * TRACK.step) / longest) : raw;
-      const candidate = clampArm(Object.fromEntries(ARM_KEYS.map((key, k) => [key, arm[key] + delta[k]])) as ArmPose);
+      const candidate = clampArm(mapArm((key, k) => arm[key] + delta[k]));
       const rc = residuals(candidate);
       const cc = sumSquares(rc);
       if (cc < cost) {

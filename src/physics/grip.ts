@@ -29,6 +29,7 @@ import {
   type Bounds,
   type Carried,
   type Character,
+  withArm,
 } from "./guards";
 
 export const OVERHEAD = Math.PI / 2 + 0.3;
@@ -44,15 +45,6 @@ export const armLimb = (spheres: readonly Sphere[]) => {
     (s) => s !== hand && s.center.distanceTo(hand.center) > hand.radius + 0.05,
   );
 };
-
-const withArm = <C extends Character>(
-  c: C,
-  which: ArmName,
-  arm: ArmPose,
-): C => ({
-  ...c,
-  pose: { ...c.pose, [which]: arm },
-});
 
 export type Touch = { readonly touch: Obb; readonly near: Vector3 };
 

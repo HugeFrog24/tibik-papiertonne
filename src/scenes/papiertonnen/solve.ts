@@ -15,6 +15,7 @@ import {
   guardGround,
   guardLean,
   settleArm,
+  withArm,
 } from "../../physics/guards";
 import { Euler, Matrix4, Quaternion, Vector3 } from "three";
 import {
@@ -237,7 +238,7 @@ const solve = (t: number, history: ArmHistory): PapiertonnenState => {
     const onTheBox = holdKarton(tibik, kartonAt(t), solids, clock).tibik.pose;
     let reached = asCharacter(tibik);
     for (const which of ["leftArm", "rightArm"] as const) {
-      const toward = { ...reached, pose: { ...reached.pose, [which]: blendArm(tibik.pose[which], onTheBox[which], reaching) } };
+      const toward = withArm(reached, which, blendArm(tibik.pose[which], onTheBox[which], reaching));
       reached = settleArm(toward, solids, which, clock.history.before(t, which, FINAL_ARM, -Infinity));
       clock.history.remember(t, which, FINAL_ARM, reached.pose[which]);
     }

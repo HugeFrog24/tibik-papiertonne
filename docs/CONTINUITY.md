@@ -821,6 +821,15 @@ Ideas (proposed, not built; the user picks):
   about 0.03 degrees (1 px) lower and stays there.
 - Story changes (only if you want them): the first strike doesn't catch; a
   throat-clear after the exhale.
+- Karen ringing his bell: her fingertip lands a few millimetres off the
+  button centre on some presses and the button stays down a frame longer on
+  others — a hurried, irritated press on a bell she knows, not a machine's.
+- Her fist on his door: the blows land a few frames unevenly apart, and the
+  paint at fist height round his door's middle is a shade scuffed and lighter
+  where visitors have knocked for years.
+- Tibik carrying the box: one hand sits a centimetre or two lower than the
+  other, so the box tilts a degree or two, and the cardboard corner under that
+  hand is a little soft and dented (old, damp cardboard grabbed in a hurry).
 
 ## Continuity between scenes
 

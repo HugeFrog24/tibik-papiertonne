@@ -27,6 +27,8 @@ export type Character = { readonly skeleton: Skeleton } & Placement;
 
 const withPose = <C extends Character>(c: C, pose: Pose): C => ({ ...c, pose });
 
+export const withArm = <C extends Character>(c: C, which: ArmName, arm: ArmPose): C => withPose(c, { ...c.pose, [which]: arm });
+
 const GROUND_PASSES = 8;
 const UPWARD = 0.7;
 
@@ -124,9 +126,9 @@ const armDepths = (c: Character, solids: readonly Solid[], which: ArmName) => {
     1.2,
   );
   return (moved: ArmPose) => {
-    const pose = { ...c.pose, [which]: moved };
-    const spheres = armColliders(c.skeleton, withPose(c, pose), which);
-    return [armIntoTorso(c.skeleton, pose, which), ...reachable.map((solid) => deepest(contacts(spheres, [solid])))];
+    const placed = withArm(c, which, moved);
+    const spheres = armColliders(c.skeleton, placed, which);
+    return [armIntoTorso(c.skeleton, placed.pose, which), ...reachable.map((solid) => deepest(contacts(spheres, [solid])))];
   };
 };
 
@@ -154,7 +156,7 @@ export const guardArm = <C extends Character>(
   });
   const away = (o: { readonly moved: ArmPose; readonly amount: number }) => (lastFrame ? armDistance(o.moved, lastFrame) : o.amount);
   options.sort((a, b) => a.remaining - b.remaining || away(a) - away(b));
-  return withPose(c, { ...c.pose, [which]: options[0].moved });
+  return withArm(c, which, options[0].moved);
 };
 
 export const SETTLE = { hit: 100, keep: 0.8 };
@@ -170,7 +172,7 @@ export const settleArm = <C extends Character>(
   const wanted = clampArm(lastFrame && authoredBefore ? offsetArm(authored, authoredBefore, lastFrame, SETTLE.keep) : authored);
   const depths = armDepths(c, solids, which);
   const hits = (arm: ArmPose) => Math.max(...depths(arm));
-  const placed = (arm: ArmPose) => withPose(c, { ...c.pose, [which]: arm });
+  const placed = (arm: ArmPose) => withArm(c, which, arm);
   if (hits(wanted) <= 0) return placed(wanted);
   if (!lastFrame) return guardArm(c, solids, which);
   const settled = trackArm(lastFrame, (arm) => [...depths(arm).map((d) => SETTLE.hit * d), ...ARM_KEYS.map((key) => arm[key] - wanted[key])]);

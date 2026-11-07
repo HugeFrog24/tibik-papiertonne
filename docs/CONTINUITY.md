@@ -293,6 +293,16 @@ composition under "Scenes" in the Studio:
   glowing at her lips mid-draw and then in her hand. Tibik is out of every
   shot from the cut into the close-up. **(test)** The circular in the epilogue
   stays silent on her pounding and her smoking.
+- **Her ash on his landing:** after her exhale in the dim, an insert of her
+  right fist from her front-left, against his door, light button and
+  doormat, her face never in frame: she turns the cigarette tip-down, holds
+  it out from her side (clear of her belly and arm) and flicks her wrist
+  twice; the 8 mm ash breaks off at the bottom of the first flick, falls
+  under gravity (about half a second, tilting to lie flat) and crumbles into
+  a piece and four flecks on the terrazzo beside her shoe, short of his mat
+  and of the stairs. The camera tilts after it and stays on it. Ash is light
+  grey. It stays where it fell: no later shot shows his landing. The circular
+  is silent on it too. **(test)**
 - **Her smoke:** cartoon curls, light grey with an ink shell drawn behind
   every fill (so overlapping curls merge into one outlined cloud), fading out
   over 3-3.5 s: a thin wisp rising from the ember whenever it is lit, and her
@@ -579,6 +589,9 @@ Ideas (proposed, not built; the user picks):
   scuff on the wall where its lever has bumped.
 - His bedside lamp's shade: the fabric a shade darker on the bulb side (years
   of heat and dust), so lit at night its glow is a touch dimmer and warmer there.
+- His bed's edge where he sits back onto it: the fitted sheet a shade pilled
+  and slack over the mattress's front edge at that spot, and a 1-2 mm soft
+  dip in the mattress top there, seen only as shading under the lamp.
 - His bedroom floor: a faint sheen worn into the laminate along his daily path
   from the door to the bed, a glossier strip under the lamp, never a line.
 - Karen's window at night: one slat of her blind hangs a few degrees out of step
@@ -769,8 +782,7 @@ Ideas (proposed, not built; the user picks):
   pulls the flame to the tip); the second exhale is a different, shorter and
   lazier breath than the first.
 - Story changes (only if you want them): the first strike doesn't catch; a
-  throat-clear after the exhale; she taps the ash off once onto the landing
-  floor (one more small offence).
+  throat-clear after the exhale.
 
 ## Continuity between scenes
 

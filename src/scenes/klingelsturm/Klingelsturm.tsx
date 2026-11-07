@@ -7,7 +7,7 @@ import { StairwellSet } from "../../building/StairwellSet";
 import { DialogueTrack } from "../../dialogue/DialogueTrack";
 import { Karen } from "../../Karen/Karen";
 import { Phone } from "../../Karen/Phone";
-import { Cigarette } from "../../props/Cigarette";
+import { AshPieces, Cigarette } from "../../props/Cigarette";
 import { Lighter } from "../../props/Lighter";
 import { SmokeCurls } from "../../smoke/SmokeCurls";
 import { codaSmokeAt } from "./codaSmoke";
@@ -43,6 +43,7 @@ export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
     cigarette,
     lighter,
     tibikHere,
+    ash,
   } = solveKlingelsturm(t);
   return (
     <Sky>
@@ -82,6 +83,7 @@ export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
           />
         ) : null}
         {cigarette ? <Cigarette frame={cigarette.frame} burned={cigarette.burned} ash={cigarette.ash} glow={cigarette.glow} /> : null}
+        {ash ? <AshPieces pieces={ash} /> : null}
         {lighter ? <Lighter frame={lighter.frame} flame={lighter.flame} t={t} sinceStruck={t - CODA.flick} /> : null}
         <SmokeCurls curls={codaSmokeAt(t)} />
         <SprayView frame={klingelsturmSprayAt(t)} />

@@ -5,11 +5,12 @@ import { floorLevel } from "../../street/building";
 import type { Vec3 } from "../../toon/primitives";
 import { camerasOf, storyTimeIn, type CameraSetup, type Shot } from "../../toon/shots";
 import { karenMouthEmitter } from "../../Karen/mouthEmitter";
-import { CODA, cigaretteFrame } from "./cigarette";
+import { ASH, CODA, ON_THE_FILTER, cigaretteFrame } from "./cigarette";
 import { cigaretteTip } from "../../props/cigaretteShape";
 import { STORY_SKIP } from "./light";
 import { Vector3 } from "three";
 import { lazy } from "../../physics/lazy";
+import { easeUnit, windowUnit } from "../../characters/scalar";
 import { doorFrame } from "../../building/doors";
 import { mouthInWorld } from "../../dialogue/screen";
 import { RIG } from "../../Tibik/rig";
@@ -91,6 +92,24 @@ const AT_HER_MOUTH = lazy((): CameraSetup => {
   const between = karenMouthEmitter(karen).origin.lerp(cigaretteTip(cigaretteFrame(karen, CODA.flick), 0), 0.5);
   return { position: PHONE_EYE, target: [between.x, between.y, between.z], fov: SMOKING_FOV };
 });
+
+const ASH_INSERT = { position: [-1.4, FLOOR + 1.25, -8.45] as Vec3, fov: 32, onTheFloor: 21, follow: 0.55, down: 0.8 };
+
+const ASH_AIM = lazy(() => {
+  const tapping = CODA.taps[0][0];
+  const held = cigaretteFrame(karenAt(tapping), tapping);
+  const fist = new Vector3(0, 0, ON_THE_FILTER.along).applyMatrix4(held).lerp(cigaretteTip(held, 0), 0.5);
+  const breaking = cigaretteFrame(karenAt(CODA.ashOff), CODA.ashOff);
+  const below = cigaretteTip(breaking, 0).setY(FLOOR + ASH.hold / 2);
+  return { fist, below };
+});
+
+const ON_THE_ASH = (t: number): CameraSetup => {
+  const { fist, below } = ASH_AIM();
+  const followed = easeUnit(windowUnit(t, [CODA.ashOff, CODA.ashOff + ASH_INSERT.follow]));
+  const aim = fist.clone().lerp(below, ASH_INSERT.down * followed);
+  return { position: ASH_INSERT.position, target: [aim.x, aim.y, aim.z], fov: ASH_INSERT.fov + (ASH_INSERT.onTheFloor - ASH_INSERT.fov) * followed };
+};
 
 const DIALLING: readonly [number, number] = [
   KEYS[1].at - 0.15,
@@ -204,9 +223,16 @@ export const SHOTS: readonly Shot[] = [
   {
     name: "Wide: later",
     from: CODA.jumpCut,
-    to: KLINGELSTURM_DURATION,
+    to: CODA.aside[0],
     story: CODA.jumpCut + STORY_SKIP,
     at: ON_HER_LATER,
+  },
+  {
+    name: "Insert: the ash",
+    from: CODA.aside[0],
+    to: KLINGELSTURM_DURATION,
+    story: CODA.aside[0] + STORY_SKIP,
+    at: ON_THE_ASH,
   },
 ];
 

@@ -43,6 +43,8 @@ import { memoByFrame } from "../../physics/memoSolve";
 import type { KarenFrame } from "../hausmuell/choreography";
 import { FISHEYE, undistortUv } from "../../toon/fisheye";
 import { FRAME, cameraAt, shotAt } from "./cameras";
+import { ashOnTheCigarette, fallenAshAt, type AshPiece } from "./ashTap";
+import { FPS } from "../../frameRate";
 import { CODA, emberGlowAt, flameAmountAt, inHerFingersAt, inHerHands, lighterOut, lightingAt } from "./cigarette";
 import { CIGARETTE_HOLD, LIGHTER_HOLD, cigaretteAt, lighterAt, smokedAt } from "./smoking";
 import { BLOW_HOLDS } from "./banging";
@@ -68,6 +70,7 @@ export type KlingelsturmState = {
   readonly cigarette: { readonly frame: Matrix4; readonly burned: number; readonly ash: number; readonly glow: number } | null;
   readonly lighter: { readonly frame: Matrix4; readonly flame: number } | null;
   readonly tibikHere: boolean;
+  readonly ash: readonly AshPiece[] | null;
 };
 
 const solidsWith = (tibik: number, tibikLever: number): Solid[] => [
@@ -87,7 +90,7 @@ const solidsAt = (
   ...(carried ? [tapeRollSolid(taping)] : parcelSolids(parcel, taping)),
 ];
 
-const solve = (t: number): KlingelsturmState => {
+const solve = (t: number): Omit<KlingelsturmState, "ash"> => {
   const tibikT = Math.min(t, CODA.mediumCut);
   const door = tibikDoorAt(t);
   const lever = tibikLeverAt(t);
@@ -151,7 +154,21 @@ const heldCigarette = (karen: KarenFrame, t: number) =>
 const heldLighter = (karen: KarenFrame, t: number) =>
   followTheHand(lighterAt(t), rightHandOf(karen), LIGHTER_HOLD.near!(t), 1 - lightingAt(t));
 
-export const solveKlingelsturm = memoByFrame(solve);
+const solveCore = memoByFrame(solve);
+
+const ashRelease = lazy(() => {
+  const at = (t: number) => {
+    const { frame, burned } = solveCore(t).cigarette!;
+    return ashOnTheCigarette(frame, burned);
+  };
+  const now = at(CODA.ashOff);
+  return { ...now, velocity: now.center.clone().sub(at(CODA.ashOff - 1 / FPS).center).multiplyScalar(FPS) };
+});
+
+export const solveKlingelsturm = memoByFrame((t: number): KlingelsturmState => ({
+  ...solveCore(t),
+  ash: t < CODA.ashOff ? null : fallenAshAt(t, ashRelease()),
+}));
 
 export const klingelsturmSolids = (state: KlingelsturmState): Solid[] =>
   solidsAt(

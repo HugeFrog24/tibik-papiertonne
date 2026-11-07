@@ -84,6 +84,19 @@ The Klingelsturm grows from 57.7 s to about 74 s (Δ plus about 9.7 s).
 Every later scene starts later by the same amount through the `SCENES`
 list in `src/timeline.ts`.
 
+Built addition (2026-11-07, the user: "an isolated close-up shot of the
+cigarette in her fist without drawing her full portrait/face, probably with
+the stairwell in view so the offence is unmistakably visible"): after her
+dark exhale the film cuts to "Insert: the ash" (2 s; the Klingelsturm ends
+0.5 s later than before). From her front-left the camera sees her right
+fist against Tibik's door, his light button and doormat; her face is never
+in frame. She turns the cigarette tip-down, holds it out from her side and
+gives it two flicks of the wrist; the 8 mm ash breaks off at the bottom of
+the first, falls about half a second and crumbles on the terrazzo beside her
+shoe, a little short of his doormat. The camera tilts down after it, its
+lens tightening, and stays on the ash with her shoe and the mat's corner in
+view. Story time keeps its skip through the insert.
+
 ### The time jump
 
 Story time equals film time up to the cut into "Wide: later" and runs
@@ -273,7 +286,7 @@ and how fast cigarette smoke rises and spreads in still indoor air.
 ## Parked ideas (for the user, not built)
 
 - The first flick sparks without a flame (everyday imperfection).
-- Ash flicked onto the landing floor, or a butt left on the landing.
+- A butt left on the landing (the ash tap is built).
 - Runtime: the film is already 3:33, past YouTube's 3-minute limit for
   Shorts, and this adds about 16 s. That belongs to the parked 9:16 decision.
 

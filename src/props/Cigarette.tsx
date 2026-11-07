@@ -1,6 +1,7 @@
 import { Color, type Matrix4 } from "three";
 import { ToonCylinder } from "../toon/primitives";
-import { CIGARETTE, cigaretteParts, cigaretteSegments, type CigarettePart } from "./cigaretteShape";
+import type { Quaternion, Vector3 } from "three";
+import { ASH_RADIUS, CIGARETTE, cigaretteParts, cigaretteSegments, type CigarettePart } from "./cigaretteShape";
 
 const ALONG_Z: [number, number, number] = [Math.PI / 2, 0, 0];
 const SEGMENTS = 16;
@@ -13,7 +14,7 @@ const LOOK: Record<CigarettePart, { readonly color: string; readonly radius: num
   paper: { color: CIGARETTE.paper, radius: CIGARETTE.radius },
   tobacco: { color: CIGARETTE.tobacco, radius: CIGARETTE.radius },
   ember: { color: CIGARETTE.ember.rest, radius: CIGARETTE.radius },
-  ash: { color: CIGARETTE.ash, radius: CIGARETTE.radius * 0.97 },
+  ash: { color: CIGARETTE.ash, radius: ASH_RADIUS },
 };
 
 export const Cigarette: React.FC<{
@@ -46,3 +47,15 @@ export const Cigarette: React.FC<{
     </group>
   );
 };
+
+export const AshPieces: React.FC<{
+  readonly pieces: readonly { readonly center: Vector3; readonly rotation: Quaternion; readonly length: number; readonly radius: number }[];
+}> = ({ pieces }) => (
+  <>
+    {pieces.map((piece, i) => (
+      <group key={i} position={piece.center} quaternion={piece.rotation} userData={{ ink: CIGARETTE.ink }}>
+        <ToonCylinder rotation={ALONG_Z} radius={piece.radius} height={piece.length} segments={SEGMENTS} color={CIGARETTE.ash} ink={CIGARETTE.ink} />
+      </group>
+    ))}
+  </>
+);

@@ -8,13 +8,15 @@ export const CIGARETTE = {
   ink: 0.002,
   paper: "#f4f2ec",
   cork: "#c98a4b",
-  ash: "#9a9893",
+  ash: "#b3b1ab",
   tobacco: "#7a4a22",
   ember: { rest: "#b8321a", draw: "#ffb038", depth: 0.0015 },
   face: 0.0005,
   emberLight: { colour: "#ff6a2a", distance: 0.14, decay: 2, intensity: 0.004 },
   butt: 0.003,
 };
+
+export const ASH_RADIUS = CIGARETTE.radius * 0.97;
 
 const ROD = CIGARETTE.length - CIGARETTE.filter;
 

@@ -9,7 +9,7 @@ import { cigaretteObb } from "../../props/cigaretteShape";
 import { lighterObb } from "../../props/lighterShape";
 import { storyTime } from "./cameras";
 import { karenAt } from "./choreography";
-import { CODA, ashAt, burnedAt, cigaretteFrame, lighterFrame, lipsFrame } from "./cigarette";
+import { CODA, ON_THE_FILTER, ashAt, burnedAt, cigaretteFrame, lighterFrame, lipsFrame } from "./cigarette";
 
 const HAND = Math.max(...KAREN_SKELETON.hand.size);
 const HELD_GAP = 0.0015;
@@ -18,7 +18,9 @@ const SEARCH = 0.3;
 
 export const smokedAt = (t: number) => {
   const story = storyTime(t);
-  return { burned: burnedAt(story), ash: ashAt(story) };
+  const burned = burnedAt(story);
+  const sinceTheTap = t >= CODA.ashOff ? burned - burnedAt(storyTime(CODA.ashOff)) : Infinity;
+  return { burned, ash: Math.min(ashAt(story), sinceTheTap) };
 };
 
 export const cigaretteAt = (t: number) => cigaretteFrame(karenAt(t), t);
@@ -72,8 +74,6 @@ export const LIGHTER_HOLD: Hold = {
   pose: LIGHTER_ARM,
   exact: true,
 };
-
-const ON_THE_FILTER = { along: 0.04 };
 
 export const fingersOn = (karen: Placement, frame: Matrix4, box: Obb) => {
   const filter = new Vector3(0, 0, ON_THE_FILTER.along).applyMatrix4(frame);

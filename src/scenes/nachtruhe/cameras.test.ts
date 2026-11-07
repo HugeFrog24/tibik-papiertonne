@@ -10,7 +10,7 @@ import { dishParts, DISH } from "../../street/dishShape";
 import { BINS, worldSolids } from "../../street/layout";
 import { PARAPET, roofParts } from "../../street/townShape";
 import { STREET_TREES, TREE_CROWN, TREE_POSITION } from "../../street/trees";
-import { lensProblems } from "../sceneChecks";
+import { VERTICAL_CROP, lensProblems, ndcX } from "../sceneChecks";
 import { CAPTION, KEY_MOMENTS, NACHTRUHE_DURATION, NACHTRUHE_SHOTS, cameraAt, lightingAt, shotAt } from "./cameras";
 import { SWITCH_PRESS, bedroomAt, curtainGrip } from "./bedroom";
 import { solveNachtruhe } from "./solve";
@@ -89,10 +89,8 @@ test("the key action stays near the centre, for a later vertical crop", () => {
     for (let t = moment.from; t <= moment.to + 1e-9; t += 1 / FPS) {
       const setup = cameraAt(t);
       const point = new Vector3(...moment.at);
-      const [x] = onScreen(point, setup);
-      const ndc = (2 * x) / FRAME_SIZE.width - 1;
       expect(inFront(point, setup), `${moment.name} at ${t.toFixed(2)}`).toBe(true);
-      expect(Math.abs(ndc), `${moment.name} at ${t.toFixed(2)}`).toBeLessThanOrEqual(0.316);
+      expect(Math.abs(ndcX(point, setup)), `${moment.name} at ${t.toFixed(2)}`).toBeLessThanOrEqual(VERTICAL_CROP);
     }
 });
 

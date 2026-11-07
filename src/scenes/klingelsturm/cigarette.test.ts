@@ -2,7 +2,6 @@ import { Matrix4, PerspectiveCamera, Vector3 } from "three";
 import { expect, test } from "vitest";
 import { allColliders, armColliders, armIntoTorso, bodyColliders, handSphere, torsoDepthAt, torsoMatrix } from "../../characters/skeleton";
 import { OUTLINE } from "../../toon/primitives";
-import { onScreen } from "../../dialogue/screen";
 import { asKaren } from "../../Karen/character";
 import { insideKarenHead, karenFaceSurface, karenMouthEmitter, toKarenHead } from "../../Karen/mouthEmitter";
 import { KAREN_SKELETON } from "../../Karen/rig";
@@ -10,7 +9,7 @@ import { sphereObbGap } from "../../physics/collision";
 import { cigaretteObb, cigaretteTip } from "../../props/cigaretteShape";
 import { FLAME, SPARKS, flameTip, lighterObb, sparksAt } from "../../props/lighterShape";
 import { FPS } from "../../frameRate";
-import { seconds } from "../sceneChecks";
+import { VERTICAL_CROP, ndcX, seconds } from "../sceneChecks";
 import { PHONE_AT_POCKET } from "../../Karen/phoneShape";
 import { phonePlaceAt } from "./calls";
 import { FRAME, cameraAt, shotAt, storyTime } from "./cameras";
@@ -30,7 +29,6 @@ const HELD = 0.003;
 const onFrame = (t: number) => Math.abs(t * FPS - Math.round(t * FPS)) < 1e-6;
 const framesOf = ([from, to]: readonly [number, number], step = 1) =>
   Array.from({ length: Math.floor(((to - from) * FPS) / step) + 1 }, (_, i) => from + (i * step) / FPS);
-const ndcX = (point: Vector3, t: number) => (2 * onScreen(point, cameraAt(t))[0]) / FRAME.width - 1;
 const codaTimes = Object.values(CODA).flatMap((v) => (Array.isArray(v) ? v.flat() : [v])) as number[];
 
 test("story time equals film time up to the jump cut and runs STORY_SKIP ahead after it", () => {
@@ -172,10 +170,10 @@ test("while she lights it the lighter turns with her: whichever way she faces it
 test("the flame in the Medium and the ember in the Wide: later sit within the 9:16 centre band", () => {
   const t = (CODA.flame[0] + CODA.flame[1]) / 2;
   const { lighter } = solveKlingelsturm(t);
-  expect(Math.abs(ndcX(flameTip(lighter!.frame, t), t))).toBeLessThanOrEqual(0.316);
+  expect(Math.abs(ndcX(flameTip(lighter!.frame, t), cameraAt(t)))).toBeLessThanOrEqual(VERTICAL_CROP);
   const later = CODA.outAgain + 0.5;
   const lit = solveKlingelsturm(later).cigarette!;
-  expect(Math.abs(ndcX(cigaretteTip(lit.frame, lit.burned), later))).toBeLessThanOrEqual(0.316);
+  expect(Math.abs(ndcX(cigaretteTip(lit.frame, lit.burned), cameraAt(later)))).toBeLessThanOrEqual(VERTICAL_CROP);
 });
 
 test("the tip catches over a few frames rather than popping alight", () => {

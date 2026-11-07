@@ -1,4 +1,4 @@
-import { Line3, Vector3 } from "three";
+import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { DOORMATS, doorOfMat, doormatRect, matRise } from "../../building/doormatShape";
 import { doorLeaf } from "../../building/doors";
@@ -7,25 +7,24 @@ import { allColliders, bodyColliders } from "../../characters/skeleton";
 import { onScreen, seenBy } from "../../dialogue/screen";
 import { FPS } from "../../frameRate";
 import { asKaren } from "../../Karen/character";
-import { contacts, obbCorners, sphere } from "../../physics/collision";
+import { contacts, obbCorners, sphere, type Sphere } from "../../physics/collision";
+import { raySphere } from "../../physics/rays";
 import { cigaretteParts, cigaretteTip } from "../../props/cigaretteShape";
 import { floorLevel } from "../../street/building";
-import { seconds } from "../sceneChecks";
-import { FRAME, SHOTS, cameraAt } from "./cameras";
+import { VERTICAL_CROP, ndcX, seconds } from "../sceneChecks";
+import { SHOTS, cameraAt } from "./cameras";
 import { KLINGELSTURM_DURATION } from "./choreography";
 import { ASH, CODA } from "./cigarette";
 import { smokedAt } from "./smoking";
 import { klingelsturmSolids, solveKlingelsturm } from "./solve";
 
 const FLOOR = floorLevel(1);
-const CENTRE_BAND = 0.316;
 const framesIn = (from: number, to: number) => {
   const frames: number[] = [];
   for (let f = Math.ceil(from * FPS - 1e-6); f < to * FPS - 1e-6; f++) frames.push(f / FPS);
   return frames;
 };
 const INSERT = () => SHOTS.find((s) => s.name === "Insert: the ash")!;
-const ndcX = (point: Vector3, t: number) => (2 * onScreen(point, cameraAt(t))[0]) / FRAME.width - 1;
 
 const tipAt = (t: number) => {
   const { cigarette } = solveKlingelsturm(t);
@@ -83,13 +82,10 @@ test("the ash leaves the cigarette where it broke off and falls under gravity on
   }
 });
 
-const hiddenBy = (eye: Vector3, target: Vector3, blockers: readonly { readonly center: Vector3; readonly radius: number }[]) => {
-  const sight = new Line3(eye, target);
+const hiddenBy = (eye: Vector3, target: Vector3, blockers: readonly Sphere[]) => {
   const reach = eye.distanceTo(target) - 0.01;
-  return blockers.some((s) => {
-    const nearest = sight.closestPointToPoint(s.center, true, new Vector3());
-    return nearest.distanceTo(s.center) < s.radius && eye.distanceTo(nearest) < reach;
-  });
+  const along = target.clone().sub(eye).normalize();
+  return blockers.some((s) => raySphere(eye, along, s) < reach);
 };
 
 const pixelsBetween = (a: Vector3, b: Vector3, t: number) => {
@@ -100,6 +96,12 @@ const pixelsBetween = (a: Vector3, b: Vector3, t: number) => {
 
 const HIS_MAT = DOORMATS.find((m) => m.storey === 1 && m.side === "links")!;
 const HIS_MAT_RECT = doormatRect(HIS_MAT);
+
+test("the ash flies off with the flick's own speed, not the hold's small corrections: it lands within 3 cm sideways of where it broke off", () => {
+  const [released] = solveKlingelsturm(CODA.ashOff).ash!;
+  const [landed] = solveKlingelsturm(KLINGELSTURM_DURATION - 1 / FPS).ash!;
+  expect(Math.hypot(landed.center.x - released.center.x, landed.center.z - released.center.z)).toBeLessThan(0.03);
+});
 
 const STAIRWELL_MARKS = [
   ...STAIRWELL_RAILINGS.filter((r) => r.name === "balustrade").flatMap(obbCorners),
@@ -132,12 +134,12 @@ test("the insert shows her fist and its ember up close against the stairwell, ne
       if (!seenBy(tip, setup, 0.1) || !seenBy(hand, setup, 0.1)) found.push(`${seconds(t)}: fist or ember off screen`);
       if (hiddenBy(eye, tip, blockers) || hiddenBy(eye, hand, blockers)) found.push(`${seconds(t)}: her body hides her fist or the ember`);
       if (new Vector3(...setup.position).distanceTo(hand) > 1.5) found.push(`${seconds(t)}: not close on her fist`);
-      if (Math.abs(ndcX(tip, t)) > CENTRE_BAND) found.push(`${seconds(t)}: ember outside the 9:16 band`);
+      if (Math.abs(ndcX(tip, cameraAt(t))) > VERTICAL_CROP) found.push(`${seconds(t)}: ember outside the 9:16 band`);
     } else {
       for (const piece of state.ash!) {
         if (!seenBy(piece.center, setup, 0.05)) found.push(`${seconds(t)}: the ash off screen`);
         if (hiddenBy(eye, piece.center, blockers)) found.push(`${seconds(t)}: her body hides the ash`);
-        if (Math.abs(ndcX(piece.center, t)) > CENTRE_BAND) found.push(`${seconds(t)}: the ash outside the 9:16 band`);
+        if (Math.abs(ndcX(piece.center, cameraAt(t))) > VERTICAL_CROP) found.push(`${seconds(t)}: the ash outside the 9:16 band`);
       }
     }
     return found;

@@ -4,6 +4,8 @@ export const eulerFromBasis = (x: Vector3, y: Vector3, z: Vector3) =>
   new Euler().setFromRotationMatrix(new Matrix4().makeBasis(x, y, z));
 
 export const blendMatrices = (a: Matrix4, b: Matrix4, k: number) => {
+  if (k <= 0) return a;
+  if (k >= 1) return b;
   const [pa, qa, pb, qb] = [
     new Vector3(),
     new Quaternion(),

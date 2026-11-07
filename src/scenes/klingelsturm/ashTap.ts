@@ -1,13 +1,13 @@
 import { Matrix4, Quaternion, Vector3 } from "three";
 import { easeUnit } from "../../characters/scalar";
 import { ASH_RADIUS, cigaretteParts } from "../../props/cigaretteShape";
+import { heightAfter, landsAfter } from "../../physics/fall";
 import { floorLevel } from "../../street/building";
 import { ASH, CODA } from "./cigarette";
 
 export type AshPiece = { readonly center: Vector3; readonly rotation: Quaternion; readonly length: number; readonly radius: number };
 export type AshRelease = { readonly center: Vector3; readonly rotation: Quaternion; readonly velocity: Vector3 };
 
-const GRAVITY = 9.81;
 const FLOOR = floorLevel(1);
 const LIES_FLAT_BY = 0.7;
 const ALONG = new Vector3(0, 0, 1);
@@ -34,11 +34,7 @@ const lyingFlat = (rotation: Quaternion) => {
   return new Quaternion().setFromUnitVectors(ALONG, heading.lengthSq() > 1e-12 ? heading.normalize() : ALONG);
 };
 
-export const ashLandsAfter = (release: AshRelease) => {
-  const drop = release.center.y - (FLOOR + ASH_RADIUS);
-  const up = release.velocity.y;
-  return (up + Math.sqrt(up * up + 2 * GRAVITY * drop)) / GRAVITY;
-};
+export const ashLandsAfter = (release: AshRelease) => landsAfter(release.center.y - (FLOOR + ASH_RADIUS), release.velocity.y);
 
 export const fallenAshAt = (t: number, release: AshRelease): AshPiece[] => {
   const landing = ashLandsAfter(release);
@@ -46,7 +42,7 @@ export const fallenAshAt = (t: number, release: AshRelease): AshPiece[] => {
   const center = release.center
     .clone()
     .addScaledVector(release.velocity, flight)
-    .add(new Vector3(0, (-GRAVITY * flight * flight) / 2, 0));
+    .setY(heightAfter(release.center.y, release.velocity.y, flight));
   const flat = lyingFlat(release.rotation);
   if (t - CODA.ashOff < landing) {
     return [{ center, rotation: release.rotation.clone().slerp(flat, easeUnit(flight / (landing * LIES_FLAT_BY))), length: ASH.hold, radius: ASH_RADIUS }];

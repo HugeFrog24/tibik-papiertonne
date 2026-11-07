@@ -10,7 +10,7 @@ import { cigaretteTip } from "../../props/cigaretteShape";
 import { STORY_SKIP } from "./light";
 import { Vector3 } from "three";
 import { lazy } from "../../physics/lazy";
-import { easeUnit, windowUnit } from "../../characters/scalar";
+import { inWindow, lerp } from "../../characters/scalar";
 import { doorFrame } from "../../building/doors";
 import { mouthInWorld } from "../../dialogue/screen";
 import { RIG } from "../../Tibik/rig";
@@ -106,9 +106,9 @@ const ASH_AIM = lazy(() => {
 
 const ON_THE_ASH = (t: number): CameraSetup => {
   const { fist, below } = ASH_AIM();
-  const followed = easeUnit(windowUnit(t, [CODA.ashOff, CODA.ashOff + ASH_INSERT.follow]));
+  const followed = inWindow(t, [CODA.ashOff, CODA.ashOff + ASH_INSERT.follow]);
   const aim = fist.clone().lerp(below, ASH_INSERT.down * followed);
-  return { position: ASH_INSERT.position, target: [aim.x, aim.y, aim.z], fov: ASH_INSERT.fov + (ASH_INSERT.onTheFloor - ASH_INSERT.fov) * followed };
+  return { position: ASH_INSERT.position, target: [aim.x, aim.y, aim.z], fov: lerp(ASH_INSERT.fov, ASH_INSERT.onTheFloor, followed) };
 };
 
 const DIALLING: readonly [number, number] = [

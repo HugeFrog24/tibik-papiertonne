@@ -781,6 +781,13 @@ Ideas (proposed, not built; the user picks):
   fuller); the gas hiss dips or flutters slightly during the draws (the draw
   pulls the flame to the tip); the second exhale is a different, shorter and
   lazier breath than the first.
+- Her ash tap: the break leaves a ragged 0.5-1 mm grey rim on the ember
+  rather than none (ash parts at its weakest layer, rarely flush); the second
+  flick a shade shallower and a frame quicker (habit, nothing left to knock
+  off); a few-millimetre halo of fine ash dust round the crumbs on the
+  terrazzo, a shade lighter, no outline (the impact powders some of it).
+- His doormat: the coir trodden a shade flatter and darker in the band in
+  front of his door.
 - Story changes (only if you want them): the first strike doesn't catch; a
   throat-clear after the exhale.
 

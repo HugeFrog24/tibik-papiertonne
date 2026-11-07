@@ -201,6 +201,15 @@ test(
   },
 );
 
+test("clearing the solver forgets every cached frame, its core included, so a fresh solve really starts over", () => {
+  const t = frames[Math.floor(frames.length / 2)];
+  const before = solveKlingelsturm(t);
+  solveKlingelsturm.clear();
+  const after = solveKlingelsturm(t);
+  expect(after).not.toBe(before);
+  expect(after.karen).not.toBe(before.karen);
+});
+
 test(
   "frames solved in any order give the same result",
   { timeout: 120_000 },

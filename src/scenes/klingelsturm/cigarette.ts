@@ -1,5 +1,6 @@
-import { Matrix4, Quaternion, Vector3 } from "three";
+import { Matrix4, Vector3 } from "three";
 import { placeFrame, type PropPlace } from "../../characters/propPlace";
+import { blendMatrices } from "../../toon/orient";
 import { kf } from "../../characters/animate";
 import { inWindow, round6 } from "../../characters/scalar";
 import { torsoMatrix, type Placement } from "../../characters/skeleton";
@@ -89,15 +90,6 @@ export const lipsFrame = (karen: Placement & { readonly mouthOpen: number }, sid
   return new Matrix4().makeBasis(x, y, along).setPosition(filterEnd);
 };
 
-const blendFrames = (a: Matrix4, b: Matrix4, k: number) => {
-  if (k <= 0) return a;
-  if (k >= 1) return b;
-  const [pa, qa, pb, qb] = [new Vector3(), new Quaternion(), new Vector3(), new Quaternion()];
-  a.decompose(pa, qa, new Vector3());
-  b.decompose(pb, qb, new Vector3());
-  return new Matrix4().compose(pa.lerp(pb, k), qa.slerp(qb, k), new Vector3(1, 1, 1));
-};
-
 export const inHerHands = (t: number) => t >= CODA.mediumCut;
 
 export const CIGARETTE_HELD: PropPlace = { position: [-0.34, 0.62, 0.45], rotation: [-0.5, -0.5, 0] };
@@ -127,11 +119,11 @@ export const inHerFingersAt = (t: number) => (t >= CODA.takeOut[0] ? 1 : 0);
 
 const heldFrame = (karen: Placement, t: number) => {
   const torso = torsoMatrix(KAREN_SKELETON, karen);
-  return blendFrames(placeFrame(torso, CIGARETTE_HELD), placeFrame(torso, CIGARETTE_ASIDE), inWindow(t, CODA.aside));
+  return blendMatrices(placeFrame(torso, CIGARETTE_HELD), placeFrame(torso, CIGARETTE_ASIDE), inWindow(t, CODA.aside));
 };
 
 export const cigaretteFrame = (karen: Placement & { readonly mouthOpen: number }, t: number): Matrix4 =>
-  flicked(blendFrames(heldFrame(karen, t), lipsFrame(karen), atHerLipsAt(t)), tapDipAt(t));
+  flicked(blendMatrices(heldFrame(karen, t), lipsFrame(karen), atHerLipsAt(t)), tapDipAt(t));
 
 export const LIGHTER_LOW: PropPlace = { position: [-0.3, 0.52, 0.38], rotation: [0, 0, 0] };
 
@@ -152,8 +144,8 @@ const lighting = (cigarette: Matrix4, burned: number, facing: number) => {
 export const lighterFrame = (karen: Placement, t: number, cigarette: Matrix4, burned: number): Matrix4 => {
   const torso = torsoMatrix(KAREN_SKELETON, karen);
   const low = placeFrame(torso, LIGHTER_LOW);
-  const raised = blendFrames(low, lighting(cigarette, burned, karen.rotationY), inWindow(t, [CODA.lighterGrip, CODA.flick]));
+  const raised = blendMatrices(low, lighting(cigarette, burned, karen.rotationY), inWindow(t, [CODA.lighterGrip, CODA.flick]));
   const [down, pocketed] = CODA.lighterDown;
   const halfway = (down + pocketed) / 2;
-  return blendFrames(blendFrames(raised, low, inWindow(t, [down, halfway])), placeFrame(torso, PHONE_AT_POCKET), inWindow(t, [halfway, pocketed]));
+  return blendMatrices(blendMatrices(raised, low, inWindow(t, [down, halfway])), placeFrame(torso, PHONE_AT_POCKET), inWindow(t, [halfway, pocketed]));
 };

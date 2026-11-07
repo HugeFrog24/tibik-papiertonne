@@ -83,5 +83,5 @@ test("the ink pass reads each part's own width from the id target and never inks
 
 test("a doormat's coir and the box under it are one ink unit, so the id pass never stripes the coir where the two lie at the same depth", () => {
   const mats = readFileSync(path.join("src", "building", "Doormats.tsx"), "utf8");
-  expect(mats).toMatch(/<group key=\{`\$\{mat\.storey\}-\$\{mat\.side\}`\} userData=\{ONE_UNIT\}>/);
+  expect(mats.replace(/\s+/g, " ")).toMatch(/<group key=\{`[^`]*mat\.side[^`]*`\}\s*userData=\{ONE_UNIT\}\s*>/);
 });

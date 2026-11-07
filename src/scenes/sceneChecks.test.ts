@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import type { Contact } from "../physics/collision";
-import { TOLERANCE, framesOf, mm, penetrations, seconds } from "./sceneChecks";
+import { Vector3 } from "three";
+import { TOLERANCE, VERTICAL_CROP, framesOf, inVerticalCrop, mm, ndcX, penetrations, seconds } from "./sceneChecks";
 
 const contact = (a: string, b: string, depth: number) =>
   ({ a, b, depth }) as Contact;
@@ -34,4 +35,13 @@ test("mm writes a length in metres as millimetres, one decimal unless told other
   expect(mm(-0.5, 0)).toBe("-500 mm");
   expect(mm(0.00012, 2)).toBe("0.12 mm");
   expect(mm(0.0125, 0)).toBe("13 mm");
+});
+
+test("a 9:16 crop from the middle of the 16:9 frame keeps 81/256 of its width: a point at the centre is in it, one at the frame's edge is not", () => {
+  const setup = { position: [0, 0, 0] as [number, number, number], target: [0, 0, -1] as [number, number, number], fov: 50 };
+  expect(VERTICAL_CROP).toBeCloseTo(81 / 256, 12);
+  expect(ndcX(new Vector3(0, 0, -2), setup)).toBeCloseTo(0, 9);
+  expect(inVerticalCrop(new Vector3(0, 0, -2), setup)).toBe(true);
+  const edge = Math.tan((50 * Math.PI) / 360) * (16 / 9) * 2 * 0.95;
+  expect(inVerticalCrop(new Vector3(edge, 0, -2), setup)).toBe(false);
 });

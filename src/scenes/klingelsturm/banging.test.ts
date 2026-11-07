@@ -7,14 +7,14 @@ import { Vector3 } from "three";
 import { doorFrame, doorLeaf, viewerLens } from "../../building/doors";
 import { TIBIK_DOOR } from "../../building/stairwell";
 import { handSphere } from "../../characters/skeleton";
-import { mouthInWorld, onScreen } from "../../dialogue/screen";
+import { mouthInWorld } from "../../dialogue/screen";
 import { RIG } from "../../Tibik/rig";
 import { asKaren } from "../../Karen/character";
 import { KAREN_SKELETON } from "../../Karen/rig";
 import { sphereObbGap } from "../../physics/collision";
 import { floorLevel } from "../../street/building";
-import { TOLERANCE, mm, seconds } from "../sceneChecks";
-import { FRAME, cameraAt, shotAt } from "./cameras";
+import { TOLERANCE, VERTICAL_CROP, mm, ndcX, seconds } from "../sceneChecks";
+import { cameraAt, shotAt } from "./cameras";
 import { KAREN_HOME, karenAt, phoneGrip, phoneObb } from "./choreography";
 import { phoneAt, phonePlaceAt } from "./calls";
 import { PHONE_AT_POCKET } from "../../Karen/phoneShape";
@@ -39,7 +39,6 @@ const onFrame = (t: number) => Math.abs(t * FPS - Math.round(t * FPS)) < 1e-6;
 const frameOf = (t: number) => Math.round(t * FPS) / FPS;
 const leftHand = (t: number) => handSphere(KAREN_SKELETON, asKaren(solveKlingelsturm(t).karen), "leftArm");
 const leafAt = (t: number) => doorLeaf(TIBIK_DOOR, tibikDoorAt(t));
-const ndcX = (point: Vector3, t: number) => (2 * onScreen(point, cameraAt(t))[0]) / FRAME.width - 1;
 const framesOf = ([from, to]: readonly [number, number]) =>
   Array.from({ length: Math.round((to - from) * FPS) + 1 }, (_, i) => from + i / FPS);
 
@@ -111,10 +110,10 @@ test("the Wide shows the first four blows, the Flur the last two, and she dials 
 });
 
 test("the fist on the door in the Wide, and the parcel and his face in the Flur, sit within the 9:16 centre band", () => {
-  BANGING.blows.slice(0, 4).forEach((at) => expect(Math.abs(ndcX(blowPoint(at), at)), `blow @${at}`).toBeLessThanOrEqual(0.316));
+  BANGING.blows.slice(0, 4).forEach((at) => expect(Math.abs(ndcX(blowPoint(at), cameraAt(at))), `blow @${at}`).toBeLessThanOrEqual(VERTICAL_CROP));
   BANGING.blows.slice(4).forEach((at) => {
-    expect(Math.abs(ndcX(parcelBody().center, at)), `parcel @${at}`).toBeLessThanOrEqual(0.316);
-    expect(Math.abs(ndcX(mouthInWorld(RIG, tibikAt(at)), at)), `his face @${at}`).toBeLessThanOrEqual(0.316);
+    expect(Math.abs(ndcX(parcelBody().center, cameraAt(at))), `parcel @${at}`).toBeLessThanOrEqual(VERTICAL_CROP);
+    expect(Math.abs(ndcX(mouthInWorld(RIG, tibikAt(at)), cameraAt(at))), `his face @${at}`).toBeLessThanOrEqual(VERTICAL_CROP);
   });
 });
 

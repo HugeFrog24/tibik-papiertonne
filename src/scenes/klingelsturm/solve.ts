@@ -156,19 +156,20 @@ const heldLighter = (karen: KarenFrame, t: number) =>
 
 const solveCore = memoByFrame(solve);
 
-const ashRelease = lazy(() => {
-  const at = (t: number) => {
-    const { frame, burned } = solveCore(t).cigarette!;
-    return ashOnTheCigarette(frame, burned);
-  };
-  const now = at(CODA.ashOff);
-  return { ...now, velocity: now.center.clone().sub(at(CODA.ashOff - 1 / FPS).center).multiplyScalar(FPS) };
+const releaseAt = memoByFrame((off: number) => {
+  const { frame, burned } = solveCore(off).cigarette!;
+  const flicked = (t: number) => ashOnTheCigarette(cigaretteAt(t), smokedAt(t).burned).center;
+  return { ...ashOnTheCigarette(frame, burned), velocity: flicked(off).sub(flicked(off - 1 / FPS)).multiplyScalar(FPS) };
 });
 
-export const solveKlingelsturm = memoByFrame((t: number): KlingelsturmState => ({
+const solveWithAsh = memoByFrame((t: number): KlingelsturmState => ({
   ...solveCore(t),
-  ash: t < CODA.ashOff ? null : fallenAshAt(t, ashRelease()),
+  ash: t < CODA.ashOff ? null : fallenAshAt(t, releaseAt(CODA.ashOff)),
 }));
+
+export const solveKlingelsturm = Object.assign((t: number) => solveWithAsh(t), {
+  clear: () => [solveWithAsh, solveCore, releaseAt].forEach((memo) => memo.clear()),
+});
 
 export const klingelsturmSolids = (state: KlingelsturmState): Solid[] =>
   solidsAt(

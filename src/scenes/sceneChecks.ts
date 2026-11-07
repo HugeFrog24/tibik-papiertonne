@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { allColliders } from "../characters/skeleton";
-import { seenBy } from "../dialogue/screen";
+import { FRAME_SIZE, onScreen, seenBy } from "../dialogue/screen";
 import { asCharacter, type TibikFrame } from "../Tibik/character";
 import { headSurface } from "../Tibik/headShape";
 import { RIG } from "../Tibik/rig";
@@ -68,3 +68,9 @@ export const tibikHeadOutOfFrame = (tibik: TibikFrame, setup: CameraSetup): stri
     .filter(({ point }) => !seenBy(point, setup, HEAD_IN_FRAME.margin))
     .map(({ name }) => name);
 };
+
+export const VERTICAL_CROP = (9 / 16) ** 2;
+
+export const ndcX = (point: Vector3, setup: CameraSetup) => (2 * onScreen(point, setup)[0]) / FRAME_SIZE.width - 1;
+
+export const inVerticalCrop = (point: Vector3, setup: CameraSetup) => Math.abs(ndcX(point, setup)) <= VERTICAL_CROP;

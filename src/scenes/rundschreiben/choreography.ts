@@ -18,6 +18,7 @@ import {
 import { after, easeUnit, inWindow, round6, wrapAngle } from "../../characters/scalar";
 import { armColliders, type ArmPose } from "../../characters/skeleton";
 import { frame, obb } from "../../physics/collision";
+import { heightAfter, upSpeedToLand } from "../../physics/fall";
 import { TONNE, TONNE_FLOOR, tonneLidGrip } from "../../street/tonneShape";
 import {
   A4,
@@ -415,9 +416,8 @@ export const ENVELOPE_LANDS = KLOPPEN[0] + FLIGHT;
 const LANDS = { z: PAPER_BIN.position[2] - 0.27 };
 const THROW = (2 * (READY.z - LANDS.z)) / FLIGHT;
 const DRIFT = 0.18;
-const GRAVITY = 9.81;
 const LANDED = BIN_FLOOR + ENVELOPE.thickness + 0.0005;
-const FLICK = (READY.y - LANDED - (GRAVITY * FLIGHT * FLIGHT) / 2) / FLIGHT;
+const TOSSED_UP = upSpeedToLand(READY.y - LANDED, FLIGHT);
 const FLAT_ACROSS = new Matrix4().makeBasis(
   new Vector3(-1, 0, 0),
   new Vector3(0, 0, 1),
@@ -429,7 +429,7 @@ const thrown = (t: number) => {
   const slowing = (s / FLIGHT) * (2 - s / FLIGHT);
   return FLAT_ACROSS.clone().setPosition(
     READY.x - DRIFT * slowing,
-    READY.y - FLICK * s - (GRAVITY * s * s) / 2,
+    heightAfter(READY.y, TOSSED_UP, s),
     READY.z - (THROW * FLIGHT * slowing) / 2,
   );
 };

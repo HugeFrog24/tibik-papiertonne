@@ -1,10 +1,10 @@
 import { smoothstep } from "../characters/scalar";
-import type { ArmName, ArmPose } from "../characters/skeleton";
+import { handPosition, type ArmName, type ArmPose } from "../characters/skeleton";
 import { Matrix4, type Vector3 } from "three";
 import type { Obb, Solid } from "./collision";
 import { blendArm } from "./armDescent";
 import { AUTHORED_ARM, FINAL_ARM, type ArmHistory } from "./armHistory";
-import { reachArm, type Goal } from "./grip";
+import { reachArm, type Aim, type Goal } from "./grip";
 import { settleArm, type Character } from "./guards";
 
 export type Hold = {
@@ -20,6 +20,7 @@ export type Hold = {
   readonly exact?: boolean;
   readonly approach?: (u: number) => number;
   readonly starts?: readonly ArmPose[];
+  readonly path?: "hand";
 };
 
 export const followTheHand = (frame: Matrix4, hand: Vector3, near: Vector3, weight: number) => {
@@ -102,6 +103,14 @@ export const workArm = <C extends Character>(
     .filter((h) => h.arm === which && t > h.reach && t < h.done)
     .sort((a, b) => a.reach - b.reach);
   if (!hold) return settled(c.pose[which]);
+  if (hold.path === "hand" && !(next && next.reach >= hold.release)) {
+    const w = holdWeight(hold, t);
+    const pose = typeof hold.pose === "function" ? hold.pose(t) : hold.pose;
+    const aims: Aim[] = [{ goal: handPosition(c.skeleton, c, which), weight: 1 - w }, { goal: goalOf(hold, t), weight: w }];
+    const reference = blendArm(c.pose[which], pose ?? c.pose[which], w);
+    const moving = reachArm(withArmPose(c, which, reference), which, aims.filter((aim) => aim.weight > 0), solids, null, { starts: startsOf(hold), lastFrame }).pose[which];
+    return kept(moving, withArmPose(c, which, moving));
+  }
   if (next && next.reach >= hold.release && straightBetween(hold, next)) {
     const between = hold.near!(Math.min(t, hold.release)).clone().lerp(next.near!(t), holdWeight(next, t));
     const straight = reachArm(c, which, between, solids, null, { starts: startsOf(hold, next), lastFrame }).pose[which];

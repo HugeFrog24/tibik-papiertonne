@@ -54,7 +54,7 @@ const STILL_FLIPPING: Readonly<Record<string, number>> = {
   Treppenhaus: 2,
   Papiertonnen: 6,
   Hausmuell: 0,
-  Klingelsturm: 7,
+  Klingelsturm: 5,
   Nachtruhe: 6,
   Rundschreiben: 11,
 };

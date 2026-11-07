@@ -2,7 +2,11 @@ import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import { readWav } from "../../sound/wavFile";
 import { bellPresses } from "../../../scripts/bell-presses.mjs";
-import { STEP_BACK, bellRings } from "./choreography";
+import { BELL_HOLDS, STEP_BACK, bellRings } from "./choreography";
+import { solveKlingelsturm } from "./solve";
+import { asKaren } from "../../Karen/character";
+import { armJumps } from "../sceneChecks";
+import { FPS } from "../../frameRate";
 import { TO_THE_DOOR } from "./door";
 import { bellCues } from "./doorCues";
 import { shotAt } from "./cameras";
@@ -120,4 +124,13 @@ test("the one press schedule both the picture and the baked sound use: none when
   expect(bellPresses(storm, learned())).toEqual(
     bellRings().map((r) => [r.at, round6(r.at + r.length)]),
   );
+});
+
+test("she raises her hand to the bell in front of her instead of swinging it out through the staircase wall: from one frame to the next her arm never flips while it reaches", { timeout: 300_000 }, () => {
+  const [hold] = BELL_HOLDS;
+  const frames = Array.from({ length: Math.round((hold.grip - hold.reach + 0.3) * FPS) + 1 }, (_, f) => {
+    const t = hold.reach - 0.15 + f / FPS;
+    return { t, characters: { Karen: asKaren(solveKlingelsturm(t).karen) } };
+  });
+  expect(armJumps(frames)).toEqual([]);
 });

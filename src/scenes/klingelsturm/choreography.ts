@@ -65,8 +65,8 @@ export const BELL_PRESSES: readonly (readonly [number, number])[] = bellPresses(
   STORM,
   RHYTHM,
 );
-const REACH = 0.25;
-const LET_GO = 0.3;
+const REACH = 0.45;
+const LET_GO = 0.5;
 const JAB = 0.008;
 
 export const bellRings = () =>
@@ -123,6 +123,7 @@ export const BELL_HOLDS: readonly Hold[] = [
         .add(BELOW_THE_BUTTON),
     pose: BELL_ARM,
     exact: true,
+    path: "hand",
   },
 ];
 

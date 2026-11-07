@@ -1,13 +1,13 @@
-import { BED, BED_RECT, BEDROOM, BEDROOM_DOOR, BEDROOM_DOORWAY, CORD_SWITCH, cordSwitchSolid, curtainPanels } from "../../building/bedroomShape";
+import { BED, BED_RECT, BEDROOM, BEDROOM_DOOR, BEDROOM_DOORWAY, CORD_SWITCH, bedroomSolids, cordSwitchSolid, curtainPanels } from "../../building/bedroomShape";
 import { DOOR_FRAME } from "../../building/doorwayFrame";
 import { ROOM_DOOR } from "../../building/doors";
 import { Euler, Matrix4, Vector3 } from "three";
 import { blinkAt, kf } from "../../characters/animate";
-import { STEP_OVERLAP, opposite, rhythmicSteps, strideAt, touchdownTimes, walkCadence, type RootAt, type Step } from "../../characters/gait";
+import { STEP_OVERLAP, legOnToes, opposite, rhythmicSteps, strideAt, touchdownTimes, walkCadence, type Step } from "../../characters/gait";
 import { blendPose } from "../../characters/poseBlend";
 import { easeUnit, inWindow, lerp, windowUnit } from "../../characters/scalar";
-import { allColliders, armColliders, type ArmName } from "../../characters/skeleton";
-import { frame, obb } from "../../physics/collision";
+import { allColliders, armColliders, bodyColliders, type ArmName, type Placement, type Side } from "../../characters/skeleton";
+import { contacts, deepest, frame, obb, smallestClearing, sphere } from "../../physics/collision";
 import { blendArm, handHold, type Hold } from "../../physics/holds";
 import { BLANKET, blanketEdge, blanketSurface } from "../../props/blanketShape";
 import { walkFacing, type Walk } from "../../characters/walkPath";
@@ -16,17 +16,38 @@ import { plantedTibik, tibikGaitOf, type TibikFrame } from "../../Tibik/characte
 import { ARM_TUCK, RIG, TIBIK_REST, type TibikPose } from "../../Tibik/rig";
 import { walkingOn, walkingPose } from "../../Tibik/walkingArms";
 import { OUTLINE } from "../../toon/primitives";
-import { FACING_THE_WALL, pinEnd, shuffleSpan, shuffleSteps, type ShuffleTiming, type Stand } from "../enterHouse";
-import { BLANKET_BACK, CURTAIN_PULL, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LIE_DOWN, MORNING, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND, WALK_TO_BED } from "./timeline";
+import { FACING_THE_WALL, SHUFFLE, pinEnd, shuffleSpan, shuffleSteps, type ShuffleTiming } from "../enterHouse";
+import { BACK_UP, BLANKET_BACK, CURTAIN_PULL, EYES_OPEN, GET_DOWN, ONTO_THE_EDGE, SIT_BACK, LAMP_OFF, LIE_DOWN, MORNING, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND, WALK_TO_BED } from "./timeline";
 
 export const BED_SEAT = sittingOnBed(BED_RECT.x0 + 1.3);
 
-const STAND = { x: BED_SEAT.position[0], z: BED_RECT.z0 - BED.frame - BACK_DEPTH - OUTLINE - 0.02 };
+const MATTRESS = bedroomSolids({ door: 0, curtain: [0, 0] }).filter((s) => s.name === "mattress");
+const BACK_GAP = 0.01;
+const LIFT_ONTO_IT = 0.15;
+const BACKS_UP_BY = 0.14;
+
+const intoTheMattress = (placement: Placement, grow = 0) => {
+  const body = bodyColliders(RIG, placement);
+  return deepest(contacts([...body.torso, ...body.lowerTorso].map((s) => sphere(s.name, s.center, s.radius + grow)), MATTRESS));
+};
+
+const withBob = (placement: Placement, bob: number) => ({ ...placement, pose: { ...placement.pose, bob } });
+
+const restingOn = (placement: Placement) =>
+  placement.pose.bob + smallestClearing((lift) => intoTheMattress(withBob(placement, placement.pose.bob + lift)), LIFT_ONTO_IT, 0.01);
+
+const backTo = (x: number, z: number, rotationY: number, pose: TibikPose) => ({ position: [x, BEDROOM.floor, z] as [number, number, number], rotationY, pose });
+
+const STAND = {
+  x: BED_SEAT.position[0],
+  z: BED_RECT.z0 - smallestClearing((d) => intoTheMattress(backTo(BED_SEAT.position[0], BED_RECT.z0 - d, BED_SEAT.rotationY, TIBIK_REST), OUTLINE), 0.6, 0.02) - BACK_GAP,
+};
+const TURN_SPOT = { x: STAND.x, z: STAND.z - BACKS_UP_BY };
 const CLEAR = { latch: BEDROOM_DOORWAY.x0 + DOOR_FRAME.lining, leaf: BEDROOM_DOOR.hinge[0] - ROOM_DOOR.thickness };
 const DOORWAY_X = (CLEAR.latch + CLEAR.leaf) / 2;
 const TUCKED_UNTIL = BEDROOM.z0 + BACK_DEPTH + 0.1;
 const FROM_THE_HALL = 0;
-const HOP = { rise: 0.55, back: [0.3, 1] as const };
+const SIT_BACK_MOVES = { toes: windowUnit(ONTO_THE_EDGE, SIT_BACK), legs: 0.55, perch: 0.06 };
 const EVENING_BLINKS = [10.9, 12.9, 14.2, 16.8, 18.1];
 
 const toBed: Walk = {
@@ -35,24 +56,24 @@ const toBed: Walk = {
   via: [
     [DOORWAY_X, BEDROOM.z0 - 0.75],
     [DOORWAY_X, BEDROOM.z0 + 0.9],
-    [STAND.x + 0.7, STAND.z],
-    [STAND.x, STAND.z],
+    [TURN_SPOT.x + 0.7, TURN_SPOT.z],
+    [TURN_SPOT.x, TURN_SPOT.z],
   ],
 };
 
-const toBedRoot = (t: number) => ({ ...walkFacing(toBed, t, FACING_THE_WALL, true, FROM_THE_HALL), y: BEDROOM.floor });
+const toBedRoot = (t: number) =>
+  t < BACK_UP[0]
+    ? { ...walkFacing(toBed, t, FACING_THE_WALL, true, FROM_THE_HALL), y: BEDROOM.floor }
+    : { x: STAND.x, z: lerp(TURN_SPOT.z, STAND.z, easeUnit(windowUnit(t, BACK_UP))), yaw: FACING_THE_WALL, y: BEDROOM.floor };
 
 const floorAt = () => BEDROOM.floor;
 
-const legGait = (root: RootAt, leg: readonly [number, number], stands: readonly Stand[], facing: number, until: number) =>
-  tibikGaitOf(
-    root,
-    () => pinEnd(rhythmicSteps({ from: leg[0], to: leg[1], first: -1, cadence: walkCadence(root), overlap: STEP_OVERLAP }), stands, facing),
-    until,
-    floorAt,
-  );
+const toBedSteps = () => {
+  const walked = pinEnd(rhythmicSteps({ from: WALK_TO_BED[0], to: WALK_TO_BED[1], first: -1, cadence: walkCadence(toBedRoot), overlap: STEP_OVERLAP }), [TURN_SPOT, TURN_SPOT], FACING_THE_WALL);
+  return [...walked, ...shuffleSteps(BACK_UP[0], TURN_SPOT, STAND, opposite(walked[walked.length - 1].side), FACING_THE_WALL, SHUFFLE)];
+};
 
-const toBedGait = legGait(toBedRoot, WALK_TO_BED, [STAND, STAND], FACING_THE_WALL, HOP_UP[0]);
+const toBedGait = tibikGaitOf(toBedRoot, toBedSteps, SIT_BACK[0], floorAt);
 
 const walkingIn = (t: number): TibikFrame => {
   const { x, y, z, yaw } = toBedRoot(t);
@@ -82,16 +103,38 @@ const placed = (
   tilt,
 });
 
-const standing = () => walkingIn(HOP_UP[0]);
+const standing = () => walkingIn(SIT_BACK[0]);
 
-const hopAt = (t: number, k: number): TibikFrame => {
+const finalPlant = (side: Side) => {
+  const plants = toBedGait().plants[side === 1 ? "leftLeg" : "rightLeg"];
+  return plants[plants.length - 1];
+};
+
+const onHisToes = (placement: Placement): TibikPose => ({
+  ...placement.pose,
+  leftLeg: legOnToes(RIG, placement, 1, finalPlant(1)),
+  rightLeg: legOnToes(RIG, placement, -1, finalPlant(-1)),
+});
+
+const sitBackAt = (t: number, k: number): TibikFrame => {
   const from = standing();
-  const back = easeUnit((k - HOP.back[0]) / (HOP.back[1] - HOP.back[0]));
-  return placed(t, {
-    position: [lerp(from.position[0], BED_SEAT.position[0], back), BEDROOM.floor, lerp(from.position[2], BED_SEAT.position[2], back)],
-    rotationY: BED_SEAT.rotationY,
-    pose: { ...blendPose(from.pose, SITTING, easeUnit(k)), bob: lerp(from.pose.bob, SITTING.bob, easeUnit(k / HOP.rise)) },
-  });
+  const { toes, legs, perch } = SIT_BACK_MOVES;
+  const upperAt = (w: number) => blendPose(from.pose, SITTING, easeUnit(w));
+  const along = (a: number, b: number, w: number) => backTo(lerp(from.position[0], BED_SEAT.position[0], w), lerp(a, b, w), lerp(from.rotationY, BED_SEAT.rotationY, w), upperAt(k));
+  const perchZ = from.position[2] + perch;
+  const perchAt = backTo(from.position[0], perchZ, from.rotationY, upperAt(toes));
+  const perchBob = restingOn(withBob(perchAt, 0));
+  if (k < toes) {
+    const u = easeUnit(k / toes);
+    const at = along(from.position[2], perchZ, u);
+    return placed(t, { ...at, pose: onHisToes(withBob(at, restingOn(withBob(at, lerp(0, perchBob, u))))) });
+  }
+  const v = (k - toes) / (1 - toes);
+  const u = easeUnit(v);
+  const at = along(perchZ, BED_SEAT.position[2], u);
+  const lifted = withBob(at, restingOn(withBob(at, lerp(perchBob, SITTING.bob, u))));
+  const swung = blendPose(onHisToes(withBob(perchAt, perchBob)), SITTING, easeUnit(v / legs));
+  return placed(t, { ...lifted, pose: { ...lifted.pose, leftLeg: swung.leftLeg, rightLeg: swung.rightLeg } });
 };
 
 const UP = sittingUpInBed(-1);
@@ -123,10 +166,10 @@ const lieAt = (t: number, w: number): TibikFrame =>
   );
 
 const evening = (t: number): TibikFrame =>
-  t < HOP_UP[0]
+  t < SIT_BACK[0]
     ? walkingIn(t)
-    : t < HOP_UP[1]
-      ? hopAt(t, windowUnit(t, HOP_UP))
+    : t < SIT_BACK[1]
+      ? sitBackAt(t, windowUnit(t, SIT_BACK))
       : t < SWING_IN[0]
         ? placed(t, BED_SEAT)
         : t < SWING_IN[1]
@@ -156,8 +199,8 @@ const toWindow: Walk = {
   to: WALK_ROUND[1],
   via: [
     [STAND.x, STAND.z],
-    [STAND.x + 0.55, STAND.z - 0.6],
-    [(BED_RECT.x1 + BED.frame + BEDROOM.x1) / 2, STAND.z - 0.2],
+    [STAND.x + 0.55, TURN_SPOT.z - 0.6],
+    [(BED_RECT.x1 + BED.frame + BEDROOM.x1) / 2, TURN_SPOT.z - 0.2],
     [AT_THE_WINDOW.x, AT_THE_WINDOW.z],
   ],
 };
@@ -197,10 +240,10 @@ const morning = (t: number): TibikFrame =>
         ? placed(t, UP)
         : t < SWING_OUT[1]
           ? swingAt(t, 1 - windowUnit(t, SWING_OUT))
-          : t < HOP_DOWN[0]
+          : t < GET_DOWN[0]
             ? placed(t, BED_SEAT)
-            : t < HOP_DOWN[1]
-              ? hopAt(t, 1 - windowUnit(t, HOP_DOWN))
+            : t < GET_DOWN[1]
+              ? sitBackAt(t, 1 - windowUnit(t, GET_DOWN))
               : t < WALK_ROUND[0]
                 ? placed(t, standing())
                 : walkingRound(t);
@@ -316,4 +359,4 @@ export const MORNING_HOLDS: readonly Hold[] = [
   }),
 ];
 
-export const bedroomStepTimes = (fps: number) => [...touchdownTimes(toBedGait(), HOP_UP[0], fps), ...touchdownTimes(toWindowGait(), MORNING[1], fps)];
+export const bedroomStepTimes = (fps: number) => [...touchdownTimes(toBedGait(), SIT_BACK[0], fps), ...touchdownTimes(toWindowGait(), MORNING[1], fps)];

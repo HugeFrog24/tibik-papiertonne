@@ -342,8 +342,13 @@ composition under "Scenes" in the Studio:
   top, a drawer over a door) with a table lamp on each (warm, about 2700 K,
   a rocker switch on the foot) and a socket above it on the wall. He sleeps
   on the door side; in the evening only his own lamp is on (user decision).
-  His hips (48 cm) sit below the mattress top (55 cm): he hops up onto its
-  edge (user decision). **(test)**
+  The bottom of his body stands 5 cm below the mattress top (55 cm), so he
+  no longer hops (user decision 2026-11-06: longer legs instead): he stops
+  where he can turn, turns his back to the bed and shuffles back until it is
+  a finger's width behind him, rises on his toes (heels up, the drawn feet
+  rolling on the floor) and sits back onto its edge; his toes leave the floor
+  only once his bottom rests on the mattress. In the morning he slides
+  forward off the edge onto his toes and lowers his heels. **(test)**
 - **Curtains:** two sand panels on a ceiling rail behind a wood-look pelmet,
   20 cm in front of the window wall, meeting at the window's middle, each
   1.5 times its width in fabric; drawn, they cover the window with room to

@@ -1,3 +1,4 @@
+import { smallestClearing } from "../physics/collision";
 import { clamp, easeUnit, smoothstep, wrapAngle } from "./scalar";
 import { Matrix4, Quaternion, Vector3 } from "three";
 import { legLength, restAnkle, solveLeg } from "./legs";
@@ -6,6 +7,7 @@ import {
   footCenter,
   hipPosition,
   type LegName,
+  type LegPose,
   type Placement,
   type Pose,
   type Side,
@@ -666,28 +668,99 @@ export const bobLimit = (plan: GaitPlan, t: number) => {
   return values[i] + (values[i + 1] - values[i]) * (at - i);
 };
 
+const bodyFrame = (placement: Placement, bob: number) => {
+  const [x, y, z] = placement.position;
+  return new Matrix4().compose(
+    new Vector3(x, y + bob, z),
+    new Quaternion().setFromAxisAngle(Y_AXIS, placement.rotationY),
+    new Vector3(1, 1, 1),
+  );
+};
+
+type Foot = { readonly ankle: Vector3; readonly rotation: Quaternion };
+
+const legReaching = (
+  skeleton: Skeleton,
+  placement: Placement,
+  bob: number,
+  side: Side,
+  foot: Foot,
+): LegPose =>
+  solveLeg(
+    skeleton,
+    side,
+    foot.ankle.clone().applyMatrix4(bodyFrame(placement, bob).invert()),
+    new Quaternion()
+      .setFromAxisAngle(Y_AXIS, -placement.rotationY)
+      .multiply(foot.rotation),
+  );
+
+const HIGHEST_HEEL = 1.2;
+const ARC_STEPS = 24;
+
+const lowestOnTheSole = (ry: number, rz: number, pitch: number) => {
+  const reach = Math.hypot(ry * Math.cos(pitch), rz * Math.sin(pitch));
+  return new Vector3(0, (-ry * ry * Math.cos(pitch)) / reach, (rz * rz * Math.sin(pitch)) / reach);
+};
+
+const rolledAlong = (ry: number, rz: number, pitch: number) => {
+  const end = Math.atan2((-ry * Math.cos(pitch)) / ry, (rz * Math.sin(pitch)) / rz);
+  const start = -Math.PI / 2;
+  const step = (end - start) / ARC_STEPS;
+  let length = 0;
+  for (let i = 0; i < ARC_STEPS; i++) {
+    const phi = start + (i + 0.5) * step;
+    length += Math.hypot(rz * Math.sin(phi), ry * Math.cos(phi)) * step;
+  }
+  return length;
+};
+
+const rolled = (skeleton: Skeleton, plant: Plant, pitch: number): Foot => {
+  const [, ry, rz] = skeleton.foot.size;
+  const center = new Vector3(...footCenter(skeleton, plant.side));
+  const level = footRotation(plant.yaw, 0);
+  const rotation = footRotation(plant.yaw, pitch);
+  const contact = plant.ankle
+    .clone()
+    .add(center.clone().applyQuaternion(level))
+    .add(new Vector3(0, -ry, rolledAlong(ry, rz, pitch)).applyQuaternion(level));
+  const ankle = contact
+    .sub(lowestOnTheSole(ry, rz, pitch).applyQuaternion(rotation))
+    .sub(center.applyQuaternion(rotation));
+  return { ankle, rotation };
+};
+
+export const legOnToes = (
+  skeleton: Skeleton,
+  placement: Placement,
+  side: Side,
+  plant: Plant,
+): LegPose => {
+  const hip = new Vector3(...hipPosition(skeleton, side)).applyMatrix4(
+    bodyFrame(placement, placement.pose.bob),
+  );
+  const pitch = smallestClearing(
+    (p) => hip.distanceTo(rolled(skeleton, plant, p).ankle) - legLength(skeleton),
+    HIGHEST_HEEL,
+    0.02,
+  );
+  return legReaching(
+    skeleton,
+    placement,
+    placement.pose.bob,
+    side,
+    rolled(skeleton, plant, pitch),
+  );
+};
+
 export const plantFeet = (
   plan: GaitPlan,
   t: number,
   placement: Placement,
 ): Pose => {
-  const { skeleton } = plan;
   const bob = Math.min(placement.pose.bob, bobLimit(plan, t));
-  const [x, y, z] = placement.position;
-  const turn = new Quaternion().setFromAxisAngle(Y_AXIS, placement.rotationY);
-  const toBody = new Matrix4()
-    .compose(new Vector3(x, y + bob, z), turn, new Vector3(1, 1, 1))
-    .invert();
-  const unturn = turn.clone().invert();
-  const leg = (side: Side) => {
-    const foot = footAt(plan, side, t);
-    return solveLeg(
-      skeleton,
-      side,
-      foot.ankle.clone().applyMatrix4(toBody),
-      unturn.clone().multiply(foot.rotation),
-    );
-  };
+  const leg = (side: Side) =>
+    legReaching(plan.skeleton, placement, bob, side, footAt(plan, side, t));
   return { ...placement.pose, bob, leftLeg: leg(1), rightLeg: leg(-1) };
 };
 

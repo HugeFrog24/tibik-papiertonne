@@ -51,6 +51,18 @@ const underside = (drawn: Drawn, placement: Placement, side: Side) => {
   );
 };
 
+export const soleHeight = (
+  drawn: Drawn,
+  placement: Placement,
+  side: Side,
+  ground: (x: number, z: number) => number,
+) =>
+  Math.min(
+    ...underside(drawn, placement, side).map(
+      (p) => p.y - drawn.outline - ground(p.x, p.z),
+    ),
+  );
+
 export const sunkSoles = (
   drawn: Drawn,
   placementAt: (t: number) => Placement,
@@ -63,11 +75,7 @@ export const sunkSoles = (
     const t = f / FPS;
     const placement = placementAt(t);
     for (const side of [1, -1] as const) {
-      const depth = Math.max(
-        ...underside(drawn, placement, side).map(
-          (p) => ground(p.x, p.z) - (p.y - drawn.outline),
-        ),
-      );
+      const depth = -soleHeight(drawn, placement, side, ground);
       if (depth > 1e-9)
         problems.push(
           `${t.toFixed(2)} s: foot ${side} ${mm(depth)} into the ground`,

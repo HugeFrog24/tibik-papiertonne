@@ -13,7 +13,7 @@ import { ENTRY as EPILOGUE_ENTRY } from "../rundschreiben/choreography";
 import { PULLING, PUSHING, bedroomStepTimes } from "./bedroom";
 import { cameraAt, inTheBedroom } from "./cameras";
 import { duskStepTimes, rainShareAt } from "./choreography";
-import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, HOP_DOWN, HOP_UP, LAMP_OFF, NACHTRUHE_DURATION } from "./timeline";
+import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, GET_DOWN, ONTO_THE_EDGE, LAMP_OFF, NACHTRUHE_DURATION } from "./timeline";
 
 export const BLACKBIRD = { name: "Blackbird", file: "blackbird", volume: 0.3 } as const;
 
@@ -52,13 +52,13 @@ export const NACHTRUHE_CUES: readonly FileCue[] = [
   ...entryCues(ENTRY)
     .filter((cue) => !inTheBedroom(cue.at))
     .map((cue) => ({ ...cue, volume: cue.volume * HAUSTUER_FAR_OFF })),
-  { name: "The bed creaks as he sits on it", at: HOP_UP[1], file: "creak2.ogg", volume: 0.12 },
+  { name: "The bed creaks as he sits on it", at: ONTO_THE_EDGE, file: "creak2.ogg", volume: 0.12 },
   { name: "Fleece drawn up by his right hand", at: PULLING.right[0], file: "cloth1.ogg", volume: 0.3 },
   { name: "Fleece drawn over by his left hand", at: PULLING.left[0], file: "cloth3.ogg", volume: 0.3 },
   { name: "His lamp clicks off", at: LAMP_OFF, file: "switch_002.ogg", volume: 0.2 },
   { name: "Fleece pushed back by his left hand", at: PUSHING.left[0], file: "cloth4.ogg", volume: 0.3 },
   { name: "Fleece pushed back by his right hand", at: PUSHING.right[0], file: "cloth2.ogg", volume: 0.3 },
-  { name: "The bed creaks as he gets up", at: HOP_DOWN[0], file: "creak3.ogg", volume: 0.12 },
+  { name: "The bed creaks as he gets up", at: GET_DOWN[0], file: "creak3.ogg", volume: 0.12 },
   ...CURTAIN_PULLS.flatMap(([from], k) => [
     { name: `Curtain fabric swishes, pull ${k + 1}`, at: from, file: CURTAIN_SWISHES[k % CURTAIN_SWISHES.length], volume: 0.18 },
     { name: `Curtain gliders run along the rail, pull ${k + 1}`, at: from, file: "curtain-gliders.wav", volume: 0.35 },

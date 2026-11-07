@@ -1,25 +1,12 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
-import type { Obb } from "../physics/collision";
+import { obbCorners, type Obb } from "../physics/collision";
 import { TONNE, tonneColliders, tonneLidParts } from "./tonneShape";
 
 const AT = [0, 0, 0] as [number, number, number];
 
-const corners = (box: Obb) =>
-  [-1, 1].flatMap((u) =>
-    [-1, 1].flatMap((v) =>
-      [-1, 1].map((w) =>
-        box.center
-          .clone()
-          .addScaledVector(box.axes[0], u * box.half[0])
-          .addScaledVector(box.axes[1], v * box.half[1])
-          .addScaledVector(box.axes[2], w * box.half[2]),
-      ),
-    ),
-  );
-
 const extent = (boxes: readonly Obb[], axis: "x" | "y" | "z") => {
-  const values = boxes.flatMap(corners).map((p: Vector3) => p[axis]);
+  const values = boxes.flatMap(obbCorners).map((p: Vector3) => p[axis]);
   return [Math.min(...values), Math.max(...values)] as const;
 };
 

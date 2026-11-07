@@ -1,8 +1,8 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { BED_RECT, BEDROOM, CORD_SWITCH, PANE, bedroomSolids, cordPath, cordSwitchSolid, curtainPanels } from "../../building/bedroomShape";
-import { allColliders, armColliders, bodyColliders, handPosition, handSphere } from "../../characters/skeleton";
-import { contacts, sphere, sphereObbGap, type Solid } from "../../physics/collision";
+import { allColliders, armColliders, bodyColliders, handPosition, handSphere, legFramesOf, type Placement, type Side } from "../../characters/skeleton";
+import { contacts, sphere, sphereObbGap, type Obb, type Solid } from "../../physics/collision";
 import { OUTLINE } from "../../toon/primitives";
 import { blanketProblems } from "../../props/blanketChecks";
 import { blanketGrid, blanketSurface } from "../../props/blanketShape";
@@ -12,17 +12,17 @@ import { characterViolations } from "../../physics/guards";
 import { DOORSTEP, FACADE_Z } from "../../street/building";
 import { entranceGround } from "../../street/layout";
 import { asCharacter } from "../../Tibik/character";
-import { RIG } from "../../Tibik/rig";
-import { TIBIK_FOOT, sunkSoles } from "../drawnSoles";
+import { RIG, TIBIK_REST } from "../../Tibik/rig";
+import { TIBIK_FOOT, soleHeight, sunkSoles } from "../drawnSoles";
 import { DOOR_STAND } from "../enterHouse";
 import { expectGoesIn, expectKeyTurnsByHand, keysAwayFromFist } from "../entryChecks";
-import { lensProblems, penetrations, seconds } from "../sceneChecks";
+import { lensProblems, mm, penetrations, seconds } from "../sceneChecks";
 import { streetSolids } from "../streetSolids";
 import { cameraAt } from "./cameras";
 import { BED_SEAT, duskRootAt } from "./choreography";
 import { AT_THE_WINDOW, CURTAIN_OPENS_TO, PULLING, PUSHING, STAND, blanketLie, curtainGrip } from "./bedroom";
 import { solveNachtruhe, type NachtruheState } from "./solve";
-import { BLANKET_BACK, CURTAIN_PULL, CURTAIN_PULLS, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, HOP_DOWN, HOP_UP, LAMP_OFF, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND } from "./timeline";
+import { BLANKET_BACK, CURTAIN_PULL, CURTAIN_PULLS, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, GET_DOWN, SIT_BACK, LAMP_OFF, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND } from "./timeline";
 
 const dusk = Array.from({ length: Math.round(DUSK[1] * FPS) }, (_, f) => f / FPS);
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
@@ -78,17 +78,54 @@ test("in the evening Tibik passes through nothing in the bedroom, outlines inclu
 
 test("in the bedroom his drawn soles never dip below the floor, walking in at night or round the bed in the morning", { timeout: 300_000 }, () => {
   const on = (t: number) => ({ ...solveNachtruhe(t).tibik, skeleton: RIG });
-  expect(sunkSoles(TIBIK_FOOT, on, DUSK[1], HOP_UP[0], () => BEDROOM.floor).slice(0, 6)).toEqual([]);
-  expect(sunkSoles(TIBIK_FOOT, on, HOP_DOWN[1] + 0.05, MORNING[1], () => BEDROOM.floor).slice(0, 6)).toEqual([]);
+  expect(sunkSoles(TIBIK_FOOT, on, DUSK[1], SIT_BACK[1], () => BEDROOM.floor).slice(0, 6)).toEqual([]);
+  expect(sunkSoles(TIBIK_FOOT, on, GET_DOWN[0], MORNING[1], () => BEDROOM.floor).slice(0, 6)).toEqual([]);
 });
 
-test("he comes in through the bedroom door, walks along his side of the bed and hops up onto its edge", () => {
+test("he comes in through the bedroom door, walks along his side of the bed, stops with his back close to its edge and sits back onto it", () => {
   expect(solveNachtruhe(DUSK[1]).tibik.position[2]).toBeLessThan(BEDROOM.z0 + 0.6);
-  for (const t of between(DUSK[1], HOP_UP[0])) expect(solveNachtruhe(t).tibik.position[2], t.toFixed(2)).toBeLessThan(BED_RECT.z0 - 0.3);
-  const sat = solveNachtruhe(HOP_UP[1] + 0.2).tibik;
+  expect(BED_SEAT.position[2] - STAND.z).toBeLessThan(0.4);
+  for (const t of between(DUSK[1], SIT_BACK[0])) expect(solveNachtruhe(t).tibik.position[2], t.toFixed(2)).toBeLessThanOrEqual(STAND.z + 0.001);
+  const sat = solveNachtruhe(SIT_BACK[1] + 0.1).tibik;
   sat.position.forEach((v, i) => expect(Math.abs(v - BED_SEAT.position[i]), `axis ${i}`).toBeLessThan(0.01));
   expect(sat.rotationY).toBeCloseTo(Math.PI, 3);
   expect(sat.pose.bob).toBeCloseTo(SITTING.bob, 3);
+});
+
+const MATTRESS = bedroomSolids({ door: 0, curtain: [0, 0] }).find((s) => s.name === "mattress") as Obb;
+const SIDES = [1, -1] as const;
+const ON_THE_FLOOR = soleHeight(TIBIK_FOOT, { position: [0, 0, 0], rotationY: 0, pose: TIBIK_REST }, 1, () => 0) + 0.002;
+const RESTING_ON_IT = 0.01;
+const HEELS_UP = 0.2;
+
+const footPitch = (placement: Placement, side: Side) => -Math.asin(new Vector3().setFromMatrixColumn(legFramesOf(RIG, placement, side).ankle, 2).normalize().y);
+
+const supportAt = (t: number) => {
+  const placement = { ...solveNachtruhe(t).tibik, skeleton: RIG };
+  const body = bodyColliders(RIG, placement);
+  return {
+    seat: Math.min(...[...body.torso, ...body.lowerTorso].map((s) => sphereObbGap(s, MATTRESS))),
+    toes: Math.max(...SIDES.map((side) => soleHeight(TIBIK_FOOT, placement, side, () => BEDROOM.floor))),
+    heels: Math.min(...SIDES.map((side) => footPitch(placement, side))),
+  };
+};
+
+const unsupported = (window: readonly [number, number]) =>
+  between(...window).flatMap((t) => {
+    const { seat, toes } = supportAt(t);
+    return toes > ON_THE_FLOOR && seat > RESTING_ON_IT ? [`${t.toFixed(2)} s: toes ${mm(toes)} off the floor, seat ${mm(seat)} above the mattress`] : [];
+  });
+
+const onTiptoe = (window: readonly [number, number]) =>
+  between(...window).filter((t) => {
+    const { toes, heels } = supportAt(t);
+    return toes <= ON_THE_FLOOR && heels > HEELS_UP;
+  }).length;
+
+test("he rises on his toes and sits back onto the edge: his toes stay on the floor until his bottom rests on the mattress, and he never rises above his seat", () => {
+  expect(unsupported(SIT_BACK).slice(0, 6)).toEqual([]);
+  expect(onTiptoe(SIT_BACK)).toBeGreaterThan(3);
+  expect(Math.max(...between(...SIT_BACK).map((t) => solveNachtruhe(t).tibik.pose.bob))).toBeLessThanOrEqual(SITTING.bob + 0.001);
 });
 
 test("the doorway camera keeps 30 cm off Tibik and out of every solid while he goes to bed", { timeout: 300_000 }, () => {
@@ -170,16 +207,18 @@ test("his eyes close in the dark and stay shut until he opens them in the mornin
   expect(solveNachtruhe(EYES_OPEN[1] + 0.05).tibik.pose.blink).toBeLessThan(0.05);
 });
 
-test("he sits up, swings his legs out and hops down where he hopped up", () => {
+test("he sits up, swings his legs out and slides off the edge onto his toes where he sat back", () => {
   const up = solveNachtruhe(SIT_UP[1] + 0.05).tibik;
   expect(near(up.position, sittingUpInBed(-1).position, 0.01)).toBe(true);
   expect(up.tilt ?? 0).toBeCloseTo(0, 3);
   const edge = solveNachtruhe(SWING_OUT[1] + 0.05).tibik;
   expect(near(edge.position, BED_SEAT.position, 0.01)).toBe(true);
   expect(edge.rotationY).toBeCloseTo(Math.PI, 3);
-  const down = solveNachtruhe(HOP_DOWN[1] + 0.05).tibik;
+  const down = solveNachtruhe(GET_DOWN[1] + 0.05).tibik;
   expect(near(down.position, [STAND.x, BEDROOM.floor, STAND.z], 0.01)).toBe(true);
   expect(down.pose.bob).toBeLessThan(0.02);
+  expect(unsupported(GET_DOWN).slice(0, 6)).toEqual([]);
+  expect(onTiptoe(GET_DOWN)).toBeGreaterThan(3);
 });
 
 test("the cord switch rests on his pillow and its cord runs to the lamp through nothing, him included, outlines included", { timeout: 300_000 }, () => {
@@ -207,7 +246,7 @@ test("after getting up he walks round the foot of the bed to the near end of the
   expect(Math.cos(there.rotationY)).toBeGreaterThan(0.99);
   for (const t of between(WALK_ROUND[0], WALK_ROUND[1])) {
     const [x, , z] = solveNachtruhe(t).tibik.position;
-    expect(x > BED_RECT.x1 || z < BED_RECT.z0 - 0.3, t.toFixed(2)).toBe(true);
+    expect(x > BED_RECT.x1 || z <= STAND.z + 0.001, t.toFixed(2)).toBe(true);
   }
 });
 

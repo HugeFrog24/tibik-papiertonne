@@ -22,8 +22,9 @@ export const LAMP_OFF = atFrame(PULL_OVER[1] + 0.8);
 export const EVENING = [DUSK[1], LAMP_OFF + 1.6] as const;
 
 export const DRONE = after(EVENING[1], 8);
-export const KAREN_OUT = DRONE[0] + 6.5;
-export const DAWN = after(DRONE[1], 3);
+export const KAREN_OUT = DRONE[0] + 4.6;
+export const DAWN = [DRONE[0] + 4, DRONE[1]] as const;
+export const RAIN_BUILDS = [DRONE[0] + 1, DRONE[1]] as const;
 
 export const EYES_OPEN = after(DAWN[1] + 1, 0.3);
 export const BLANKET_BACK = after(EYES_OPEN[1] + 0.8, 1.2);

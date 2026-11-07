@@ -13,11 +13,11 @@ import { ENTRY as EPILOGUE_ENTRY } from "../rundschreiben/choreography";
 import { PULLING, PUSHING, bedroomStepTimes } from "./bedroom";
 import { cameraAt, inTheBedroom } from "./cameras";
 import { duskStepTimes, rainShareAt } from "./choreography";
-import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, GET_DOWN, ONTO_THE_EDGE, LAMP_OFF, NACHTRUHE_DURATION } from "./timeline";
+import { CURTAIN_PULLS, DAWN, DRONE, RAIN_BUILDS, DUSK, ENTRY, GET_DOWN, ONTO_THE_EDGE, LAMP_OFF, NACHTRUHE_DURATION } from "./timeline";
 
 export const BLACKBIRD = { name: "Blackbird", file: "blackbird", volume: 0.3 } as const;
 
-export const RAIN_FROM = DAWN[0];
+export const RAIN_FROM = RAIN_BUILDS[0];
 
 export const EPILOGUE_RAIN_START = ((Math.round(NACHTRUHE_DURATION * FPS) - Math.round(RAIN_FROM * FPS)) / FPS) % RAIN.seconds;
 

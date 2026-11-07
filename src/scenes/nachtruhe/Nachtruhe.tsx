@@ -25,7 +25,7 @@ import { blanketLie } from "./bedroom";
 import { CAPTION, cameraAt, inTheBedroom, lightingAt } from "./cameras";
 import { NachtruheSound } from "./NachtruheSound";
 import { solveNachtruhe, type NachtruheState } from "./solve";
-import { DAWN, DUSK } from "./timeline";
+import { DRONE, DUSK } from "./timeline";
 
 const roomLight = (state: NachtruheState) => ({ lamps: state.lamps, daylight: daylightOf(state.look), streetGlow: state.lampsOn ? 1 : 0 });
 
@@ -71,7 +71,7 @@ const Scene: React.FC = () => {
     <>
       <Outside t={t} state={state} />
       {stairwellShown(state) ? <StairwellSet tibikDoor={0} lights={state.stairwellLit ? 1 : 0} livingRoomLit={state.livingRoomLit} /> : null}
-      <BinRow lids={state.lids} boxTaken emptied={t >= DAWN[0]} />
+      <BinRow lids={state.lids} boxTaken emptied={t >= DRONE[1]} />
       {t < DUSK[1] ? tibik : null}
       {state.keys ? <KeyRing matrix={state.keys} /> : null}
     </>

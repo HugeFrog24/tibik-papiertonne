@@ -7,6 +7,7 @@ import { WEATHER } from "../../weather/overcast";
 import { PANE, curtainPanels } from "../../building/bedroomShape";
 import { NACHTRUHE_DURATION, NACHTRUHE_SHOTS } from "./cameras";
 import { FAR, HIS, LIGHTS, nachtruheWorldAt } from "./choreography";
+import { DAWN, DRONE, KAREN_OUT } from "./timeline";
 
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) + 1 }, (_, f) => f / FPS);
 const shot = (name: string) => NACHTRUHE_SHOTS.find((s) => s.name === name)!;
@@ -53,15 +54,15 @@ test("his window glows exactly while his bedside lamp is on, and the far lamp st
 });
 
 test("in the morning he leaves his lamp off: the day is up, and he opens the curtains anyway", () => {
-  for (const t of frames.filter((f) => f >= shot("Dawn").from)) expect(nachtruheWorldAt(t).lamps[HIS], t.toFixed(2)).toBe(false);
+  for (const t of frames.filter((f) => f >= DAWN[0])) expect(nachtruheWorldAt(t).lamps[HIS], t.toFixed(2)).toBe(false);
 });
 
-test("dusk turns to night, one grey dawn blends into the rain, and the morning hands the epilogue its rainy world", () => {
+test("dusk turns to night, the grey dawn breaks while the camera rises and blends into the rain, and the morning hands the epilogue its rainy world", () => {
   expect(nachtruheWorldAt(0).look).toEqual(WEATHER.dusk);
   expect(nachtruheWorldAt(shot("Drone rise").from).look).toEqual(WEATHER.night);
-  expect(nachtruheWorldAt(shot("Dawn").from - 0.1).rain).toBe(0);
-  expect(nachtruheWorldAt(shot("Dawn").from).rain).toBe(0);
-  expect(nachtruheWorldAt(shot("Dawn").to).rain).toBe(1);
+  expect(nachtruheWorldAt(shot("Drone rise").from).rain).toBe(0);
+  expect(nachtruheWorldAt(DAWN[0]).look).not.toEqual(WEATHER.rain);
+  expect(nachtruheWorldAt(shot("Drone rise").to).rain).toBe(1);
   expect(nachtruheWorldAt(NACHTRUHE_DURATION).look).toEqual(WEATHER.rain);
   expect(nachtruheWorldAt(NACHTRUHE_DURATION).lampsOn).toBe(false);
   expect(nachtruheWorldAt(NACHTRUHE_DURATION).curtains[0]).toBe(0);
@@ -83,19 +84,29 @@ test("before the morning every window is lit for one unbroken stretch at most, a
     }
 });
 
-test("the rain sets in through the dawn, a few drops first and the full shower by its end, and is heard as it is seen", () => {
-  const dawn = shot("Dawn");
-  let previous = 0;
-  for (let t = dawn.from; t <= dawn.to; t += 1 / 30) {
-    const { rain } = nachtruheWorldAt(t);
-    expect(rain).toBeGreaterThanOrEqual(previous);
-    expect(rain - previous).toBeLessThan(0.06);
-    expect(rainLevelAt(t)).toBeCloseTo(RAIN.volume * rain, 12);
-    previous = rain;
-  }
-  expect(nachtruheWorldAt(dawn.from + 0.5).rain).toBeLessThan(0.15);
-});
-
 test("of his flat only the bedroom lights: the living-room lamp stays off all Nachtruhe, so nothing glows through the facade from it", () => {
   for (let t = 0; t <= NACHTRUHE_DURATION; t += 0.5) expect(nachtruheWorldAt(t).livingRoomLit, `${t} s`).toBe(false);
+});
+
+test("the night passes while the camera rises: the neighbours' windows go out in the first half of the crane shot, Karen's last as the dawn breaks over its second half, and the shot ends on the morning; there is no separate dawn shot", () => {
+  expect(NACHTRUHE_SHOTS.map((s) => s.name)).not.toContain("Dawn");
+  expect(shot("Drone rise").to).toBe(shot("Bedroom: morning").from);
+  expect(DAWN[1]).toBe(DRONE[1]);
+  expect(DAWN[0]).toBeGreaterThan(DRONE[0] + (DRONE[1] - DRONE[0]) / 3);
+  expect(DAWN[0]).toBeLessThanOrEqual(DRONE[0] + (DRONE[1] - DRONE[0]) / 2);
+  expect(KAREN_OUT).toBeLessThan((DAWN[0] + DAWN[1]) / 2);
+});
+
+test("the rain builds up through the night: a drizzle early in the crane shot, swelling without a jump, full only as the morning comes, and heard as it is seen", () => {
+  const share = (t: number) => nachtruheWorldAt(t).rain;
+  const [from, to] = DRONE;
+  expect(share(from)).toBe(0);
+  expect(share(from + (to - from) * 0.3)).toBeGreaterThan(0);
+  expect(share(from + (to - from) * 0.3)).toBeLessThan(0.25);
+  expect(share(to)).toBe(1);
+  for (let t = from; t < to; t += 1 / 30) {
+    expect(share(t + 1 / 30), t.toFixed(2)).toBeGreaterThanOrEqual(share(t));
+    expect(share(t + 1 / 30) - share(t), t.toFixed(2)).toBeLessThan(0.03);
+    expect(rainLevelAt(t)).toBeCloseTo(RAIN.volume * share(t), 12);
+  }
 });

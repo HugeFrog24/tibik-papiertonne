@@ -16,6 +16,7 @@ import { DOOR_STAND, pinApproach, walkLeg, type Root } from "../enterHouse";
 import { bedroomAt, coveredAt, curtainOpenAt } from "./bedroom";
 import {
   DAWN,
+  RAIN_BUILDS,
   DRONE,
   DUSK,
   ENTRY,
@@ -38,7 +39,7 @@ export const LIGHTS = {
 } as const;
 
 const NEIGHBOURS = { times: [0, DUSK[1], DRONE[0], KAREN_OUT - 1], shares: [0.8, 1, 0.7, 0] } as const;
-const TOWN = { times: [0, DUSK[1], DRONE[1], DAWN[1]], shares: [0.8, 1, 0.3, 0] } as const;
+const TOWN = { times: [0, DUSK[1], DAWN[0], DAWN[1]], shares: [0.8, 1, 0.3, 0] } as const;
 const GLOW = 1;
 
 const during = (t: number, [from, to]: readonly [number, number]) => t >= from && t < to;
@@ -92,7 +93,7 @@ const hers = flatWindow(12, 1, "rechts");
 const same = (a: Opening, b: Opening) => a.kind === b.kind && a.x === b.x && a.storey === b.storey;
 const inHisFlat = (house: number, o: Opening) => house === 12 && o.storey === his.storey && o.x < ENTRANCE_X && o.kind !== "stairs";
 
-export const rainShareAt = (t: number) => inWindow(t, DAWN);
+export const rainShareAt = (t: number) => inWindow(t, RAIN_BUILDS) ** 2;
 
 const lookAt = (t: number): WeatherLook => (t < DUSK[1] ? WEATHER.dusk : mixLooks(WEATHER.night, WEATHER.rain, inWindow(t, DAWN)));
 

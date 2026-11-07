@@ -15,7 +15,7 @@ import { curtainOpenAt } from "./bedroom";
 import { cameraAt, inTheBedroom } from "./cameras";
 import { nachtruheWorldAt } from "./choreography";
 import { BLACKBIRD, EPILOGUE_RAIN_START, HAUSTUER_FAR_OFF, NACHTRUHE_CUES, RAIN_FROM, footstepsByPlace, hushAt, rainLevelAt } from "./soundCues";
-import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, LAMP_OFF, NACHTRUHE_DURATION } from "./timeline";
+import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, LAMP_OFF, NACHTRUHE_DURATION , RAIN_BUILDS } from "./timeline";
 
 const frameOf = (t: number) => Math.round(t * FPS);
 
@@ -52,7 +52,7 @@ test("the click lands on the frame his hand presses the switch, the gliders run 
 });
 
 test("the rain does not jump at the cut into the epilogue", () => {
-  expect(RAIN_FROM).toBe(DAWN[0]);
+  expect(RAIN_FROM).toBe(RAIN_BUILDS[0]);
   expect(soundSeconds(loopFiles(RAIN.file).open)).toBe(RAIN.seconds);
   expect(soundSeconds(loopFiles(RAIN.file).muffled)).toBe(RAIN.seconds);
   const elapsed = (NACHTRUHE_FRAMES - frameOf(RAIN_FROM)) / FPS;
@@ -60,17 +60,17 @@ test("the rain does not jump at the cut into the epilogue", () => {
   expect(rainLevelAt(NACHTRUHE_DURATION)).toBe(RAIN.volume);
 });
 
-test("the rain sets in with the dawn and never falls before it", () => {
+test("the rain sets in during the night, a drizzle building to the morning's shower, and never falls before it", () => {
   expect(rainLevelAt(RAIN_FROM - 1 / FPS)).toBe(0);
-  for (let f = frameOf(DAWN[0]) + 1; f <= frameOf(DAWN[1]); f++) {
+  for (let f = frameOf(RAIN_BUILDS[0]) + 1; f <= frameOf(RAIN_BUILDS[1]); f++) {
     expect(rainLevelAt(f / FPS)).toBeGreaterThanOrEqual(rainLevelAt((f - 1) / FPS));
     expect(rainLevelAt(f / FPS) - rainLevelAt((f - 1) / FPS)).toBeLessThan(0.05 * RAIN.volume);
   }
   expect(rainLevelAt(DAWN[1])).toBe(RAIN.volume);
 });
 
-test("the street hushes for the night and wakes with the rain", () => {
-  for (let f = 1; f <= frameOf(DRONE[1]); f++) expect(hushAt(f / FPS), `frame ${f}`).toBeLessThanOrEqual(hushAt((f - 1) / FPS));
+test("the street hushes for the night and wakes with the dawn", () => {
+  for (let f = 1; f <= frameOf(DAWN[0]); f++) expect(hushAt(f / FPS), `frame ${f}`).toBeLessThanOrEqual(hushAt((f - 1) / FPS));
   expect(hushAt(0)).toBeLessThan(1);
   expect(hushAt((DRONE[0] + DRONE[1]) / 2)).toBeLessThan(0.2);
   expect(hushAt((DRONE[0] + DRONE[1]) / 2)).toBeGreaterThan(0);

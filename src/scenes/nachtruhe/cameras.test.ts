@@ -47,14 +47,13 @@ const indoor = door.flatMap((angle) => bedroomSolids({ door: angle, curtain: [0,
 
 const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
 
-test("the shots run back to back with the plan's names; the drone and the dawn keep the plan's lengths, the others are as long as their beats need", () => {
-  expect(NACHTRUHE_SHOTS.map((s) => s.name)).toEqual(["Dusk wide", "Bedroom: evening", "Drone rise", "Dawn", "Bedroom: morning"]);
+test("the shots run back to back with the plan's names; the drone keeps the plan's length with the night passing in it, the others are as long as their beats need", () => {
+  expect(NACHTRUHE_SHOTS.map((s) => s.name)).toEqual(["Dusk wide", "Bedroom: evening", "Drone rise", "Bedroom: morning"]);
   expect(NACHTRUHE_SHOTS[0].from).toBe(0);
   NACHTRUHE_SHOTS.slice(1).forEach((s, i) => expect(s.from).toBe(NACHTRUHE_SHOTS[i].to));
   expect(NACHTRUHE_SHOTS[NACHTRUHE_SHOTS.length - 1].to).toBe(NACHTRUHE_DURATION);
   const length = (name: string) => shot(name).to - shot(name).from;
   expect(length("Drone rise")).toBeCloseTo(8, 9);
-  expect(length("Dawn")).toBeCloseTo(3, 9);
   for (const name of ["Dusk wide", "Bedroom: evening", "Bedroom: morning"]) {
     expect(length(name), name).toBeGreaterThanOrEqual(6);
     expect(length(name), name).toBeLessThan(15);
@@ -81,8 +80,6 @@ test("the drone opens on both first-floor windows and rises clear of the roof", 
   const roofTop = Math.max(...roofSolids.map((s) => (s.kind === "obb" ? s.center.y + s.half[1] : 0)));
   expect(roofTop).toBeGreaterThan(PARAPET.height);
   expect(cameraAt(shot("Drone rise").to - 1e-6).position[1]).toBeGreaterThanOrEqual(roofTop + 3);
-  expect(cameraAt(shot("Dawn").from)).toEqual(cameraAt(shot("Drone rise").to - 1e-9));
-  expect(cameraAt(shot("Dawn").to - 1e-6)).toEqual(cameraAt(shot("Dawn").from));
 });
 
 test("the key action stays near the centre, for a later vertical crop", () => {

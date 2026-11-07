@@ -6,7 +6,7 @@ import { SWITCH_PRESS, bedroomAt, curtainGrip } from "./bedroom";
 import { ENTRANCE_X, FACADE_Z, flatWindow } from "../../street/building";
 import type { Vec3 } from "../../toon/primitives";
 import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../../toon/shots";
-import { CURTAIN_PULL, DAWN, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, GET_DOWN, KAREN_OUT, LAMP_OFF, LAMP_ON_AT_DUSK, LIE_DOWN, MORNING, SIT_UP, WALK_ROUND } from "./timeline";
+import { CURTAIN_PULL, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, GET_DOWN, KAREN_OUT, LAMP_OFF, LAMP_ON_AT_DUSK, LIE_DOWN, MORNING, SIT_UP, WALK_ROUND } from "./timeline";
 
 export { NACHTRUHE_DURATION } from "./timeline";
 
@@ -39,13 +39,12 @@ const AT_THE_WINDOW: CameraSetup = { position: HIGH_BY_THE_DOOR, target: AT.curt
 const DRONE_FROM: CameraSetup = { position: [between, his.y, 6.0], target: [between, his.y, FACADE_Z], fov: 50 };
 const DRONE_TO: CameraSetup = { position: [between, 24, 14], target: [between, 6, -16], fov: 55 };
 
-const SHOTS_AT = { dusk: DUSK, evening: EVENING, drone: DRONE, dawn: DAWN, morning: MORNING } as const;
+const SHOTS_AT = { dusk: DUSK, evening: EVENING, drone: DRONE, morning: MORNING } as const;
 
 export const NACHTRUHE_SHOTS: readonly Shot[] = [
   { name: "Dusk wide", from: SHOTS_AT.dusk[0], to: SHOTS_AT.dusk[1], at: fixed(DUSK_VIEW.position, DUSK_VIEW.target, DUSK_VIEW.fov) },
   { name: "Bedroom: evening", from: SHOTS_AT.evening[0], to: SHOTS_AT.evening[1], at: fixed(AT_THE_BED.position, AT_THE_BED.target, AT_THE_BED.fov) },
   { name: "Drone rise", from: SHOTS_AT.drone[0], to: SHOTS_AT.drone[1], at: dolly(DRONE_FROM, DRONE_TO, SHOTS_AT.drone[0], SHOTS_AT.drone[1]) },
-  { name: "Dawn", from: SHOTS_AT.dawn[0], to: SHOTS_AT.dawn[1], at: fixed(DRONE_TO.position, DRONE_TO.target, DRONE_TO.fov) },
   { name: "Bedroom: morning", from: SHOTS_AT.morning[0], to: SHOTS_AT.morning[1], at: dolly(AT_THE_BED, AT_THE_WINDOW, WALK_ROUND[0], WALK_ROUND[1]) },
 ];
 

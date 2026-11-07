@@ -197,7 +197,7 @@ test("he pulls the turned-back blanket over himself by its fold, his right hand 
 test("in the morning he pushes the blanket back from beneath, left hand then right, until it lies turned back as the evening found it", { timeout: 300_000 }, () => {
   expect(foldMisses(PUSHING).slice(0, 8)).toEqual([]);
   expect(solveNachtruhe(BLANKET_BACK[0]).blanket).toBe(1);
-  expect(solveNachtruhe(BLANKET_BACK[1]).blanket).toBe(0);
+  expect(solveNachtruhe(BLANKET_BACK[1]).blanket).toBeCloseTo(0, 12);
 });
 
 const pressGap = (click: number) => sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(click).tibik), "leftArm"), cordSwitchSolid());

@@ -220,8 +220,14 @@ composition under "Scenes" in the Studio:
 - Her phone is a red big-button phone on speaker. She calls the
   **Hausverwaltung** (answering machine, out of hours), then **110**; the
   dispatcher has the last word. Misusing 110 is an offence (§ 145 StGB), so
-  the dispatcher stays calm and asks what the emergency is. After hanging up
-  she lowers the phone to her belly.
+  the dispatcher stays calm and asks whether anyone is hurt or in danger.
+  The dispatcher's greeting is cut, a deliberate film liberty for the pace
+  (user decision, 2026-11-07): after the three DTMF tones and a short ring
+  she is already shouting her complaint; the tones, the "110" on her phone's
+  screen and "verletzt / Gefahr / kein Notfall" make clear whom she called.
+  The cut is 99 frames (3.3 s, about three of her 0.9 Hz panting breaths, so
+  her breathing carries on almost seamlessly). After hanging up she lowers
+  the phone to her belly.
 - **She pounds on his door between the two calls** (a Ruhestörung in the
   strict sense; nobody mentions it, the circular included). After the
   answering machine she tucks the phone back into her trouser pocket, stomps

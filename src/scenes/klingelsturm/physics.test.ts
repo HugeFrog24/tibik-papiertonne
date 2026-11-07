@@ -344,31 +344,40 @@ const answer = (start: string) => {
   return line;
 };
 
+const herFirstWordsToThePolice = () => LINES.find((l) => l.speaker === "karen" && l.from > KEYS[KEYS.length - 1].at)!;
+
 const tapeEnd = () => {
   const tape = LINES.filter(
     (l) =>
       l.speaker === "phone" &&
       l.from >= answer("Hausverwaltung").from &&
-      l.to < answer("Polizei").from,
+      l.to < herFirstWordsToThePolice().from,
   );
   return tape[tape.length - 1].to;
 };
 
-test("110 is dialled after the Hausverwaltung's tape and before the police answer", () => {
+test("110 is dialled after the Hausverwaltung's tape and before she speaks to the police", () => {
   expect(DIALLED.map((d) => d.digit).join("")).toBe("110");
   for (const d of DIALLED) {
     expect(d.at).toBeGreaterThan(tapeEnd());
-    expect(d.at).toBeLessThan(answer("Polizei").from);
+    expect(d.at).toBeLessThan(herFirstWordsToThePolice().from);
   }
 });
 
-test("the dispatcher asks what the emergency is and has the last word, without threats", () => {
+test("the dispatcher's greeting is cut (a film liberty, for the pace): a short ring after the call key and she is already shouting her complaint", () => {
+  const ring = phoneCues().find((c) => c.name === "Ringing: Karen")!;
+  const first = herFirstWordsToThePolice();
+  expect(first.text).toBe("MEIN NACHBAR HAT EINEN KARTON AUS DEM HAUSMÜLL GENOMMEN!");
+  expect(first.from - KEYS[KEYS.length - 1].at).toBeLessThanOrEqual(0.8 + 1e-9);
+  expect(ring.at + ring.length!).toBeCloseTo(first.from, 9);
+  expect(LINES.some((l) => /Polizei-Notruf|Was ist Ihr Notfall/.test(l.text))).toBe(false);
+});
+
+test("the dispatcher asks whether anyone is hurt and has the last word, without threats", () => {
   const police = LINES.filter(
-    (l) => l.speaker === "phone" && l.from > answer("Polizei").from - 1e-9,
+    (l) => l.speaker === "phone" && l.from > herFirstWordsToThePolice().from,
   );
   expect(police.map((l) => l.text)).toEqual([
-    "Polizei-Notruf.",
-    "Was ist Ihr Notfall?",
     "Ist jemand verletzt oder in Gefahr?",
     "Ein Karton ist kein Notfall.",
   ]);
@@ -391,23 +400,23 @@ test("the screen shows the number as she dials it", () => {
   expect(phoneAt(DIALLED[0].at - 0.05).screen).toBe("");
 });
 
-test("each digit sounds its tone, the line rings before each answer, the call ends in a click and the busy tone", () => {
+test("each digit sounds its tone, the line rings until someone speaks, the call ends in a click and the busy tone", () => {
   const cues = phoneCues();
   for (const d of DIALLED)
     expect(
       cues.filter((c) => c.sound === `dtmf-${d.digit}` && c.at === d.at),
     ).toHaveLength(1);
   for (const [start, call] of [
-    ["Hausverwaltung", KEYS[0]],
-    ["Polizei", KEYS[KEYS.length - 1]],
+    [answer("Hausverwaltung"), KEYS[0]],
+    [herFirstWordsToThePolice(), KEYS[KEYS.length - 1]],
   ] as const) {
     const ring = cues.find(
       (c) =>
-        c.sound === "ringback" && c.at > call.at && c.at < answer(start).from,
+        c.sound === "ringback" && c.at > call.at && c.at < start.from,
     );
-    expect(ring, start).toBeDefined();
+    expect(ring, start.text).toBeDefined();
     expect(ring!.at + (ring!.length ?? 5)).toBeLessThanOrEqual(
-      answer(start).from + 1e-9,
+      start.from + 1e-9,
     );
   }
   const beep = cues.find((c) => c.sound === "beep");

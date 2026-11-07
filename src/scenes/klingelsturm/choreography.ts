@@ -315,7 +315,7 @@ export const karenAt = (t: number): KarenFrame => {
     headRoll: 0.08 * yellingAmount(t, "karen") * Math.sin(t * Math.PI * 3),
     blink: blinkAt(
       t,
-      [3.1, 7.2, 9.9, 13.8, 18.6, 22.3, 26.0, later(33.1), later(38.5), later(44.6), later(47.4)],
+      [3.1, 7.2, 9.9, 13.8, 18.6, 22.3, 26.0, later(38.5), later(44.6), later(47.4)],
     ),
     leftArm: blendArm(KAREN_ARM_REST, BANG_READY, fistReady(t)),
     rightArm: blendArm(KAREN_ARM_REST, RIGHT_HAND_ON_HER_BELLY, handsFree(t)),

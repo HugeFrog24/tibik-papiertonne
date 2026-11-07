@@ -12,7 +12,11 @@ export const LATER_FRAMES = 207;
 
 export const LATER = LATER_FRAMES / FPS;
 
-export const later = (t: number) => round6(t + LATER);
+export const GREETING_CUT_FRAMES = 99;
+
+const GREETING_ENDS = 34.8;
+
+export const later = (t: number) => round6(t + LATER - (t >= GREETING_ENDS ? GREETING_CUT_FRAMES / FPS : 0));
 
 export const BANGING = {
   tuck: [29.4, 29.8] as const,

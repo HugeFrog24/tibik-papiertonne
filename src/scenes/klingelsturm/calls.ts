@@ -78,8 +78,6 @@ export const CALL_LINES: readonly Line[] = [
     "Signalton",
   ),
   karen(27.7, 28.9, "DAS IST EIN NOTFALL!", "Das ist ein Notfall"),
-  phone(later(32.0), later(33.0), "Polizei-Notruf.", "Polizei-Notruf"),
-  phone(later(33.2), later(34.7), "Was ist Ihr Notfall?", "Was ist Ihr Notfall"),
   karen(
     later(34.9),
     later(37.9),
@@ -163,23 +161,21 @@ export type PhoneCue = {
   readonly length?: number;
 };
 
-const answerOf = (start: string) => {
-  const line = CALL_LINES.find(
-    (l) => l.speaker === "phone" && l.text.startsWith(start),
-  );
-  if (!line) throw new Error(`no answer "${start}"`);
+const firstAfter = (call: KeyPress) => {
+  const line = CALL_LINES.find((l) => l.from > call.at);
+  if (!line) throw new Error(`nobody speaks after the call at ${call.at}`);
   return line;
 };
 
 const RING_DELAY = 0.4;
-const ringback = (call: KeyPress, start: string): PhoneCue => {
+const ringback = (call: KeyPress, answered: string): PhoneCue => {
   const at = round6(call.at + RING_DELAY);
   return {
-    name: `Ringing: ${start}`,
+    name: `Ringing: ${answered}`,
     at,
     sound: "ringback",
     volume: 0.5,
-    length: round6(answerOf(start).from - at),
+    length: round6(firstAfter(call).from - at),
   };
 };
 
@@ -200,7 +196,7 @@ export const phoneCues = (): PhoneCue[] => [
     sound: `dtmf-${d.digit}`,
     volume: 0.6,
   })),
-  ringback(KEYS[KEYS.length - 1], "Polizei"),
+  ringback(KEYS[KEYS.length - 1], "Karen"),
   { name: "The line clicks", at: CLICK, sound: "click", volume: 0.6 },
   { name: "Busy tone", at: CLICK + 0.1, sound: "busy", volume: 0.5, length: 2 },
 ];

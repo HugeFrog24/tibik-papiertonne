@@ -38,11 +38,11 @@ test("story time equals film time up to the jump cut and runs STORY_SKIP ahead a
   expect(STORY_SKIP).toBeLessThan(180);
 });
 
-test("every coda time is on a whole frame and the scene ends about 74 s in", () => {
+test("every coda time is on a whole frame and the scene ends about 71.6 s in, about three of her panting breaths shorter since the police greeting was cut", () => {
   codaTimes.forEach((t) => expect(onFrame(t), String(t)).toBe(true));
   expect(KLINGELSTURM_DURATION).toBe(CODA.end);
-  expect(CODA.end).toBeGreaterThan(73);
-  expect(CODA.end).toBeLessThan(75);
+  expect(CODA.end).toBeGreaterThan(71);
+  expect(CODA.end).toBeLessThan(72);
 });
 
 test("no cigarette or lighter before the cut into the Medium; the phone rests at her hip until that cut and leaves her hand on it", () => {

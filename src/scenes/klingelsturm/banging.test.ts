@@ -28,11 +28,14 @@ test("everything after the hang-up keeps its spacing and starts LATER s later, o
   expect(LATER * FPS).toBeCloseTo(207, 9);
   expect(KEYS[2].at - KEYS[1].at).toBeCloseTo(0.35 + LATER, 9);
   expect(KEYS[5].at - KEYS[2].at).toBeCloseTo(1.2, 9);
-  expect(CLICK - KEYS[5].at).toBeCloseTo(14.7, 9);
+  expect(CLICK - KEYS[5].at).toBeCloseTo(11.4, 9);
   expect(LIGHT.out - CLICK).toBeCloseTo(2.0, 9);
   expect(EXIT.end - LIGHT.out).toBeCloseTo(10.1, 9);
-  expect(EXIT.offset * FPS).toBeCloseTo(1675, 6);
-  expect(CALL_LINES.find((l) => l.text === "Polizei-Notruf.")!.from).toBeCloseTo(later(32.0), 9);
+  expect(EXIT.offset * FPS).toBeCloseTo(1576, 6);
+  expect(CALL_LINES.find((l) => l.text.startsWith("MEIN NACHBAR"))!.from).toBeCloseTo(later(34.9), 9);
+  const herFirst = CALL_LINES.find((l) => l.text.startsWith("MEIN NACHBAR"))!.from;
+  expect(herFirst - later(31.45)).toBeGreaterThan(0);
+  expect(herFirst - later(31.45)).toBeLessThan(0.3);
 });
 
 const onFrame = (t: number) => Math.abs(t * FPS - Math.round(t * FPS)) < 1e-6;

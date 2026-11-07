@@ -1,4 +1,4 @@
-import { LATER_FRAMES, later } from "./banging";
+import { GREETING_CUT_FRAMES, LATER_FRAMES, later } from "./banging";
 import { stairwellGround } from "../../building/stairwell";
 import { armKf, kf } from "../../characters/animate";
 import { shiftSteps, type RootAt, type Step } from "../../characters/gait";
@@ -19,7 +19,7 @@ import { CRADLE } from "./carry";
 import { AT_THE_CHEST } from "./parcel";
 
 export const EXIT = {
-  offset: (1468 + LATER_FRAMES) / FPS,
+  offset: (1468 + LATER_FRAMES - GREETING_CUT_FRAMES) / FPS,
   pickup: later(47.3),
   walk: later(47.45),
   nod: 0.9,

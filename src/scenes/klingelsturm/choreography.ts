@@ -282,7 +282,7 @@ const handsFree = (t: number) =>
 const fistReady = (t: number) =>
   kf(
     t,
-    [BANGING.walk[1] - 0.4, BANGING.walk[1] - 0.2, BANGING.blows[5] + BLOW.tail, BANGING.blows[5] + BLOW.tail + 0.25],
+    [BANGING.walk[1] - 0.65, BANGING.walk[1] - 0.2, BANGING.blows[5] + BLOW.tail, BANGING.blows[5] + BLOW.tail + 0.45],
     [0, 1, 1, 0],
   );
 

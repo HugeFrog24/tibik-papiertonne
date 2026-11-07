@@ -13,7 +13,7 @@ import { asKaren } from "../../Karen/character";
 import { KAREN_SKELETON } from "../../Karen/rig";
 import { sphereObbGap } from "../../physics/collision";
 import { floorLevel } from "../../street/building";
-import { TOLERANCE, VERTICAL_CROP, mm, ndcX, seconds } from "../sceneChecks";
+import { TOLERANCE, VERTICAL_CROP, armJumps, mm, ndcX, seconds } from "../sceneChecks";
 import { cameraAt, shotAt } from "./cameras";
 import { KAREN_HOME, karenAt, phoneGrip, phoneObb } from "./choreography";
 import { phoneAt, phonePlaceAt } from "./calls";
@@ -148,4 +148,18 @@ test("at his door she squares up in the beat: from the last two blows on she sta
   for (const t of framesOf([BANGING.blows[4] - 0.3, BANGING.blows[5]]))
     for (const side of [1, -1] as const)
       expect(footfallOffset(karenAt(t), side), `${seconds(t)} foot ${side}`).toBeCloseTo(standing, 2);
+});
+
+test("she brings her fist up to bang as she steps up to his door and lowers it after the last blow at an arm's natural pace: her arm never jerks between frames", { timeout: 300_000 }, () => {
+  const windows: readonly (readonly [number, number])[] = [
+    [BANGING.walk[1] - 1, BANGING.walk[1] + 0.1],
+    [BANGING.blows[5] + 0.2, BANGING.blows[5] + 1],
+  ];
+  for (const [from, to] of windows) {
+    const frames = Array.from({ length: Math.round((to - from) * FPS) + 1 }, (_, f) => {
+      const t = from + f / FPS;
+      return { t, characters: { Karen: asKaren(solveKlingelsturm(t).karen) } };
+    });
+    expect(armJumps(frames)).toEqual([]);
+  }
 });

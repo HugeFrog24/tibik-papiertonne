@@ -68,6 +68,8 @@ const goalOf = (hold: Hold, t: number): Goal => {
 const straightBetween = (hold: Hold, next: Hold) =>
   hold.exact === true && next.exact === true && hold.near !== undefined && next.near !== undefined && hold.pose === undefined && next.pose === undefined;
 
+const poseAt = (hold: Hold, t: number) => (typeof hold.pose === "function" ? hold.pose(t) : hold.pose);
+
 const LET_GO_FROM = "let go from: ";
 
 const withArmPose = <C extends Character>(c: C, which: ArmName, arm: ArmPose): C => ({
@@ -76,7 +78,7 @@ const withArmPose = <C extends Character>(c: C, which: ArmName, arm: ArmPose): C
 });
 
 const reachFor = <C extends Character>(c: C, which: ArmName, t: number, solids: readonly Solid[], hold: Hold, history?: ArmHistory, at = t): ArmPose => {
-  const pose = typeof hold.pose === "function" ? hold.pose(t) : hold.pose;
+  const pose = poseAt(hold, t);
   if (pose) return reachArm(withArmPose(c, which, pose), which, goalOf(hold, t), solids, null, { authoredOnly: true }).pose[which];
   const lastFrame = history?.before(at, which, hold.name, at - t + hold.reach) ?? history?.before(at, which, FINAL_ARM, -Infinity);
   const reached = reachArm(c, which, goalOf(hold, t), solids, null, { starts: startsOf(hold), lastFrame }).pose[which];
@@ -112,10 +114,16 @@ export const workArm = <C extends Character>(
       history?.remember(at, which, LET_GO_FROM + hold.name, letGo);
       return settled(blendArm(c.pose[which], letGo, w));
     }
-    const pose = typeof hold.pose === "function" ? hold.pose(t) : hold.pose;
     const aims: Aim[] = [{ goal: handPosition(c.skeleton, c, which), weight: 1 - w }, { goal: goalOf(hold, t), weight: w }];
-    const reference = blendArm(c.pose[which], pose ?? c.pose[which], w);
+    const reference = blendArm(c.pose[which], poseAt(hold, t) ?? c.pose[which], w);
     const moving = reachArm(withArmPose(c, which, reference), which, aims.filter((aim) => aim.weight > 0), solids, null, { starts: startsOf(hold), lastFrame }).pose[which];
+    return kept(moving, withArmPose(c, which, moving));
+  }
+  if (next && next.reach >= hold.release && (hold.path === "hand" || next.path === "hand")) {
+    const w = holdWeight(next, t);
+    const aims: Aim[] = [{ goal: goalOf(hold, t), weight: 1 - w }, { goal: goalOf(next, t), weight: w }];
+    const reference = blendArm(poseAt(hold, t) ?? c.pose[which], poseAt(next, t) ?? c.pose[which], w);
+    const moving = reachArm(withArmPose(c, which, reference), which, aims.filter((aim) => aim.weight > 0), solids, null, { starts: startsOf(hold, next), lastFrame }).pose[which];
     return kept(moving, withArmPose(c, which, moving));
   }
   if (next && next.reach >= hold.release && straightBetween(hold, next)) {

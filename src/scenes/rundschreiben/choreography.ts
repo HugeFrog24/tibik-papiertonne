@@ -290,6 +290,7 @@ export const KEY_HOLD: Hold = {
   target: (t) => mailboxDoorSolid(mailboxDoorAt(t)),
   near: keyGripAt,
   exact: true,
+  path: "hand",
 };
 
 const atTheMailbox = (t: number) =>
@@ -518,6 +519,7 @@ export const ROUND_THE_DOOR_HOLD: Hold = {
   target: () => gripBox(roundTheDoor()),
   near: roundTheDoor,
   exact: true,
+  path: "hand",
 };
 
 export const ENVELOPE_LEFT_HOLD: Hold = {
@@ -530,6 +532,7 @@ export const ENVELOPE_LEFT_HOLD: Hold = {
   target: (t) => gripBox(envelopeGripAt(t, "leftArm")),
   near: (t) => envelopeGripAt(t, "leftArm"),
   exact: true,
+  path: "hand",
 };
 
 const FOLLOW_THROUGH = new Vector3(0.04, 0.06, 0.1);

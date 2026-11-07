@@ -1,10 +1,11 @@
+import type { Vec3 } from "../../toon/primitives";
 import { BED, BED_RECT, BEDROOM, BEDROOM_DOOR, BEDROOM_DOORWAY, CORD_SWITCH, MATTRESS, cordSwitchSolid, curtainPanels } from "../../building/bedroomShape";
 import { DOOR_FRAME } from "../../building/doorwayFrame";
 import { ROOM_DOOR } from "../../building/doors";
 import { Euler, Matrix4, Vector3 } from "three";
 import { blinkAt, kf } from "../../characters/animate";
 import { STEP_OVERLAP, legOnToes, opposite, rhythmicSteps, strideAt, touchdownTimes, walkCadence, type Step } from "../../characters/gait";
-import { blendPose } from "../../characters/poseBlend";
+import { blendPose, layerPose } from "../../characters/poseBlend";
 import { easeUnit, inWindow, lerp, windowUnit } from "../../characters/scalar";
 import { allColliders, armColliders, bodyColliders, type ArmName, type Placement, type Side } from "../../characters/skeleton";
 import { contacts, deepest, frame, obb, smallestClearing, sphere } from "../../physics/collision";
@@ -164,18 +165,20 @@ const lieAt = (t: number, w: number): TibikFrame =>
     }),
   );
 
-const evening = (t: number): TibikFrame =>
-  t < SIT_BACK[0]
-    ? walkingIn(t)
-    : t < SIT_BACK[1]
-      ? sitBackAt(t, windowUnit(t, SIT_BACK))
-      : t < SWING_IN[0]
-        ? placed(t, BED_SEAT)
-        : t < SWING_IN[1]
-          ? swingAt(t, windowUnit(t, SWING_IN))
-          : t < LIE_DOWN[0]
-            ? placed(t, UP)
-            : lieAt(t, inWindow(t, LIE_DOWN));
+const layered = (base: TibikFrame, to: TibikFrame, from: TibikFrame): TibikFrame => ({
+  ...to,
+  position: [0, 1, 2].map((i) => base.position[i] + to.position[i] - from.position[i]) as Vec3,
+  rotationY: base.rotationY + to.rotationY - from.rotationY,
+  tilt: (base.tilt ?? 0) + (to.tilt ?? 0) - (from.tilt ?? 0),
+  pose: layerPose(base.pose, to.pose, from.pose),
+});
+
+const evening = (t: number): TibikFrame => {
+  if (t < SIT_BACK[0]) return walkingIn(t);
+  const sat = sitBackAt(t, windowUnit(t, SIT_BACK));
+  const swung = layered(sat, swingAt(t, windowUnit(t, SWING_IN)), swingAt(t, 0));
+  return layered(swung, lieAt(t, inWindow(t, LIE_DOWN)), lieAt(t, 0));
+};
 
 const drawn = curtainPanels([0, 0])[1];
 const FACING_THE_WINDOW = 0;
@@ -230,22 +233,12 @@ const walkingRound = (t: number): TibikFrame => {
   return plantedTibik(toWindowGait(), t, { position: [x, y, z], rotationY: yaw, pose });
 };
 
-const morning = (t: number): TibikFrame =>
-  t < SIT_UP[0]
-    ? lieAt(t, 1)
-    : t < SIT_UP[1]
-      ? lieAt(t, 1 - inWindow(t, SIT_UP))
-      : t < SWING_OUT[0]
-        ? placed(t, UP)
-        : t < SWING_OUT[1]
-          ? swingAt(t, 1 - windowUnit(t, SWING_OUT))
-          : t < GET_DOWN[0]
-            ? placed(t, BED_SEAT)
-            : t < GET_DOWN[1]
-              ? sitBackAt(t, 1 - windowUnit(t, GET_DOWN))
-              : t < WALK_ROUND[0]
-                ? placed(t, standing())
-                : walkingRound(t);
+const morning = (t: number): TibikFrame => {
+  if (t >= GET_DOWN[1]) return t < WALK_ROUND[0] ? placed(t, standing()) : walkingRound(t);
+  const sitting = lieAt(t, 1 - inWindow(t, SIT_UP));
+  const swung = layered(sitting, swingAt(t, 1 - windowUnit(t, SWING_OUT)), swingAt(t, 1));
+  return layered(swung, sitBackAt(t, 1 - windowUnit(t, GET_DOWN)), sitBackAt(t, 1));
+};
 
 export const bedroomAt = (t: number): TibikFrame => (t < MORNING[0] ? evening(t) : morning(t));
 

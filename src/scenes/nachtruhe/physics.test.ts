@@ -82,15 +82,22 @@ test("in the bedroom his drawn soles never dip below the floor, walking in at ni
   expect(sunkSoles(TIBIK_FOOT, on, GET_DOWN[0], MORNING[1], () => BEDROOM.floor).slice(0, 6)).toEqual([]);
 });
 
-test("he comes in through the bedroom door, walks along his side of the bed, stops with his back close to its edge and sits back onto it", () => {
+test("he comes in through the bedroom door, walks along his side of the bed, stops with his back close to its edge and sits back onto it, passing through the seat on his way into the swing", () => {
   expect(solveNachtruhe(DUSK[1]).tibik.position[2]).toBeLessThan(BEDROOM.z0 + 0.6);
   expect(BED_SEAT.position[2] - STAND.z).toBeLessThan(0.4);
   for (const t of between(DUSK[1], SIT_BACK[0])) expect(solveNachtruhe(t).tibik.position[2], t.toFixed(2)).toBeLessThanOrEqual(STAND.z + 0.001);
-  const sat = solveNachtruhe(SIT_BACK[1] + 0.1).tibik;
-  sat.position.forEach((v, i) => expect(Math.abs(v - BED_SEAT.position[i]), `axis ${i}`).toBeLessThan(0.01));
-  expect(sat.rotationY).toBeCloseTo(Math.PI, 3);
-  expect(sat.pose.bob).toBeCloseTo(SITTING.bob, 3);
+  const sat = passing(BED_SEAT.position, [SIT_BACK[0], LIE_DOWN[0]]);
+  expect(sat.distance).toBeLessThan(0.01);
+  expect(sat.tibik.rotationY).toBeCloseTo(Math.PI, 1);
+  expect(sat.tibik.pose.bob).toBeCloseTo(SITTING.bob, 1);
 });
+
+const passing = (target: readonly number[], [from, to]: readonly [number, number]) =>
+  Array.from({ length: Math.round((to - from) * FPS) + 1 }, (_, i) => solveNachtruhe(from + i / FPS).tibik)
+    .map((tibik) => ({ tibik, distance: Math.hypot(...tibik.position.map((v, k) => v - target[k])) }))
+    .reduce((best, now) => (now.distance + UPRIGHT * Math.abs(now.tibik.tilt ?? 0) < best.distance + UPRIGHT * Math.abs(best.tibik.tilt ?? 0) ? now : best));
+
+const UPRIGHT = 0.1;
 
 const SIDES = [1, -1] as const;
 const ON_THE_FLOOR = soleHeight(TIBIK_FOOT, { position: [0, 0, 0], rotationY: 0, pose: TIBIK_REST }, 1, () => 0) + 0.002;
@@ -160,10 +167,10 @@ test("the blanket never passes through him or the mattress all evening, outlines
 const near = (a: readonly number[], b: readonly number[], within: number) => a.every((v, i) => Math.abs(v - b[i]) < within);
 
 test("he swings his legs onto the bed and sits up where he will lie, then lies down with his head on his pillow", () => {
-  const up = solveNachtruhe(SWING_IN[1] + 0.05).tibik;
-  expect(near(up.position, sittingUpInBed(-1).position, 0.01)).toBe(true);
-  expect(up.rotationY).toBeCloseTo(Math.PI / 2, 3);
-  expect(up.tilt ?? 0).toBeCloseTo(0, 3);
+  const up = passing(sittingUpInBed(-1).position, [SWING_IN[0], LIE_DOWN[1]]);
+  expect(up.distance).toBeLessThan(0.01);
+  expect(up.tibik.rotationY).toBeCloseTo(Math.PI / 2, 1);
+  expect(solveNachtruhe(LIE_DOWN[0]).tibik.tilt ?? 0).toBeCloseTo(0, 3);
   const lying = solveNachtruhe(LIE_DOWN[1] + 0.2).tibik;
   const bed = lyingInBed(-1);
   expect(near(lying.position, bed.position, 0.01)).toBe(true);
@@ -220,12 +227,12 @@ test("his eyes close in the dark and stay shut until he opens them in the mornin
 });
 
 test("he sits up, swings his legs out and slides off the edge onto his toes where he sat back", () => {
-  const up = solveNachtruhe(SIT_UP[1] + 0.05).tibik;
-  expect(near(up.position, sittingUpInBed(-1).position, 0.01)).toBe(true);
-  expect(up.tilt ?? 0).toBeCloseTo(0, 3);
-  const edge = solveNachtruhe(SWING_OUT[1] + 0.05).tibik;
-  expect(near(edge.position, BED_SEAT.position, 0.01)).toBe(true);
-  expect(edge.rotationY).toBeCloseTo(Math.PI, 3);
+  const up = passing(sittingUpInBed(-1).position, [SIT_UP[0], SWING_OUT[1]]);
+  expect(up.distance).toBeLessThan(0.01);
+  expect(solveNachtruhe(SIT_UP[1]).tibik.tilt ?? 0).toBeCloseTo(0, 3);
+  const edge = passing(BED_SEAT.position, [SWING_OUT[0], GET_DOWN[1]]);
+  expect(edge.distance).toBeLessThan(0.01);
+  expect(edge.tibik.rotationY).toBeCloseTo(Math.PI, 1);
   const down = solveNachtruhe(GET_DOWN[1] + 0.05).tibik;
   expect(near(down.position, [STAND.x, BEDROOM.floor, STAND.z], 0.01)).toBe(true);
   expect(down.pose.bob).toBeLessThan(0.02);
@@ -309,4 +316,26 @@ test("lying back at night and sitting up in the morning he stays on the sheet: h
     if (lowest - BED_RECT.top > OUTLINE) floating.push(`${t.toFixed(2)} s: ${((lowest - BED_RECT.top) * 1000).toFixed(1)} mm`);
   }
   expect(floating.slice(0, 8)).toEqual([]);
+});
+
+const stillFrames = (from: number, to: number) => {
+  const spheres = (t: number) => allColliders(RIG, asCharacter(solveNachtruhe(t).tibik)).map((s) => s.center);
+  const frames = Array.from({ length: Math.round((to - from) * FPS) }, (_, i) => from + i / FPS);
+  return frames.slice(1).flatMap((t, i) => {
+    const [a, b] = [spheres(frames[i]), spheres(t)];
+    const moved = Math.max(...a.map((p, k) => p.distanceTo(b[k])));
+    return moved < 0.0005 ? [`${t.toFixed(2)} s: nothing of him moves`] : [];
+  });
+};
+
+test("going to bed he does several things at once, as people do: his legs swing in before he has quite sat back, and he leans back to lie down before the swing is done, so he never stops between them", { timeout: 120_000 }, () => {
+  expect(SWING_IN[0]).toBeLessThan(SIT_BACK[1]);
+  expect(LIE_DOWN[0]).toBeLessThan(SWING_IN[1]);
+  expect(stillFrames(SIT_BACK[0] + 0.1, LIE_DOWN[1] - 0.1).slice(0, 6)).toEqual([]);
+});
+
+test("getting up he does several things at once: he swings his legs out while still sitting up and stands while the swing ends, so he never stops between sitting up and stepping away", { timeout: 120_000 }, () => {
+  expect(SWING_OUT[0]).toBeLessThan(SIT_UP[1]);
+  expect(GET_DOWN[0]).toBeLessThan(SWING_OUT[1]);
+  expect(stillFrames(SIT_UP[0] + 0.1, GET_DOWN[1] - 0.1).slice(0, 6)).toEqual([]);
 });

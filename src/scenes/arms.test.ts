@@ -55,8 +55,8 @@ const STILL_FLIPPING: Readonly<Record<string, number>> = {
   Papiertonnen: 6,
   Hausmuell: 0,
   Klingelsturm: 3,
-  Nachtruhe: 6,
-  Rundschreiben: 11,
+  Nachtruhe: 1,
+  Rundschreiben: 9,
 };
 
 test.each(SCENES)(

@@ -2,7 +2,7 @@ import type { ArmPose } from "../characters/skeleton";
 
 export const ARM_LIMITS: Record<keyof ArmPose, readonly [number, number]> = {
   raise: [-0.6, 3.0],
-  out: [-0.3, 1.6],
+  out: [-0.3, 1.9],
   elbow: [0, 2.4],
   inward: [-1.2, 1.6],
 };

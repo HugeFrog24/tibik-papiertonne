@@ -68,6 +68,8 @@ const goalOf = (hold: Hold, t: number): Goal => {
 const straightBetween = (hold: Hold, next: Hold) =>
   hold.exact === true && next.exact === true && hold.near !== undefined && next.near !== undefined && hold.pose === undefined && next.pose === undefined;
 
+const LET_GO_FROM = "let go from: ";
+
 const withArmPose = <C extends Character>(c: C, which: ArmName, arm: ArmPose): C => ({
   ...c,
   pose: { ...c.pose, [which]: arm },
@@ -105,6 +107,11 @@ export const workArm = <C extends Character>(
   if (!hold) return settled(c.pose[which]);
   if (hold.path === "hand" && !(next && next.reach >= hold.release)) {
     const w = holdWeight(hold, t);
+    const letGo = t > hold.release ? history?.before(at, which, LET_GO_FROM + hold.name, at - t + hold.release) ?? lastFrame : undefined;
+    if (letGo) {
+      history?.remember(at, which, LET_GO_FROM + hold.name, letGo);
+      return settled(blendArm(c.pose[which], letGo, w));
+    }
     const pose = typeof hold.pose === "function" ? hold.pose(t) : hold.pose;
     const aims: Aim[] = [{ goal: handPosition(c.skeleton, c, which), weight: 1 - w }, { goal: goalOf(hold, t), weight: w }];
     const reference = blendArm(c.pose[which], pose ?? c.pose[which], w);

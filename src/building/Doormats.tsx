@@ -6,6 +6,7 @@ import {
   fitText,
   speckle,
 } from "../toon/primitives";
+import { ONE_UNIT } from "../toon/inkWidth";
 import {
   DOORMATS,
   MAT_THICKNESS,
@@ -76,7 +77,7 @@ export const Doormats: React.FC = () => (
         (r.z0 + r.z1) / 2,
       ];
       return (
-        <group key={`${mat.storey}-${mat.side}`}>
+        <group key={`${mat.storey}-${mat.side}`} userData={ONE_UNIT}>
           <ToonBox
             position={middle}
             size={[r.x1 - r.x0, MAT_THICKNESS, r.z1 - r.z0]}

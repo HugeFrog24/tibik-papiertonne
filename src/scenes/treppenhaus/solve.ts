@@ -11,7 +11,7 @@ import { reachArm } from "../../physics/grip";
 import { characterViolations, guardLean } from "../../physics/guards";
 import { FPS } from "../../frameRate";
 import { memoWithArms } from "../../physics/memoSolve";
-import { AUTHORED_ARM, FINAL_ARM, type ArmHistory } from "../../physics/armHistory";
+import { AUTHORED_ARM, FINAL_ARM, lastArm, type ArmHistory } from "../../physics/armHistory";
 import { worldSolids } from "../../street/layout";
 import { RIG } from "../../Tibik/rig";
 import { workArm, type Hold } from "../../physics/holds";
@@ -90,7 +90,7 @@ const solve = (t: number, history: ArmHistory): TreppenhausState => {
   const solids = solidsFor(tibikDoor, haustuer, tibikLever, haustuerLever);
   let tibik = asCharacter(tibikAt(t));
   tibik = guardLean(tibik, solids);
-  tibik = workArm(tibik, "leftArm", t, solids, HOLDS, history);
+  tibik = workArm(tibik, "leftArm", t, solids, HOLDS, { history, at: t });
   tibik = onRail(t)
     ? reachArm(
         { ...tibik, pose: { ...tibik.pose, rightArm: ARM_TO_RAIL } },
@@ -98,9 +98,9 @@ const solve = (t: number, history: ArmHistory): TreppenhausState => {
         { touch: EG_RAIL, near: railTarget(tibik) },
         solids,
         null,
-        { authoredOnly: true, lastFrame: history.before(t, "rightArm", FINAL_ARM, -Infinity) },
+        { authoredOnly: true, lastFrame: lastArm({ history, at: t }, "rightArm") },
       )
-    : workArm(tibik, "rightArm", t, solids, HOLDS, history);
+    : workArm(tibik, "rightArm", t, solids, HOLDS, { history, at: t });
   if (onRail(t)) history.remember(t, "rightArm", AUTHORED_ARM, ARM_TO_RAIL);
   history.remember(t, "rightArm", FINAL_ARM, tibik.pose.rightArm);
   const { position, rotationY, pose, holdingBox } = tibik;

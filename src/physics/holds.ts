@@ -3,7 +3,7 @@ import { handPosition, type ArmName, type ArmPose } from "../characters/skeleton
 import { Matrix4, type Vector3 } from "three";
 import type { Obb, Solid } from "./collision";
 import { blendArm } from "./armDescent";
-import { AUTHORED_ARM, FINAL_ARM, type ArmHistory } from "./armHistory";
+import { AUTHORED_ARM, FINAL_ARM, lastArm, type ArmClock } from "./armHistory";
 import { reachArm, type Aim, type Goal } from "./grip";
 import { settleArm, withArm, type Character } from "./guards";
 
@@ -72,12 +72,13 @@ const poseAt = (hold: Hold, t: number) => (typeof hold.pose === "function" ? hol
 
 const LET_GO_FROM = "let go from: ";
 
-const reachFor = <C extends Character>(c: C, which: ArmName, t: number, solids: readonly Solid[], hold: Hold, history?: ArmHistory, at = t): ArmPose => {
+const reachFor = <C extends Character>(c: C, which: ArmName, t: number, solids: readonly Solid[], hold: Hold, clock?: ArmClock): ArmPose => {
   const pose = poseAt(hold, t);
   if (pose) return reachArm(withArm(c, which, pose), which, goalOf(hold, t), solids, null, { authoredOnly: true }).pose[which];
-  const lastFrame = history?.before(at, which, hold.name, at - t + hold.reach) ?? history?.before(at, which, FINAL_ARM, -Infinity);
+  const at = clock?.at ?? t;
+  const lastFrame = clock?.history?.before(at, which, hold.name, at - t + hold.reach) ?? lastArm(clock, which);
   const reached = reachArm(c, which, goalOf(hold, t), solids, null, { starts: startsOf(hold), lastFrame }).pose[which];
-  history?.remember(at, which, hold.name, reached);
+  clock?.history?.remember(at, which, hold.name, reached);
   return reached;
 };
 
@@ -87,11 +88,12 @@ export const workArm = <C extends Character>(
   t: number,
   solids: readonly Solid[],
   holds: readonly Hold[],
-  history?: ArmHistory,
-  at = t,
+  clock?: ArmClock,
 ): C => {
-  const lastFrame = history?.before(at, which, FINAL_ARM, -Infinity);
-  const authoredBefore = history?.before(at, which, AUTHORED_ARM, -Infinity);
+  const history = clock?.history;
+  const at = clock?.at ?? t;
+  const lastFrame = lastArm(clock, which);
+  const authoredBefore = lastArm(clock, which, AUTHORED_ARM);
   const kept = (wanted: ArmPose, out: C) => {
     history?.remember(at, which, FINAL_ARM, out.pose[which]);
     history?.remember(at, which, AUTHORED_ARM, wanted);
@@ -124,8 +126,8 @@ export const workArm = <C extends Character>(
     const between = hold.near!(Math.min(t, hold.release)).clone().lerp(next.near!(t), holdWeight(next, t));
     return tracked(c.pose[which], [{ goal: between, weight: 1 }], startsOf(hold, next));
   }
-  const reached = reachFor(c, which, t, solids, hold, history, at);
-  if (next && next.reach >= hold.release) return settled(blendArm(reached, reachFor(c, which, t, solids, next, history, at), holdWeight(next, t)));
+  const reached = reachFor(c, which, t, solids, hold, clock);
+  if (next && next.reach >= hold.release) return settled(blendArm(reached, reachFor(c, which, t, solids, next, clock), holdWeight(next, t)));
   const w = holdWeight(hold, t);
   if (w >= 1) return placed(reached);
   return settled(blendArm(c.pose[which], reached, w));

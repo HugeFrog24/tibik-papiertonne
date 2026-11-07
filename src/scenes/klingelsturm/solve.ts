@@ -105,18 +105,18 @@ const solve = (t: number, history: ArmHistory): Omit<KlingelsturmState, "ash"> =
     LEVER_HOLD,
     ...TAPING_HOLDS,
     ...EXIT_HOLDS,
-  ], tibikArms, t);
+  ], { history: tibikArms, at: t });
   tibik = workArm(tibik, "rightArm", tibikT, solids, [
     ...PACKING_HOLDS,
     ...TAPING_HOLDS,
     ...EXIT_HOLDS,
-  ], tibikArms, t);
+  ], { history: tibikArms, at: t });
   const authored = karenAt(t);
   let karen = asKaren(authored);
   karen = guardLean(karen, solids);
   const authoredPhone = phoneAt(t).inHand ? phoneAt(t) : null;
-  karen = workArm(karen, "leftArm", t, solids, [...BELL_HOLDS, ...BLOW_HOLDS], karenArms);
-  karen = workArm(karen, "rightArm", t, solids, [...PHONE_HOLDS, LIGHTER_HOLD, CIGARETTE_HOLD], karenArms);
+  karen = workArm(karen, "leftArm", t, solids, [...BELL_HOLDS, ...BLOW_HOLDS], { history: karenArms, at: t });
+  karen = workArm(karen, "rightArm", t, solids, [...PHONE_HOLDS, LIGHTER_HOLD, CIGARETTE_HOLD], { history: karenArms, at: t });
   const smoking = inHerHands(t);
   const { burned, ash } = smokedAt(t);
   const solved = {

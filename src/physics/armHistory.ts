@@ -13,6 +13,9 @@ export const AUTHORED_ARM = "authored";
 
 export type ArmClock = { readonly history?: ArmHistory; readonly at: number };
 
+export const lastArm = (clock: ArmClock | undefined, which: ArmName, key: string = FINAL_ARM) =>
+  clock?.history?.before(clock.at, which, key, -Infinity);
+
 const ON_THE_GRID = 1e-6;
 
 export type ArmOpening = (who: string, which: ArmName) => ArmPose | undefined;

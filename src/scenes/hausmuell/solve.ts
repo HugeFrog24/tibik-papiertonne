@@ -77,8 +77,8 @@ const solveKaren = (
     solids.filter((s) => s !== GROUND),
   );
   karen = guardLean(karen, solids);
-  karen = workArm(karen, "leftArm", at, solids, [], history);
-  karen = workArm(karen, "rightArm", at, solids, [], history);
+  karen = workArm(karen, "leftArm", at, solids, [], { history, at });
+  karen = workArm(karen, "rightArm", at, solids, [], { history, at });
   return {
     ...authored,
     position: karen.position,

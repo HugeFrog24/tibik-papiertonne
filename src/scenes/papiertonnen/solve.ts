@@ -46,7 +46,7 @@ import { TONNE, tonneColliders, tonneLidParts } from "../../street/tonneShape";
 import { headSurface } from "../../Tibik/headShape";
 import { memoWithArms, openingOn } from "../../physics/memoSolve";
 import { treppenhausEnd } from "../treppenhaus/solve";
-import { FINAL_ARM, type ArmClock, type ArmHistory } from "../../physics/armHistory";
+import { FINAL_ARM, lastArm, type ArmClock, type ArmHistory } from "../../physics/armHistory";
 import { blendArm } from "../../physics/armDescent";
 import { kf } from "../../characters/animate";
 import { FPS } from "../../frameRate";
@@ -175,8 +175,8 @@ export const solveTibik = (
     solids.filter((s) => !grounds.includes(s)),
   );
   tibik = guardLean(tibik, solids);
-  tibik = workArm(tibik, "leftArm", t, solids, holds, clock?.history, clock?.at);
-  tibik = workArm(tibik, "rightArm", t, solids, holds, clock?.history, clock?.at);
+  tibik = workArm(tibik, "leftArm", t, solids, holds, clock);
+  tibik = workArm(tibik, "rightArm", t, solids, holds, clock);
   return {
     ...authored,
     position: tibik.position,
@@ -193,8 +193,7 @@ export const holdKarton = (
 ) => {
   const karton = placeKarton(tibik, authored);
   const held = holdCarried(asCharacter(tibik), karton, kartonBoundsOf, solids, {
-    history: clock?.history,
-    at: clock?.at,
+    clock,
     sideGrip: karton.sideGrip,
     movable: karton.pickup > 0,
   });
@@ -239,7 +238,7 @@ const solve = (t: number, history: ArmHistory): PapiertonnenState => {
     let reached = asCharacter(tibik);
     for (const which of ["leftArm", "rightArm"] as const) {
       const toward = withArm(reached, which, blendArm(tibik.pose[which], onTheBox[which], reaching));
-      reached = settleArm(toward, solids, which, clock.history.before(t, which, FINAL_ARM, -Infinity));
+      reached = settleArm(toward, solids, which, lastArm(clock, which));
       clock.history.remember(t, which, FINAL_ARM, reached.pose[which]);
     }
     return { lids, haustuer, indoors, tibik: { ...tibik, pose: reached.pose }, karton: null };

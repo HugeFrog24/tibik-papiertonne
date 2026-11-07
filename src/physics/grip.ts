@@ -1,6 +1,6 @@
 import { Euler, Quaternion, Vector3 } from "three";
 import { ARM_KEYS, armDistance, descendArm, pushClear, trackArm } from "./armDescent";
-import { FINAL_ARM, type ArmHistory } from "./armHistory";
+import { FINAL_ARM, lastArm, type ArmClock } from "./armHistory";
 import {
   armColliders,
   armIntoTorso,
@@ -179,8 +179,7 @@ const gripTargets = <T extends Carried>(
 export type HoldOptions = {
   readonly sideGrip: number;
   readonly movable: boolean;
-  readonly history?: ArmHistory;
-  readonly at?: number;
+  readonly clock?: ArmClock;
 };
 
 const worldToTorso = (c: Character, delta: Vector3) => {
@@ -218,9 +217,9 @@ export const holdCarried = <C extends Character, T extends Carried>(
   item: T,
   boundsOf: (item: T) => Bounds,
   solids: readonly Solid[],
-  { sideGrip, movable, history, at = 0 }: HoldOptions,
+  { sideGrip, movable, clock }: HoldOptions,
 ): { readonly character: C; readonly item: T } => {
-  const lastFrame = Object.fromEntries(HOLDING_ARMS.map((which) => [which, history?.before(at, which, FINAL_ARM, -Infinity)]));
+  const lastFrame = Object.fromEntries(HOLDING_ARMS.map((which) => [which, lastArm(clock, which)]));
   let current = item;
   let character = c;
   let settled = false;
@@ -268,7 +267,7 @@ export const holdCarried = <C extends Character, T extends Carried>(
       lastFrame,
     ).character;
   }
-  for (const which of HOLDING_ARMS) history?.remember(at, which, FINAL_ARM, character.pose[which]);
+  for (const which of HOLDING_ARMS) clock?.history?.remember(clock.at, which, FINAL_ARM, character.pose[which]);
   const bounds = boundsOf(current);
   const held = carriedBox(
     c.skeleton,

@@ -7,6 +7,7 @@ export const ENTRY = enterHouse(WALK_HOME[1]);
 export const STREET_LAMPS_ON = 0.4;
 export const STAIRWELL_ON = ENTRY.indoors[0] + 0.3;
 export const LAMP_ON_AT_DUSK = STAIRWELL_ON + 2.6;
+export const NACHTRUHE_FILM_JOINS = STAIRWELL_ON - 0.9;
 export const DUSK = [0, LAMP_ON_AT_DUSK + 1] as const;
 
 export const WALK_TO_BED = after(DUSK[1] - 1.2, 3);

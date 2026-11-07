@@ -2,7 +2,7 @@ import { HAUSMUELL_DURATION } from "./scenes/hausmuell/choreography";
 import { KLINGELSTURM_DURATION } from "./scenes/klingelsturm/choreography";
 import { KLINGELSTURM_AMBIENCE } from "./scenes/klingelsturm/doorCues";
 import { NACHTRUHE_AMBIENCE } from "./scenes/nachtruhe/soundCues";
-import { NACHTRUHE_DURATION } from "./scenes/nachtruhe/timeline";
+import { NACHTRUHE_DURATION, NACHTRUHE_FILM_JOINS } from "./scenes/nachtruhe/timeline";
 import { PAPIERTONNEN_DURATION } from "./scenes/papiertonnen/choreography";
 import { RUNDSCHREIBEN_DURATION } from "./scenes/rundschreiben/choreography";
 import { RUNDSCHREIBEN_AMBIENCE } from "./scenes/rundschreiben/soundCues";
@@ -16,13 +16,14 @@ export const PAPIERTONNEN_FRAMES = Math.round(PAPIERTONNEN_DURATION * FPS);
 export const HAUSMUELL_FRAMES = Math.round(HAUSMUELL_DURATION * FPS);
 export const KLINGELSTURM_FRAMES = Math.round(KLINGELSTURM_DURATION * FPS);
 export const NACHTRUHE_FRAMES = Math.round(NACHTRUHE_DURATION * FPS);
+export const NACHTRUHE_FILM_FRAMES = Math.round((NACHTRUHE_DURATION - NACHTRUHE_FILM_JOINS) * FPS);
 export const RUNDSCHREIBEN_FRAMES = Math.round(RUNDSCHREIBEN_DURATION * FPS);
-export const SCENES: readonly { readonly name: string; readonly frames: number; readonly ambience: SceneAmbience }[] = [
+export const SCENES: readonly { readonly name: string; readonly frames: number; readonly ambience: SceneAmbience; readonly skip?: number }[] = [
   { name: "Treppenhaus", frames: TREPPENHAUS_FRAMES, ambience: TREPPENHAUS_AMBIENCE },
   { name: "Papiertonnen", frames: PAPIERTONNEN_FRAMES, ambience: OUT_IN_THE_STREET },
   { name: "Hausmuell", frames: HAUSMUELL_FRAMES, ambience: OUT_IN_THE_STREET },
   { name: "Klingelsturm", frames: KLINGELSTURM_FRAMES, ambience: KLINGELSTURM_AMBIENCE },
-  { name: "Nachtruhe", frames: NACHTRUHE_FRAMES, ambience: NACHTRUHE_AMBIENCE },
+  { name: "Nachtruhe", frames: NACHTRUHE_FILM_FRAMES, ambience: NACHTRUHE_AMBIENCE, skip: NACHTRUHE_FILM_JOINS },
   { name: "Rundschreiben", frames: RUNDSCHREIBEN_FRAMES, ambience: RUNDSCHREIBEN_AMBIENCE },
 ];
 const SCENE_FRAMES = SCENES.map((scene) => scene.frames);
@@ -32,6 +33,7 @@ export const PAPIERTONNEN_FROM = startFrame(1) / FPS;
 export const HAUSMUELL_FROM = startFrame(2) / FPS;
 export const KLINGELSTURM_FROM = startFrame(3) / FPS;
 export const NACHTRUHE_FROM = startFrame(4) / FPS;
+export const NACHTRUHE_STORY_ZERO = NACHTRUHE_FROM - NACHTRUHE_FILM_JOINS;
 export const RUNDSCHREIBEN_FROM = startFrame(5) / FPS;
 
 export const TIME_JUMPS: readonly {
@@ -54,7 +56,7 @@ const sceneAtFrame = (frame: number) => {
 
 const heardInTheFilm = (pick: (ambience: SceneAmbience) => (t: number) => number) => (frame: number) => {
   const { scene, start } = sceneAtFrame(frame);
-  return pick(scene.ambience)((frame - start) / FPS);
+  return pick(scene.ambience)((frame - start) / FPS + (scene.skip ?? 0));
 };
 
 export const filmIndoors = heardInTheFilm((a) => a.indoors);

@@ -10,7 +10,7 @@ import { Blanket } from "../../props/Blanket";
 import { KeyRing } from "../../props/KeyRing";
 import { Street } from "../../street/Street";
 import { BinRow, Sky, StreetLighting } from "../../street/StreetSet";
-import { NACHTRUHE_FROM } from "../../timeline";
+import { NACHTRUHE_STORY_ZERO } from "../../timeline";
 import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
 import { Tibik } from "../../Tibik/Tibik";
@@ -33,7 +33,7 @@ const Outside: React.FC<{ readonly t: number; readonly state: NachtruheState }> 
   <>
     <Street
       look={state.look}
-      windAt={NACHTRUHE_FROM + t}
+      windAt={NACHTRUHE_STORY_ZERO + t}
       lampOn={state.entranceLamp}
       haustuer={state.haustuer}
       roofs

@@ -8,7 +8,7 @@ import {
   HAUSMUELL_FRAMES,
   KLINGELSTURM_FRAMES,
   KLINGELSTURM_FROM,
-  NACHTRUHE_FRAMES,
+  NACHTRUHE_FRAMES, NACHTRUHE_FILM_FRAMES,
   NACHTRUHE_FROM,
   PAPIERTONNEN_FRAMES,
   RUNDSCHREIBEN_FRAMES,
@@ -48,7 +48,7 @@ test("the time jumps: no Klingelsturm cue runs past its scene, Nachtruhe follows
     expect(ends, `${cue.sound} at ${cue.at.toFixed(2)} s`).toBeLessThanOrEqual(KLINGELSTURM_DURATION);
   }
   expect(Math.round(NACHTRUHE_FROM * FPS)).toBe(Math.round(KLINGELSTURM_FROM * FPS) + KLINGELSTURM_FRAMES);
-  expect(Math.round(RUNDSCHREIBEN_FROM * FPS)).toBe(Math.round(NACHTRUHE_FROM * FPS) + NACHTRUHE_FRAMES);
+  expect(Math.round(RUNDSCHREIBEN_FROM * FPS)).toBe(Math.round(NACHTRUHE_FROM * FPS) + NACHTRUHE_FILM_FRAMES);
   expect(rainLevel(0).outside).toBe(RAIN.volume);
   expect(rainLevel(0).inside).toBe(0);
 });
@@ -83,9 +83,9 @@ test("the declared time jumps, and the film is its six scenes end to end", () =>
     { from: "Klingelsturm", to: "Nachtruhe" },
     { from: "Nachtruhe", to: "Rundschreiben" },
   ]);
-  expect(FILM_FRAMES).toBe(TREPPENHAUS_FRAMES + PAPIERTONNEN_FRAMES + HAUSMUELL_FRAMES + KLINGELSTURM_FRAMES + NACHTRUHE_FRAMES + RUNDSCHREIBEN_FRAMES);
+  expect(FILM_FRAMES).toBe(TREPPENHAUS_FRAMES + PAPIERTONNEN_FRAMES + HAUSMUELL_FRAMES + KLINGELSTURM_FRAMES + NACHTRUHE_FILM_FRAMES + RUNDSCHREIBEN_FRAMES);
   expect(NACHTRUHE_FROM).toBeCloseTo(KLINGELSTURM_FROM + KLINGELSTURM_FRAMES / FPS, 9);
-  expect(RUNDSCHREIBEN_FROM).toBeCloseTo(NACHTRUHE_FROM + NACHTRUHE_FRAMES / FPS, 9);
+  expect(RUNDSCHREIBEN_FROM).toBeCloseTo(NACHTRUHE_FROM + NACHTRUHE_FILM_FRAMES / FPS, 9);
   expect(NACHTRUHE_FRAMES).toBe(Math.round(NACHTRUHE_DURATION * FPS));
   expect(RUNDSCHREIBEN_FRAMES).toBe(Math.round(RUNDSCHREIBEN_DURATION * FPS));
 });

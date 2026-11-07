@@ -3,6 +3,8 @@ import { expect, test } from "vitest";
 import { bedroomSolids, BEDROOM_DOOR } from "../../building/bedroomShape";
 import { onScreen, inFront, FRAME_SIZE } from "../../dialogue/screen";
 import { FPS } from "../../frameRate";
+import { NACHTRUHE_FILM_FRAMES } from "../../timeline";
+import { DUSK as DUSK_SPAN, ENTRY as DUSK_ENTRY, NACHTRUHE_DURATION as STORY_LENGTH, NACHTRUHE_FILM_JOINS, STAIRWELL_ON } from "./timeline";
 import { partObb, sphere, type Solid } from "../../physics/collision";
 import { ACROSS_STREET, BALCONIES, BLOCK_SPAN, FACADE_Z, acrossZ, balconyDecor, balconyParts, flatWindow, railingHeightFor } from "../../street/building";
 import { facadePieces } from "../../street/facade";
@@ -167,4 +169,13 @@ test("the bedroom shots are lit by the room's own lights, the street shots by th
     const indoors = s.name.startsWith("Bedroom");
     expect(lightingAt(mid), s.name).toEqual({ street: !indoors, bedroom: indoors });
   }
+});
+
+test("in the film the dusk wide lasts a few seconds: the film joins Nachtruhe as he steps into his lit doorway, just before the stairwell light, so the shot still shows the stairwell and his window light up", () => {
+  const shown = DUSK_SPAN[1] - NACHTRUHE_FILM_JOINS;
+  expect(shown).toBeGreaterThanOrEqual(3);
+  expect(shown).toBeLessThanOrEqual(5);
+  expect(NACHTRUHE_FILM_JOINS).toBeGreaterThan(DUSK_ENTRY.unlock[1]);
+  expect(NACHTRUHE_FILM_JOINS).toBeLessThan(STAIRWELL_ON);
+  expect(NACHTRUHE_FILM_FRAMES).toBe(Math.round((STORY_LENGTH - NACHTRUHE_FILM_JOINS) * FPS));
 });

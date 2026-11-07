@@ -1,4 +1,4 @@
-import { AbsoluteFill, Series } from "remotion";
+import { AbsoluteFill, Sequence, Series } from "remotion";
 import { Papiertonnen } from "./scenes/papiertonnen/Papiertonnen";
 import { Hausmuell } from "./scenes/hausmuell/Hausmuell";
 import { StreetAmbience } from "./street/StreetAmbience";
@@ -7,8 +7,9 @@ import { MAIN_STREET } from "./sound/music";
 import { Treppenhaus } from "./scenes/treppenhaus/Treppenhaus";
 import { Klingelsturm } from "./scenes/klingelsturm/Klingelsturm";
 import { Nachtruhe } from "./scenes/nachtruhe/Nachtruhe";
+import { NACHTRUHE_FILM_JOINS } from "./scenes/nachtruhe/timeline";
 import { Rundschreiben } from "./scenes/rundschreiben/Rundschreiben";
-import { HAUSMUELL_FRAMES, KLINGELSTURM_FRAMES, NACHTRUHE_FRAMES, PAPIERTONNEN_FRAMES, RUNDSCHREIBEN_FRAMES, TREPPENHAUS_FRAMES, FILM_AMBIENCE } from "./timeline";
+import { FPS, HAUSMUELL_FRAMES, KLINGELSTURM_FRAMES, NACHTRUHE_FILM_FRAMES, PAPIERTONNEN_FRAMES, RUNDSCHREIBEN_FRAMES, TREPPENHAUS_FRAMES, FILM_AMBIENCE } from "./timeline";
 
 export const Film: React.FC = () => (
   <AbsoluteFill>
@@ -25,8 +26,10 @@ export const Film: React.FC = () => (
       <Series.Sequence name="Klingelsturm" durationInFrames={KLINGELSTURM_FRAMES}>
         <Klingelsturm ambience={false} />
       </Series.Sequence>
-      <Series.Sequence name="Nachtruhe" durationInFrames={NACHTRUHE_FRAMES}>
-        <Nachtruhe ambience={false} />
+      <Series.Sequence name="Nachtruhe" durationInFrames={NACHTRUHE_FILM_FRAMES}>
+        <Sequence name="Nachtruhe from his doorway" from={-Math.round(NACHTRUHE_FILM_JOINS * FPS)} layout="none">
+          <Nachtruhe ambience={false} />
+        </Sequence>
       </Series.Sequence>
       <Series.Sequence name="Rundschreiben" durationInFrames={RUNDSCHREIBEN_FRAMES}>
         <Rundschreiben ambience={false} />

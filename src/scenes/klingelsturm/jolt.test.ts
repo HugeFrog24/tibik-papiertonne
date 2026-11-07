@@ -3,6 +3,7 @@ import { Vector3 } from "three";
 import { FPS } from "../../timeline";
 import { BANGING } from "./banging";
 import { SHOTS, cameraAt } from "./cameras";
+import { onScreen } from "../../dialogue/screen";
 
 const shotOf = (t: number) => SHOTS.find((s) => t >= s.from && t < s.to)!;
 const restOf = (t: number) => {
@@ -31,4 +32,19 @@ test("on the landing, closer to her fist, the jolt is larger than in his Flur be
 
 test("only the two banging shots ask for motion blur", () => {
   expect(SHOTS.filter((s) => s.blur).map((s) => s.name)).toEqual(["Wide: the banging", "Flur: the banging"]);
+});
+
+test("the jolt is plain to see even on a phone: within two frames of each blow the picture jumps at least 25 px on the landing and 15 px in his Flur, on the 1080-line frame", () => {
+  const jump = (at: number) => {
+    const aim = new Vector3(...cameraAt(at - 0.05).target);
+    const rest = onScreen(aim, cameraAt(at - 0.05));
+    return Math.max(...[1, 2].map((f) => {
+      const shaken = onScreen(aim, cameraAt(at + f / FPS));
+      return Math.hypot(shaken[0] - rest[0], shaken[1] - rest[1]);
+    }));
+  };
+  for (const at of BANGING.blows) {
+    const least = at < BANGING.flurCut[0] ? 25 : 15;
+    expect(jump(at), `blow at ${at}`).toBeGreaterThanOrEqual(least);
+  }
 });

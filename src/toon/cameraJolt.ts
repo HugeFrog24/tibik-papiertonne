@@ -5,7 +5,7 @@ import { WORLD_UP, type CameraSetup } from "./shots";
 
 export type Jolt = { readonly at: number; readonly strength: number };
 
-export const JOLT = { hertz: 9, decay: 0.05, lasts: 0.3, lift: 0.01, turn: (0.3 * Math.PI) / 180, vary: 0.12 };
+export const JOLT = { hertz: 9, decay: 0.05, lasts: 0.3, lift: 0.04, turn: (1.3 * Math.PI) / 180, vary: 0.12 };
 
 const bump = (since: number) =>
   since < 0 || since > JOLT.lasts ? 0 : Math.exp(-since / JOLT.decay) * Math.sin(2 * Math.PI * JOLT.hertz * since);

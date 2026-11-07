@@ -144,3 +144,14 @@ test("the film does not cut on the frame the Haustür shuts behind him: the coda
   expect(after).toBeLessThanOrEqual(3);
   expect(SHOTS[SHOTS.length - 1].name).toBe("Coda");
 });
+
+test("over the Nachlaufzeit the camera eases back from the shut door, so the last seconds read as film and not as a still: it starts as the door shuts, travels half a metre or more and settles on the last frame", () => {
+  const where = (t: number) => new Vector3(...cameraAt(t).position);
+  const end = RUNDSCHREIBEN_DURATION - 1e-6;
+  expect(where(DOOR_SHUT - 0.5).distanceTo(where(DOOR_SHUT - 0.3))).toBeLessThan(1e-9);
+  expect(where(DOOR_SHUT - 0.3).distanceTo(where(end))).toBeGreaterThanOrEqual(0.5);
+  expect(where(end).distanceTo(where(end - 1 / FPS))).toBeLessThan(0.002);
+  const middle = (DOOR_SHUT + RUNDSCHREIBEN_DURATION) / 2;
+  expect(where(middle).distanceTo(where(middle - 1 / FPS))).toBeGreaterThan(0.005);
+  expect(where(end).distanceTo(new Vector3(...cameraAt(end).target))).toBeGreaterThan(where(DOOR_SHUT - 0.3).distanceTo(new Vector3(...cameraAt(DOOR_SHUT - 0.3).target)));
+});

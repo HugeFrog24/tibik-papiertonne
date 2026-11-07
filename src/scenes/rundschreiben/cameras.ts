@@ -8,6 +8,7 @@ import {
   type LetterLine,
 } from "../../props/letterShape";
 import { FRAME_SIZE } from "../../dialogue/screen";
+import { DOOR_SHUT } from "./home";
 import type { Vec3 } from "../../toon/primitives";
 import { aboveHisHips } from "../../Tibik/rig";
 import { camerasOf, dolly, fixed, type CameraSetup, type Shot } from "../../toon/shots";
@@ -83,6 +84,15 @@ const body = roleLines("salutation", "body");
 const thanks = roleLines("thanks", "signature");
 const punchline = Math.min(...thanks.map((l) => l.y));
 
+const CODA_VIEW: CameraSetup = { position: [-3.5, 1.7, 1.4], target: [-0.5, 0.95, -1.7], fov: 50 };
+const CODA_PULL = { back: 0.7, up: 0.25, lead: 0.3 };
+
+const easedBack = (view: CameraSetup, pull: typeof CODA_PULL): CameraSetup => {
+  const from = new Vector3(...view.position);
+  const away = from.clone().sub(new Vector3(...view.target)).normalize();
+  return { ...view, position: from.addScaledVector(away, pull.back).add(new Vector3(0, pull.up, 0)).toArray() as Vec3 };
+};
+
 export const SHOTS: readonly RundschreibenShot[] = [
   {
     name: "Wide: Zwei Wochen später",
@@ -137,7 +147,7 @@ export const SHOTS: readonly RundschreibenShot[] = [
     name: "Coda",
     from: CODA,
     to: RUNDSCHREIBEN_DURATION,
-    at: fixed([-3.5, 1.7, 1.4], [-0.5, 0.95, -1.7], 50),
+    at: dolly(CODA_VIEW, easedBack(CODA_VIEW, CODA_PULL), DOOR_SHUT - CODA_PULL.lead, RUNDSCHREIBEN_DURATION),
   },
 ];
 

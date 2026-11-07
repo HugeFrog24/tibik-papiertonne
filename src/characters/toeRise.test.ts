@@ -1,7 +1,8 @@
-import { Vector3 } from "three";
+import { Matrix4, Quaternion, Vector3 } from "three";
 import { expect, test } from "vitest";
+import { TIBIK_GAIT } from "../Tibik/character";
 import { RIG, TIBIK_REST } from "../Tibik/rig";
-import { legOnToes, type Plant } from "./gait";
+import { footAt, legOnToes, planGait, rhythmicSteps, type Plant, type RootAt } from "./gait";
 import { footCenter, legFramesOf, type Placement } from "./skeleton";
 
 const standing: Placement = { position: [0, 0, 0], rotationY: 0.4, pose: TIBIK_REST };
@@ -34,4 +35,32 @@ test("rising on his toes, his drawn foot rolls on the floor without skidding: it
   expect(Math.abs(risen.lowest - flat.lowest)).toBeLessThan(0.001);
   const moved = Math.hypot(risen.tip.x - flat.tip.x, risen.tip.z - flat.tip.z);
   expect(moved).toBeLessThan(0.02);
+});
+
+const lowestOfTheDrawnFoot = (ankle: Vector3, rotation: Quaternion) => {
+  const [rx, ry, rz] = RIG.foot.size;
+  const centre = new Vector3(...footCenter(RIG, 1)).applyQuaternion(rotation).add(ankle);
+  const m = new Matrix4().makeRotationFromQuaternion(rotation).elements;
+  return centre.y - Math.hypot(rx * m[1], ry * m[5], rz * m[9]);
+};
+
+const PIVOT_GAP = 0.017;
+
+test("walking on flat ground, a planted foot's drawn underside lifts at most 1.7 cm off the floor as it pivots on its heel and toe (the walk pivots on the collision capsule, which reaches that much lower than the drawn foot)", () => {
+  const walk: RootAt = (t) => ({ x: 0.8 * t, z: 0, yaw: Math.PI / 2 });
+  const steps = rhythmicSteps({ from: 0, to: 2, first: -1, cadence: () => 4, overlap: 0.1 });
+  const plan = planGait(RIG, TIBIK_GAIT, walk, steps, [-1, 3]);
+  const still: Placement = { position: [0, 0, 0], rotationY: 0, pose: TIBIK_REST };
+  const flat = lowestOfTheDrawnFoot(new Vector3().setFromMatrixPosition(legFramesOf(RIG, still, 1).ankle), new Quaternion());
+  const lifts = ([1, -1] as const).flatMap((side) =>
+    plan.plants[side === 1 ? "leftLeg" : "rightLeg"]
+      .filter((p) => p.on > 0 && p.off < 2)
+      .flatMap((p) => Array.from({ length: Math.floor((p.off - p.on) / 0.005) + 1 }, (_, i) => p.on + i * 0.005))
+      .map((t) => {
+        const foot = footAt(plan, side, t);
+        return lowestOfTheDrawnFoot(foot.ankle, foot.rotation) - flat;
+      }),
+  );
+  expect(lifts.length).toBeGreaterThan(100);
+  expect(Math.max(...lifts)).toBeLessThanOrEqual(PIVOT_GAP);
 });

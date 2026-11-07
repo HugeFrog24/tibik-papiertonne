@@ -12,6 +12,7 @@ import * as cameras from "./cameras";
 import { FOLDING_SHOT, SHOTS, cameraAt } from "./cameras";
 import { FLAP, FOLD, RUNDSCHREIBEN_DURATION, UNFOLD, envelopeAt } from "./choreography";
 import { solveRundschreiben } from "./solve";
+import { DOOR_SHUT } from "./home";
 
 const NAMES = [
   "Wide: Zwei Wochen später",
@@ -135,4 +136,11 @@ test("while the letter slides back into the envelope, the lens sees the envelope
     const toLens = new Vector3(...cameraAt(t).position).sub(centre).normalize();
     expect(toLens.dot(front), t.toFixed(2)).toBeGreaterThan(0.2);
   }
+});
+
+test("the film does not cut on the frame the Haustür shuts behind him: the coda holds on the shut door for 2 to 3 seconds of Nachlaufzeit", () => {
+  const after = RUNDSCHREIBEN_DURATION - DOOR_SHUT;
+  expect(after).toBeGreaterThanOrEqual(2);
+  expect(after).toBeLessThanOrEqual(3);
+  expect(SHOTS[SHOTS.length - 1].name).toBe("Coda");
 });

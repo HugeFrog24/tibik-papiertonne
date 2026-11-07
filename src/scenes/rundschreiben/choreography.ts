@@ -74,7 +74,8 @@ export const TO_DOOR = after(LID_THUD + 0.2, 2);
 export const ENTRY = enterHouse(TO_DOOR[1]);
 export const UNLOCK = ENTRY.unlock;
 export const IN = ENTRY.in;
-export const RUNDSCHREIBEN_DURATION = IN[1] + 6.25;
+const NACHLAUF = 2.5;
+export const RUNDSCHREIBEN_DURATION = ENTRY.doorShut + NACHLAUF;
 export const BACK_STEP = ENTRY.backStep;
 const WALKING_IN = ENTRY.walkingIn;
 

@@ -1,5 +1,6 @@
 import { DECAL, drawnTexture, fitText, framedCard } from "../toon/primitives";
-import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
+import { Decal } from "./Drains";
+import { PAVEMENT_DECAL_Y } from "./decalPlane";
 import { HYDRANT, HYDRANT_SIGN, hydrantCap, metres } from "./layout";
 import { useSignColor } from "../weather/DayLight";
 

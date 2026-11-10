@@ -3,7 +3,8 @@ import { WET_LAYERS, wetness } from "../weather/wetGround";
 import { WetGround } from "./WetGround";
 import { DoorGlassFilm, FacadeMirror } from "./MirrorFilms";
 import { ajar, clearViewsOut } from "./glassReflection";
-import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
+import { Decal } from "./Drains";
+import { PAVEMENT_DECAL_Y } from "./decalPlane";
 import { ExtrudeGeometry, type Texture } from "three";
 import {
   Blob,

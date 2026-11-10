@@ -5,6 +5,8 @@ import type { Footprint } from "../street/footprint";
 import { treePit } from "../street/layout";
 import { MORE_TREES, TREE_POSITION } from "../street/trees";
 import type { WeatherLook } from "./overcast";
+import { DECAL } from "../toon/primitives";
+import { PAVEMENT_DECAL_Y, ROAD_DECAL_Y } from "../street/decalPlane";
 
 export const WATER_F0 = 0.02;
 
@@ -35,4 +37,6 @@ export const DRY_PITS: readonly Footprint[] = [...[TREE_POSITION[0], ...MORE_TRE
 
 export const WET_LAYERS = { shade: -2, puddles: -1, mirror: 0 } as const;
 
-export const WET_FILM = { polygonOffsetFactor: -2, polygonOffsetUnits: -8, renderOrder: WET_LAYERS.mirror, resolution: 0.5, clearance: 0.002 } as const;
+export const WET_FILM = { polygonOffsetFactor: DECAL.polygonOffsetFactor, polygonOffsetUnits: 2 * DECAL.polygonOffsetUnits, renderOrder: WET_LAYERS.mirror, resolution: 0.5, clearance: 0.002 } as const;
+
+export const wetSheetY = (surface: { readonly y: number }) => (surface.y === ROAD_Y ? ROAD_DECAL_Y : PAVEMENT_DECAL_Y);

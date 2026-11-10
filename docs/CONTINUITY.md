@@ -24,7 +24,12 @@ Items marked **(test)** are enforced by `npm test`.
   shelters it. The wet pavements and road mirror the street (water's Fresnel:
   faint seen from above, strong at a flat angle, near-mirror in the puddles,
   smeared into streaks elsewhere); the soil in the tree pits stays matt.
-  **(test)**
+  The rain darkens everything on the ground alike, the markings in it too
+  (a tree pit's stone edging and soil, gully grates, manhole covers, the
+  hydrant cap, asphalt patches), near and far and at every resolution: the
+  wet sheets lie in the markings' own plane and only a fixed depth margin
+  orders them, not one that grows with pixel size (owner, 2026-11-10: a
+  pit's far edging was wet at 1080p and dry at 8K). **(test)**
 - **Wind:** a light breeze (Beaufort 2, leaves rustle) blows down the street
   (towards +x, slightly towards the houses), with gusts. One breeze runs on
   film time across all scenes (src/physics/wind.ts). The tree crown sways a

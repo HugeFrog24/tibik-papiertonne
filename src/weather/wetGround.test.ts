@@ -1,12 +1,15 @@
 import { expect, test } from "vitest";
 import { DECAL } from "../toon/primitives";
-import { FACADE_Z, KERB_DEPTH, KERB_Z, acrossZ } from "../street/building";
+import { FACADE_Z, KERB_DEPTH, KERB_Z, ROAD_Y, acrossZ } from "../street/building";
 import { treePit } from "../street/layout";
 import { MORE_TREES, TREE_POSITION } from "../street/trees";
 import { RAIN_RIBBONS } from "./Rain";
 import { PUDDLES, WEATHER } from "./overcast";
 import { rainGroundY } from "./rainDrops";
-import { DRY_PITS, WATER_F0, WET_FILM, WET_LAYERS, WET_SURFACES, reflectance, waterFresnel, wetness } from "./wetGround";
+import { DRY_PITS, WATER_F0, WET_FILM, WET_LAYERS, WET_SURFACES, reflectance, waterFresnel, wetSheetY, wetness } from "./wetGround";
+import { PAVEMENT_DECAL_Y, ROAD_DECAL_Y } from "../street/decalPlane";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 test("water reflects 2 % of the light seen from straight above and all of it at a grazing angle, more the flatter you look", () => {
   expect(waterFresnel(1)).toBeCloseTo(WATER_F0, 12);
@@ -57,10 +60,19 @@ test("the soil in every tree pit stays matt, on both sides of the street, and no
     }
 });
 
-test("the wet ground is drawn in layers: the ground darkened first, the puddles on it, the mirror over them and the rain over all, each over the ground's markings", () => {
-  expect(WET_FILM.polygonOffsetFactor).toBeLessThan(DECAL.polygonOffsetFactor);
+test("the wet ground is drawn in layers: the ground darkened first, the puddles on it, the mirror over them and the rain over all, each over the ground's markings at every pixel size, angle and distance: the wet sheets lie in the markings' own plane (2 mm over the paving, 3 mm over the road) with the markings' slope share of the pull toward the camera and twice their constant share, so only the constant share decides; a bigger slope share flipped with pixel size and angle (a tree pit's far edging wet at 1080p and dry at 8K)", () => {
+  expect(WET_FILM.polygonOffsetFactor).toBe(DECAL.polygonOffsetFactor);
+  expect(WET_FILM.polygonOffsetUnits).toBe(2 * DECAL.polygonOffsetUnits);
+  expect([PAVEMENT_DECAL_Y, ROAD_DECAL_Y - ROAD_Y].map((y) => +y.toFixed(6))).toEqual([0.002, 0.003]);
+  expect(WET_SURFACES.map(wetSheetY)).toEqual(WET_SURFACES.map((s) => (s.y === ROAD_Y ? ROAD_DECAL_Y : PAVEMENT_DECAL_Y)));
   expect(WET_LAYERS.shade).toBeLessThan(WET_LAYERS.puddles);
   expect(WET_LAYERS.puddles).toBeLessThan(WET_LAYERS.mirror);
   expect(WET_FILM.renderOrder).toBe(WET_LAYERS.mirror);
   expect(WET_LAYERS.mirror).toBeLessThan(RAIN_RIBBONS.renderOrder);
+});
+
+test("both wet sheets, the darkening and the mirror, are drawn at the markings' plane, while the mirror still reflects about the ground itself", () => {
+  const wet = readFileSync(path.join(__dirname, "../street/WetGround.tsx"), "utf8");
+  expect(wet.split("position={[(s.x[0] + s.x[1]) / 2, wetSheetY(s), ")).toHaveLength(3);
+  expect(wet).toContain("MIRROR_HEIGHTS.map((y) => ({ y, ...newMirror() }))");
 });

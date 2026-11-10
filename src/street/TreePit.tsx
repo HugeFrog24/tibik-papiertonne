@@ -1,6 +1,7 @@
 import { random } from "remotion";
 import { DECAL, drawnTexture, speckle } from "../toon/primitives";
-import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
+import { Decal } from "./Drains";
+import { PAVEMENT_DECAL_Y } from "./decalPlane";
 import { TREE_PIT, treePit } from "./layout";
 
 const PX_PER_M = 128;

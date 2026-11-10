@@ -1,11 +1,10 @@
 import { DECAL, drawnTexture, type Vec3 } from "../toon/primitives";
-import { ROAD_Y } from "./building";
+import { ROAD_DECAL_Y } from "./decalPlane";
 import { GULLIES, GULLY, MANHOLE, MANHOLES } from "./drainShape";
 
 const IRON = "#3b3e42";
 const WORN = "#585c61";
 const SLOT = "#121314";
-const LIFT = 0.003;
 
 const gullyTexture = () =>
   drawnTexture("gully-300x500", 250, 150, (ctx, w, h) => {
@@ -56,7 +55,6 @@ const manholeTexture = () =>
     }
   });
 
-export const PAVEMENT_DECAL_Y = 0.002;
 const UNSCALED: Vec3 = [1, 1, 1];
 
 export const Decal: React.FC<{
@@ -66,7 +64,7 @@ export const Decal: React.FC<{
   readonly scale?: Vec3;
   readonly renderOrder?: number;
   readonly children: React.ReactNode;
-}> = ({ x, z, y = ROAD_Y + LIFT, scale = UNSCALED, renderOrder = 0, children }) => (
+}> = ({ x, z, y = ROAD_DECAL_Y, scale = UNSCALED, renderOrder = 0, children }) => (
   <mesh
     position={[x, y, z]}
     rotation={[-Math.PI / 2, 0, 0]}

@@ -6,7 +6,7 @@ import { REFLECTS, newMirror, renderMirror, type Mirror } from "../toon/mirror";
 import { PUDDLES } from "../weather/overcast";
 import type { WeatherLook } from "../weather/overcast";
 import { RAIN_SHADOW, rainShadowMask, wetShade } from "../weather/rainShadow";
-import { DRY_PITS, MIRROR_HEIGHTS, SHEEN, WATER_F0, WET_FILM, WET_LAYERS, WET_SURFACES, wetness } from "../weather/wetGround";
+import { DRY_PITS, MIRROR_HEIGHTS, SHEEN, WATER_F0, WET_FILM, WET_LAYERS, WET_SURFACES, wetSheetY, wetness } from "../weather/wetGround";
 import { present } from "../toon/present";
 
 const OPEN_SKY = `
@@ -188,7 +188,7 @@ export const WetGround: React.FC<{ readonly look: WeatherLook; readonly time: nu
       {WET_SURFACES.map((s) => (
         <mesh
           key={`${s.name} darkened`}
-          position={[(s.x[0] + s.x[1]) / 2, s.y, (s.z[0] + s.z[1]) / 2]}
+          position={[(s.x[0] + s.x[1]) / 2, wetSheetY(s), (s.z[0] + s.z[1]) / 2]}
           rotation={[-Math.PI / 2, 0, 0]}
           material={shade}
           userData={NO_INK}
@@ -200,7 +200,7 @@ export const WetGround: React.FC<{ readonly look: WeatherLook; readonly time: nu
       {WET_SURFACES.map((s) => (
         <mesh
           key={s.name}
-          position={[(s.x[0] + s.x[1]) / 2, s.y, (s.z[0] + s.z[1]) / 2]}
+          position={[(s.x[0] + s.x[1]) / 2, wetSheetY(s), (s.z[0] + s.z[1]) / 2]}
           rotation={[-Math.PI / 2, 0, 0]}
           {...present({ material: materials.get(s.y) })}
           userData={FILM}

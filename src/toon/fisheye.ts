@@ -1,5 +1,5 @@
 import type { Point2 } from "../characters/scalar";
-import type { Format } from "../frameRate";
+import { FINEST_PIXEL_RATIO, FORMATS, type Format } from "../frameRate";
 
 export type { Point2 };
 
@@ -13,6 +13,12 @@ export const barrel = ([x, y]: Point2, halfAngle: number): [number, number] => {
   return [x * k, y * k];
 };
 
+export const COLOUR_SAMPLES = 4;
+
+const MULTISAMPLED_UP_TO = FORMATS.wide.width * FORMATS.wide.height * FINEST_PIXEL_RATIO ** 2;
+
+export const colourSamples = ([width, height]: readonly [number, number]) => (width * height <= MULTISAMPLED_UP_TO ? COLOUR_SAMPLES : 0);
+
 export const insideLens = ([x, y]: Point2) => x * x + y * y <= 1;
 
 export const canvasPixels = (
@@ -20,8 +26,9 @@ export const canvasPixels = (
   height: number,
   pixelRatio: number,
   fisheye = false,
+  largest = Infinity,
 ): [number, number] => {
-  const scale = pixelRatio * (fisheye ? FISHEYE.supersample : 1);
+  const scale = Math.min(pixelRatio * (fisheye ? FISHEYE.supersample : 1), largest / Math.max(width, height));
   return [Math.round(width * scale), Math.round(height * scale)];
 };
 

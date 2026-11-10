@@ -13,6 +13,7 @@ import { LETTER_FAMILY, useLetterTexture } from "./letterFont";
 import { A4, CREASES, LETTER_FOOTER_LAYOUT, LETTER_LAYOUT, PT, letterPanels, sheetBow, type Panel } from "./letterShape";
 import { paperRamp } from "../toon/paperRamp";
 import { bentPlane } from "./bentPlane";
+import { FINEST_PIXEL_RATIO } from "../frameRate";
 
 export const PAPER = {
   pxPerMetre: 10_000,
@@ -26,10 +27,8 @@ export const PAPER = {
 
 const FOOTER_RULE_ABOVE = 0.003;
 
-const FINEST = 2;
-
 export const letterPixels = (pixelRatio: number) => {
-  const perMetre = PAPER.pxPerMetre * Math.min(FINEST, Math.ceil(Math.max(1, pixelRatio)));
+  const perMetre = PAPER.pxPerMetre * Math.min(FINEST_PIXEL_RATIO, 2 ** Math.ceil(Math.log2(Math.max(1, pixelRatio))));
   return { perMetre, size: [Math.round(A4[0] * perMetre), Math.round(A4[1] * perMetre)] as const };
 };
 

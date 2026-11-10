@@ -20,7 +20,7 @@ import {
   type WebGLRenderer,
   type Object3D,
 } from "three";
-import { FISHEYE, canvasPixels } from "./fisheye";
+import { COLOUR_SAMPLES, FISHEYE, canvasPixels, colourSamples } from "./fisheye";
 import { useFormat } from "../useFormat";
 import { INK_PASS, inkIdsOf, inkOf, inkRadius, skipsInkIds, widestLine } from "./inkWidth";
 import { CAMERA_NEAR, OUTLINE, HULL_VIEW } from "./primitives";
@@ -157,8 +157,11 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
   fisheye = false,
 }) => {
   const format = useFormat();
-  const colour = useMemo(
-    () => new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 }),
+  const colours = useMemo(
+    () => ({
+      multisampled: new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: COLOUR_SAMPLES }),
+      single: new WebGLRenderTarget(1, 1, { type: HalfFloatType }),
+    }),
     [],
   );
   const ids = useMemo(
@@ -230,7 +233,8 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
   }, [plane]);
   useEffect(
     () => () => {
-      colour.dispose();
+      colours.multisampled.dispose();
+      colours.single.dispose();
       ids.dispose();
       material.dispose();
       plane.dispose();
@@ -240,7 +244,7 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
       exposure.accumulate.dispose();
       exposure.present.dispose();
     },
-    [colour, ids, material, plane, idMaterials, exposure],
+    [colours, ids, material, plane, idMaterials, exposure],
   );
   const drawInked = (
     gl: WebGLRenderer,
@@ -249,6 +253,7 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
     size: { width: number; height: number },
     [width, height]: readonly [number, number],
     target: WebGLRenderTarget | null,
+    colour: WebGLRenderTarget,
   ) => {
     const widest = widestLine(width, height);
     HULL_VIEW.hullHeight.value = height;
@@ -304,15 +309,17 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
     gl.render(quad, view);
   };
   useFrame(({ gl, size, scene, camera }) => {
-    const pixels = canvasPixels(size.width, size.height, gl.getPixelRatio(), fisheye);
+    const pixels = canvasPixels(size.width, size.height, gl.getPixelRatio(), fisheye, gl.capabilities.maxTextureSize);
+    const [colour, idle] = colourSamples(pixels) > 0 ? [colours.multisampled, colours.single] : [colours.single, colours.multisampled];
     colour.setSize(...pixels);
+    idle.setSize(1, 1);
     ids.setSize(...pixels);
     const poses = exposureOn(camera);
     if (!poses || poses.length < 2 || !(camera instanceof PerspectiveCamera)) {
-      drawInked(gl, scene, camera, size, pixels, null);
+      drawInked(gl, scene, camera, size, pixels, null, colour);
       return;
     }
-    const shown = canvasPixels(size.width, size.height, gl.getPixelRatio());
+    const shown = canvasPixels(size.width, size.height, gl.getPixelRatio(), false, gl.capabilities.maxTextureSize);
     exposure.sample.setSize(...shown);
     exposure.sum.setSize(...shown);
     const frame = { position: camera.position.clone(), quaternion: camera.quaternion.clone(), up: camera.up.clone(), fov: camera.fov };
@@ -325,7 +332,7 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
     poses.forEach((pose, i) => {
       const draw = () => {
         aimLens(camera, pose, { near: CAMERA_NEAR });
-        drawInked(gl, scene, camera, size, pixels, exposure.sample);
+        drawInked(gl, scene, camera, size, pixels, exposure.sample, colour);
       };
       if (i === 0) draw();
       else withShadowsKept(gl, draw);

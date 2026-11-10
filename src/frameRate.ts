@@ -15,6 +15,8 @@ export const FORMATS = {
 
 export type Format = keyof typeof FORMATS;
 
+export const FINEST_PIXEL_RATIO = 4;
+
 export const aspectOf = (format: Format) => FORMATS[format].width / FORMATS[format].height;
 
 export const formatOf = (size: { readonly width: number; readonly height: number }): Format => (size.height > size.width ? "tall" : "wide");

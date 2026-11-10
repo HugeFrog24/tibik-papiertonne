@@ -1,5 +1,6 @@
 import { ThreeCanvas } from "@remotion/three";
 import { useVideoConfig } from "remotion";
+import { FINEST_PIXEL_RATIO } from "../frameRate";
 import { InkPass } from "./InkPass";
 import { present } from "./present";
 
@@ -19,6 +20,7 @@ export const ToonCanvas: React.FC<{
       height={height ?? video.height}
       shadows="percentage"
       flat
+      dpr={[1, FINEST_PIXEL_RATIO]}
     >
       {children}
       {ink ? <InkPass fisheye={fisheye} /> : null}

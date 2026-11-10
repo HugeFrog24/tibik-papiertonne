@@ -4,6 +4,7 @@ import {
   barrel,
   distortUv,
   canvasPixels,
+  colourSamples,
   insideLens,
   lensPoint,
   unbarrel,
@@ -43,6 +44,24 @@ test("the render target follows the canvas size", () => {
 test("through the door viewer the scene renders at twice the canvas's pixels, so the viewer's enlarged centre stays sharp", () => {
   expect(canvasPixels(1920, 1080, 1, true)).toEqual([3840, 2160]);
   expect(canvasPixels(1080, 1920, 1, false)).toEqual([1080, 1920]);
+});
+
+test("at 8K the door viewer still renders at twice the canvas's pixels, and never past the largest texture the GPU takes, so its buffers always allocate", () => {
+  expect(canvasPixels(1920, 1080, 4, true, 16384)).toEqual([15360, 8640]);
+  expect(canvasPixels(1080, 1920, 4, true, 16384)).toEqual([8640, 15360]);
+  expect(canvasPixels(1920, 1080, 8, true, 16384)).toEqual([16384, 9216]);
+  expect(canvasPixels(1920, 1080, 4, true, 8192)).toEqual([8192, 4608]);
+  expect(canvasPixels(1920, 1080, 2, true, 16384)).toEqual(canvasPixels(1920, 1080, 2, true));
+});
+
+test("the buffer a shot is drawn into before inking keeps its 4x multisampling up to an 8K frame's worth of pixels, so every shot at 1080p and 4K and every 8K shot outside the door viewer looks as before; the viewer's doubled 8K buffer would not fit the GPU with it (black frame), and its extra pixels smooth its edges instead", () => {
+  expect(colourSamples(canvasPixels(1920, 1080, 1, true))).toBe(4);
+  expect(colourSamples(canvasPixels(1920, 1080, 2, true))).toBe(4);
+  expect(colourSamples(canvasPixels(1080, 1920, 2, true))).toBe(4);
+  expect(colourSamples(canvasPixels(1920, 1080, 4))).toBe(4);
+  expect(colourSamples(canvasPixels(1080, 1920, 4))).toBe(4);
+  expect(colourSamples(canvasPixels(1920, 1080, 4, true, 16384))).toBe(0);
+  expect(colourSamples(canvasPixels(1080, 1920, 4, true, 16384))).toBe(0);
 });
 
 test("on a wide frame the lens is round in pixels and samples stay on screen", () => {

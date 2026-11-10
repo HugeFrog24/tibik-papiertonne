@@ -1,6 +1,7 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { A4, letterPanels, paperSpotsAt } from "./letterShape";
+import { FINEST_PIXEL_RATIO } from "../frameRate";
 import { PAPER, bowOf, letterPixels, panelGeometry, paperSpotGeometry, spotOnPanel } from "./Letter";
 import { WET } from "../Karen/WetSpot";
 
@@ -88,11 +89,13 @@ test("a spot over a crease is drawn on both panels, each part staying on its own
   }
 });
 
-test("the letter is painted as finely as the render needs: 10,000 px a metre at 1080p, twice that above it, so a zoomed or retina preview never piles up textures of every density", () => {
+test("the letter is painted as finely as the render needs: 10,000 px a metre at 1080p, twice that at 4K, four times at 8K, the finest the film draws, so its close-up is as sharp as the frame and a zoomed or retina preview never piles up textures of every density", () => {
   expect(letterPixels(1)).toEqual({ perMetre: PAPER.pxPerMetre, size: [2100, 2970] });
   expect(letterPixels(2)).toEqual({ perMetre: 2 * PAPER.pxPerMetre, size: [4200, 5940] });
-  expect(letterPixels(3)).toEqual(letterPixels(2));
+  expect(letterPixels(4)).toEqual({ perMetre: 4 * PAPER.pxPerMetre, size: [8400, 11880] });
+  expect(letterPixels(3)).toEqual(letterPixels(4));
+  expect(letterPixels(8)).toEqual(letterPixels(FINEST_PIXEL_RATIO));
   expect(letterPixels(0.5)).toEqual(letterPixels(1));
   expect(letterPixels(1.5)).toEqual(letterPixels(2));
-  expect(new Set([1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3].map((ratio) => letterPixels(ratio).perMetre)).size).toBe(2);
+  expect(new Set([1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 6, 8].map((ratio) => letterPixels(ratio).perMetre)).size).toBe(3);
 });

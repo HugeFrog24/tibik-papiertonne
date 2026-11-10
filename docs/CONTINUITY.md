@@ -655,12 +655,18 @@ composition under "Scenes" in the Studio:
 - The film and every scene render in **16:9 (1920 x 1080)** and **9:16
   (1080 x 1920)** from the same code; the 9:16 compositions sit in Studio's
   "Vertical" folder, ids ending in -9x16. **(test)**
-- **4K** is the same compositions rendered at scale 2 (Studio's render scale,
-  or `--scale=2`): 3840 x 2160 and 2160 x 3840. Outlines, the spyhole lens and
-  the subtitles follow the real pixels; the letter, the one texture read up
-  close, is painted at the render's pixel density (10,000 px a metre at 1080p,
-  up to twice that), so its type stays crisp in 4K and 1080p is unchanged.
-  **(test)**
+- **4K and 8K** are the same compositions rendered at scale 2 or 4 (Studio's
+  render scale, or `--scale=2` / `--scale=4`): 3840 x 2160 and 7680 x 4320 (and
+  their 9:16 twins). The 3D canvas draws at the render's own pixel density up
+  to 8K (React Three Fiber stopped at 4K and blew the picture up); outlines,
+  the spyhole lens and the subtitles follow the real pixels; the letter, the
+  one texture read up close, is painted at 10,000 px a metre at 1080p, twice
+  that at 4K and four times at 8K, so its type stays crisp. The spyhole draws
+  its view at twice the frame's pixels; that buffer keeps its 4x multisampling
+  up to an 8K frame's worth of pixels and at 8K relies on its doubled pixels
+  alone (multisampled it does not fit the GPU: a black frame). 1080p and 4K
+  are pixel for pixel as before (owner, 2026-11-10). Past 8K the 3D stays at
+  8K and is enlarged; only the subtitles get finer. **(test)**
 - **Frame rate**: the film is timed, cut, solved and checked on a 30 fps
   timeline and renders at 30, 60, 90 or 120 fps: the `fps` prop of the Film
   and every scene (Studio's Props panel steps through them; on the command

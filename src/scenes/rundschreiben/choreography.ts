@@ -226,7 +226,7 @@ export const rundschreibenTibikAt = (t: number): TibikFrame => {
     ),
     headRoll: kf(t, [HAE - 0.15, HAE + 0.1, HAE + SAYING_HAE + 0.1, HAE + SAYING_HAE + 0.4], [0, PUZZLED_TILT, PUZZLED_TILT, 0]),
     blink: blinkAt(t, [1.4, 3.1, 6.6, 9.9, 17.2, 25.8, 29.95, 34.6, ...TAKING_IT_IN, 42.7]),
-    leftArm: swungArm(holding([TO_BIN]), -swing * (1 - kept(TO_BIN)), ENTRY.leftArmInAt(t)),
+    leftArm: swungArm(holding([TO_BIN]), -swing * (1 - kept(TO_BIN))),
     rightArm: swungArm(holding([TO_DOOR]), swing * (1 - kept(TO_DOOR))),
   };
   const placed = { position: [x, y, z] as Vec3, rotationY, pose };

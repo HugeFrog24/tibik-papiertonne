@@ -3,7 +3,11 @@ import path from "node:path";
 import { expect, test } from "vitest";
 import { BLINK } from "../../characters/animate";
 import { DEADPAN_HOLD, LINES, ON_HIS_FACE, TAKING_IT_IN, THANKS, rundschreibenTibikAt } from "./choreography";
-import { RUNDSCHREIBEN_CUES } from "./soundCues";
+import { RUNDSCHREIBEN_AMBIENCE, RUNDSCHREIBEN_CUES } from "./soundCues";
+import { DUCK } from "../../sound/duck";
+import { spokenSpans } from "../../dialogue/voiced";
+import { LETTER_READ } from "./narration";
+import { FILM_AMBIENCE, FPS, SCENES } from "../../timeline";
 import { FOLDING_SHOT, cameraAt, shotAt } from "./cameras";
 import { solveRundschreiben } from "./solve";
 import { Vector3 } from "three";
@@ -66,4 +70,19 @@ test("in 9:16 the close-up on his face keeps his eyes at the height the 16:9 fra
     return Math.abs(height("tall") - height("wide")) > 0.03;
   });
   expect(off.map((t) => t.toFixed(2))).toEqual([]);
+});
+
+test("the street and the rain dip under his reaction as under his words, from the cut to his face through 'Hä?', so his eyelids' snaps are heard over the rain (owner, 2026-11-10: unheard), in the scene and in the film", () => {
+  const filmStart = SCENES.slice(0, SCENES.findIndex((scene) => scene.name === "Rundschreiben")).reduce((frames, scene) => frames + scene.frames, 0) / FPS;
+  const snaps = RUNDSCHREIBEN_CUES.filter((cue) => cue.file === "tibik-blink-snap.mp3");
+  expect(snaps).toHaveLength(2);
+  for (const snap of snaps) {
+    for (const t of [snap.at, snap.at + 0.05, snap.at + 0.15]) {
+      expect(RUNDSCHREIBEN_AMBIENCE.duck(t), `${snap.name} +${(t - snap.at).toFixed(2)} s`).toBeCloseTo(DUCK.floor, 6);
+      expect(FILM_AMBIENCE.duck(filmStart + t), `film: ${snap.name}`).toBeCloseTo(DUCK.floor, 6);
+    }
+  }
+  const [, haeSpoken] = spokenSpans("rundschreiben", [...LETTER_READ, ...LINES])(LINES[0]);
+  for (let t = TAKING_IT_IN[0]; t <= haeSpoken; t += 0.02) expect(RUNDSCHREIBEN_AMBIENCE.duck(t), t.toFixed(2)).toBeCloseTo(DUCK.floor, 6);
+  expect(RUNDSCHREIBEN_AMBIENCE.duck(ON_HIS_FACE - DUCK.attack - 0.05)).toBeGreaterThan(DUCK.floor + 0.1);
 });

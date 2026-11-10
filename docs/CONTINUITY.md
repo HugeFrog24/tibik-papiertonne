@@ -194,7 +194,9 @@ composition under "Scenes" in the Studio:
   paragraphs set apart by a blank line). The thanks, the closing and the signature stay on the letter,
   unread, and take no film time; the deadpan after the punchline is silent
   until the cut to his face, where he first takes it in with two slow blinks, a
-  finger snap on each as his lids shut (owner, 2026-11-08), then says "Hä?" with a
+  finger snap on each as his lids shut (owner, 2026-11-08; 2026-11-10: unheard
+  under the rain, so the street and the rain dip 8 dB from the cut to his face
+  through "Hä?", as under his words, and the snaps stand ~15 dB clear of them), then says "Hä?" with a
   puzzled tilt of the head (owner, 2026-11-08; "Äääh…" is recorded as the
   alternative, picked in post); the shot holds a beat after the line. **(test)**
   **(test)**
@@ -213,8 +215,13 @@ composition under "Scenes" in the Studio:
   key while stepping back off the step, takes the key out and steps back
   again, well clear of the leaf as it swings out past him (about 1.8 m from
   the hinge, so it misses his outstretched hand), then sidesteps round the
-  open leaf and walks in; the closer shuts it behind him, and the street and the rain
-  muffle as it does. **(test)**
+  open leaf and walks in, straight through the doorway, then steps across to his
+  left into the stairs' lane and stands at the foot of the flight up to his flat,
+  facing up it, his hands at rest (owner, 2026-11-10: home is upstairs, on his
+  left; nothing waits for him on the right); the closer shuts it behind him, and
+  the street and the rain muffle as it does. The coda's camera pans with him from
+  the bin to the door and ends on the shut door, centred, in both formats
+  (owner, 2026-11-10). **(test)**
 - He walks up onto the doorstep and stops where his belly clears the door
   jamb, so nothing has to push him off the door as he unlocks it; his toes
   stand well on the step and his heels a few centimetres over its front edge
@@ -500,6 +507,9 @@ composition under "Scenes" in the Studio:
 
 ## Doors
 
+- **Glazed doors:** the Haustür's tall glass strip and his living-room door's panel are real openings in their leaves, glazed with patterned, translucent glass (about half the light through): the hallway, his Flur and whoever stands behind show through as soft shapes and light, without crisp lines; the leaf around the glass is inked as one piece. Every other door in the film is solid (flat doors, lift doors, his bedroom door, the mailboxes). (owner, 2026-11-10) **(test)**
+- **Glass out on the street reflects:** every pane facing the street (windows, balcony doors, stair windows, the neighbouring blocks' painted panes and the Haustür's glass, on both sides of the street) mirrors the street in front of it, slightly blurred (the Haustür's patterned glass more), as double glazing does: about 14 % head-on, rising to a full mirror at a grazing angle (Fresnel, glass n = 1.5, two panes). Head-on the reflection only adds to what is behind, so a lit window at night keeps all its light; the room fades only as the glass turns into a mirror. Reflections carry no ink lines. The Haustür's glass mirrors the facade's view while shut and its own, swinging with it, once open. Glass indoors (his window seen from his room, his living-room door) does not reflect. (owner, 2026-11-10) **(test)**
+
 - **Flat doors** open into the flat, with a lever inside and a fixed brass
   knob outside (Wechselgarnitur). His has no door closer (an older building),
   so it stays where it's left: he pulls it shut by the knob as he steps out,
@@ -596,6 +606,28 @@ composition under "Scenes" in the Studio:
   barely dulled (120 Hz to 4 kHz) with a slapback off the facades (115 and
   230 ms) at 0.85 of full level: near enough to hear clearly (owner, 2026-11-09:
   closer, the slapback kept). **(test)**
+- Tibik's speaking voice is toned "full and present" (owner, 2026-11-10, picked
+  by ear from five loudness-matched demos after his thin voice drowned in the
+  street): before any room, every take of his is brought to -20 LUFS, high-passed
+  at 80 Hz, given body (+3 dB shelf at 180 Hz), less box (-1.5 dB at 420 Hz) and
+  presence (+3 dB at 3 kHz), two gentle compressors (2:1 soft, then 4:1 on
+  syllables) and a heavily squashed copy 18 dB under, de-essed, barely saturated
+  (tanh, 5 dB drive, slight bias) and given a touch of air (+1.5 dB above 8 kHz),
+  then levelled to his loudness as before (scripts/make-voices.mjs,
+  src/dialogue/voiceTone.json). Rejected: "dense radio" (distorted), "broadcast"
+  (cliché); "warm audiobook" usable but less clear. His inner voice carries the
+  same tone before its hall (owner, 2026-11-10, from a demo: "it sounds good").
+  **(test)**
+- Karen's voice is raised two semitones with her formants moving up with it
+  (owner, 2026-11-10, from demos: "the most female screeching, exactly as a
+  senior Karen would do it"), in every take before its room; no EQ on top (the
+  screech EQ sounded the same to the owner's ear, so the simpler chain won). Her
+  voice was measured first and left otherwise as recorded: little chest, a
+  strong honk at 250 Hz to 1 kHz and more 1 to 2 kHz than Tibik, so she already
+  carries over the street; his "full and present" chain would undo her design.
+  The raise pulls speech about 4 ms early, so it is delayed back by 4 ms and the
+  takes keep their exact length; her speech starts where each take's does
+  (median 0 ms, every take within 4 ms). **(test)**
 - Karen's mouth follows her takes: it opens two frames before the sound (the
   animator's lead) and shuts when her speech ends, not when the subtitle
   leaves; her spittle bursts fall within the spoken words, and Tibik's nod
@@ -732,10 +764,10 @@ composition under "Scenes" in the Studio:
   the leaf with his right hand, his left resting on his belly, and once he lets go
   he turns toward the bins; along the bins his bin-side arm rests on his belly.
   He sidles out of his flat with his arms hanging, his left on his belly once he
-  lets the door swing shut beside him. Only where a relaxed arm cannot fit does one
-  come in: the arm by the stair balustrade's end post just inside the Haustür, and
-  his right past his door's knob and the stair wall on his landing, ready for the
-  handrail. **(test)** Plan choreography around that (doors especially: see the
+  lets the door swing shut beside him. Inside the Haustür, in the 1.3 m lane between
+  the wall and the balustrade at the foot of the stairs, his hands rest on his
+  belly. Only where a relaxed arm cannot fit does one come in: his right past his
+  door's knob and the stair wall on his landing, ready for the handrail. **(test)** Plan choreography around that (doors especially: see the
   Treppenhaus door beats).
 - When a hand works something (a door handle, a light button, the handrail,
   the Haustür leaf), it touches it for the whole hold. **(test)**

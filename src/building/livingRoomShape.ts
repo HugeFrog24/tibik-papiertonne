@@ -28,6 +28,16 @@ export const LIVING_DOOR: Door & {
   glass: { x: 0.14, bottom: 0.62, top: 0.2, inset: 0.012 },
 };
 
+const livingGlassHeight = LIVING_DOOR.height - LIVING_DOOR.glass.bottom - LIVING_DOOR.glass.top;
+
+export const LIVING_GLASS = {
+  x: LIVING_DOOR.width / 2,
+  y: LIVING_DOOR.glass.bottom + livingGlassHeight / 2,
+  w: LIVING_DOOR.width - 2 * LIVING_DOOR.glass.x,
+  h: livingGlassHeight,
+  opacity: 0.5,
+};
+
 export const livingDoorFrame = (angle: number) =>
   doorFrame(LIVING_DOOR, angle);
 

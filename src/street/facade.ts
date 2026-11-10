@@ -167,6 +167,8 @@ export const HAUSTUER: Door = {
   ],
 };
 
+export const HAUSTUER_GLASS = { x: HAUSTUER.width / 2, y: 1.38, w: 0.3, h: 1.3, opacity: 0.55 };
+
 export const haustuerSolids = (angle: number, lever = 0): Obb[] =>
   doorSolids(HAUSTUER, angle, lever);
 

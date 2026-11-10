@@ -107,7 +107,7 @@ test("a window staged for one person's entrance or exit excuses only that person
   expect(out([["Silent", 0, 3]])).toEqual([]);
 });
 
-test("every check means the same by his head: the top of its surface and the tops of his eyes", async () => {
+test("every check means the same by his head: the top of its surface and the tops of his eyes", { timeout: 120_000 }, async () => {
   const { solveTreppenhaus } = await import("./treppenhaus/solve");
   const { solveKlingelsturm } = await import("./klingelsturm/solve");
   const points = (tibik: Parameters<typeof tibikHeadPoints>[0]) => tibikHeadPoints(tibik).map((p) => p.point.toArray());

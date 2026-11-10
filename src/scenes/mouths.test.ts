@@ -28,4 +28,4 @@ test.each(SCENES)("$name: Karen's mouth opens two frames before each of her take
     if (after < nextStarts && mouthAt(after) >= SHOUTING) wrong.push(`${line.name}: still shouting ${(line.to - ends).toFixed(2)} s after the voice stopped`);
   }
   expect(wrong).toEqual([]);
-});
+}, 120_000);

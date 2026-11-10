@@ -9,7 +9,6 @@ import { PapiertonnenSound } from "./PapiertonnenSound";
 import { solvePapiertonnen } from "./solve";
 import { FOUND_KARTON_SIZE } from "../../street/kartonShape";
 import { Street } from "../../street/Street";
-import { stairwellShown } from "../../building/stairwell";
 import { StairwellSet } from "../../building/StairwellSet";
 import { Fly } from "../../street/Fly";
 import { SHOTS } from "./cameras";
@@ -24,7 +23,7 @@ const Characters: React.FC = () => {
   return (
     <>
       <Street haustuer={haustuer} windAt={PAPIERTONNEN_FROM + t} />
-      {stairwellShown({ haustuer }) ? <StairwellSet tibikDoor={0} lights={1} /> : null}
+      <StairwellSet tibikDoor={0} lights={1} />
       <BinRow lids={lids} boxTaken={karton !== null} />
       {Array.from({ length: FLY_COUNT }, (_, i) => (
         <Fly key={i} {...flyAt(i, t)} />

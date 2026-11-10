@@ -23,10 +23,10 @@ export const duckUnder = (spans: readonly Span[]) => {
   };
 };
 
-export const duckUnderLines = (scene: string, lines: () => readonly Line[]) => {
+export const duckUnderLines = (scene: string, lines: () => readonly Line[], beats: () => readonly Span[] = () => []) => {
   const duck = lazy(() => {
     const all = lines();
-    return duckUnder(all.map(spokenSpans(scene, all)));
+    return duckUnder([...all.map(spokenSpans(scene, all)), ...beats()]);
   });
   return (t: number) => duck()(t);
 };

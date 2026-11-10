@@ -669,8 +669,8 @@ test("no shot loses his head part-way: in every shot his head and eyes are eithe
   expect(headCroppedPartway(frames, shotAt, cameraAt, (t) => solveRundschreiben(t).tibik)).toEqual([]);
 });
 
-test("in the tall format no shot loses his head part-way", { timeout: 300_000 }, () => {
-  expect(headCroppedPartway(frames, shotAt, (t) => cameraAt(t, "tall"), (t) => solveRundschreiben(t).tibik, [], "tall")).toEqual([]);
+test("in the tall format no shot loses his head part-way, except as he walks out of the coda's frame into the house, behind the closing door, and the camera stays on the door", { timeout: 300_000 }, () => {
+  expect(headCroppedPartway(frames, shotAt, (t) => cameraAt(t, "tall"), (t) => solveRundschreiben(t).tibik, [["Coda", ENTRY.inWalk[0], RUNDSCHREIBEN_DURATION]], "tall")).toEqual([]);
 });
 
 test("in the tall format, outside his one line, whenever the wide frame shows him the tall frame shows him too", { timeout: 300_000 }, () => {

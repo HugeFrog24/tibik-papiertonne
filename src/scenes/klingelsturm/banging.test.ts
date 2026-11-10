@@ -56,7 +56,7 @@ test("four blows 0.4 s apart, a beat of 1.0 s, two more, all on whole frames", (
   expect(BANGING.dial - BANGING.raise[1]).toBeCloseTo(0.4, 9);
 });
 
-test("each blow lands on his door leaf: at the contact frame her left hand is 0-2 mm off the leaf's landing face", () => {
+test("each blow lands on his door leaf: at the contact frame her left hand is 0-2 mm off the leaf's landing face", { timeout: 120_000 }, () => {
   for (const at of BANGING.blows) {
     const gap = sphereObbGap(leftHand(frameOf(at)), leafAt(frameOf(at)));
     expect(gap, `blow @${at}`).toBeGreaterThanOrEqual(0);

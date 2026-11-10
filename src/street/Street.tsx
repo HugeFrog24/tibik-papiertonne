@@ -1,6 +1,8 @@
 import { PUDDLES, lookOf, type Weather, type WeatherLook } from "../weather/overcast";
 import { WET_LAYERS, wetness } from "../weather/wetGround";
 import { WetGround } from "./WetGround";
+import { DoorGlassFilm, FacadeMirror } from "./MirrorFilms";
+import { ajar, clearViewsOut } from "./glassReflection";
 import { Decal, PAVEMENT_DECAL_Y } from "./Drains";
 import { ExtrudeGeometry, type Texture } from "three";
 import {
@@ -92,6 +94,7 @@ import {
   ENTRANCE_PARTS,
   FACADE_THICKNESS,
   HAUSTUER,
+  HAUSTUER_GLASS,
   facadeOpenings,
   rectShape,
 } from "./facade";
@@ -186,19 +189,10 @@ const HaustuerLeaf: React.FC<{
   readonly angle: number;
   readonly lever: number;
 }> = ({ angle, lever }) => {
-  const { width: w, thickness: t } = HAUSTUER;
   return (
-    <DoorLeaf door={HAUSTUER} angle={angle} color="#2f4a3d">
-      {[1, -1].map((side) => (
-        <ToonBox
-          key={side}
-          position={[w / 2, 1.38, side * (t / 2 + 0.006)]}
-          size={[0.3, 1.3, 0.01]}
-          color="#8aa6b8"
-          outline={false}
-        />
-      ))}
+    <DoorLeaf door={HAUSTUER} angle={angle} color="#2f4a3d" glass={HAUSTUER_GLASS}>
       <DoorGrips door={HAUSTUER} press={lever} />
+      <DoorGlassFilm glass={HAUSTUER_GLASS} angle={angle} />
     </DoorLeaf>
   );
 };
@@ -601,9 +595,11 @@ export const Street: React.FC<{
   const windows = { light: windowLight, curtainOpen: bedroomCurtains };
   const paving = usePavingTexture((25 * STREET_LENGTH) / 30, 3.33);
   const seen = lookOf(weather, look);
+  const views = clearViewsOut(ajar(haustuer));
 
   return (
     <>
+      <FacadeMirror look={seen} views={views}>
       <Side
         haustuer={haustuer}
         haustuerLever={haustuerLever}
@@ -621,11 +617,13 @@ export const Street: React.FC<{
         windows={windows}
         nightLit={town?.lit}
       />
+      </FacadeMirror>
       {town ? <Town lit={town.lit} /> : null}
       <group
         position={[ACROSS.shift, 0, ACROSS.facade + FACADE_Z]}
         rotation={[0, Math.PI, 0]}
       >
+        <FacadeMirror look={seen} views={views}>
         <Side
           haustuer={0}
           haustuerLever={0}
@@ -641,6 +639,7 @@ export const Street: React.FC<{
           windows={windows}
           nightLit={town?.lit}
         />
+        </FacadeMirror>
       </group>
       {[1, -1].map((end) => (
         <group

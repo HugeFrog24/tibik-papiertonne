@@ -1,13 +1,12 @@
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
-import { AddEquation, Color, CustomBlending, DataTexture, LinearFilter, Matrix4, Mesh, OneFactor, PerspectiveCamera, Plane, RedFormat, ShaderMaterial, SrcColorFactor, UnsignedByteType, Vector3, Vector4, WebGLRenderTarget, ZeroFactor } from "three";
+import { useEffect, useMemo } from "react";
+import { AddEquation, Color, CustomBlending, DataTexture, LinearFilter, OneFactor, PerspectiveCamera, Plane, RedFormat, ShaderMaterial, SrcColorFactor, UnsignedByteType, Vector3, Vector4, ZeroFactor } from "three";
 import { NO_INK } from "../toon/inkWidth";
-import { withClearColor } from "../toon/renderState";
-import { aimLens } from "../toon/shots";
+import { REFLECTS, newMirror, renderMirror, type Mirror } from "../toon/mirror";
 import { PUDDLES } from "../weather/overcast";
 import type { WeatherLook } from "../weather/overcast";
 import { RAIN_SHADOW, rainShadowMask, wetShade } from "../weather/rainShadow";
-import { DRY_PITS, MIRROR_HEIGHTS, SHEEN, WATER_F0, WET_FILM, WET_LAYERS, WET_SURFACES, mirrorCamera, wetness } from "../weather/wetGround";
+import { DRY_PITS, MIRROR_HEIGHTS, SHEEN, WATER_F0, WET_FILM, WET_LAYERS, WET_SURFACES, wetness } from "../weather/wetGround";
 import { present } from "../toon/present";
 
 const OPEN_SKY = `
@@ -127,10 +126,9 @@ const shadeMaterial = () =>
     uniforms: { tint: { value: new Color(1, 1, 1) }, shadow: { value: rainShadowTexture() }, shadowBox: { value: SHADOW_BOX } },
   });
 
-const BIAS = new Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
 const SMEAR = 0.004;
-
-type Mirror = { readonly y: number; readonly target: WebGLRenderTarget; readonly matrix: Matrix4; readonly lens: PerspectiveCamera };
+const FILM = { ...NO_INK, ...REFLECTS };
+const UP = new Vector3(0, 1, 0);
 
 const filmMaterial = (mirror: Mirror) =>
   new ShaderMaterial({
@@ -162,13 +160,9 @@ const filmMaterial = (mirror: Mirror) =>
 export const WetGround: React.FC<{ readonly look: WeatherLook; readonly time: number }> = ({ look, time }) => {
   const wet = wetness(look);
   const { sky } = look;
-  const mirrors = useMemo<Mirror[]>(
-    () => MIRROR_HEIGHTS.map((y) => ({ y, target: new WebGLRenderTarget(1, 1), matrix: new Matrix4(), lens: new PerspectiveCamera() })),
-    [],
-  );
+  const mirrors = useMemo(() => MIRROR_HEIGHTS.map((y) => ({ y, ...newMirror() })), []);
   const materials = useMemo(() => new Map(mirrors.map((m) => [m.y, filmMaterial(m)])), [mirrors]);
   const shade = useMemo(shadeMaterial, []);
-  const films = useRef<Mesh[]>([]);
   useEffect(
     () => () => {
       mirrors.forEach((m) => { m.target.dispose(); });
@@ -184,33 +178,9 @@ export const WetGround: React.FC<{ readonly look: WeatherLook; readonly time: nu
     (m.uniforms["skyTop"].value as Color).set(sky[0]);
     (m.uniforms["skyBottom"].value as Color).set(sky[1]);
   });
-  useFrame(({ gl, scene, camera, size }) => {
+  useFrame(({ gl, scene, camera }) => {
     if (wet <= 0 || !(camera instanceof PerspectiveCamera)) return;
-    const width = Math.max(1, Math.round(size.width * gl.getPixelRatio() * WET_FILM.resolution));
-    const height = Math.max(1, Math.round(size.height * gl.getPixelRatio() * WET_FILM.resolution));
-    const ahead = camera.getWorldDirection(new Vector3()).add(camera.position);
-    const clipping = gl.clippingPlanes;
-    const before = gl.getRenderTarget();
-    films.current.forEach((film) => {
-      film.visible = false;
-    });
-    withClearColor(gl, new Color(0, 0, 0), 0, () => {
-      for (const mirror of mirrors) {
-        const view = mirrorCamera({ position: camera.position.toArray(), target: ahead.toArray(), up: camera.up.toArray() }, mirror.y);
-        const lens = aimLens(mirror.lens, { ...view, fov: camera.fov }, { aspect: camera.aspect, near: camera.near, far: camera.far });
-        mirror.matrix.copy(BIAS).multiply(lens.projectionMatrix).multiply(lens.matrixWorldInverse);
-        mirror.target.setSize(width, height);
-        gl.clippingPlanes = [new Plane(new Vector3(0, 1, 0), -(mirror.y + 0.002))];
-        gl.setRenderTarget(mirror.target);
-        gl.clear();
-        gl.render(scene, lens);
-      }
-    });
-    gl.clippingPlanes = clipping;
-    gl.setRenderTarget(before);
-    films.current.forEach((film) => {
-      film.visible = true;
-    });
+    for (const mirror of mirrors) renderMirror(gl, scene, camera, mirror, new Plane(UP, -mirror.y), WET_FILM);
   }, 0);
   if (wet <= 0) return null;
   return (
@@ -227,16 +197,13 @@ export const WetGround: React.FC<{ readonly look: WeatherLook; readonly time: nu
           <planeGeometry args={[s.x[1] - s.x[0], s.z[1] - s.z[0]]} />
         </mesh>
       ))}
-      {WET_SURFACES.map((s, i) => (
+      {WET_SURFACES.map((s) => (
         <mesh
           key={s.name}
-          ref={(mesh) => {
-            if (mesh) films.current[i] = mesh;
-          }}
           position={[(s.x[0] + s.x[1]) / 2, s.y, (s.z[0] + s.z[1]) / 2]}
           rotation={[-Math.PI / 2, 0, 0]}
           {...present({ material: materials.get(s.y) })}
-          userData={NO_INK}
+          userData={FILM}
           renderOrder={WET_FILM.renderOrder}
         >
           <planeGeometry args={[s.x[1] - s.x[0], s.z[1] - s.z[0]]} />

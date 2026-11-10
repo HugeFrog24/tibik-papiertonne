@@ -1,7 +1,6 @@
 import { useSeconds } from "../../useSeconds";
 import { Bedroom, BedroomLighting } from "../../building/Bedroom";
 import { BED_RECT, RAIN_ON_THE_GLASS } from "../../building/bedroomShape";
-import { stairwellShown } from "../../building/stairwell";
 import { StairwellSet } from "../../building/StairwellSet";
 import { Blanket } from "../../props/Blanket";
 import { KeyRing } from "../../props/KeyRing";
@@ -70,7 +69,7 @@ const Scene: React.FC = () => {
   return (
     <>
       <Outside t={t} state={state} />
-      {stairwellShown(state) ? <StairwellSet tibikDoor={0} lights={state.stairwellLit ? 1 : 0} livingRoomLit={state.livingRoomLit} /> : null}
+      <StairwellSet tibikDoor={0} lights={state.stairwellLit ? 1 : 0} livingRoomLit={state.livingRoomLit} />
       <BinRow lids={state.lids} boxTaken emptied={t >= DRONE[1]} />
       {t < DUSK[1] ? tibik : null}
       {state.keys ? <KeyRing matrix={state.keys} /> : null}

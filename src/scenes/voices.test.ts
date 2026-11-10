@@ -238,9 +238,26 @@ const lagOf = (a: Float32Array, b: Float32Array, rate = 8000, most = 0.02) => {
 };
 
 test.skipIf(!LOCAL)("a levelled take is not shifted against the recording: its speech starts where the take's does, within a millisecond", () => {
-  for (const id of ["hausmuell_02_tibik", "hausmuell_03_karen", "klingelsturm_04_tibik"]) {
+  for (const id of ["hausmuell_02_tibik", "klingelsturm_04_tibik"]) {
     const take = takeOf("de", id)!;
     const lag = lagOf(samplesOf(`public/dialogue/de/${take.file}`), samplesOf(`public/dialogue/de/${processedFile(id.endsWith("04_tibik") ? "doorway" : undefined, take)}`));
     expect(Math.abs(lag), id).toBeLessThanOrEqual(0.001);
   }
+});
+
+const envelopeOf = (samples: Float32Array, window = 40) => Float32Array.from({ length: samples.length - window }, (_, i) => {
+  let sum = 0;
+  for (let k = i; k < i + window; k++) sum += samples[k] ** 2;
+  return Math.sqrt(sum / window);
+});
+
+test.skipIf(!LOCAL)("Karen's raised voice is not shifted against her recordings either: by its loudness, since a new pitch makes a new waveform, her speech starts where each take's does, within a millisecond over her takes and a few for any one, the raise smearing its onsets that much", { timeout: 120_000 }, () => {
+  const lags = ALL_SPOKEN_LINES.filter((line) => voiceOf(line) === "karen" && effectOf(line) === undefined).map((line) => {
+    const take = takeOf("de", takeIdOf(line)!)!;
+    return lagOf(envelopeOf(samplesOf(`public/dialogue/de/${take.file}`)), envelopeOf(samplesOf(`public/dialogue/de/${processedFile(undefined, take)}`)));
+  });
+  expect(lags.length).toBeGreaterThanOrEqual(6);
+  const median = [...lags].sort((a, b) => a - b)[Math.floor(lags.length / 2)];
+  expect(Math.abs(median)).toBeLessThanOrEqual(0.001);
+  for (const lag of lags) expect(Math.abs(lag)).toBeLessThanOrEqual(0.004);
 });

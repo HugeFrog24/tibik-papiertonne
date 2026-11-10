@@ -5,7 +5,7 @@ import { inWindow, round6 } from "../characters/scalar";
 import type { Side } from "../characters/skeleton";
 import { walkFacing, type Walk } from "../characters/walkPath";
 import { coastTime, doorFrame, fittingsOf, gripSolid, pulledThenCoasting } from "../building/doors";
-import { DOOR_STEP, stepLift } from "../building/stairwell";
+import { CORE, DOOR_STEP, EG_FIRST_RISER, LANE_SPLIT, stepLift } from "../building/stairwell";
 import type { Hold } from "../physics/holds";
 import { KEY_APPROACH, KEY_GRIP, keyBowGrip, keyDepthAt, keyInLock } from "../props/keyRingShape";
 import { FACADE_THICKNESS, HAUSTUER, closerEnd, closerSwing } from "../street/facade";
@@ -22,7 +22,13 @@ export const ON_THE_PAVEMENT = -1.42;
 const ONTO_THE_STEP = [round6(ON_THE_PAVEMENT - DOOR_STEP.z1), round6(ON_THE_PAVEMENT - DOOR_STAND.z)] as const;
 const AT_THE_LOCK = { lean: 0.2, flex: 0.03, rise: 0.5 };
 const ON_THE_STEP = DOOR_STAND.z - 0.05;
-const INSIDE = { x: -1.45, z: -3.4 };
+export const STAIR_SIDE = CORE.x0;
+export const BALUSTRADE_SIDE = LANE_SPLIT;
+const AT_THE_STAIRS = { x: (STAIR_SIDE + BALUSTRADE_SIDE) / 2, z: EG_FIRST_RISER + 0.35 };
+const INTO_THE_LANE = 0.75;
+const HANDS_TO_REST = 0.2;
+const STRAIGHT_IN = 1.5;
+const TOWARD_THE_STAIRS = 0.4;
 const BACK_STAND = { x: -1.15, z: ON_THE_PAVEMENT };
 const CLEAR_OF_THE_LEAF = 1.8;
 const FURTHER_BACK = (() => {
@@ -38,7 +44,6 @@ export const HOUSE_KEY_INSERT = 0.026;
 export const HAUSTUER_WIDE = 1.65;
 const PULLED = 0.4;
 export const SIDLE = { twist: -0.95, look: 0.8, swing: 0.3, turning: 0.35, clear: 0.3 };
-const PAST_THE_POST = { early: 0.25, release: 0.3 };
 
 export const sidleThrough = ([from, to]: readonly [number, number], side: Side) => (t: number) => {
   const w = kf(t, [from, from + SIDLE.turning, to, to + SIDLE.turning], [0, 1, 1, 0]);
@@ -105,7 +110,6 @@ export const enterHouse = (unlock: number) => {
   const SECOND_STEP: readonly [number, number] = [KEY_OUT[0], round6(KEY_OUT[0] + SECOND_STEP_TAKES)];
   const ROUND_THE_LEAF: readonly [number, number] = [Math.max(IN[0] + 0.5, SECOND_STEP[1]), IN[0] + 1.9];
   const IN_WALK: readonly [number, number] = [ROUND_THE_LEAF[1], IN[0] + 4.4];
-  const WALKING_IN: readonly [number, number] = [ROUND_THE_LEAF[0], IN_WALK[1]];
   const INDOORS: readonly [number, number] = [BACK_STEP[1] + 1.2, BACK_STEP[1] + 2.0];
 
   const walkIn: Walk = {
@@ -113,9 +117,9 @@ export const enterHouse = (unlock: number) => {
     to: IN_WALK[1] - 0.3,
     via: [
       [BEFORE_THE_DOORWAY.x, BEFORE_THE_DOORWAY.z],
-      [BEFORE_THE_DOORWAY.x, -2.6],
-      [-1.8, -3.4],
-      [INSIDE.x, INSIDE.z],
+      [BEFORE_THE_DOORWAY.x, INNER_FACE - STRAIGHT_IN],
+      [AT_THE_STAIRS.x, AT_THE_STAIRS.z + INTO_THE_LANE],
+      [AT_THE_STAIRS.x, AT_THE_STAIRS.z],
     ],
   };
 
@@ -129,10 +133,14 @@ export const enterHouse = (unlock: number) => {
     return hi;
   })();
   const SIDLING = [ROUND_THE_LEAF[0] + 0.5, pastTheReveal] as const;
-  const BY_THE_POST = [pastTheReveal - PAST_THE_POST.early, IN_WALK[1]] as const;
+  const WALKING_IN: readonly [number, number] = [ROUND_THE_LEAF[0], pastTheReveal + HANDS_TO_REST];
 
   const rootAt = (t: number): Root | null => {
-    if (t >= IN_WALK[0]) return walkLeg(walkIn, t, false);
+    if (t >= IN_WALK[0]) {
+      const leg = walkLeg(walkIn, t, false);
+      const off = Math.atan2(Math.sin(leg.yaw - FACING_THE_WALL), Math.cos(leg.yaw - FACING_THE_WALL));
+      return { ...leg, yaw: FACING_THE_WALL + off * TOWARD_THE_STAIRS };
+    }
     if (t >= ROUND_THE_LEAF[0]) return shuffle(t, ROUND_THE_LEAF, FURTHER_BACK, BEFORE_THE_DOORWAY);
     if (t >= SECOND_STEP[0]) return shuffle(t, SECOND_STEP, BACK_STAND, FURTHER_BACK);
     if (t >= BACK_STEP[0]) return shuffle(t, BACK_STEP, DOOR_STAND, BACK_STAND);
@@ -205,8 +213,6 @@ export const enterHouse = (unlock: number) => {
     leanAt: (t: number) => AT_THE_LOCK.lean * kf(t, [hold.reach, UNLOCK[0], KEY_OUT[1], KEY_OUT[1] + AT_THE_LOCK.rise], [0, 1, 1, 0]),
     flexAt: (t: number) => AT_THE_LOCK.flex * kf(t, [hold.reach, UNLOCK[0], KEY_OUT[1], KEY_OUT[1] + AT_THE_LOCK.rise], [0, 1, 1, 0]),
     sidling: SIDLING,
-    byThePost: BY_THE_POST,
-    leftArmInAt: (t: number) => kf(t, [BY_THE_POST[0], BY_THE_POST[0] + SIDLE.turning, BY_THE_POST[1], BY_THE_POST[1] + PAST_THE_POST.release], [0, 1, 1, 0]),
     sidleAt: sidleThrough(SIDLING, 1),
     indoors: INDOORS,
     indoorsAt: (t: number) => inWindow(t, INDOORS),

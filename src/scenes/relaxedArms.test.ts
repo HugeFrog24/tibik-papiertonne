@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import type { ArmPose } from "../characters/skeleton";
-import { ARM_REST } from "../Tibik/rig";
+import { ARM_REST, ARM_TUCK } from "../Tibik/rig";
 import { FPS } from "../frameRate";
 import type { TibikFrame } from "../Tibik/character";
 import { ENTRY as HOME_AT_DUSK, WALK_ROUND } from "./nachtruhe/timeline";
@@ -13,9 +13,10 @@ import { PAPIERTONNEN_DOOR } from "./papiertonnen/choreography";
 import { solvePapiertonnen } from "./papiertonnen/solve";
 
 const STEADY = { in: 0.3, out: 0.5 };
-const THROUGH_THE_DOOR = (entry: typeof HOME_IN_THE_RAIN) => [entry.walkingIn[0], entry.byThePost[0] + STEADY.out] as const;
+const THROUGH_THE_DOOR = (entry: typeof HOME_IN_THE_RAIN) => entry.walkingIn;
 const HANGING = { raise: 0.6, elbow: 0.7 };
 const SPARE = 0.05;
+const TUCKED_UP = (ARM_REST.raise + ARM_TUCK.raise) / 2;
 
 const strideOf = ([from, to]: readonly [number, number]) => {
   const first = Math.ceil((from + STEADY.in) * FPS);
@@ -43,13 +44,12 @@ test("walking round the bed to the curtain in the morning, his arms hang at his 
   expect(tuckedFrames(WALK_ROUND, (t) => solveNachtruhe(t).tibik).slice(0, 6)).toEqual([]);
 });
 
-test("inside, turning past the stair balustrade's end post on his left, only his left arm comes in; his right arm keeps hanging", { timeout: 300_000 }, () => {
+test("inside, in the 1.3 m lane between the wall and the balustrade at the foot of the stairs, his hands rest on his belly, never tucked up in front of his chest", { timeout: 300_000 }, () => {
   for (const [entry, at] of [[HOME_IN_THE_RAIN, (t: number) => solveRundschreiben(t).tibik], [HOME_AT_DUSK, (t: number) => solveNachtruhe(t).tibik]] as const) {
-    const [from, to] = entry.byThePost;
-    const times = strideOf([from, to]);
+    const times = strideOf([entry.walkingIn[1] - STEADY.in, entry.inWalk[1] + STEADY.out]);
     expect(times.length).toBeGreaterThan(5);
-    expect(times.filter((t) => !hanging(at(t).pose.rightArm)).map((t) => t.toFixed(2))).toEqual([]);
-    expect(hanging(at(to - STEADY.out).pose.leftArm)).toBe(false);
+    for (const which of ["leftArm", "rightArm"] as const)
+      expect(times.filter((t) => at(t).pose[which].raise > TUCKED_UP).map((t) => `${which} ${t.toFixed(2)}`)).toEqual([]);
   }
 });
 

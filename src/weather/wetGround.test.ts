@@ -1,12 +1,12 @@
 import { expect, test } from "vitest";
 import { DECAL } from "../toon/primitives";
-import { FACADE_Z, KERB_DEPTH, KERB_Z, ROAD_Y, acrossZ } from "../street/building";
+import { FACADE_Z, KERB_DEPTH, KERB_Z, acrossZ } from "../street/building";
 import { treePit } from "../street/layout";
 import { MORE_TREES, TREE_POSITION } from "../street/trees";
 import { RAIN_RIBBONS } from "./Rain";
 import { PUDDLES, WEATHER } from "./overcast";
 import { rainGroundY } from "./rainDrops";
-import { DRY_PITS, WATER_F0, WET_FILM, WET_LAYERS, WET_SURFACES, mirrorCamera, reflectance, waterFresnel, wetness } from "./wetGround";
+import { DRY_PITS, WATER_F0, WET_FILM, WET_LAYERS, WET_SURFACES, reflectance, waterFresnel, wetness } from "./wetGround";
 
 test("water reflects 2 % of the light seen from straight above and all of it at a grazing angle, more the flatter you look", () => {
   expect(waterFresnel(1)).toBeCloseTo(WATER_F0, 12);
@@ -31,13 +31,6 @@ test("the ground is wet as the weather is: dry in the sun, at dusk and at night 
   expect(wetness(WEATHER.dusk)).toBe(0);
   expect(wetness(WEATHER.night)).toBe(0);
   expect(wetness(WEATHER.rain)).toBe(1);
-});
-
-test("a mirror camera sees the street from as far below its plane as the camera stands above it, upside down", () => {
-  const m = mirrorCamera({ position: [1, 1.6, 4], target: [-2, 1.1, -1], up: [0, 1, 0] }, ROAD_Y);
-  expect(m.position).toEqual([1, 2 * ROAD_Y - 1.6, 4]);
-  expect(m.target).toEqual([-2, 2 * ROAD_Y - 1.1, -1]);
-  expect(m.up).toEqual([0, -1, 0]);
 });
 
 test("the wet film covers the pavements and the road from facade to facade, each at the height of the ground it lies on", () => {

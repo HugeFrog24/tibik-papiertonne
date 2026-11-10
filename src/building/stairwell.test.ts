@@ -17,7 +17,6 @@ import {
   stairwellGround,
   stairwellSolids,
   undersideAbove,
-  stairwellShown,
 } from "./stairwell";
 
 describe("staircase", () => {
@@ -117,11 +116,4 @@ test("risers are counted from a flight's first riser, uphill", () => {
   expect(riserZ(eg, 0)).toBeCloseTo(eg.firstRiser, 9);
   expect(riserZ(eg, 17)).toBeCloseTo(eg.firstRiser + eg.direction * 17 * eg.going, 9);
   expect(stairwellGround(-2.7, riserZ(eg, 5) - eg.direction * 0.05)).toBeCloseTo(eg.from + 5 * eg.rise, 9);
-});
-
-test("the stairwell is drawn while the Haustür stands open or he is inside, and not otherwise", () => {
-  expect(stairwellShown({ haustuer: 0 })).toBe(false);
-  expect(stairwellShown({ haustuer: 0, indoors: 0 })).toBe(false);
-  expect(stairwellShown({ haustuer: 0.2 })).toBe(true);
-  expect(stairwellShown({ haustuer: 0, indoors: 1 })).toBe(true);
 });

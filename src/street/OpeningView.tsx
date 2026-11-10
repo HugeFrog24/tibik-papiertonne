@@ -12,6 +12,7 @@ import {
   openingFrame,
   type Opening,
 } from "./building";
+import { MirrorFilm } from "./MirrorFilms";
 
 const TILTED_GLASS = "#557189";
 const ROOM_DARK = "#2a2d31";
@@ -156,6 +157,7 @@ export const OpeningView: React.FC<{
         <BedroomCurtain x={opening.x} inner={inner} open={curtainOpen} light={light} />
       ) : null}
       {opening.tilted ? <TiltedSash inner={inner} /> : null}
+      <MirrorFilm size={[inner.w, inner.h]} position={[0, 0, LAYER.reflection]} />
       {shutterDrop > 0
         ? windowPlane(
             LAYER.shutter,

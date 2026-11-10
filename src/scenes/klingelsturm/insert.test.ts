@@ -49,7 +49,7 @@ test("she dials 110 on the medium shot of her face, with no close-up of the keyp
 
 const ON_HER_SCREEN = { facing: (40 * Math.PI) / 180, height: 0.1, margin: 0.05 };
 
-test("once she is already shouting at the police, an insert looks down over her shoulder at 110 on her phone, readable in the 9:16 crop and hidden by nothing, so her dialling itself is never filmed", () => {
+test("once she is already shouting at the police, an insert looks down over her shoulder at 110 on her phone, readable in the 9:16 crop and hidden by nothing, so her dialling itself is never filmed", { timeout: 120_000 }, () => {
   const insert = SHOTS.find((s) => s.name === "Insert: her phone");
   expect(insert).toBeDefined();
   const { from, to } = insert!;

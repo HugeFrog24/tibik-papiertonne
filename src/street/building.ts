@@ -37,6 +37,7 @@ export const WINDOW = {
 export const OPENING_LAYERS = {
   glass: 0.02,
   curtain: 0.03,
+  reflection: 0.035,
   shutter: 0.04,
   bars: 0.05,
   frame: 0.08,

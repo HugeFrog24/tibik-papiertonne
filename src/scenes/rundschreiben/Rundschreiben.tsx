@@ -1,6 +1,5 @@
 import { ToonCanvas } from "../../toon/ToonCanvas";
 import { useSeconds } from "../../useSeconds";
-import { stairwellShown } from "../../building/stairwell";
 import { StairwellSet } from "../../building/StairwellSet";
 import { Envelope } from "../../props/Envelope";
 import { KeyRing } from "../../props/KeyRing";
@@ -37,9 +36,7 @@ const Scene: React.FC = () => {
         mailboxDoor={state.mailboxDoor}
         haustuer={state.haustuer}
       />
-      {stairwellShown(state) ? (
-        <StairwellSet tibikDoor={0} lights={1} />
-      ) : null}
+      <StairwellSet tibikDoor={0} lights={1} />
       <BinRow lids={state.lids} boxTaken={false} emptied />
       <Tibik
         position={state.tibik.position}

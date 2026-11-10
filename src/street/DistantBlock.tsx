@@ -9,9 +9,12 @@ import {
   ENTRANCE_X,
   FACADE_Z,
   OPENINGS,
+  OPENING_LAYERS,
   WINDOW_PAINT,
   openingFrame,
 } from "./building";
+import { MirrorFilm } from "./MirrorFilms";
+import { distantGlass } from "./glassReflection";
 import { HAUSTUER } from "./facade";
 import { neighbourWindowsOn } from "./lightsOn";
 import { PartBoxes } from "./PartBoxes";
@@ -51,6 +54,14 @@ const litTexture = (number: string, on: readonly number[]) =>
       const [fw, fh] = openingFrame(OPENINGS[k]);
       box(OPENINGS[k].x, OPENINGS[k].y, fw - 0.17, fh - 0.17, WINDOW_PAINT.lit);
     }
+  });
+
+const glassMask = () =>
+  drawnTexture("distant-glass", ...TEXTURE, (ctx, w, h) => {
+    const box = boxPainter(ctx, h);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, w, h);
+    for (const g of distantGlass()) box((g.x0 + g.x1) / 2, (g.y0 + g.y1) / 2, g.x1 - g.x0, g.y1 - g.y0, "#ffffff");
   });
 
 const facadeTexture = (number: string, plaster: string) =>
@@ -125,6 +136,7 @@ export const DistantBlock: React.FC<{
         {...glowMapOf(on.length > 0 ? litTexture(number, on) : undefined)}
       />
     </mesh>
+    <MirrorFilm size={[BLOCK_SPAN, BUILDING_HEIGHT]} position={[0, BUILDING_HEIGHT / 2, FACADE_Z + OPENING_LAYERS.reflection]} mask={glassMask()} />
     <PartBoxes parts={[CORNICE]} color={COPING} />
     {BALCONIES.map((b) => (
       <group key={`${b.x}-${b.y}`} position={[b.x, b.y, FACADE_Z]}>

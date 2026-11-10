@@ -2,7 +2,10 @@ import { Vector3 } from "three";
 import { lazy } from "../../physics/lazy";
 import { aspectOf, type Format } from "../../frameRate";
 import { aboveTheBar } from "../../dialogue/subtitles";
-import { easeUnit } from "../../characters/scalar";
+import { easeUnit, lerpVec3 } from "../../characters/scalar";
+import { kf } from "../../characters/animate";
+import { doorFrame } from "../../building/doors";
+import { HAUSTUER } from "../../street/facade";
 import {
   A4,
   LETTER_LAYOUT,
@@ -27,6 +30,8 @@ import {
   READ,
   UNFOLD,
   RUNDSCHREIBEN_DURATION,
+  ENTRY,
+  TO_DOOR,
   letterAt,
   rundschreibenTibikAt,
 } from "./choreography";
@@ -95,8 +100,11 @@ const CODA = FOLD[1];
 const READ_LINES = LETTER_LAYOUT.lines.slice(...SHOWN_IN_THE_INSERT);
 const READ_RECT = rectOf(READ_LINES);
 
+const THE_DOOR = new Vector3(HAUSTUER.width / 2, HAUSTUER.height / 2, 0).applyMatrix4(doorFrame(HAUSTUER, 0));
 const CODA_VIEW: CameraSetup = { position: [-3.5, 1.7, 1.4], target: [-0.5, 0.95, -1.7], fov: 50 };
-const CODA_PULL = { back: 0.7, up: 0.25, lead: 0.3 };
+const ON_THE_DOOR: Vec3 = [THE_DOOR.x, CODA_VIEW.target[1], THE_DOOR.z];
+const ON_TO_THE_DOOR = 1.0;
+const CODA_PULL = { back: 0.5, up: 0.25, lead: 0.3 };
 
 const easedBack = (view: CameraSetup, pull: typeof CODA_PULL): CameraSetup => {
   const from = new Vector3(...view.position);
@@ -109,6 +117,12 @@ const FACING_HIM: Vec3 = [-2.62, aboveHisHips(1.12), -2.04];
 const HIS_EYES = amidst(FACING_HIM, ...[0, 1].map((side) => (t: number) => hisEyes(rundschreibenTibikAt(t))[side]));
 
 const TIBIK_SPOT = (t: number) => rundschreibenTibikAt(t).position;
+const ontoTheDoor = (at: (t: number) => CameraSetup) => (t: number): CameraSetup => {
+  const view = at(t);
+  return { ...view, target: lerpVec3(view.target, ON_THE_DOOR, kf(t, TO_DOOR, [0, 1])) };
+};
+const HIM_THEN_THE_DOOR = (t: number) =>
+  lerpVec3(TIBIK_SPOT(t), THE_DOOR.toArray(), kf(t, [ENTRY.inWalk[0], ENTRY.inWalk[0] + ON_TO_THE_DOOR], [0, 1]));
 
 
 export const SHOTS: readonly RundschreibenShot[] = onFrames([
@@ -159,7 +173,7 @@ export const SHOTS: readonly RundschreibenShot[] = onFrames([
     name: "Coda",
     from: CODA,
     to: RUNDSCHREIBEN_DURATION,
-    ...following(dolly(CODA_VIEW, easedBack(CODA_VIEW, CODA_PULL), DOOR_SHUT - CODA_PULL.lead, RUNDSCHREIBEN_DURATION), TIBIK_SPOT),
+    ...following(ontoTheDoor(dolly(CODA_VIEW, easedBack({ ...CODA_VIEW, target: ON_THE_DOOR }, CODA_PULL), DOOR_SHUT - CODA_PULL.lead, RUNDSCHREIBEN_DURATION)), HIM_THEN_THE_DOOR),
   },
 ]);
 

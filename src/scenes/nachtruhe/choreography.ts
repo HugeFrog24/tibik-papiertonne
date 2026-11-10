@@ -9,7 +9,7 @@ import { SENSOR, sensorLampOn } from "../../street/entranceSensor";
 import { switchedOn } from "../../street/lightsOn";
 import { TIBIK_GAIT, plantedTibik, tibikGaitOf, type TibikFrame } from "../../Tibik/character";
 import { RIG, TIBIK_REST } from "../../Tibik/rig";
-import { swungArm, walkingPose } from "../../Tibik/walkingArms";
+import { walkingPose } from "../../Tibik/walkingArms";
 import type { Vec3 } from "../../toon/primitives";
 import { mixLooks, WEATHER, type WeatherLook } from "../../weather/overcast";
 import { DOOR_STAND, pinApproach, walkLeg, type Root } from "../enterHouse";
@@ -82,7 +82,7 @@ const duskTibikAt = (t: number): TibikFrame => {
   const { x, y, z, yaw } = duskRootAt(t);
   const sidle = ENTRY.sidleAt(t);
   const walking = walkingPose(t, DUSK_LEGS, strideAt(duskGait(), t) * sidle.swing);
-  const pose = { ...TIBIK_REST, lean: ENTRY.leanAt(t), bob: TIBIK_REST.bob - ENTRY.flexAt(t), blink: blinkAt(t, DUSK_BLINKS), ...walking, leftArm: swungArm(walking.leftArm, 0, ENTRY.leftArmInAt(t)), twist: sidle.twist, headYaw: sidle.headYaw };
+  const pose = { ...TIBIK_REST, lean: ENTRY.leanAt(t), bob: TIBIK_REST.bob - ENTRY.flexAt(t), blink: blinkAt(t, DUSK_BLINKS), ...walking, twist: sidle.twist, headYaw: sidle.headYaw };
   return plantedTibik(duskGait(), t, { position: [x, y, z], rotationY: yaw, pose });
 };
 

@@ -63,4 +63,6 @@ export const RUNDSCHREIBEN_CUES: readonly FileCue[] = [
   ...entryCues(ENTRY),
 ];
 
-export const RUNDSCHREIBEN_AMBIENCE = ambienceOf({ indoors: heardIndoorsAt, duck: duckUnderLines("rundschreiben", () => [...LETTER_READ, ...LINES]) });
+const TAKING_IT_IN_BEAT = (): readonly (readonly [number, number])[] => [[TAKING_IT_IN[0], TAKING_IT_IN[1] + BLINK.open]];
+
+export const RUNDSCHREIBEN_AMBIENCE = ambienceOf({ indoors: heardIndoorsAt, duck: duckUnderLines("rundschreiben", () => [...LETTER_READ, ...LINES], TAKING_IT_IN_BEAT) });

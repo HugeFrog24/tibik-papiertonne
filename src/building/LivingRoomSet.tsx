@@ -8,6 +8,7 @@ import {
   BASE_UNIT,
   CHAISE,
   LIVING_DOOR,
+  LIVING_GLASS,
   LIVING_ROOM,
   SOFA,
   TALL_UNIT,
@@ -60,39 +61,11 @@ const Shell: React.FC = () => {
   );
 };
 
-const Door: React.FC = () => {
-  const { width, height, thickness, glass } = LIVING_DOOR;
-  const pane: Vec3 = [
-    width - 2 * glass.x,
-    height - glass.bottom - glass.top,
-    0.004,
-  ];
-  const paneAt = (side: 1 | -1): Vec3 => [
-    width / 2,
-    glass.bottom + pane[1] / 2,
-    side * (thickness / 2 + 0.001),
-  ];
-  return (
-    <DoorLeaf
-      door={LIVING_DOOR}
-      angle={LIVING_DOOR.open}
-      color="#ffffff"
-      map={alder()}
-    >
-      {([1, -1] as const).map((side) => (
-        <ToonBox
-          key={side}
-          position={paneAt(side)}
-          size={pane}
-          color="#ffffff"
-          map={patternGlass()}
-          ink={0.004}
-        />
-      ))}
-      <DoorGrips door={LIVING_DOOR} />
-    </DoorLeaf>
-  );
-};
+const Door: React.FC = () => (
+  <DoorLeaf door={LIVING_DOOR} angle={LIVING_DOOR.open} color="#ffffff" map={alder()} glass={{ ...LIVING_GLASS, pattern: patternGlass }}>
+    <DoorGrips door={LIVING_DOOR} />
+  </DoorLeaf>
+);
 
 const DoorFrame: React.FC = () => (
   <group>

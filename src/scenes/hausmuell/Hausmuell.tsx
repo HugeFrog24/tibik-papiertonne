@@ -7,6 +7,7 @@ import { SprayView } from "../../Karen/SprayView";
 import { FOUND_KARTON_SIZE } from "../../street/kartonShape";
 import { Karton } from "../../street/Karton";
 import { Street } from "../../street/Street";
+import { StairwellSet } from "../../building/StairwellSet";
 import { BinRow, Sky, StreetLighting } from "../../street/StreetSet";
 import { Tibik } from "../../Tibik/Tibik";
 import { ShotCameras } from "../../toon/ShotCameras";
@@ -59,6 +60,7 @@ export const Hausmuell: React.FC<{
         <ShotCameras shots={SHOTS} />
         <StreetLighting />
         <Street windAt={HAUSMUELL_FROM + t} />
+        <StairwellSet tibikDoor={0} lights={1} />
         <Characters />
       </ToonCanvas>
 

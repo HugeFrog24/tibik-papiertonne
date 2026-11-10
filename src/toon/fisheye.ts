@@ -17,6 +17,8 @@ export const COLOUR_SAMPLES = 4;
 
 const MULTISAMPLED_UP_TO = FORMATS.wide.width * FORMATS.wide.height * FINEST_PIXEL_RATIO ** 2;
 
+const MOST_PIXELS = 2 * MULTISAMPLED_UP_TO;
+
 export const colourSamples = ([width, height]: readonly [number, number]) => (width * height <= MULTISAMPLED_UP_TO ? COLOUR_SAMPLES : 0);
 
 export const insideLens = ([x, y]: Point2) => x * x + y * y <= 1;
@@ -28,7 +30,7 @@ export const canvasPixels = (
   fisheye = false,
   largest = Infinity,
 ): [number, number] => {
-  const scale = Math.min(pixelRatio * (fisheye ? FISHEYE.supersample : 1), largest / Math.max(width, height));
+  const scale = Math.min(pixelRatio * (fisheye ? FISHEYE.supersample : 1), largest / Math.max(width, height), Math.sqrt(MOST_PIXELS / (width * height)));
   return [Math.round(width * scale), Math.round(height * scale)];
 };
 

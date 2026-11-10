@@ -667,11 +667,16 @@ composition under "Scenes" in the Studio:
   the spyhole lens and the subtitles follow the real pixels; the letter, the
   one texture read up close, is painted at 10,000 px a metre at 1080p, twice
   that at 4K and four times at 8K, so its type stays crisp. The spyhole draws
-  its view at twice the frame's pixels; that buffer keeps its 4x multisampling
-  up to an 8K frame's worth of pixels and at 8K relies on its doubled pixels
-  alone (multisampled it does not fit the GPU: a black frame). 1080p and 4K
-  are pixel for pixel as before (owner, 2026-11-10). Past 8K the 3D stays at
-  8K and is enlarged; only the subtitles get finer. **(test)**
+  its view at twice the frame's pixels, but no buffer holds more than two 8K
+  frames' worth (at 8K: 10861 x 6109; at twice the frame each way its 32-bit
+  id buffer, 2 GB, silently failed and the shot lost every outline found by
+  edges); that buffer keeps its 4x multisampling up to an 8K frame's worth of
+  pixels and at 8K relies on its extra pixels alone (multisampled it does not
+  fit the GPU: a black frame). 1080p and 4K are pixel for pixel as before
+  (owner, 2026-11-10). Checked shot by shot: the middle of every one of the 49
+  shots in both formats at 8K matches its 1080p frame but for finer edges.
+  Past 8K the 3D stays at 8K and is enlarged; only the subtitles get finer.
+  **(test)**
 - **Frame rate**: the film is timed, cut, solved and checked on a 30 fps
   timeline and renders at 30, 60, 90 or 120 fps: the `fps` prop of the Film
   and every scene (Studio's Props panel steps through them; on the command

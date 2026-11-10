@@ -46,12 +46,18 @@ test("through the door viewer the scene renders at twice the canvas's pixels, so
   expect(canvasPixels(1080, 1920, 1, false)).toEqual([1080, 1920]);
 });
 
-test("at 8K the door viewer still renders at twice the canvas's pixels, and never past the largest texture the GPU takes, so its buffers always allocate", () => {
-  expect(canvasPixels(1920, 1080, 4, true, 16384)).toEqual([15360, 8640]);
-  expect(canvasPixels(1080, 1920, 4, true, 16384)).toEqual([8640, 15360]);
-  expect(canvasPixels(1920, 1080, 8, true, 16384)).toEqual([16384, 9216]);
+test("at 8K the door viewer renders past the canvas's pixels but holds at most two 8K frames' worth (10861 x 6109): at twice the canvas each way its 32-bit id buffer (15360 x 8640, 2 GB) silently fails to allocate and the shot loses every outline found by edges; never past the largest texture the GPU takes; 1080p and 4K keep twice the canvas", () => {
+  expect(canvasPixels(1920, 1080, 4, true, 16384)).toEqual([10861, 6109]);
+  expect(canvasPixels(1080, 1920, 4, true, 16384)).toEqual([6109, 10861]);
+  expect(canvasPixels(1920, 1080, 8, true, 16384)).toEqual([10861, 6109]);
   expect(canvasPixels(1920, 1080, 4, true, 8192)).toEqual([8192, 4608]);
-  expect(canvasPixels(1920, 1080, 2, true, 16384)).toEqual(canvasPixels(1920, 1080, 2, true));
+  const [w, h] = canvasPixels(1920, 1080, 4, true, 16384);
+  expect(w * h * 16).toBeLessThan(2 ** 30 * 1.05);
+  expect(canvasPixels(1920, 1080, 2, true, 16384)).toEqual([7680, 4320]);
+  expect(canvasPixels(1080, 1920, 2, true, 16384)).toEqual([4320, 7680]);
+  expect(canvasPixels(1920, 1080, 1, true, 16384)).toEqual([3840, 2160]);
+  expect(canvasPixels(1920, 1080, 4, false, 16384)).toEqual([7680, 4320]);
+  expect(canvasPixels(1080, 1920, 4, false, 16384)).toEqual([4320, 7680]);
 });
 
 test("the buffer a shot is drawn into before inking keeps its 4x multisampling up to an 8K frame's worth of pixels, so every shot at 1080p and 4K and every 8K shot outside the door viewer looks as before; the viewer's doubled 8K buffer would not fit the GPU with it (black frame), and its extra pixels smooth its edges instead", () => {

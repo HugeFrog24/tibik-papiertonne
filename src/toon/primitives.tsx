@@ -1,5 +1,11 @@
-import { useLayoutEffect, useMemo } from "react";
+import { taperedProfile } from "./taper";
+import { aimLens, type CameraSetup } from "./shots";
+import { setExposure } from "./exposure";
+import { useLayoutEffect, useMemo, type ReactNode } from "react";
+import { useDisposable } from "./useDisposable";
+import { CATCHLIGHT_SEGMENTS, catchlightCap, type CatchlightSpec } from "./catchlight";
 import { useThree } from "@react-three/fiber";
+import { random } from "remotion";
 import {
   BackSide,
   BoxGeometry,
@@ -7,93 +13,410 @@ import {
   CanvasTexture,
   Color,
   Euler,
+  LatheGeometry,
   type PerspectiveCamera,
+  Quaternion,
   RepeatWrapping,
   SRGBColorSpace,
   type Texture,
   TubeGeometry,
   Vector3,
 } from "three";
+import { present } from "./present";
 
 export type Vec3 = [number, number, number];
+export const addVec = (a: readonly number[], b: readonly number[]): Vec3 => [
+  a[0] + b[0],
+  a[1] + b[1],
+  a[2] + b[2],
+];
 export type Paint = string | Color;
 
 export const OUTLINE = 0.014;
+export const ANISOTROPY = 8;
+
+const toonCanvasTexture = (canvas: HTMLCanvasElement) => {
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.anisotropy = ANISOTROPY;
+  return texture;
+};
 export const INK = "#151515";
+
+export const DECAL = {
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  polygonOffsetUnits: -4,
+} as const;
+
+export type Speckle = {
+  readonly seed: string;
+  readonly count: number;
+  readonly base: readonly number[];
+  readonly lightShare: number;
+  readonly light: readonly [number, number];
+  readonly dark: readonly [number, number];
+};
+
+export const speckle = (
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  { seed, count, base, lightShare, light, dark }: Speckle,
+) => {
+  for (let i = 0; i < count; i++) {
+    const x = random(`${seed}-x-${i}`) * w;
+    const y = random(`${seed}-y-${i}`) * h;
+    const r = random(`${seed}-r-${i}`);
+    const size = 1 + Math.floor(random(`${seed}-s-${i}`) * 3);
+    const shift =
+      r < lightShare
+        ? light[0] + r * light[1]
+        : -dark[0] - (r - lightShare) * dark[1];
+    ctx.fillStyle = `rgb(${base.map((c) => Math.round(c + shift)).join(",")})`;
+    for (const dx of [0, -w])
+      for (const dy of [0, -h]) ctx.fillRect(x + dx, y + dy, size, size);
+  }
+};
+
+export const alongSegment = (axis: Vector3, from: Vector3, to: Vector3) => {
+  const along = to.clone().sub(from);
+  return {
+    length: along.length(),
+    turn: new Quaternion().setFromUnitVectors(axis, along.normalize()),
+  };
+};
 
 export const euler = (x: number, y: number, z: number, order: "XYZ" | "YXZ") =>
   new Euler(x, y, z, order);
 
-const InkHull: React.FC = () => (
-  <meshBasicMaterial color={INK} side={BackSide} />
-);
+export const BEHIND_WHAT_IT_TOUCHES = 0.02;
 
-export const Blob: React.FC<{
-  readonly position?: Vec3;
-  readonly rotation?: Vec3 | Euler;
-  readonly scale: Vec3 | number;
-  readonly color: Paint;
-  readonly outline?: boolean;
-}> = ({ position, rotation, scale, color, outline = true }) => {
-  const s: Vec3 = typeof scale === "number" ? [scale, scale, scale] : scale;
+export const HULL_VIEW = { hullHeight: { value: 1080 }, hullCap: { value: 24 } };
+
+export const hullShader =
+  (grown: number, behind = 0) =>
+  (shader: { vertexShader: string; uniforms: Record<string, { value: unknown }> }) => {
+    shader.uniforms["hullHeight"] = HULL_VIEW.hullHeight;
+    shader.uniforms["hullCap"] = HULL_VIEW.hullCap;
+    shader.vertexShader = `uniform float hullHeight;\nuniform float hullCap;\n${shader.vertexShader}`.replace(
+      "#include <project_vertex>",
+      [
+        "#include <project_vertex>",
+        "float hullPixel = 2.0 * max(-mvPosition.z, 1.0e-4) / (projectionMatrix[1][1] * hullHeight);",
+        `mvPosition.xyz -= normalize(normalMatrix * normal) * max(0.0, ${grown.toFixed(5)} - hullCap * hullPixel);`,
+        `mvPosition.xyz *= 1.0 + ${behind.toFixed(4)} / length(mvPosition.xyz);`,
+        "gl_Position = projectionMatrix * mvPosition;",
+      ].join("\n"),
+    );
+  };
+
+export const Catchlight: React.FC<{ readonly sphere: number; readonly spec: CatchlightSpec }> = ({ sphere, spec }) => {
+  const cap = catchlightCap(sphere, spec);
   return (
-    <group position={position} rotation={rotation}>
-      <mesh scale={s} castShadow receiveShadow>
-        <sphereGeometry args={[1, 48, 32]} />
-        <meshToonMaterial color={color} />
-      </mesh>
-      {outline ? (
-        <mesh scale={[s[0] + OUTLINE, s[1] + OUTLINE, s[2] + OUTLINE]}>
-          <sphereGeometry args={[1, 48, 32]} />
-          <InkHull />
-        </mesh>
-      ) : null}
-    </group>
+    <mesh receiveShadow quaternion={cap.quaternion}>
+      <sphereGeometry args={[cap.radius, ...CATCHLIGHT_SEGMENTS, 0, 2 * Math.PI, 0, cap.angle]} />
+      <meshToonMaterial color="white" />
+    </mesh>
   );
 };
 
-export const Segment: React.FC<{
-  readonly length: number;
-  readonly radius: number;
+export const InkHull: React.FC<{ readonly behind?: number | undefined; readonly grown?: number }> = ({ behind = 0, grown = 0 }) => (
+  <meshBasicMaterial color={INK} side={BackSide} onBeforeCompile={hullShader(grown, behind)} customProgramCacheKey={() => `ink-hull-${grown}-${behind}`} />
+);
+
+type MeshLook = {
+  readonly detail?: readonly [number, number];
+  readonly castShadow?: boolean;
+  readonly userData?: Record<string, unknown> | undefined;
+};
+
+export type Glow = { readonly color: string; readonly light: number };
+
+export const glowOf = (glow?: Glow  ) =>
+  glow && glow.light > 0
+    ? { emissive: glow.color, emissiveIntensity: glow.light }
+    : {};
+
+export const glowMapOf = (map?: Texture  ) =>
+  map ? { emissive: "#ffffff", emissiveMap: map, emissiveIntensity: 1 } : {};
+
+const InkedMesh: React.FC<{
+  readonly position?: Vec3 | Vector3 | undefined;
+  readonly rotation?: Vec3 | Euler | undefined;
   readonly color: Paint;
-}> = ({ length, radius, color }) => {
+  readonly map?: Texture | undefined;
+  readonly ink: number;
+  readonly outline?: boolean | undefined;
+  readonly castShadow?: boolean;
+  readonly receiveShadow?: boolean;
+  readonly userData?: Record<string, unknown> | undefined;
+  readonly shape: (grow: number) => ReactNode;
+  readonly scaleOf?: (grow: number) => Vec3;
+  readonly glow?: Glow | undefined;
+  readonly hullBehind?: number | undefined;
+}> = ({
+  position,
+  rotation,
+  color,
+  map,
+  ink,
+  outline = true,
+  castShadow = true,
+  receiveShadow = true,
+  userData,
+  shape,
+  scaleOf,
+  glow,
+  hullBehind,
+}) => (
+  <group {...present({ position, rotation })}>
+    <mesh
+      {...present({ scale: scaleOf?.(0), userData })}
+      castShadow={castShadow}
+      receiveShadow={receiveShadow}
+    >
+      {shape(0)}
+      <meshToonMaterial color={color} {...present({ map })} {...glowOf(glow)} />
+    </mesh>
+    {outline ? (
+      <mesh {...present({ scale: scaleOf?.(ink) })}>
+        {shape(ink)}
+        <InkHull behind={hullBehind} grown={ink} />
+      </mesh>
+    ) : null}
+  </group>
+);
+
+export const Blob: React.FC<
+  {
+    readonly position?: Vec3 | Vector3 | undefined;
+    readonly rotation?: Vec3 | Euler | undefined;
+    readonly scale: Vec3 | number;
+    readonly color: Paint;
+    readonly outline?: boolean | undefined;
+    readonly ink?: number | undefined;
+    readonly hullBehind?: number | undefined;
+  } & MeshLook
+> = ({
+  position,
+  rotation,
+  scale,
+  color,
+  outline = true,
+  ink = OUTLINE,
+  hullBehind,
+  detail = [48, 32],
+  castShadow = true,
+  userData,
+}) => {
+  const s: Vec3 = typeof scale === "number" ? [scale, scale, scale] : scale;
   return (
-    <group position={[0, -length / 2, 0]}>
-      <mesh castShadow receiveShadow>
-        <capsuleGeometry args={[radius, length, 8, 24]} />
-        <meshToonMaterial color={color} />
-      </mesh>
-      <mesh>
-        <capsuleGeometry args={[radius + OUTLINE, length, 8, 24]} />
-        <InkHull />
-      </mesh>
+    <InkedMesh
+      position={position}
+      rotation={rotation}
+      color={color}
+      ink={ink}
+      outline={outline}
+      castShadow={castShadow}
+      userData={userData}
+      hullBehind={hullBehind}
+      shape={() => <sphereGeometry args={[1, ...detail]} />}
+      scaleOf={(grow) => [s[0] + grow, s[1] + grow, s[2] + grow]}
+    />
+  );
+};
+
+export const Segment: React.FC<
+  {
+    readonly length: number;
+    readonly radius: number;
+    readonly color: Paint;
+    readonly ink?: number | undefined;
+  } & MeshLook
+> = ({
+  length,
+  radius,
+  color,
+  ink = OUTLINE,
+  detail = [8, 24],
+  castShadow = true,
+  userData,
+}) => (
+  <InkedMesh
+    position={[0, -length / 2, 0]}
+    color={color}
+    ink={ink}
+    castShadow={castShadow}
+    userData={userData}
+    shape={(grow) => (
+      <capsuleGeometry args={[radius + grow, length, ...detail]} />
+    )}
+  />
+);
+
+const TAPER_STEPS = 8;
+const AROUND = 24;
+
+export const TaperedSegment: React.FC<
+  {
+    readonly length: number;
+    readonly top: number;
+    readonly bottom: number;
+    readonly color: Paint;
+    readonly ink?: number | undefined;
+    readonly reshade?: ((geometry: LatheGeometry) => void) | undefined;
+    readonly outline?: boolean | undefined;
+  } & MeshLook
+> = ({ length, top, bottom, color, ink = OUTLINE, castShadow = true, userData, reshade, outline = true }) => {
+  const body = useDisposable(() => {
+    const geometry = new LatheGeometry(taperedProfile(top, bottom, length, TAPER_STEPS).reverse(), AROUND);
+    reshade?.(geometry);
+    return geometry;
+  }, [top, bottom, length, reshade]);
+  return (
+    <InkedMesh
+      color={color}
+      ink={ink}
+      outline={outline}
+      castShadow={castShadow}
+      userData={userData}
+      shape={(grow) => (grow === 0 ? <primitive object={body} attach="geometry" /> : <latheGeometry args={[taperedProfile(top + grow, bottom + grow, length, TAPER_STEPS).reverse(), AROUND]} />)}
+    />
+  );
+};
+
+const SEGMENT_AXIS = new Vector3(0, -1, 0);
+
+export const SegmentBetween: React.FC<
+  {
+    readonly from: Vector3 | Vec3;
+    readonly to: Vector3 | Vec3;
+    readonly radius: number;
+    readonly color: Paint;
+    readonly ink?: number | undefined;
+  } & MeshLook
+> = ({ from, to, ...look }) => {
+  const a = from instanceof Vector3 ? from : new Vector3(...from);
+  const b = to instanceof Vector3 ? to : new Vector3(...to);
+  const { length, turn } = alongSegment(SEGMENT_AXIS, a, b);
+  return (
+    <group position={a} quaternion={turn}>
+      <Segment length={length} {...look} />
     </group>
   );
 };
 
 export const ToonBox: React.FC<{
-  readonly position?: Vec3;
-  readonly rotation?: Vec3 | Euler;
+  readonly position?: Vec3 | undefined;
+  readonly rotation?: Vec3 | Euler | undefined;
   readonly size: Vec3;
   readonly color: Paint;
-  readonly outline?: boolean;
-  readonly map?: Texture;
-}> = ({ position, rotation, size, color, outline = true, map }) => {
+  readonly outline?: boolean | undefined;
+  readonly map?: Texture | undefined;
+  readonly ink?: number | undefined;
+  readonly glow?: Glow | undefined;
+  readonly hullBehind?: number | undefined;
+}> = ({
+  position,
+  rotation,
+  size,
+  color,
+  outline = true,
+  map,
+  ink = OUTLINE,
+  glow,
+  hullBehind,
+}) => (
+  <InkedMesh
+    position={position}
+    rotation={rotation}
+    color={color}
+    map={map}
+    ink={ink}
+    outline={outline}
+    glow={glow}
+    hullBehind={hullBehind}
+    shape={(grow) => (
+      <boxGeometry
+        args={[size[0] + grow * 2, size[1] + grow * 2, size[2] + grow * 2]}
+      />
+    )}
+  />
+);
+
+export const ToonTorus: React.FC<{
+  readonly position?: Vec3 | Vector3 | undefined;
+  readonly rotation?: Vec3 | Euler | undefined;
+  readonly radius: number;
+  readonly tube: number;
+  readonly color: Paint;
+  readonly ink?: number | undefined;
+  readonly segments?: readonly [number, number];
+  readonly receiveShadow?: boolean;
+}> = ({
+  position,
+  rotation,
+  radius,
+  tube,
+  color,
+  ink = OUTLINE,
+  segments = [10, 40],
+  receiveShadow = false,
+}) => (
+  <InkedMesh
+    position={position}
+    rotation={rotation}
+    color={color}
+    ink={ink}
+    receiveShadow={receiveShadow}
+    shape={(grow) => (
+      <torusGeometry args={[radius, tube + grow, ...segments]} />
+    )}
+  />
+);
+
+export const ToonCylinder: React.FC<{
+  readonly position?: Vec3 | undefined;
+  readonly rotation?: Vec3 | Euler | undefined;
+  readonly radius: number | readonly [number, number];
+  readonly height: number;
+  readonly segments: number;
+  readonly color: Paint;
+  readonly capped?: boolean;
+  readonly ink?: number | undefined;
+  readonly glow?: Glow | undefined;
+}> = ({
+  position,
+  rotation,
+  radius,
+  height,
+  segments,
+  color,
+  capped = true,
+  ink = OUTLINE,
+  glow,
+}) => {
+  const [top, bottom] = typeof radius === "number" ? [radius, radius] : radius;
   return (
-    <group position={position} rotation={rotation}>
-      <mesh castShadow receiveShadow>
-        <boxGeometry args={size} />
-        <meshToonMaterial color={color} map={map} />
-      </mesh>
-      {outline ? (
-        <mesh>
-          <boxGeometry
-            args={[size[0] + OUTLINE * 2, size[1] + OUTLINE * 2, size[2] + OUTLINE * 2]}
-          />
-          <InkHull />
-        </mesh>
-      ) : null}
-    </group>
+    <InkedMesh
+      position={position}
+      rotation={rotation}
+      color={color}
+      ink={ink}
+      glow={glow}
+      receiveShadow={false}
+      shape={(grow) => (
+        <cylinderGeometry
+          args={[
+            top + grow,
+            bottom + grow,
+            capped ? height + grow : height,
+            segments,
+          ]}
+        />
+      )}
+    />
   );
 };
 
@@ -104,9 +427,9 @@ export const useTaperedBox = (
   taper: number,
   openTop: boolean,
 ) => {
-  return useMemo(() => {
+  return useDisposable(() => {
     const geometry = new BoxGeometry(width, height, depth);
-    const position = geometry.attributes.position;
+    const position = geometry.attributes["position"];
     for (let i = 0; i < position.count; i++) {
       if (position.getY(i) < 0) {
         position.setX(i, position.getX(i) * taper);
@@ -129,13 +452,13 @@ export const InkLine: React.FC<{
   readonly radius: number;
   readonly caps?: "start" | "both";
 }> = ({ points, radius, caps = "both" }) => {
-  const geometry = useMemo(() => {
+  const geometry = useDisposable(() => {
     const curve = new CatmullRomCurve3(points.map((p) => new Vector3(...p)));
     const segments = 48;
     const radial = 12;
     const tube = new TubeGeometry(curve, segments, radius, radial, false);
     if (caps === "start") {
-      const position = tube.attributes.position;
+      const position = tube.attributes["position"];
       const vertex = new Vector3();
       for (let i = 0; i <= segments; i++) {
         const u = i / segments;
@@ -143,14 +466,19 @@ export const InkLine: React.FC<{
         const center = curve.getPointAt(u);
         for (let j = 0; j <= radial; j++) {
           const index = i * (radial + 1) + j;
-          vertex.fromBufferAttribute(position, index).sub(center).multiplyScalar(width).add(center);
+          vertex
+            .fromBufferAttribute(position, index)
+            .sub(center)
+            .multiplyScalar(width)
+            .add(center);
           position.setXYZ(index, vertex.x, vertex.y, vertex.z);
         }
       }
     }
     return tube;
   }, [points, radius, caps]);
-  const ends = caps === "both" ? [points[0], points[points.length - 1]] : [points[0]];
+  const ends =
+    caps === "both" ? [points[0], points[points.length - 1]] : [points[0]];
   return (
     <>
       <mesh geometry={geometry}>
@@ -179,11 +507,7 @@ export const useLabelTexture = (
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = background;
-    ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = foreground;
-    ctx.lineWidth = 14;
-    ctx.strokeRect(12, 12, width - 24, height - 24);
+    framedCard(ctx, width, height, background, foreground, 14, 12);
     ctx.fillStyle = foreground;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -194,9 +518,7 @@ export const useLabelTexture = (
       ctx.font = `bold ${fontSize}px Arial, Helvetica, sans-serif`;
     }
     ctx.fillText(text, width / 2, height / 2 + 8);
-    const texture = new CanvasTexture(canvas);
-    texture.colorSpace = SRGBColorSpace;
-    return texture;
+    return toonCanvasTexture(canvas);
   }, [text, background, foreground, aspect]);
 };
 
@@ -215,10 +537,25 @@ export const drawnTexture = (
   canvas.width = width;
   canvas.height = height;
   draw(canvas.getContext("2d")!, width, height);
-  const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
+  const texture = toonCanvasTexture(canvas);
   drawnTextures.set(key, texture);
   return texture;
+};
+
+export const framedCard = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  fill: string,
+  stroke: string,
+  lineWidth: number,
+  inset = lineWidth / 2,
+) => {
+  ctx.fillStyle = fill;
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = lineWidth;
+  ctx.strokeRect(inset, inset, width - 2 * inset, height - 2 * inset);
 };
 
 export const fitText = (
@@ -266,8 +603,7 @@ export const usePavingTexture = (repeatX: number, repeatY: number) => {
       ctx.lineTo(size, i * tile);
       ctx.stroke();
     }
-    const texture = new CanvasTexture(canvas);
-    texture.colorSpace = SRGBColorSpace;
+    const texture = toonCanvasTexture(canvas);
     texture.wrapS = RepeatWrapping;
     texture.wrapT = RepeatWrapping;
     texture.repeat.set(repeatX, repeatY);
@@ -275,18 +611,16 @@ export const usePavingTexture = (repeatX: number, repeatY: number) => {
   }, [repeatX, repeatY]);
 };
 
-export const CameraRig: React.FC<{
-  readonly position: Vec3;
-  readonly target: Vec3;
-  readonly fov: number;
-}> = ({ position, target, fov }) => {
+export const CAMERA_NEAR = 0.03;
+
+export const CameraRig: React.FC<
+  CameraSetup & { readonly exposure?: readonly CameraSetup[] | undefined }
+> = ({ exposure, ...setup }) => {
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
   useLayoutEffect(() => {
-    camera.position.set(...position);
-    camera.fov = fov;
-    camera.near = 0.03;
-    camera.lookAt(...target);
-    camera.updateProjectionMatrix();
+    setExposure(camera, exposure);
+    aimLens(camera, setup, { near: CAMERA_NEAR });
+    return () => { setExposure(camera, undefined); };
   });
   return null;
 };

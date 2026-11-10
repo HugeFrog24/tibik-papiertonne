@@ -10,19 +10,19 @@
   "private": true,
   "dependencies": {
     "@react-three/fiber": "9.8.2",
-    "@remotion/cli": "4.0.540",
-    "@remotion/google-fonts": "4.0.540",
-    "@remotion/media": "4.0.540",
-    "@remotion/three": "4.0.540",
-    "@remotion/zod-types": "4.0.540",
+    "@remotion/cli": "4.0.541",
+    "@remotion/google-fonts": "4.0.541",
+    "@remotion/media": "4.0.541",
+    "@remotion/three": "4.0.541",
+    "@remotion/zod-types": "4.0.541",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "remotion": "4.0.540",
+    "remotion": "4.0.541",
     "three": "0.187.0",
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@remotion/eslint-config-flat": "4.0.540",
+    "@remotion/eslint-config-flat": "4.0.541",
     "@types/react": "19.3.0",
     "@types/three": "0.187.0",
     "@types/web": "0.0.166",
@@ -36,8 +36,8 @@
     "dev": "remotion studio",
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc",
-    "test": "vitest run --no-file-parallelism",
+    "lint": "eslint src scripts && tsc",
+    "test": "node scripts/test.mjs",
     "dupes": "jscpd src --min-tokens 30 --reporters console"
   },
   "allowScripts": {

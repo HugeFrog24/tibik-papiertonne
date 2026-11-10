@@ -1,0 +1,734 @@
+{
+ "de": {
+  "hausmuell_01_karen": {
+   "file": "hausmuell_01_karen.wav",
+   "seconds": 1.86,
+   "speech": [
+    [
+     0,
+     1.86
+    ]
+   ]
+  },
+  "hausmuell_02_tibik": {
+   "file": "hausmuell_02_tibik.wav",
+   "seconds": 0.947,
+   "speech": [
+    [
+     0,
+     0.947
+    ]
+   ]
+  },
+  "hausmuell_03_karen": {
+   "file": "hausmuell_03_karen.wav",
+   "seconds": 1.704,
+   "speech": [
+    [
+     0,
+     1.704
+    ]
+   ]
+  },
+  "hausmuell_04_tibik": {
+   "file": "hausmuell_04_tibik.wav",
+   "seconds": 1.637,
+   "speech": [
+    [
+     0,
+     1.637
+    ]
+   ]
+  },
+  "hausmuell_05_tibik": {
+   "file": "hausmuell_05_tibik.wav",
+   "seconds": 1.96,
+   "speech": [
+    [
+     0,
+     1.96
+    ]
+   ]
+  },
+  "hausmuell_06_karen": {
+   "file": "hausmuell_06_karen.wav",
+   "seconds": 1.96,
+   "speech": [
+    [
+     0,
+     1.96
+    ]
+   ]
+  },
+  "hausmuell_07_tibik": {
+   "file": "hausmuell_07_tibik.wav",
+   "seconds": 0.974,
+   "speech": [
+    [
+     0,
+     0.974
+    ]
+   ]
+  },
+  "hausmuell_08_karen": {
+   "file": "hausmuell_08_karen.wav",
+   "seconds": 0.731,
+   "speech": [
+    [
+     0,
+     0.731
+    ]
+   ]
+  },
+  "hausmuell_09_karen": {
+   "file": "hausmuell_09_karen.wav",
+   "seconds": 1.582,
+   "speech": [
+    [
+     0,
+     1.582
+    ]
+   ]
+  },
+  "hausmuell_10_tibik": {
+   "file": "hausmuell_10_tibik.wav",
+   "seconds": 1.576,
+   "speech": [
+    [
+     0,
+     1.576
+    ]
+   ]
+  },
+  "hausmuell_11_karen": {
+   "file": "hausmuell_11_karen.wav",
+   "seconds": 0.646,
+   "speech": [
+    [
+     0,
+     0.646
+    ]
+   ]
+  },
+  "hausmuell_12_tibik": {
+   "file": "hausmuell_12_tibik.wav",
+   "seconds": 2.756,
+   "speech": [
+    [
+     0,
+     2.756
+    ]
+   ]
+  },
+  "hausmuell_13_karen": {
+   "file": "hausmuell_13_karen.wav",
+   "seconds": 1.34,
+   "speech": [
+    [
+     0,
+     1.34
+    ]
+   ]
+  },
+  "klingelsturm_01_tibik": {
+   "file": "klingelsturm_01_tibik.wav",
+   "seconds": 0.7,
+   "speech": [
+    [
+     0,
+     0.7
+    ]
+   ]
+  },
+  "klingelsturm_02_karen": {
+   "file": "klingelsturm_02_karen.wav",
+   "seconds": 0.563,
+   "speech": [
+    [
+     0,
+     0.563
+    ]
+   ]
+  },
+  "klingelsturm_03_karen": {
+   "file": "klingelsturm_03_karen.wav",
+   "seconds": 1.314,
+   "speech": [
+    [
+     0,
+     1.314
+    ]
+   ]
+  },
+  "klingelsturm_04_tibik": {
+   "file": "klingelsturm_04_tibik.wav",
+   "seconds": 0.9,
+   "speech": [
+    [
+     0,
+     0.9
+    ]
+   ]
+  },
+  "klingelsturm_05_karen": {
+   "file": "klingelsturm_05_karen.wav",
+   "seconds": 1.186,
+   "speech": [
+    [
+     0,
+     1.186
+    ]
+   ]
+  },
+  "klingelsturm_06_karen": {
+   "file": "klingelsturm_06_karen.wav",
+   "seconds": 2.015,
+   "speech": [
+    [
+     0,
+     2.015
+    ]
+   ]
+  },
+  "klingelsturm_07_tibik": {
+   "file": "klingelsturm_07_tibik.wav",
+   "seconds": 1.249,
+   "speech": [
+    [
+     0,
+     1.249
+    ]
+   ]
+  },
+  "klingelsturm_08_anrufbeantworter": {
+   "file": "klingelsturm_08_anrufbeantworter.wav",
+   "seconds": 1.546,
+   "speech": [
+    [
+     0,
+     1.546
+    ]
+   ]
+  },
+  "klingelsturm_09_anrufbeantworter": {
+   "file": "klingelsturm_09_anrufbeantworter.wav",
+   "seconds": 2.306,
+   "speech": [
+    [
+     0,
+     2.306
+    ]
+   ]
+  },
+  "klingelsturm_10_anrufbeantworter": {
+   "file": "klingelsturm_10_anrufbeantworter.wav",
+   "seconds": 2.63,
+   "speech": [
+    [
+     0,
+     2.63
+    ]
+   ]
+  },
+  "klingelsturm_11_karen": {
+   "file": "klingelsturm_11_karen.wav",
+   "seconds": 1.213,
+   "speech": [
+    [
+     0,
+     1.213
+    ]
+   ]
+  },
+  "klingelsturm_12_karen": {
+   "file": "klingelsturm_12_karen.wav",
+   "seconds": 2.88,
+   "speech": [
+    [
+     0,
+     2.88
+    ]
+   ]
+  },
+  "klingelsturm_13_leitstelle": {
+   "file": "klingelsturm_13_leitstelle.wav",
+   "seconds": 1.763,
+   "speech": [
+    [
+     0,
+     1.763
+    ]
+   ]
+  },
+  "klingelsturm_14_karen": {
+   "file": "klingelsturm_14_karen.wav",
+   "seconds": 0.5,
+   "speech": [
+    [
+     0,
+     0.5
+    ]
+   ]
+  },
+  "klingelsturm_15_karen": {
+   "file": "klingelsturm_15_karen.wav",
+   "seconds": 2.2,
+   "speech": [
+    [
+     0,
+     2.2
+    ]
+   ]
+  },
+  "klingelsturm_16_leitstelle": {
+   "file": "klingelsturm_16_leitstelle.wav",
+   "seconds": 1.471,
+   "speech": [
+    [
+     0,
+     1.471
+    ]
+   ]
+  },
+  "papiertonnen_01_karen": {
+   "file": "papiertonnen_01_karen.wav",
+   "seconds": 0.684,
+   "speech": [
+    [
+     0,
+     0.684
+    ]
+   ]
+  },
+  "rundschreiben_01_tibik-inner": {
+   "file": "rundschreiben_01_tibik-inner.wav",
+   "seconds": 3.538,
+   "speech": [
+    [
+     0,
+     3.538
+    ]
+   ]
+  },
+  "rundschreiben_02_tibik-inner": {
+   "file": "rundschreiben_02_tibik-inner.wav",
+   "seconds": 3.675,
+   "speech": [
+    [
+     0,
+     3.675
+    ]
+   ]
+  },
+  "rundschreiben_03_tibik-inner": {
+   "file": "rundschreiben_03_tibik-inner.wav",
+   "seconds": 5.252,
+   "speech": [
+    [
+     0,
+     5.252
+    ]
+   ]
+  },
+  "rundschreiben_04_tibik-inner": {
+   "file": "rundschreiben_04_tibik-inner.wav",
+   "seconds": 4.229,
+   "speech": [
+    [
+     0,
+     4.229
+    ]
+   ]
+  },
+  "rundschreiben_05_tibik-inner": {
+   "file": "rundschreiben_05_tibik-inner.wav",
+   "seconds": 4.445,
+   "speech": [
+    [
+     0,
+     4.445
+    ]
+   ]
+  },
+  "rundschreiben_06_tibik": {
+   "file": "rundschreiben_06_tibik.wav",
+   "seconds": 0.513,
+   "speech": [
+    [
+     0,
+     0.513
+    ]
+   ]
+  }
+ },
+ "en": {
+  "hausmuell_01_karen": {
+   "file": "hausmuell_01_karen.wav",
+   "seconds": 1.6,
+   "speech": [
+    [
+     0,
+     1.6
+    ]
+   ]
+  },
+  "hausmuell_02_tibik": {
+   "file": "hausmuell_02_tibik.wav",
+   "seconds": 0.984,
+   "speech": [
+    [
+     0,
+     0.984
+    ]
+   ]
+  },
+  "hausmuell_03_karen": {
+   "file": "hausmuell_03_karen.wav",
+   "seconds": 1.719,
+   "speech": [
+    [
+     0,
+     1.719
+    ]
+   ]
+  },
+  "hausmuell_04_tibik": {
+   "file": "hausmuell_04_tibik.wav",
+   "seconds": 1.531,
+   "speech": [
+    [
+     0,
+     1.531
+    ]
+   ]
+  },
+  "hausmuell_05_tibik": {
+   "file": "hausmuell_05_tibik.wav",
+   "seconds": 3.154,
+   "speech": [
+    [
+     0,
+     3.154
+    ]
+   ]
+  },
+  "hausmuell_06_karen": {
+   "file": "hausmuell_06_karen.wav",
+   "seconds": 2.654,
+   "speech": [
+    [
+     0,
+     2.654
+    ]
+   ]
+  },
+  "hausmuell_07_tibik": {
+   "file": "hausmuell_07_tibik.wav",
+   "seconds": 1.171,
+   "speech": [
+    [
+     0,
+     1.171
+    ]
+   ]
+  },
+  "hausmuell_08_karen": {
+   "file": "hausmuell_08_karen.wav",
+   "seconds": 0.731,
+   "speech": [
+    [
+     0,
+     0.731
+    ]
+   ]
+  },
+  "hausmuell_09_karen": {
+   "file": "hausmuell_09_karen.wav",
+   "seconds": 1.915,
+   "speech": [
+    [
+     0,
+     1.915
+    ]
+   ]
+  },
+  "hausmuell_10_tibik": {
+   "file": "hausmuell_10_tibik.wav",
+   "seconds": 2.457,
+   "speech": [
+    [
+     0,
+     2.457
+    ]
+   ]
+  },
+  "hausmuell_11_karen": {
+   "file": "hausmuell_11_karen.wav",
+   "seconds": 0.857,
+   "speech": [
+    [
+     0,
+     0.857
+    ]
+   ]
+  },
+  "hausmuell_12_tibik": {
+   "file": "hausmuell_12_tibik.wav",
+   "seconds": 3,
+   "speech": [
+    [
+     0,
+     1.13
+    ],
+    [
+     1.315,
+     3
+    ]
+   ]
+  },
+  "hausmuell_13_karen": {
+   "file": "hausmuell_13_karen.wav",
+   "seconds": 2,
+   "speech": [
+    [
+     0,
+     2
+    ]
+   ]
+  },
+  "klingelsturm_01_tibik": {
+   "file": "klingelsturm_01_tibik.wav",
+   "seconds": 0.745,
+   "speech": [
+    [
+     0,
+     0.745
+    ]
+   ]
+  },
+  "klingelsturm_02_karen": {
+   "file": "klingelsturm_02_karen.wav",
+   "seconds": 0.563,
+   "speech": [
+    [
+     0,
+     0.563
+    ]
+   ]
+  },
+  "klingelsturm_03_karen": {
+   "file": "klingelsturm_03_karen.wav",
+   "seconds": 1.623,
+   "speech": [
+    [
+     0,
+     1.623
+    ]
+   ]
+  },
+  "klingelsturm_04_tibik": {
+   "file": "klingelsturm_04_tibik.wav",
+   "seconds": 0.869,
+   "speech": [
+    [
+     0,
+     0.869
+    ]
+   ]
+  },
+  "klingelsturm_05_karen": {
+   "file": "klingelsturm_05_karen.wav",
+   "seconds": 0.969,
+   "speech": [
+    [
+     0,
+     0.969
+    ]
+   ]
+  },
+  "klingelsturm_06_karen": {
+   "file": "klingelsturm_06_karen.wav",
+   "seconds": 2.679,
+   "speech": [
+    [
+     0,
+     2.679
+    ]
+   ]
+  },
+  "klingelsturm_07_tibik": {
+   "file": "klingelsturm_07_tibik.wav",
+   "seconds": 2.471,
+   "speech": [
+    [
+     0,
+     0.611
+    ],
+    [
+     0.841,
+     2.471
+    ]
+   ]
+  },
+  "klingelsturm_08_anrufbeantworter": {
+   "file": "klingelsturm_08_anrufbeantworter.wav",
+   "seconds": 1.974,
+   "speech": [
+    [
+     0,
+     1.974
+    ]
+   ]
+  },
+  "klingelsturm_09_anrufbeantworter": {
+   "file": "klingelsturm_09_anrufbeantworter.wav",
+   "seconds": 2.2,
+   "speech": [
+    [
+     0,
+     2.2
+    ]
+   ]
+  },
+  "klingelsturm_10_anrufbeantworter": {
+   "file": "klingelsturm_10_anrufbeantworter.wav",
+   "seconds": 1.842,
+   "speech": [
+    [
+     0,
+     1.842
+    ]
+   ]
+  },
+  "klingelsturm_11_karen": {
+   "file": "klingelsturm_11_karen.wav",
+   "seconds": 1.322,
+   "speech": [
+    [
+     0,
+     1.322
+    ]
+   ]
+  },
+  "klingelsturm_12_karen": {
+   "file": "klingelsturm_12_karen.wav",
+   "seconds": 2.649,
+   "speech": [
+    [
+     0,
+     2.649
+    ]
+   ]
+  },
+  "klingelsturm_13_leitstelle": {
+   "file": "klingelsturm_13_leitstelle.wav",
+   "seconds": 1.5,
+   "speech": [
+    [
+     0,
+     1.5
+    ]
+   ]
+  },
+  "klingelsturm_14_karen": {
+   "file": "klingelsturm_14_karen.wav",
+   "seconds": 0.546,
+   "speech": [
+    [
+     0,
+     0.546
+    ]
+   ]
+  },
+  "klingelsturm_15_karen": {
+   "file": "klingelsturm_15_karen.wav",
+   "seconds": 2.407,
+   "speech": [
+    [
+     0,
+     2.407
+    ]
+   ]
+  },
+  "klingelsturm_16_leitstelle": {
+   "file": "klingelsturm_16_leitstelle.wav",
+   "seconds": 2.037,
+   "speech": [
+    [
+     0,
+     2.037
+    ]
+   ]
+  },
+  "papiertonnen_01_karen": {
+   "file": "papiertonnen_01_karen.wav",
+   "seconds": 0.684,
+   "speech": [
+    [
+     0,
+     0.684
+    ]
+   ]
+  },
+  "rundschreiben_01_tibik-inner": {
+   "file": "rundschreiben_01_tibik-inner.wav",
+   "seconds": 3.278,
+   "speech": [
+    [
+     0,
+     3.278
+    ]
+   ]
+  },
+  "rundschreiben_02_tibik-inner": {
+   "file": "rundschreiben_02_tibik-inner.wav",
+   "seconds": 4.106,
+   "speech": [
+    [
+     0,
+     4.106
+    ]
+   ]
+  },
+  "rundschreiben_03_tibik-inner": {
+   "file": "rundschreiben_03_tibik-inner.wav",
+   "seconds": 6,
+   "speech": [
+    [
+     0,
+     6
+    ]
+   ]
+  },
+  "rundschreiben_04_tibik-inner": {
+   "file": "rundschreiben_04_tibik-inner.wav",
+   "seconds": 5.122,
+   "speech": [
+    [
+     0,
+     5.122
+    ]
+   ]
+  },
+  "rundschreiben_05_tibik-inner": {
+   "file": "rundschreiben_05_tibik-inner.wav",
+   "seconds": 5.5,
+   "speech": [
+    [
+     0,
+     5.5
+    ]
+   ]
+  },
+  "rundschreiben_06_tibik": {
+   "file": "rundschreiben_06_tibik.wav",
+   "seconds": 0.513,
+   "speech": [
+    [
+     0,
+     0.513
+    ]
+   ]
+  }
+ }
+}

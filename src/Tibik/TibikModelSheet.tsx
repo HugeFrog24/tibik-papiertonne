@@ -8,7 +8,7 @@ export const TibikModelSheet: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#f4f1ea" }}>
-      <ThreeCanvas name="Tibik turnaround" width={width} height={height} shadows flat>
+      <ThreeCanvas name="Tibik turnaround" width={width} height={height} shadows="percentage" flat>
         <CameraRig position={[0, 1.0, 7.4]} target={[0, 0.85, 0]} fov={30} />
         <hemisphereLight args={["#ffffff", "#9a9488", 1.6]} />
         <directionalLight

@@ -1,0 +1,328 @@
+import { Box3, Frustum, Matrix4, PerspectiveCamera, Vector3 } from "three";
+import { random } from "remotion";
+import type { Solid, Sphere } from "../physics/collision";
+import { rayObb, raySphere } from "../physics/rays";
+import { kerbFace } from "../street/drainShape";
+import { STREET_SOLIDS } from "../street/layout";
+import { RAIN_SOLIDS } from "../street/rainSolids";
+import { BLOCK_DEPTH, PARAPET } from "../street/townShape";
+import { clamp, smoothstep } from "../characters/scalar";
+import { aspectOf, type Format } from "../frameRate";
+import { aimLens, type CameraSetup } from "../toon/shots";
+import { WIND } from "../physics/wind";
+import {
+  BUILDING_HEIGHT,
+  FACADE_Z,
+  ROAD_Y,
+  acrossZ,
+} from "../street/building";
+import type { Vec3 } from "../toon/primitives";
+import { frameHeightAt } from "../toon/frameHeight";
+import { leastStreakLength } from "./rainStreaks";
+
+export const RAIN = {
+  perCubicMetre: 0.5,
+  speed: 7,
+  streak: 0.24,
+  slant: 0.12,
+  nearCamera: 0.4,
+  splash: 0.12,
+};
+
+export const RAIN_DIR = new Vector3(
+  WIND.direction.x * RAIN.slant,
+  -1,
+  WIND.direction.z * RAIN.slant,
+).normalize();
+
+export const RAIN_TOP = 30;
+export const RAIN_REACH = { full: 20, none: 35 };
+
+const DRIFT_TO_ROOF = ((RAIN_TOP - BUILDING_HEIGHT - PARAPET.height) * -RAIN_DIR.z) / -RAIN_DIR.y;
+
+export const RAIN_FIELD = {
+  x: [-32, 32] as const,
+  z: [FACADE_Z - BLOCK_DEPTH + DRIFT_TO_ROOF + 0.05, acrossZ(FACADE_Z - BLOCK_DEPTH)] as const,
+};
+
+export const rainFallsAt = (p: Vector3) => {
+  if (p.y > RAIN_TOP) return false;
+  const fallen = (RAIN_TOP - p.y) / -RAIN_DIR.y;
+  const x = p.x - RAIN_DIR.x * fallen;
+  const z = p.z - RAIN_DIR.z * fallen;
+  return x >= RAIN_FIELD.x[0] && x <= RAIN_FIELD.x[1] && z >= RAIN_FIELD.z[0] && z <= RAIN_FIELD.z[1];
+};
+
+export type Drop = {
+  readonly id: number;
+  readonly head: Vec3;
+  readonly tail: Vec3;
+  readonly splash: { readonly at: Vec3; readonly age: number } | null;
+  readonly fade?: number;
+};
+
+const FADE = { from: 2.5, nearest: 0.3 };
+
+export const lensFade = (distance: number) => {
+  const k = Math.min(1, Math.max(0, (distance - RAIN.nearCamera) / (FADE.from - RAIN.nearCamera)));
+  return FADE.nearest + (1 - FADE.nearest) * k;
+};
+
+const lensDistance = (eye: Vector3, drop: Pick<Drop, "head" | "tail">) => {
+  const head = new Vector3(...drop.head);
+  const tail = new Vector3(...drop.tail);
+  const along = head.clone().sub(tail);
+  const length = along.lengthSq();
+  const k = length === 0 ? 0 : Math.min(1, Math.max(0, eye.clone().sub(tail).dot(along) / length));
+  return eye.distanceTo(tail.addScaledVector(along, k));
+};
+
+export const clearOfLens = (eye: Vector3, drop: Pick<Drop, "head" | "tail">) =>
+  lensDistance(eye, drop) >= RAIN.nearCamera;
+
+export const rainGroundY = (_x: number, z: number) =>
+  z >= kerbFace(false) && z <= kerbFace(true)
+    ? ROAD_Y
+    : 0;
+
+const KERB_FACES = [kerbFace(false), kerbFace(true)];
+
+const rayGround = (origin: Vector3, dir: Vector3) => {
+  const at = (t: number) => origin.clone().addScaledVector(dir, t);
+  const top = (0 - origin.y) / dir.y;
+  const onTop = at(top);
+  if (rainGroundY(onTop.x, onTop.z) === 0) return { t: top, open: true };
+  const road = (ROAD_Y - origin.y) / dir.y;
+  const onRoad = at(road);
+  if (rainGroundY(onRoad.x, onRoad.z) === ROAD_Y)
+    return { t: road, open: true };
+  const face = KERB_FACES.map((z) => (z - origin.z) / dir.z).find(
+    (t) => t >= top && t <= road,
+  );
+  return { t: face ?? top, open: false };
+};
+
+type Hit = { readonly distance: number; readonly open: boolean };
+
+const facadeStop = (origin: Vector3, dir: Vector3) => {
+  if (dir.z >= 0) return Infinity;
+  const t = (FACADE_Z - origin.z) / dir.z;
+  return t >= 0 && origin.y + dir.y * t <= BUILDING_HEIGHT ? t : Infinity;
+};
+
+export const firstHit = (
+  origin: Vector3,
+  dir: Vector3,
+  solids: readonly Solid[],
+  bodies: readonly Sphere[],
+  from?: Hit,
+) => {
+  const ground = from ?? rayGround(origin, dir);
+  let distance = "t" in ground ? ground.t : ground.distance;
+  let open = ground.open;
+  if (!from) {
+    const facade = facadeStop(origin, dir);
+    if (facade < distance) {
+      distance = facade;
+      open = false;
+    }
+  }
+  for (const s of solids) {
+    if (s.kind === "half") continue;
+    const t =
+      s.kind === "obb" ? rayObb(origin, dir, s) : raySphere(origin, dir, s);
+    if (t < distance) {
+      distance = t;
+      open = false;
+    }
+  }
+  for (const b of bodies) {
+    const t = raySphere(origin, dir, b);
+    if (t < distance) {
+      distance = t;
+      open = false;
+    }
+  }
+  return {
+    distance,
+    open,
+    point: origin.clone().addScaledVector(dir, distance),
+  };
+};
+
+let columns: { id: number; x: number; z: number; phase: number; onset: number }[] | null =
+  null;
+
+export const rainColumns = () => {
+  if (columns) return columns;
+  const [x0, x1] = RAIN_FIELD.x;
+  const [z0, z1] = RAIN_FIELD.z;
+  const count = Math.round(RAIN.perCubicMetre * (x1 - x0) * (z1 - z0) * RAIN_TOP);
+  columns = Array.from({ length: count }, (_, id) => ({
+    id,
+    x: x0 + (x1 - x0) * random(`rain-x-${id}`),
+    z: z0 + (z1 - z0) * random(`rain-z-${id}`),
+    phase: random(`rain-phase-${id}`),
+    onset: random(`rain-onset-${id}`),
+  }));
+  return columns;
+};
+
+const toVec3 = (v: Vector3): Vec3 => [v.x, v.y, v.z];
+
+const FIXED = new Set<Solid>(RAIN_SOLIDS);
+let fixedHits: ReturnType<typeof firstHit>[] | null = null;
+const TO_THE_GROUND = (RAIN_TOP - ROAD_Y) / -RAIN_DIR.y;
+
+const fixedHitOf = (id: number, origin: Vector3) => {
+  fixedHits ??= [];
+  if (!fixedHits[id]) {
+    const end = origin.clone().addScaledVector(RAIN_DIR, TO_THE_GROUND);
+    fixedHits[id] = firstHit(origin, RAIN_DIR, RAIN_SOLIDS.filter((s) => nearPath(origin, end, s)), []);
+  }
+  return fixedHits[id];
+};
+
+const reachOf = (s: Solid | Sphere) =>
+  s.kind === "sphere" ? s.radius : s.kind === "obb" ? s.bound : Infinity;
+
+const nearPath = (
+  origin: Vector3,
+  end: Vector3,
+  s: Solid | Sphere,
+): boolean => {
+  if (s.kind === "half") return false;
+  const [ax, az, bx, bz] = [origin.x, origin.z, end.x, end.z];
+  const [px, pz] = [s.center.x, s.center.z];
+  const [dx, dz] = [bx - ax, bz - az];
+  const length = dx * dx + dz * dz;
+  const k =
+    length === 0
+      ? 0
+      : Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / length));
+  return (
+    Math.hypot(ax + k * dx - px, az + k * dz - pz) <= reachOf(s) + RAIN.streak
+  );
+};
+
+const movingOf = (solids: readonly Solid[]) => {
+  const given = new Set(solids);
+  if (!STREET_SOLIDS.every((s) => given.has(s)))
+    throw new Error("rain needs the street's solids (worldSolids)");
+  return solids.filter((s) => s.kind !== "half" && !FIXED.has(s));
+};
+
+const hitOfColumn = (
+  id: number,
+  moving: readonly Solid[],
+  bodies: readonly Sphere[],
+) => {
+  const column = rainColumns()[id];
+  const origin = new Vector3(column.x, RAIN_TOP, column.z);
+  const fixed = fixedHitOf(id, origin);
+  const near = [...moving, ...bodies].filter((s) =>
+    nearPath(origin, fixed.point, s),
+  );
+  const hit = near.length
+    ? firstHit(
+        origin,
+        RAIN_DIR,
+        near.filter((s): s is Solid => s.kind !== "sphere"),
+        near.filter((s): s is Sphere => s.kind === "sphere"),
+        fixed,
+      )
+    : fixed;
+  return { origin, fixed, hit };
+};
+
+export const columnHit = (
+  id: number,
+  solids: readonly Solid[],
+  bodies: readonly Sphere[],
+) => hitOfColumn(id, movingOf(solids), bodies).hit;
+
+export const reachFade = (distance: number) => 1 - smoothstep(clamp((distance - RAIN_REACH.full) / (RAIN_REACH.none - RAIN_REACH.full), 0, 1));
+
+export type RainView = { readonly target: Vec3; readonly fov: number; readonly aspect: number; readonly up?: Vec3 | undefined; readonly format?: Format };
+
+export const viewFrustum = (camera: Vec3, view: RainView) => {
+  const lens = aimLens(new PerspectiveCamera(), { position: camera, target: view.target, fov: view.fov, up: view.up }, { aspect: view.aspect, near: 0.05, far: RAIN_REACH.none });
+  return new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(lens.projectionMatrix, lens.matrixWorldInverse));
+};
+
+export const viewOf = (camera: { readonly target: Vec3; readonly fov: number; readonly up?: Vec3 | undefined }, format: Format = "wide"): RainView => ({
+  target: camera.target,
+  fov: camera.fov,
+  aspect: aspectOf(format),
+  up: camera.up,
+  format,
+});
+
+export const rainSeenBy = (t: number, camera: CameraSetup, solids: readonly Solid[], bodies: readonly Sphere[], share = 1, format: Format = "wide") =>
+  rainAt(t, camera.position, solids, bodies, { share, view: viewOf(camera, format) });
+
+const ABOVE_THE_ROOFS = RAIN_TOP / -RAIN_DIR.y;
+const CYCLE = TO_THE_GROUND / RAIN.speed + RAIN.splash;
+const SPLASH_RUN = RAIN.speed * RAIN.splash;
+
+export const rainAt = (
+  t: number,
+  camera: Vec3,
+  solids: readonly Solid[],
+  bodies: readonly Sphere[],
+  { share = 1, fov, view }: { readonly share?: number; readonly fov?: number; readonly view?: RainView } = {},
+): Drop[] => {
+  const eye = new Vector3(...camera);
+  const lens = view?.fov ?? fov;
+  const stretchAt = (head: Vector3) =>
+    lens === undefined ? 1 : Math.max(1, (leastStreakLength(view?.format) * frameHeightAt(eye.distanceTo(head), lens)) / RAIN.streak);
+  const longest = RAIN.streak * stretchAt(eye.clone().add(new Vector3(RAIN_REACH.none, 0, 0))) + SPLASH_RUN;
+  const frustum = view ? viewFrustum(camera, view) : null;
+  const seen = (a: Vector3, b: Vector3) => frustum === null || frustum.intersectsBox(new Box3().setFromPoints([a, b]));
+  const moving = movingOf(solids);
+  const drops: Drop[] = [];
+  for (const column of rainColumns()) {
+    if (column.onset >= share) continue;
+    if (Math.hypot(column.x - eye.x, column.z - eye.z) > RAIN_REACH.none + ABOVE_THE_ROOFS * RAIN.slant) continue;
+    const origin = new Vector3(column.x, RAIN_TOP, column.z);
+    const fixed = fixedHitOf(column.id, origin);
+    const u = (((t / CYCLE + column.phase) % 1) + 1) % 1;
+    const travelled = RAIN.speed * u * CYCLE;
+    const at = (d: number) => origin.clone().addScaledVector(RAIN_DIR, d);
+    const lowest = at(Math.min(travelled, fixed.distance));
+    if (eye.distanceTo(lowest) > RAIN_REACH.none + longest && eye.distanceTo(at(Math.max(0, travelled - longest))) > RAIN_REACH.none + longest) continue;
+    if (!seen(lowest, at(Math.max(0, travelled - longest)))) continue;
+    const { hit } = hitOfColumn(column.id, moving, bodies);
+    const stop = hit.distance;
+    let drop: Drop | null = null;
+    if (travelled - RAIN.streak < stop) {
+      const reached = Math.min(travelled, stop);
+      const head = at(reached);
+      const real = reached - Math.max(0, travelled - RAIN.streak);
+      const tail = at(Math.max(0, reached - real * stretchAt(head)));
+      drop = {
+        id: column.id,
+        head: toVec3(head),
+        tail: toVec3(tail),
+        splash: null,
+      };
+    } else if (hit.open) {
+      const age = (travelled - stop) / RAIN.speed;
+      if (age <= RAIN.splash) {
+        const point = toVec3(hit.point);
+        drop = {
+          id: column.id,
+          head: point,
+          tail: point,
+          splash: { at: point, age },
+        };
+      }
+    }
+    if (!drop || !clearOfLens(eye, drop)) continue;
+    const far = eye.distanceTo(new Vector3(...drop.head));
+    if (far >= RAIN_REACH.none) continue;
+    if (!seen(new Vector3(...drop.head), new Vector3(...drop.tail))) continue;
+    drops.push({ ...drop, fade: lensFade(lensDistance(eye, drop)) * reachFade(far) });
+  }
+  return drops;
+};

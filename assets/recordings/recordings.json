@@ -1,0 +1,88 @@
+{
+  "street-pigeons": [
+    {
+      "file": "ringeltaube-ruft.ogg",
+      "title": "Ringeltaube (ruft)",
+      "author": "Jens Kraglund (Sleepytomcat)",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Ringeltaube_(ruft).ogg"
+    },
+    {
+      "file": "wood-pigeon-call-128.ogg",
+      "title": "Wood pigeon call 128",
+      "author": "Crunchysaviour",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Wood_pigeon_call_128.ogg"
+    }
+  ],
+  "flies": [
+    {
+      "file": "private/Housefly.opus",
+      "title": "Housefly",
+      "author": "the author (own recording)",
+      "license": "own recording, not distributed",
+      "source": "assets/recordings/private (kept out of the repository)"
+    },
+    {
+      "file": "private/Housefly-2.opus",
+      "title": "Housefly 2",
+      "author": "the author (own recording)",
+      "license": "own recording, not distributed",
+      "source": "assets/recordings/private (kept out of the repository)"
+    }
+  ],
+  "doorbell-rhythm": [
+    {
+      "file": "private/2-3-4-2-rhythm.opus",
+      "title": "2-3-4-2 rhythm (clapped)",
+      "author": "the author (own recording)",
+      "license": "own recording, not distributed",
+      "source": "assets/recordings/private (kept out of the repository)"
+    }
+  ],
+  "tape": [
+    {
+      "file": "adhesive-tape-3.ogg",
+      "title": "Adhesive tape #3",
+      "author": "Denis Chardonnet (BigSoundBank)",
+      "license": "CC0 (public domain)",
+      "source": "https://bigsoundbank.com/adhesive-tape-3-s0299.html"
+    }
+  ],
+  "rain": [
+    {
+      "file": "rain-ezwa.ogg",
+      "title": "Rain",
+      "author": "ezwa",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Rain_(1).ogg (from PDSounds.org)"
+    }
+  ],
+  "blackbird": [
+    {
+      "file": "blackbirds-at-dawn-squashy555.ogg",
+      "title": "blackbirds at dawn.wav (its first 30 s)",
+      "author": "squashy555 (Freesound)",
+      "license": "CC0 1.0 (public domain)",
+      "source": "https://freesound.org/people/squashy555/sounds/341675/"
+    }
+  ],
+  "cigarette": [
+    {
+      "file": "cigarette-ignition.ogg",
+      "title": "Cigarette, Ignition",
+      "author": "Joseph Sardin (BigSoundBank)",
+      "license": "CC0 (public domain)",
+      "source": "https://bigsoundbank.com/cigarette-ignition-s2131.html"
+    }
+  ],
+  "breath": [
+    {
+      "file": "sigh-by-the-mouth.ogg",
+      "title": "Sigh by the Mouth",
+      "author": "Joseph Sardin (BigSoundBank)",
+      "license": "CC0 (public domain)",
+      "source": "https://bigsoundbank.com/sound-1405-soupirer-par-la-bouche.html"
+    }
+  ]
+}

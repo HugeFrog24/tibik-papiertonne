@@ -1,9 +1,20 @@
-import { Audio } from "@remotion/media";
-import { staticFile } from "remotion";
+import { IndoorLoop } from "../sound/IndoorLoop";
+import { STREET_LOOPS, streetLevel } from "./ambienceLoops";
+import { OUT_IN_THE_STREET, type SceneAmbience } from "./sceneAmbience";
 
-export const StreetAmbience: React.FC = () => (
+export const StreetAmbience: React.FC<{
+  readonly ambience?: SceneAmbience;
+  readonly windFrom?: number;
+}> = ({ ambience = OUT_IN_THE_STREET, windFrom = 0 }) => (
   <>
-    <Audio name="Street atmosphere" src={staticFile("sfx/street-atmosphere.wav")} loop volume={0.5} />
-    <Audio name="Street traffic" src={staticFile("sfx/street-traffic.wav")} loop volume={0.6} />
+    {STREET_LOOPS.map((loop) => (
+      <IndoorLoop
+        key={loop.file}
+        name={loop.name}
+        file={loop.file}
+        level={(t) => streetLevel(loop, windFrom + t, ambience, t)}
+        indoors={ambience.indoors}
+      />
+    ))}
   </>
 );

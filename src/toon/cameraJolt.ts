@@ -1,0 +1,52 @@
+import { plusMinus } from "../characters/scalar";
+import { Vector3 } from "three";
+import { WORLD_UP, type CameraSetup } from "./shots";
+
+export type Jolt = { readonly at: number; readonly strength: number };
+
+const SHAKE = { hertz: 9, halfWaves: 5 };
+
+export const JOLT = { hertz: SHAKE.hertz, decay: 0.05, lasts: SHAKE.halfWaves / (2 * SHAKE.hertz), lift: 0.04, turn: (1.3 * Math.PI) / 180, vary: 0.12 };
+
+const bump = (since: number) =>
+  since < 0 || since > JOLT.lasts ? 0 : Math.exp(-since / JOLT.decay) * Math.sin(2 * Math.PI * JOLT.hertz * since);
+
+const PEAK = Math.max(...Array.from({ length: 300 }, (_, i) => bump((i * JOLT.lasts) / 300)));
+
+const spread = (jolt: Jolt, axis: string) => plusMinus(`jolt-${jolt.at}-${axis}`);
+
+export const joltAt = (t: number, jolts: readonly Jolt[]) =>
+  jolts.reduce(
+    (sum, jolt) => {
+      const k = (jolt.strength * (1 + JOLT.vary * spread(jolt, "size")) * bump(t - jolt.at)) / PEAK;
+      if (k === 0) return sum;
+      const way = new Vector3(0.35 * spread(jolt, "x"), 1, 0.25 * spread(jolt, "z")).normalize();
+      return {
+        shift: sum.shift.addScaledVector(way, k * JOLT.lift),
+        pitch: sum.pitch + k * JOLT.turn * (0.7 + 0.3 * spread(jolt, "pitch")),
+        roll: sum.roll + k * JOLT.turn * 0.5 * spread(jolt, "roll"),
+      };
+    },
+    { shift: new Vector3(), pitch: 0, roll: 0 },
+  );
+
+export const jolted =
+  (at: (t: number) => CameraSetup, jolts: readonly Jolt[]) =>
+  (t: number): CameraSetup => {
+    const base = at(t);
+    const { shift, pitch, roll } = joltAt(t, jolts);
+    if (shift.lengthSq() === 0 && pitch === 0 && roll === 0) return base;
+    const from = new Vector3(...base.position);
+    const view = new Vector3(...base.target).sub(from);
+    const ahead = view.clone().normalize();
+    const side = ahead.clone().cross(new Vector3(...(base.up ?? WORLD_UP))).normalize();
+    view.applyAxisAngle(side, pitch);
+    const up = side.clone().cross(view).normalize().applyAxisAngle(view.clone().normalize(), roll);
+    const position = from.add(shift);
+    return {
+      ...base,
+      position: position.toArray(),
+      target: position.clone().add(view).toArray(),
+      up: up.toArray(),
+    };
+  };

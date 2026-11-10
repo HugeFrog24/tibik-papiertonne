@@ -1,0 +1,84 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`papiertonnen ends exactly as before the re-staging, to the micron 1`] = `
+{
+  "karton": {
+    "open": 1,
+    "pickup": 1,
+    "position": [
+      0,
+      0.6,
+      0.4,
+    ],
+    "rotation": [
+      0.003741,
+      0.009353,
+      0,
+    ],
+    "sideGrip": 1,
+  },
+  "lids": [
+    0,
+    0.083125,
+    1.584487,
+    0,
+    0,
+  ],
+  "pose": {
+    "blink": 0,
+    "bob": 0,
+    "gazePitch": -0.189815,
+    "gazeYaw": 0,
+    "headPitch": 0,
+    "headRoll": 0,
+    "headYaw": 0,
+    "lean": 0,
+    "leftArm": {
+      "elbow": 0.89593,
+      "inward": 1.534201,
+      "out": 0.215785,
+      "raise": 1.728525,
+    },
+    "leftLeg": {
+      "ankle": [
+        0,
+        0,
+        -0,
+      ],
+      "hip": [
+        -0,
+        0,
+        0,
+      ],
+      "knee": 0,
+    },
+    "rightArm": {
+      "elbow": 0.864342,
+      "inward": 1.6,
+      "out": 0.201995,
+      "raise": 1.758546,
+    },
+    "rightLeg": {
+      "ankle": [
+        0,
+        0,
+        -0,
+      ],
+      "hip": [
+        -0,
+        0,
+        0,
+      ],
+      "knee": 0,
+    },
+    "sway": -0,
+    "twist": 0,
+  },
+  "position": [
+    1.4,
+    0,
+    -0.7,
+  ],
+  "rotationY": 0.5,
+}
+`;

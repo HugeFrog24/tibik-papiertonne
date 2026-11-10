@@ -1,36 +1,48 @@
-import { Audio } from "@remotion/media";
+import { Score } from "../../sound/Score";
+import { MAIN_STREET } from "../../sound/music";
+import { MixAudio } from "../../sound/MixAudio";
+import { PAPIERTONNEN_FROM } from "../../timeline";
+import { FootstepSounds } from "../../sound/FootstepSounds";
+import { SoundCues, withSources } from "../../sound/SoundCues";
 import { staticFile, useVideoConfig } from "remotion";
 import { StreetAmbience } from "../../street/StreetAmbience";
 import { footstepTimes } from "./choreography";
+import { LID_SLAP, PAPIERTONNEN_AMBIENCE, PAPIERTONNEN_CUES } from "./soundCues";
+import { buzzVolume, flyBuzzSound } from "./flyBuzz";
+import { FLY_COUNT } from "./flyPaths";
 
-export const PapiertonnenSound: React.FC<{ readonly ambience: boolean }> = ({ ambience }) => {
+export const PapiertonnenSound: React.FC<{ readonly ambience: boolean }> = ({
+  ambience,
+}) => {
   const { fps } = useVideoConfig();
 
   return (
     <>
-      {ambience ? <StreetAmbience /> : null}
+      {ambience ? <StreetAmbience ambience={PAPIERTONNEN_AMBIENCE} windFrom={PAPIERTONNEN_FROM} /> : null}
+      {ambience ? <Score music={MAIN_STREET} offset={PAPIERTONNEN_FROM} ambience={PAPIERTONNEN_AMBIENCE} /> : null}
 
-      {footstepTimes(fps).map((t, i) => (
-        <Audio
-          key={t}
-          name={`Footstep ${i + 1}`}
-          src={staticFile(`sfx/footstep_concrete_00${i % 4}.ogg`)}
-          from={Math.round(t * fps)}
-          volume={0.35}
+      {Array.from({ length: FLY_COUNT }, (_, i) => (
+        <MixAudio
+          key={i}
+          name={`Fly ${i + 1} buzzing`}
+          src={staticFile(`sfx/${flyBuzzSound(i)}.wav`)}
+          loop
+          loopVolumeCurveBehavior="extend"
+          volume={(f) => buzzVolume(i, f / fps)}
         />
       ))}
 
-      <Audio name="Lid creaks up" src={staticFile("sfx/creak1.ogg")} from={Math.round(3.6 * fps)} volume={0.25} />
-      <Audio name="Lid slaps open" src={staticFile("sfx/impactSoft_heavy_000.ogg")} from={Math.round(4.2 * fps)} volume={0.9} />
-      <Audio name="Lid knocks the wall" src={staticFile("sfx/impactGeneric_light_002.ogg")} from={Math.round(4.2 * fps) + 1} volume={0.5} />
+      <FootstepSounds times={footstepTimes(fps)} who="Tibik" volume={0.35} />
 
-      <Audio name="Rummaging 1" src={staticFile("sfx/bookFlip1.ogg")} from={Math.round(6.5 * fps)} volume={0.7} />
-      <Audio name="Rummaging 2" src={staticFile("sfx/bookFlip2.ogg")} from={Math.round(6.7 * fps)} volume={0.7} />
-      <Audio name="Rummaging 3" src={staticFile("sfx/bookFlip3.ogg")} from={Math.round(6.9 * fps)} volume={0.7} />
-      <Audio name="Box pulled out" src={staticFile("sfx/cloth2.ogg")} from={Math.round(7.35 * fps)} volume={0.6} />
-
-      <Audio name="Karton pops open" src={staticFile("sfx/bookOpen.ogg")} from={Math.round(9.1 * fps)} volume={0.8} />
-      <Audio name="Found it!" src="https://remotion.media/ding.wav" from={Math.round(9.6 * fps)} volume={0.45} />
+      <SoundCues
+        cues={withSources(PAPIERTONNEN_CUES, (cue) => cue.file)}
+      />
+      <MixAudio
+        name="Lid knocks the wall"
+        src={staticFile("sfx/impactGeneric_light_002.ogg")}
+        from={Math.round(LID_SLAP * fps) + 1}
+        volume={0.5}
+      />
     </>
   );
 };

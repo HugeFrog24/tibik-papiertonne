@@ -13,9 +13,11 @@ import {
   STAIRWELL_RAILINGS,
   TIBIK_DOOR,
   TREADS,
+  riserZ,
   stairwellGround,
   stairwellSolids,
   undersideAbove,
+  stairwellShown,
 } from "./stairwell";
 
 describe("staircase", () => {
@@ -108,4 +110,18 @@ test("handrails sit 80–115 cm above the nosings and leave at least 5 cm to the
     expect(aboveNosing).toBeGreaterThanOrEqual(0.8);
     expect(aboveNosing).toBeLessThanOrEqual(1.15);
   }
+});
+
+test("risers are counted from a flight's first riser, uphill", () => {
+  const eg = FLIGHTS[0];
+  expect(riserZ(eg, 0)).toBeCloseTo(eg.firstRiser, 9);
+  expect(riserZ(eg, 17)).toBeCloseTo(eg.firstRiser + eg.direction * 17 * eg.going, 9);
+  expect(stairwellGround(-2.7, riserZ(eg, 5) - eg.direction * 0.05)).toBeCloseTo(eg.from + 5 * eg.rise, 9);
+});
+
+test("the stairwell is drawn while the Haustür stands open or he is inside, and not otherwise", () => {
+  expect(stairwellShown({ haustuer: 0 })).toBe(false);
+  expect(stairwellShown({ haustuer: 0, indoors: 0 })).toBe(false);
+  expect(stairwellShown({ haustuer: 0.2 })).toBe(true);
+  expect(stairwellShown({ haustuer: 0, indoors: 1 })).toBe(true);
 });

@@ -1,20 +1,22 @@
+import { clamp } from "./scalar";
 import { Euler, Matrix4, Quaternion, Vector3 } from "three";
-import { hipPosition, type LegPose, type Side, type Skeleton } from "./skeleton";
+import { hipPosition, type ArmPose, type LegPose, type Pose, type Side, type Skeleton } from "./skeleton";
 
 export const MAX_KNEE = (150 * Math.PI) / 180;
 
 const X_AXIS = new Vector3(1, 0, 0);
 const FORWARD = new Vector3(0, 0, 1);
 
-const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 export const legLength = (skeleton: Skeleton) => skeleton.thigh.length + skeleton.shin.length;
 
-export const shortestLeg = (skeleton: Skeleton) => {
+export const legReach = (skeleton: Skeleton, knee: number) => {
   const { length: a } = skeleton.thigh;
   const { length: b } = skeleton.shin;
-  return Math.sqrt(a * a + b * b + 2 * a * b * Math.cos(MAX_KNEE));
+  return Math.sqrt(a * a + b * b + 2 * a * b * Math.cos(knee));
 };
+
+export const shortestLeg = (skeleton: Skeleton) => legReach(skeleton, MAX_KNEE);
 
 export const restAnkle = (skeleton: Skeleton, side: Side) => {
   const length = legLength(skeleton);
@@ -65,3 +67,20 @@ export const solveLeg = (skeleton: Skeleton, side: Side, ankle: Vector3, footRot
 
 export const restLeg = (skeleton: Skeleton, side: Side): LegPose =>
   solveLeg(skeleton, side, restAnkle(skeleton, side), new Quaternion());
+
+export const restPose = (skeleton: Skeleton, arm: ArmPose): Pose => ({
+  bob: 0,
+  lean: 0,
+  twist: 0,
+  sway: 0,
+  headPitch: 0,
+  headYaw: 0,
+  headRoll: 0,
+  gazeYaw: 0,
+  gazePitch: 0,
+  blink: 0,
+  leftArm: arm,
+  rightArm: arm,
+  leftLeg: restLeg(skeleton, 1),
+  rightLeg: restLeg(skeleton, -1),
+});

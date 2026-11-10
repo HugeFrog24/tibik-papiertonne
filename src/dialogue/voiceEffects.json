@@ -1,0 +1,85 @@
+{
+ "phone": {
+  "voices": [
+   "anrufbeantworter",
+   "leitstelle"
+  ],
+  "takes": [],
+  "filter": "highpass=f=320,highpass=f=320,lowpass=f=3200,lowpass=f=3200,acompressor=threshold=0.1:ratio=4:attack=5:release=60:makeup=2,asoftclip=type=tanh",
+  "tail": 2.6,
+  "volume": 0.9,
+  "room": "stairwell",
+  "wet": 0.5,
+  "inside": "phone-door"
+ },
+ "inner": {
+  "voices": [
+   "tibik-inner"
+  ],
+  "takes": [],
+  "hall": {
+   "rt60": 4,
+   "predelay": 0.08,
+   "highpass": 150,
+   "lowpass": 4500,
+   "wet": -10
+  },
+  "tail": 4,
+  "volume": 1
+ },
+ "far": {
+  "voices": [],
+  "takes": [
+   "papiertonnen_01_karen"
+  ],
+  "filter": "highpass=f=120,lowpass=f=4000,aecho=0.8:0.8:115|230:0.4|0.18",
+  "tail": 0.23,
+  "volume": 0.85
+ },
+ "stairwell": {
+  "voices": [],
+  "takes": [
+   "klingelsturm_02_karen",
+   "klingelsturm_03_karen",
+   "klingelsturm_05_karen",
+   "klingelsturm_06_karen",
+   "klingelsturm_11_karen",
+   "klingelsturm_12_karen",
+   "klingelsturm_14_karen",
+   "klingelsturm_15_karen"
+  ],
+  "room": "stairwell",
+  "inside": "door",
+  "tail": 2.6,
+  "volume": 1,
+  "wet": 1
+ },
+ "door": {
+  "voices": [],
+  "takes": [],
+  "room": "door",
+  "level": -8,
+  "tail": 0,
+  "volume": 1
+ },
+ "doorway": {
+  "voices": [],
+  "takes": [
+   "klingelsturm_04_tibik",
+   "klingelsturm_07_tibik"
+  ],
+  "room": "stairwell",
+  "wet": 0.8,
+  "tail": 2.6,
+  "volume": 1
+ },
+ "phone-door": {
+  "voices": [],
+  "takes": [],
+  "filter": "highpass=f=320,highpass=f=320,lowpass=f=3200,lowpass=f=3200,acompressor=threshold=0.1:ratio=4:attack=5:release=60:makeup=2,asoftclip=type=tanh",
+  "room": "door",
+  "level": -8,
+  "tail": 0,
+  "volume": 0.9
+ }
+}

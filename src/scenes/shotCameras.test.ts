@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { FPS, type Format } from "../frameRate";
+import { TIMELINE_FPS, type Format } from "../frameRate";
 import { shotFrames } from "../toon/shotFrames";
 import { inFormat, sinceTheCut, type CameraSetup, type Shot } from "../toon/shots";
 import { SHOTS as HAUSMUELL_SHOTS, cameraAt as hausmuellCamera } from "./hausmuell/cameras";
@@ -30,18 +30,18 @@ const ALL_SHOTS: readonly (readonly [string, readonly Shot[]])[] = [
 ];
 
 test.each(ALL_SHOTS)("%s: every cut lands on a whole frame, so the render and the checks cut on the same frame", (_, shots) => {
-  const off = shots.flatMap((shot) => [shot.from, shot.to].filter((t) => Math.abs(t * FPS - Math.round(t * FPS)) > 1e-6).map((t) => `${shot.name} ${t}`));
+  const off = shots.flatMap((shot) => [shot.from, shot.to].filter((t) => Math.abs(t * TIMELINE_FPS - Math.round(t * TIMELINE_FPS)) > 1e-6).map((t) => `${shot.name} ${t}`));
   expect(off).toEqual([]);
 });
 
 test.each(CUT_SCENES)("$name: the camera the render runs from each cut is the camera the checks measure, frame for frame, in both formats", ({ shots, cameraAt, storyOf }) => {
-  const windows = shotFrames(shots, FPS);
+  const windows = shotFrames(shots, TIMELINE_FPS);
   const differ: string[] = [];
   shots.forEach((shot, i) => {
     for (let k = 0; k < windows[i].duration; k++)
       for (const format of ["wide", "tall"] as const) {
-        const rendered = sinceTheCut(inFormat(shot, format), k / FPS, storyOf);
-        const measured = cameraAt((windows[i].from + k) / FPS, format);
+        const rendered = sinceTheCut(inFormat(shot, format), k / TIMELINE_FPS, storyOf);
+        const measured = cameraAt((windows[i].from + k) / TIMELINE_FPS, format);
         const apart = Math.max(...[...rendered.position, ...rendered.target, rendered.fov].map((v, j) => Math.abs(v - [...measured.position, ...measured.target, measured.fov][j])));
         if (apart > 1e-9) differ.push(`${shot.name} ${format} frame ${windows[i].from + k}: ${apart.toExponential(1)}`);
       }

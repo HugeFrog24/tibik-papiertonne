@@ -50,7 +50,7 @@ import { FINAL_ARM, lastArm, type ArmClock, type ArmHistory } from "../../physic
 import { blendArm } from "../../physics/armDescent";
 import { kf } from "../../characters/animate";
 import { smoothstep } from "../../characters/scalar";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { guardLid } from "../../street/restingLids";
 import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
@@ -249,7 +249,7 @@ const solve = (t: number, history: ArmHistory): PapiertonnenState => {
   return { lids, haustuer, indoors, ...holdKarton(tibik, kartonAt(t), solids, clock) };
 };
 
-export const solvePapiertonnen = memoWithArms(FPS, solve, [], openingOn(() => ({ Tibik: treppenhausEnd().tibik })));
+export const solvePapiertonnen = memoWithArms(TIMELINE_FPS, solve, [], openingOn(() => ({ Tibik: treppenhausEnd().tibik })));
 
 export const papiertonnenEnd = () => solvePapiertonnen(PAPIERTONNEN_LAST_T);
 

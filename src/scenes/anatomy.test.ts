@@ -3,7 +3,7 @@ import { armColliders, type Skeleton } from "../characters/skeleton";
 import { asKaren } from "../Karen/character";
 import { asCharacter } from "../Tibik/character";
 import { OVERHEAD } from "../physics/grip";
-import { FPS } from "../timeline";
+import { TIMELINE_FPS } from "../timeline";
 import { HAUSMUELL_DURATION } from "./hausmuell/choreography";
 import { solveHausmuell } from "./hausmuell/solve";
 import { KLINGELSTURM_DURATION } from "./klingelsturm/choreography";
@@ -31,8 +31,8 @@ const arms = (who: string, c: Posed, at: string) =>
 
 const sweep = (duration: number, cast: (t: number) => [string, Posed][]) => {
   const problems: string[] = [];
-  for (let f = 0; f < Math.round(duration * FPS); f += 2) {
-    const t = f / FPS;
+  for (let f = 0; f < Math.round(duration * TIMELINE_FPS); f += 2) {
+    const t = f / TIMELINE_FPS;
     for (const [who, c] of cast(t))
       problems.push(...arms(who, c, `${t.toFixed(2)} s`));
   }

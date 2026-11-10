@@ -1,7 +1,7 @@
 import { ambienceOf } from "../../street/sceneAmbience";
 import { Vector3 } from "three";
 import { kf } from "../../characters/animate";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { stepsOn } from "../../sound/footsteps";
 import { heardFrom } from "../../sound/perspective";
 import { RAIN } from "../../sound/rain";
@@ -19,7 +19,7 @@ export const BLACKBIRD = { name: "Blackbird", file: "blackbird", volume: 0.3 } a
 
 export const RAIN_FROM = RAIN_BUILDS[0];
 
-export const EPILOGUE_RAIN_START = ((Math.round(NACHTRUHE_DURATION * FPS) - Math.round(RAIN_FROM * FPS)) / FPS) % RAIN.seconds;
+export const EPILOGUE_RAIN_START = ((Math.round(NACHTRUHE_DURATION * TIMELINE_FPS) - Math.round(RAIN_FROM * TIMELINE_FPS)) / TIMELINE_FPS) % RAIN.seconds;
 
 export const rainLevelAt = (t: number) => RAIN.volume * rainShareAt(t);
 
@@ -39,9 +39,9 @@ const STEPS = { street: { volume: 0.35, surface: "concrete" }, bedroom: { volume
 
 export const STEP_VOLUME = { street: STEPS.street.volume * HAUSTUER_FAR_OFF, bedroom: STEPS.bedroom.volume };
 
-export const footstepsByPlace = (fps: number) => ({
-  street: stepsOn(duskStepTimes(fps).filter((t) => !inTheBedroom(t) && t < ENTRY.indoors[0]), STEPS.street.surface, fps),
-  bedroom: stepsOn(bedroomStepTimes(fps).filter(inTheBedroom), STEPS.bedroom.surface, fps),
+export const footstepsByPlace = () => ({
+  street: stepsOn(duskStepTimes().filter((t) => !inTheBedroom(t) && t < ENTRY.indoors[0]), STEPS.street.surface),
+  bedroom: stepsOn(bedroomStepTimes().filter(inTheBedroom), STEPS.bedroom.surface),
 });
 
 const CURTAIN_SWISHES = ["cloth3.ogg", "cloth1.ogg", "cloth4.ogg"];

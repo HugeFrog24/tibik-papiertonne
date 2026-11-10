@@ -10,6 +10,8 @@ export const LAMP_ON_AT_DUSK = STAIRWELL_ON + 2.6;
 export const NACHTRUHE_FILM_JOINS = STAIRWELL_ON - 0.9;
 export const DUSK = [0, LAMP_ON_AT_DUSK + 1] as const;
 
+export const STORY_JUMPS: readonly number[] = [DUSK[1]];
+
 export const WALK_TO_BED = after(DUSK[1] - 1.2, 3);
 export const BACK_UP = after(WALK_TO_BED[1] + 0.15, 0.5);
 export const SIT_BACK = after(BACK_UP[1] + 0.05, 0.75);

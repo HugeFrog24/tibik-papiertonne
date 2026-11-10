@@ -13,7 +13,7 @@ import { bodyColliders, footColliders } from "../../characters/skeleton";
 import { footfallOffset } from "../../Karen/footfall";
 import { mouthInWorld, onScreen, seenBy } from "../../dialogue/screen";
 import { KAREN_SKELETON } from "../../Karen/rig";
-import { FPS } from "../../timeline";
+import { TIMELINE_FPS } from "../../timeline";
 import type { CameraSetup } from "../../toon/shots";
 import { SHOTS, cameraAt } from "./cameras";
 import {
@@ -41,11 +41,11 @@ test("after he shuts his door Karen crosses to her own door and phones from ther
 test("she never steps on her own shoes standing on her mat", () => {
   const problems: string[] = [];
   for (
-    let f = Math.floor(SHUT[1] * FPS);
-    f <= KLINGELSTURM_DURATION * FPS;
+    let f = Math.floor(SHUT[1] * TIMELINE_FPS);
+    f <= KLINGELSTURM_DURATION * TIMELINE_FPS;
     f++
   ) {
-    const t = f / FPS;
+    const t = f / TIMELINE_FPS;
     const karen = { ...karenAt(t), skeleton: KAREN_SKELETON };
     for (const side of [1, -1] as const)
       for (const sphere of footColliders(KAREN_SKELETON, karen, side))
@@ -114,8 +114,8 @@ const herFace = (t: number) => mouthInWorld(KAREN_SKELETON, karenAt(t));
 const framesOf = (prefix: string, step: number) =>
   SHOTS.filter((s) => s.name.startsWith(prefix)).flatMap((shot) => {
     const times: { shot: string; t: number }[] = [];
-    for (let f = Math.ceil(shot.from * FPS); f < shot.to * FPS; f += step)
-      times.push({ shot: shot.name, t: f / FPS });
+    for (let f = Math.ceil(shot.from * TIMELINE_FPS); f < shot.to * TIMELINE_FPS; f += step)
+      times.push({ shot: shot.name, t: f / TIMELINE_FPS });
     return times;
   });
 

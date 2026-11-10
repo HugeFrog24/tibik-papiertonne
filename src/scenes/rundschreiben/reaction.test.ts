@@ -7,7 +7,7 @@ import { RUNDSCHREIBEN_AMBIENCE, RUNDSCHREIBEN_CUES } from "./soundCues";
 import { DUCK } from "../../sound/duck";
 import { spokenSpans } from "../../dialogue/voiced";
 import { LETTER_READ } from "./narration";
-import { FILM_AMBIENCE, FPS, SCENES } from "../../timeline";
+import { FILM_AMBIENCE, TIMELINE_FPS, SCENES } from "../../timeline";
 import { FOLDING_SHOT, cameraAt, shotAt } from "./cameras";
 import { solveRundschreiben } from "./solve";
 import { Vector3 } from "three";
@@ -71,9 +71,9 @@ test("in 9:16 the close-up on his face keeps his eyes at the height the 16:9 fra
   });
   expect(off.map((t) => t.toFixed(2))).toEqual([]);
 });
-
+
 test("the street and the rain dip under his reaction as under his words, from the cut to his face through 'Hä?', so his eyelids' snaps are heard over the rain (owner, 2026-11-10: unheard), in the scene and in the film", () => {
-  const filmStart = SCENES.slice(0, SCENES.findIndex((scene) => scene.name === "Rundschreiben")).reduce((frames, scene) => frames + scene.frames, 0) / FPS;
+  const filmStart = SCENES.slice(0, SCENES.findIndex((scene) => scene.name === "Rundschreiben")).reduce((frames, scene) => frames + scene.frames, 0) / TIMELINE_FPS;
   const snaps = RUNDSCHREIBEN_CUES.filter((cue) => cue.file === "tibik-blink-snap.mp3");
   expect(snaps).toHaveLength(2);
   for (const snap of snaps) {

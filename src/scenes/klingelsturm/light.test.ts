@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { expect, test } from "vitest";
-import { FPS } from "../../timeline";
+import { TIMELINE_FPS } from "../../timeline";
 import { LINES } from "./choreography";
 import { doorCues } from "./doorCues";
 import { readWav } from "../../sound/wavFile";
@@ -24,18 +24,18 @@ test("the timer is a real stairwell timer, switched on downstairs before the sce
 });
 
 test("there is no warning blink: the light is fully on until the timer runs out, then dark until he presses the switch", () => {
-  for (let f = 0; f < LIGHT.out * FPS - 1; f++)
-    expect(lightsAt(f / FPS), (f / FPS).toFixed(2)).toBe(1);
-  for (let f = Math.ceil(LIGHT.out * FPS); f < LIGHT_BACK[0] * FPS; f++)
-    expect(lightsAt(f / FPS), (f / FPS).toFixed(2)).toBe(0);
+  for (let f = 0; f < LIGHT.out * TIMELINE_FPS - 1; f++)
+    expect(lightsAt(f / TIMELINE_FPS), (f / TIMELINE_FPS).toFixed(2)).toBe(1);
+  for (let f = Math.ceil(LIGHT.out * TIMELINE_FPS); f < LIGHT_BACK[0] * TIMELINE_FPS; f++)
+    expect(lightsAt(f / TIMELINE_FPS), (f / TIMELINE_FPS).toFixed(2)).toBe(0);
 });
 
 test("the timer relay clicks, damp and echoing, when the light goes out and when it comes back on", () => {
   const relays = doorCues().filter((c) => c.sound === "stairwell/relay");
   expect(relays.map((c) => c.at)).toHaveLength(3);
-  expect(Math.abs(relays[0].at - LIGHT.out)).toBeLessThan(1 / FPS);
-  expect(Math.abs(relays[1].at - LIGHT_BACK[0])).toBeLessThan(1 / FPS);
-  expect(Math.abs(relays[2].at - CODA.outAgain)).toBeLessThan(1 / FPS);
+  expect(Math.abs(relays[0].at - LIGHT.out)).toBeLessThan(1 / TIMELINE_FPS);
+  expect(Math.abs(relays[1].at - LIGHT_BACK[0])).toBeLessThan(1 / TIMELINE_FPS);
+  expect(Math.abs(relays[2].at - CODA.outAgain)).toBeLessThan(1 / TIMELINE_FPS);
   expect(existsSync("public/sfx/stairwell/relay.wav")).toBe(true);
   const relay = readWav("stairwell/relay.wav");
   const button = readWav("stairwell/switch_002.wav");
@@ -58,8 +58,8 @@ test("the solved scene carries the light", { timeout: 120_000 }, () => {
 
 test("the light goes out on her again exactly LIGHT.timer of story time after his press, with no warning blink", () => {
   expect(storyTime(CODA.outAgain) - LIGHT_BACK[0]).toBeCloseTo(LIGHT.timer, 6);
-  for (let f = Math.ceil(LIGHT_BACK[1] * FPS); f < Math.round(CODA.outAgain * FPS); f++)
-    expect(lightsAt(f / FPS), (f / FPS).toFixed(2)).toBe(1);
-  for (let f = Math.round(CODA.outAgain * FPS); f < Math.round(CODA.end * FPS); f++)
-    expect(lightsAt(f / FPS), (f / FPS).toFixed(2)).toBe(0);
+  for (let f = Math.ceil(LIGHT_BACK[1] * TIMELINE_FPS); f < Math.round(CODA.outAgain * TIMELINE_FPS); f++)
+    expect(lightsAt(f / TIMELINE_FPS), (f / TIMELINE_FPS).toFixed(2)).toBe(1);
+  for (let f = Math.round(CODA.outAgain * TIMELINE_FPS); f < Math.round(CODA.end * TIMELINE_FPS); f++)
+    expect(lightsAt(f / TIMELINE_FPS), (f / TIMELINE_FPS).toFixed(2)).toBe(0);
 });

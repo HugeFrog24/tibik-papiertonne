@@ -3,7 +3,7 @@ import { spokenSpans } from "../dialogue/voiced";
 import { SPOKEN } from "../scenes/spokenLines";
 import { STREET_LOOPS, streetLevel } from "../street/ambienceLoops";
 import { OUT_IN_THE_STREET } from "../street/sceneAmbience";
-import { FILM_AMBIENCE, FPS, SCENES } from "../timeline";
+import { FILM_AMBIENCE, TIMELINE_FPS, SCENES } from "../timeline";
 import { DUCK, duckUnder } from "./duck";
 
 const SCENE_OF: Readonly<Record<string, string>> = {
@@ -33,15 +33,15 @@ test("every scene with lines ducks its background under each spoken line, on its
   for (const scene of SCENES) {
     const spoken = SPOKEN.find(({ key }) => SCENE_OF[key] === scene.name);
     if (!spoken) {
-      for (let t = 0; t < scene.frames / FPS; t += 0.5) expect(scene.ambience.duck(t), scene.name).toBe(1);
+      for (let t = 0; t < scene.frames / TIMELINE_FPS; t += 0.5) expect(scene.ambience.duck(t), scene.name).toBe(1);
     } else {
       const spanOf = spokenSpans(spoken.key, spoken.lines);
       for (const line of spoken.lines) {
         const [from, to] = spanOf(line);
         const mid = (from + to) / 2;
         expect(scene.ambience.duck(mid), `${scene.name}: ${line.name}`).toBeCloseTo(DUCK.floor, 6);
-        const filmT = start / FPS + mid - (scene.skip ?? 0);
-        if (filmT >= start / FPS && filmT < (start + scene.frames) / FPS) expect(FILM_AMBIENCE.duck(filmT), `film: ${line.name}`).toBeCloseTo(DUCK.floor, 6);
+        const filmT = start / TIMELINE_FPS + mid - (scene.skip ?? 0);
+        if (filmT >= start / TIMELINE_FPS && filmT < (start + scene.frames) / TIMELINE_FPS) expect(FILM_AMBIENCE.duck(filmT), `film: ${line.name}`).toBeCloseTo(DUCK.floor, 6);
       }
     }
     start += scene.frames;

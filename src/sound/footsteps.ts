@@ -1,3 +1,4 @@
+import { TIMELINE_FPS, atFrame, renderFrame } from "../frameRate";
 import { nuancedTake } from "./takes";
 
 export type Surface = "concrete" | "wood" | "wet";
@@ -17,9 +18,9 @@ const footstepFile = (n: number, { surface = "concrete", room }: StepTake) => {
 };
 
 export const footstepPlan = (times: readonly number[], fps: number, take: StepTake = {}) =>
-  [...new Set(times.map((t) => Math.round(t * fps)))].map((frame, i) => {
+  [...new Set(times.map(atFrame))].map((at, i) => {
     const { take: n, rate, gain } = nuancedTake(stepSeed(take), i, FOOTSTEP_TAKES[take.surface ?? "concrete"]);
-    return { frame, file: footstepFile(n, take), rate, gain };
+    return { frame: renderFrame(at, fps), file: footstepFile(n, take), rate, gain };
   });
 
-export const stepsOn = (times: readonly number[], surface: Surface, fps: number) => ({ times, surface, files: footstepPlan(times, fps, { surface }).map((step) => step.file) });
+export const stepsOn = (times: readonly number[], surface: Surface) => ({ times, surface, files: footstepPlan(times, TIMELINE_FPS, { surface }).map((step) => step.file) });

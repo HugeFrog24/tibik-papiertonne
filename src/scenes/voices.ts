@@ -3,7 +3,7 @@ import type { Line } from "../dialogue/line";
 import TAKES from "../dialogue/takes.json";
 import VOICE_EFFECTS from "../dialogue/voiceEffects.json";
 import type { SoundCue } from "../sound/SoundCues";
-import { FPS } from "../frameRate";
+import { TIMELINE_FPS } from "../frameRate";
 import { takeIdOf, voiceOf } from "./recordingScript";
 
 export type Language = keyof typeof TAKES;
@@ -25,11 +25,11 @@ const roomsBetween = (from: number, to: number, inside?: (t: number) => boolean)
   const rooms: (readonly [number, number, boolean])[] = [];
   let start = from;
   let current = inside(from);
-  for (let frame = Math.floor(from * FPS) + 1; frame / FPS < to; frame++) {
-    const now = inside(frame / FPS);
+  for (let frame = Math.floor(from * TIMELINE_FPS) + 1; frame / TIMELINE_FPS < to; frame++) {
+    const now = inside(frame / TIMELINE_FPS);
     if (now === current) continue;
-    rooms.push([start, frame / FPS, current]);
-    start = frame / FPS;
+    rooms.push([start, frame / TIMELINE_FPS, current]);
+    start = frame / TIMELINE_FPS;
     current = now;
   }
   rooms.push([start, to, current]);

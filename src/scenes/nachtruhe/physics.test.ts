@@ -7,7 +7,7 @@ import { OUTLINE } from "../../toon/primitives";
 import { blanketProblems } from "../../props/blanketChecks";
 import { blanketGrid, blanketSurface } from "../../props/blanketShape";
 import { LYING_TILT, SITTING, lyingInBed, sittingUpInBed } from "../../Tibik/bedPoses";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { characterViolations } from "../../physics/guards";
 import { DOORSTEP, FACADE_Z } from "../../street/building";
 import { entranceGround } from "../../street/layout";
@@ -24,8 +24,8 @@ import { AT_THE_WINDOW, CURTAIN_OPENS_TO, FOLD_HOLDS, PULLING, PUSHING, STAND, b
 import { solveNachtruhe, type NachtruheState } from "./solve";
 import { BLANKET_BACK, CURTAIN_PULL, CURTAIN_PULLS, DRONE, DUSK, ENTRY, EVENING, EYES_OPEN, GET_DOWN, SIT_BACK, LAMP_OFF, LIE_DOWN, MORNING, NACHTRUHE_DURATION, PULL_OVER, SIT_UP, SWING_IN, SWING_OUT, WALK_ROUND } from "./timeline";
 
-const dusk = Array.from({ length: Math.round(DUSK[1] * FPS) }, (_, f) => f / FPS);
-const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
+const dusk = Array.from({ length: Math.round(DUSK[1] * TIMELINE_FPS) }, (_, f) => f / TIMELINE_FPS);
+const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * TIMELINE_FPS) }, (_, f) => f / TIMELINE_FPS);
 const between = (from: number, to: number) => frames.filter((t) => t >= from && t < to);
 const bedroomOf = (state: NachtruheState) => bedroomSolids({ door: state.bedroomDoor, curtain: state.curtains });
 const EVENING_FRAMES = [...between(DUSK[1], EVENING[1]), ...between(MORNING[0], MORNING[1])];
@@ -39,8 +39,8 @@ test("the dusk continues Klingelsturm's world: he is on the pavement with nothin
 });
 
 test("he walks home from the west, already in step on the first frame", () => {
-  const [a, b] = [duskRootAt(0), duskRootAt(1 / FPS)];
-  expect(Math.hypot(b.x - a.x, b.z - a.z) * FPS).toBeGreaterThan(0.6);
+  const [a, b] = [duskRootAt(0), duskRootAt(1 / TIMELINE_FPS)];
+  expect(Math.hypot(b.x - a.x, b.z - a.z) * TIMELINE_FPS).toBeGreaterThan(0.6);
   expect(b.x).toBeGreaterThan(a.x);
   expect(a.x).toBeLessThan(DOOR_STAND.x - 3);
 });
@@ -92,7 +92,7 @@ test("he comes in through the bedroom door, walks along his side of the bed, sto
 });
 
 const passing = (target: readonly number[], [from, to]: readonly [number, number]) =>
-  Array.from({ length: Math.round((to - from) * FPS) + 1 }, (_, i) => solveNachtruhe(from + i / FPS).tibik)
+  Array.from({ length: Math.round((to - from) * TIMELINE_FPS) + 1 }, (_, i) => solveNachtruhe(from + i / TIMELINE_FPS).tibik)
     .map((tibik) => ({ tibik, distance: Math.hypot(...tibik.position.map((v, k) => v - target[k])) }))
     .reduce((best, now) => (now.distance + UPRIGHT * Math.abs(now.tibik.tilt ?? 0) < best.distance + UPRIGHT * Math.abs(best.tibik.tilt ?? 0) ? now : best));
 
@@ -136,7 +136,7 @@ test("he rises on his toes and sits back onto the edge: his toes stay on the flo
 test("his feet don't jump where the shuffle hands over to the sit-back, nor where the get-down hands back to standing", () => {
   const ankles = (t: number) => SIDES.map((side) => new Vector3().setFromMatrixPosition(legFramesOf(RIG, solveNachtruhe(t).tibik, side).ankle));
   const jumps = [SIT_BACK[0], GET_DOWN[1]].flatMap((edge) => {
-    const [a, b, c, d] = [-2, -1, 0, 1].map((k) => ankles(edge + k / FPS));
+    const [a, b, c, d] = [-2, -1, 0, 1].map((k) => ankles(edge + k / TIMELINE_FPS));
     return SIDES.flatMap((side, i) => {
       const across = b[i].distanceTo(c[i]);
       const around = Math.max(a[i].distanceTo(b[i]), c[i].distanceTo(d[i]));
@@ -209,8 +209,8 @@ test("in the morning he pushes the blanket back from beneath, left hand then rig
 const pressGap = (click: number) => sphereObbGap(handSphere(RIG, asCharacter(solveNachtruhe(click).tibik), "leftArm"), cordSwitchSolid());
 
 test("his fingers are on the cord switch when his lamp clicks off at night", () => {
-  const off = Math.ceil(LAMP_OFF * FPS) / FPS;
-  expect(solveNachtruhe(off - 1 / FPS).lamps[1]).toBe(true);
+  const off = Math.ceil(LAMP_OFF * TIMELINE_FPS) / TIMELINE_FPS;
+  expect(solveNachtruhe(off - 1 / TIMELINE_FPS).lamps[1]).toBe(true);
   expect(solveNachtruhe(off).lamps[1]).toBe(false);
   expect(pressGap(off), off.toFixed(2)).toBeLessThan(0.005);
   expect(pressGap(off), off.toFixed(2)).toBeGreaterThan(-0.005);
@@ -319,7 +319,7 @@ test("lying back at night and sitting up in the morning he stays on the sheet: h
 
 const stillFrames = (from: number, to: number) => {
   const spheres = (t: number) => allColliders(RIG, asCharacter(solveNachtruhe(t).tibik)).map((s) => s.center);
-  const frames = Array.from({ length: Math.round((to - from) * FPS) }, (_, i) => from + i / FPS);
+  const frames = Array.from({ length: Math.round((to - from) * TIMELINE_FPS) }, (_, i) => from + i / TIMELINE_FPS);
   return frames.slice(1).flatMap((t, i) => {
     const [a, b] = [spheres(frames[i]), spheres(t)];
     const moved = Math.max(...a.map((p, k) => p.distanceTo(b[k])));
@@ -341,8 +341,8 @@ test("getting up he does several things at once: he swings his legs out while st
 
 test("once he has got out of bed nothing lifts the fleece: walking round the bed's foot to the window, it lies exactly as on an empty bed", { timeout: 300_000 }, () => {
   const lifted: string[] = [];
-  for (let f = Math.ceil(GET_DOWN[1] * FPS); f <= Math.floor(MORNING[1] * FPS); f += 2) {
-    const t = f / FPS;
+  for (let f = Math.ceil(GET_DOWN[1] * TIMELINE_FPS); f <= Math.floor(MORNING[1] * TIMELINE_FPS); f += 2) {
+    const t = f / TIMELINE_FPS;
     const state = solveNachtruhe(t);
     const lie = blanketLie(state.blanket);
     const withHim = blanketGrid(BED_RECT, underTheFleece(t, state.tibik), lie);
@@ -360,7 +360,7 @@ test("walking in through his bedroom door he keeps to the middle of the doorway:
 
 
 test("no shot loses his head part-way: in every shot his head and eyes are either in frame throughout or out of it throughout, except the staged entrances and exits", { timeout: 300_000 }, () => {
-  expect(headCroppedPartway(framesThrough(0, NACHTRUHE_DURATION - 1 / FPS), shotAt, cameraAt, (t) => solveNachtruhe(t).tibik, [["Bedroom: evening", DUSK[1], DUSK[1] + 1.09], ["Bedroom: morning", WALK_ROUND[0] + 0.75, WALK_ROUND[0] + 1.25]])).toEqual([]);
+  expect(headCroppedPartway(framesThrough(0, NACHTRUHE_DURATION - 1 / TIMELINE_FPS), shotAt, cameraAt, (t) => solveNachtruhe(t).tibik, [["Bedroom: evening", DUSK[1], DUSK[1] + 1.09], ["Bedroom: morning", WALK_ROUND[0] + 0.75, WALK_ROUND[0] + 1.25]])).toEqual([]);
 });
 
 test.each([FOLD_HOLDS.overRight, FOLD_HOLDS.overLeft, FOLD_HOLDS.backRight].map((h) => [`${h.name} at ${seconds(h.grip)}`, h] as const))(
@@ -371,7 +371,7 @@ test.each([FOLD_HOLDS.overRight, FOLD_HOLDS.overLeft, FOLD_HOLDS.backRight].map(
   },
 );
 
-const NACHTRUHE_FRAMES = framesThrough(0, NACHTRUHE_DURATION - 1 / FPS);
+const NACHTRUHE_FRAMES = framesThrough(0, NACHTRUHE_DURATION - 1 / TIMELINE_FPS);
 const NACHTRUHE_STAGED: readonly Staged[] = [["Bedroom: evening", DUSK[1], DUSK[1] + 1.09, "tibik"], ["Bedroom: morning", WALK_ROUND[0] + 0.75, WALK_ROUND[0] + 1.25, "tibik"]];
 
 const LEAVES_HIS_WINDOW: Staged = ["Drone rise", 22.1, DRONE[1], "tibik"];

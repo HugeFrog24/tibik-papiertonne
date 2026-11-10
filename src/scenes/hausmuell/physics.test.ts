@@ -12,7 +12,7 @@ import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
 import { entranceGround } from "../../street/layout";
 import { KAREN_SHOE, TIBIK_FOOT, sunkSoles } from "../drawnSoles";
-import { FPS, HAUSMUELL_FROM } from "../../timeline";
+import { TIMELINE_FPS, HAUSMUELL_FROM } from "../../timeline";
 import { headToKarton, papiertonnenEnd, sceneSolids } from "../papiertonnen/solve";
 import { CAMERA_NEAR, OUTLINE } from "../../toon/primitives";
 import { SHOTS, cameraAt } from "./cameras";
@@ -55,8 +55,8 @@ test(
   () => {
     expect(
       penetrations(
-        framesOf(HAUSMUELL_DURATION, FPS),
-        (frame) => hausmuellViolations(solveHausmuell(frame / FPS)),
+        framesOf(HAUSMUELL_DURATION, TIMELINE_FPS),
+        (frame) => hausmuellViolations(solveHausmuell(frame / TIMELINE_FPS)),
         frameLabel,
       ),
     ).toEqual([]);
@@ -68,17 +68,17 @@ test(
   { timeout: 120_000 },
   () => {
     const side = (frame: number) => {
-      const { tibik, karen } = solveHausmuell(frame / FPS);
+      const { tibik, karen } = solveHausmuell(frame / TIMELINE_FPS);
       const [tx, , tz] = tibik.position;
       const [kx, , kz] = karen.position;
-      const [cx, , cz] = cameraAt(frame / FPS).position;
+      const [cx, , cz] = cameraAt(frame / TIMELINE_FPS).position;
       return Math.sign((kx - tx) * (cz - tz) - (kz - tz) * (cx - tx));
     };
-    const cut = Math.ceil(SHOT_KAREN_YELLS * FPS);
+    const cut = Math.ceil(SHOT_KAREN_YELLS * TIMELINE_FPS);
     const first = side(cut);
     for (
       let frame = cut;
-      frame < HAUSMUELL_DURATION * FPS;
+      frame < HAUSMUELL_DURATION * TIMELINE_FPS;
       frame++
     ) {
       expect(side(frame)).toBe(first);
@@ -110,8 +110,8 @@ test(
   { timeout: 300_000 },
   () => {
     const problems: string[] = [];
-    for (let frame = 0; frame < HAUSMUELL_DURATION * FPS; frame++) {
-      const { tibik, karton } = solveHausmuell(frame / FPS);
+    for (let frame = 0; frame < HAUSMUELL_DURATION * TIMELINE_FPS; frame++) {
+      const { tibik, karton } = solveHausmuell(frame / TIMELINE_FPS);
       const gap = headToKarton(tibik, karton);
       if (gap < OUTLINE) {
         problems.push(`frame ${frame}: head ${mm(gap)} from the box`);
@@ -127,10 +127,10 @@ test(
   () => {
     let previous: Vector3[] | null = null;
     let largest = 0;
-    for (let frame = 0; frame < HAUSMUELL_DURATION * FPS; frame++) {
-      const { karen } = solveHausmuell(frame / FPS);
+    for (let frame = 0; frame < HAUSMUELL_DURATION * TIMELINE_FPS; frame++) {
+      const { karen } = solveHausmuell(frame / TIMELINE_FPS);
       const centers = hairAt(
-        HAUSMUELL_FROM + frame / FPS,
+        HAUSMUELL_FROM + frame / TIMELINE_FPS,
         karen.rotationY,
         karen.pose,
       ).map((piece) => new Vector3(...piece.center));
@@ -185,8 +185,8 @@ const KAREN_ARMS = ["leftArm", "rightArm"] as const;
 const RESTING_ON_HER_HIPS = 0.002;
 
 test("Karen gestures without passing an arm through her own body: her authored arms stay out of her bust and belly, her hands only resting on her hips", { timeout: 120_000 }, () => {
-  const through = framesOf(HAUSMUELL_DURATION, FPS).flatMap((f) => {
-    const karen = asKaren(karenAt(f / FPS));
+  const through = framesOf(HAUSMUELL_DURATION, TIMELINE_FPS).flatMap((f) => {
+    const karen = asKaren(karenAt(f / TIMELINE_FPS));
     return KAREN_ARMS.flatMap((which) => {
       const depth = armIntoTorso(karen.skeleton, karen.pose, which);
       return depth > RESTING_ON_HER_HIPS ? [`${frameLabel(f)} ${which}: ${mm(depth)}`] : [];
@@ -196,8 +196,8 @@ test("Karen gestures without passing an arm through her own body: her authored a
 });
 
 test("Karen's gestures land when she makes them: her arms never trail her pointing and hands-on-hips poses by more than a small nudge", { timeout: 300_000 }, () => {
-  const trailing = framesOf(HAUSMUELL_DURATION, FPS).flatMap((f) => {
-    const [solved, authored] = [solveHausmuell(f / FPS).karen.pose, karenAt(f / FPS).pose];
+  const trailing = framesOf(HAUSMUELL_DURATION, TIMELINE_FPS).flatMap((f) => {
+    const [solved, authored] = [solveHausmuell(f / TIMELINE_FPS).karen.pose, karenAt(f / TIMELINE_FPS).pose];
     return KAREN_ARMS.flatMap((which) => {
       const off = Math.max(...ARM_KEYS.map((key) => Math.abs(solved[which][key] - authored[which][key])));
       return off > 0.15 ? [`${frameLabel(f)} ${which}: ${off.toFixed(2)} rad`] : [];
@@ -207,8 +207,8 @@ test("Karen's gestures land when she makes them: her arms never trail her pointi
 });
 
 test("the camera never sits in anything and keeps 30 cm off both of them, over-the-shoulder shots included", { timeout: 300_000 }, () => {
-  const problems = framesOf(HAUSMUELL_DURATION, FPS).flatMap((f) => {
-    const t = f / FPS;
+  const problems = framesOf(HAUSMUELL_DURATION, TIMELINE_FPS).flatMap((f) => {
+    const t = f / TIMELINE_FPS;
     const state = solveHausmuell(t);
     const bodies = [bodyColliders(RIG, asCharacter(state.tibik)), bodyColliders(KAREN_SKELETON, asKaren(state.karen))].flatMap(wholeBodyOf);
     return lensProblems(t, new Vector3(...cameraAt(t).position), CAMERA_NEAR, sceneSolids(state.lids, true), bodies, KEEP_OFF_THE_CAST);
@@ -224,7 +224,7 @@ test("their drawn soles and shoes, outlines included, never dip into the pavemen
 });
 
 test("no shot loses his head part-way: in every shot his head and eyes are either in frame throughout or out of it throughout, except the staged entrances and exits", { timeout: 300_000 }, () => {
-  expect(headCroppedPartway(framesOf(HAUSMUELL_DURATION, FPS).map((f) => f / FPS), camerasOf(SHOTS).shotAt, cameraAt, (t) => solveHausmuell(t).tibik)).toEqual([]);
+  expect(headCroppedPartway(framesOf(HAUSMUELL_DURATION, TIMELINE_FPS).map((f) => f / TIMELINE_FPS), camerasOf(SHOTS).shotAt, cameraAt, (t) => solveHausmuell(t).tibik)).toEqual([]);
 });
 
 test(
@@ -235,7 +235,7 @@ test(
   },
 );
 
-const HAUSMUELL_FRAMES = framesOf(HAUSMUELL_DURATION, FPS).map((f) => f / FPS);
+const HAUSMUELL_FRAMES = framesOf(HAUSMUELL_DURATION, TIMELINE_FPS).map((f) => f / TIMELINE_FPS);
 const { shotAt: hausmuellShotAt } = camerasOf(SHOTS);
 const headsAt = (t: number) => castHeads(solveHausmuell(t));
 

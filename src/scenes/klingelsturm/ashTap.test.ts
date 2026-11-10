@@ -5,7 +5,7 @@ import { doorLeaf } from "../../building/doors";
 import { CORE, EG_TOP, FLIGHTS, LANE_SPLIT, STAIRWELL_RAILINGS, riserZ } from "../../building/stairwell";
 import { allColliders, bodyColliders } from "../../characters/skeleton";
 import { onScreen, seenBy } from "../../dialogue/screen";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { asKaren } from "../../Karen/character";
 import { contacts, obbCorners, sphere } from "../../physics/collision";
 import { cigaretteParts, cigaretteTip } from "../../props/cigaretteShape";
@@ -41,13 +41,13 @@ test("after her dark exhale she holds the cigarette out from her body and taps i
   }
   expect(CODA.ashOff).toBeGreaterThan(CODA.taps[0][0]);
   expect(CODA.ashOff).toBeLessThan(CODA.taps[0][1]);
-  expect(smokedAt(CODA.ashOff - 1 / FPS).ash).toBeCloseTo(ASH.hold, 4);
+  expect(smokedAt(CODA.ashOff - 1 / TIMELINE_FPS).ash).toBeCloseTo(ASH.hold, 4);
   expect(smokedAt(CODA.ashOff).ash).toBeLessThan(0.0005);
-  expect(smokedAt(KLINGELSTURM_DURATION - 1 / FPS).ash).toBeLessThan(0.0005);
+  expect(smokedAt(KLINGELSTURM_DURATION - 1 / TIMELINE_FPS).ash).toBeLessThan(0.0005);
 });
 
 test("the ash leaves the cigarette where it broke off and falls under gravity onto the landing floor, through nothing on the way: not her, not the balustrade, not the stairs", () => {
-  expect(solveKlingelsturm(CODA.ashOff - 1 / FPS).ash).toBeNull();
+  expect(solveKlingelsturm(CODA.ashOff - 1 / TIMELINE_FPS).ash).toBeNull();
   const { cigarette, ash } = solveKlingelsturm(CODA.ashOff);
   const { emberAt } = cigaretteParts({ burned: cigarette!.burned, ash: ASH.hold });
   const onTheCigarette = new Vector3(0, 0, emberAt + ASH.hold / 2).applyMatrix4(cigarette!.frame);
@@ -67,7 +67,7 @@ test("the ash leaves the cigarette where it broke off and falls under gravity on
       .map((c) => `${seconds(t)}: ${c.a} ${(c.depth * 1000).toFixed(1)} mm into ${c.b}`);
   });
   expect(problems.slice(0, 6)).toEqual([]);
-  const lying = solveKlingelsturm(KLINGELSTURM_DURATION - 1 / FPS).ash!;
+  const lying = solveKlingelsturm(KLINGELSTURM_DURATION - 1 / TIMELINE_FPS).ash!;
   expect(lying.length).toBeGreaterThan(2);
   for (const piece of lying) {
     expect(piece.center.y - piece.radius).toBeCloseTo(FLOOR, 3);
@@ -88,7 +88,7 @@ const HIS_MAT_RECT = doormatRect(HIS_MAT);
 
 test("the ash flies off with the flick's own speed, not the hold's small corrections: the flick throws it about 3 cm and her calm breathing a little more, but it lands within 4.5 cm sideways of where it broke off, short of the 7 cm the solver's corrections once threw it", () => {
   const [released] = solveKlingelsturm(CODA.ashOff).ash!;
-  const [landed] = solveKlingelsturm(KLINGELSTURM_DURATION - 1 / FPS).ash!;
+  const [landed] = solveKlingelsturm(KLINGELSTURM_DURATION - 1 / TIMELINE_FPS).ash!;
   expect(Math.hypot(landed.center.x - released.center.x, landed.center.z - released.center.z)).toBeLessThan(0.045);
 });
 
@@ -134,7 +134,7 @@ test("the insert shows her fist and its ember up close against the stairwell, ne
     return found;
   });
   expect(problems.slice(0, 8)).toEqual([]);
-  const last = KLINGELSTURM_DURATION - 1 / FPS;
+  const last = KLINGELSTURM_DURATION - 1 / TIMELINE_FPS;
   const ends = solveKlingelsturm(last).ash!.flatMap((piece) => [1, -1].map((k) => piece.center.clone().add(new Vector3(0, 0, (k * piece.length) / 2).applyQuaternion(piece.rotation))));
   expect(Math.max(...ends.flatMap((a) => ends.map((b) => pixelsBetween(a, b, last))))).toBeGreaterThan(30);
 });

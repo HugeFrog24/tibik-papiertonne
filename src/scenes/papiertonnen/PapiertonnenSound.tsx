@@ -2,6 +2,7 @@ import { Score } from "../../sound/Score";
 import { MAIN_STREET } from "../../sound/music";
 import { MixAudio } from "../../sound/MixAudio";
 import { PAPIERTONNEN_FROM } from "../../timeline";
+import { TIMELINE_FPS, renderFrame } from "../../frameRate";
 import { FootstepSounds } from "../../sound/FootstepSounds";
 import { SoundCues, withSources } from "../../sound/SoundCues";
 import { staticFile, useVideoConfig } from "remotion";
@@ -32,7 +33,7 @@ export const PapiertonnenSound: React.FC<{ readonly ambience: boolean }> = ({
         />
       ))}
 
-      <FootstepSounds times={footstepTimes(fps)} who="Tibik" volume={0.35} />
+      <FootstepSounds times={footstepTimes()} who="Tibik" volume={0.35} />
 
       <SoundCues
         cues={withSources(PAPIERTONNEN_CUES, (cue) => cue.file)}
@@ -40,7 +41,7 @@ export const PapiertonnenSound: React.FC<{ readonly ambience: boolean }> = ({
       <MixAudio
         name="Lid knocks the wall"
         src={staticFile("sfx/impactGeneric_light_002.ogg")}
-        from={Math.round(LID_SLAP * fps) + 1}
+        from={renderFrame(LID_SLAP, fps) + renderFrame(1 / TIMELINE_FPS, fps)}
         volume={0.5}
       />
     </>

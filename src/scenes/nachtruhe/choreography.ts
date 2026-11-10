@@ -130,4 +130,4 @@ export const nachtruheWorldAt = (t: number) => {
 
 export type NachtruheWorld = ReturnType<typeof nachtruheWorldAt>;
 
-export const duskStepTimes = (fps: number) => touchdownTimes(duskGait(), DUSK[1], fps);
+export const duskStepTimes = () => touchdownTimes(duskGait(), DUSK[1]);

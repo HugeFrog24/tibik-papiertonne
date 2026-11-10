@@ -19,7 +19,7 @@ import {
 import { KAREN_SKELETON } from "../../Karen/rig";
 import { PHONE } from "../../Karen/phoneShape";
 import { OUTLINE } from "../../toon/primitives";
-import { FPS, TIME_JUMPS } from "../../timeline";
+import { TIMELINE_FPS, TIME_JUMPS } from "../../timeline";
 import {
   HAUSMUELL_DURATION,
   LINES as HAUSMUELL_LINES,
@@ -86,8 +86,8 @@ const blocks = (solid: Solid, from: Vector3, to: Vector3) => {
 };
 const HAND_RADIUS = Math.max(...KAREN_SKELETON.hand.size);
 const frames = Array.from(
-  { length: Math.round(KLINGELSTURM_DURATION * FPS) },
-  (_, f) => f / FPS,
+  { length: Math.round(KLINGELSTURM_DURATION * TIMELINE_FPS) },
+  (_, f) => f / TIMELINE_FPS,
 );
 
 test(
@@ -235,7 +235,7 @@ test("no Klingelsturm sound starts before the scene, no Hausmuell step runs past
     expect(ring.at).toBeGreaterThanOrEqual(0);
     expect(ring.at + ring.length).toBeLessThanOrEqual(KLINGELSTURM_DURATION);
   }
-  for (const t of [...karenFootsteps(FPS), ...tibikFootsteps(FPS)])
+  for (const t of [...karenFootsteps(), ...tibikFootsteps()])
     expect(t).toBeLessThan(HAUSMUELL_DURATION);
 });
 
@@ -279,7 +279,7 @@ test(
   () => {
     const out = frames.filter((t) => phoneAt(t).inHand);
     expect(out.length).toBeGreaterThan(0);
-    expect(phoneAt(out[0] - 1 / FPS).inHand).toBe(false);
+    expect(phoneAt(out[0] - 1 / TIMELINE_FPS).inHand).toBe(false);
     const problems: string[] = [];
     for (const t of out) {
       const gap = phoneGap(solveKlingelsturm(t)) - OUTLINE - PHONE.ink;

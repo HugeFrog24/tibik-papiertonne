@@ -16,7 +16,7 @@ import { boxGap, sphereObbGap } from "../../physics/collision";
 import { floorLevel } from "../../street/building";
 import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
-import { FPS } from "../../timeline";
+import { TIMELINE_FPS } from "../../timeline";
 import { tuckedParcel } from "./carry";
 import { KLINGELSTURM_DURATION } from "./choreography";
 import { inTheFlur } from "./doorCues";
@@ -35,11 +35,11 @@ const TOLERANCE = 0.002;
 const exitFrames = (() => {
   const frames: number[] = [];
   for (
-    let f = Math.floor(EXIT.pickup * FPS);
-    f < Math.floor(KLINGELSTURM_DURATION * FPS);
+    let f = Math.floor(EXIT.pickup * TIMELINE_FPS);
+    f < Math.floor(KLINGELSTURM_DURATION * TIMELINE_FPS);
     f++
   )
-    frames.push(f / FPS);
+    frames.push(f / TIMELINE_FPS);
   return frames;
 })();
 
@@ -59,7 +59,7 @@ test("he picks the parcel up unseen, behind his shut door, and carries it on his
 });
 
 test("after the light goes out he leaves: door shut behind him, the light back on, and he is going down the flight before the jump cut", () => {
-  const end = solveKlingelsturm(CODA.jumpCut - 1 / FPS);
+  const end = solveKlingelsturm(CODA.jumpCut - 1 / TIMELINE_FPS);
   expect(end.tibikDoor).toBe(0);
   expect(end.lights).toBe(1);
   expect(lightsAt(LIGHT.out + 1)).toBe(0);
@@ -72,7 +72,7 @@ test("after the light goes out he leaves: door shut behind him, the light back o
 
 test("his hands are on the lever, the knob and the switch exactly while he works each", () => {
   for (const hold of EXIT_HOLDS)
-    for (let t = hold.grip; t <= hold.release; t += 1 / FPS)
+    for (let t = hold.grip; t <= hold.release; t += 1 / TIMELINE_FPS)
       expect(
         sphereObbGap(handOn(t, hold.arm), hold.target(t)),
         `${hold.name} at ${t.toFixed(2)} s`,
@@ -149,13 +149,13 @@ const offHim = (t: number) => {
 };
 
 const firstStepDown = () => {
-  for (let t = EXIT.walk; t < EXIT.end; t += 1 / FPS) if (solveKlingelsturm(t).tibik.position[1] < floorLevel(1) - FOLLOWED.down) return t;
+  for (let t = EXIT.walk; t < EXIT.end; t += 1 / TIMELINE_FPS) if (solveKlingelsturm(t).tibik.position[1] < floorLevel(1) - FOLLOWED.down) return t;
   return EXIT.end;
 };
 
 test("as Tibik goes down the stairs Karen's head follows him, turning and dipping after his head until he is gone", () => {
   const misses: string[] = [];
-  for (let t = firstStepDown(); t <= EXIT.end - FOLLOWED.until; t += FOLLOWED.every / FPS) {
+  for (let t = firstStepDown(); t <= EXIT.end - FOLLOWED.until; t += FOLLOWED.every / TIMELINE_FPS) {
     const off = offHim(t);
     if (off > FOLLOWED.within) misses.push(`${t.toFixed(2)} s: ${((off * 180) / Math.PI).toFixed(0)} deg`);
   }
@@ -164,7 +164,7 @@ test("as Tibik goes down the stairs Karen's head follows him, turning and dippin
 
 test("the top of his head and his eyes are in frame while he faces her through the gap and in 'Wide: the light goes out' from stepping out of his door until he starts down the stairs", () => {
   const steppedOut = EXIT_HOLDS.find((h) => h.name === "his door knob")!.grip;
-  const span = (from: number, to: number) => Array.from({ length: Math.round((to - from) * FPS) }, (_, i) => from + i / FPS);
+  const span = (from: number, to: number) => Array.from({ length: Math.round((to - from) * TIMELINE_FPS) }, (_, i) => from + i / TIMELINE_FPS);
   const frames = [...span(OPEN[1], SHUT[0]), ...span(steppedOut, DOWN_THE_STAIRS)].filter((t) => ["Over Karen: the gap", "Wide: the light goes out"].includes(shotAt(t).name));
   expect(frames.length).toBeGreaterThan(0);
   expect(frames.flatMap((t) => tibikHeadOutOfFrame(solveKlingelsturm(t).tibik, cameraAt(t)).map((part) => `${t.toFixed(2)} s: ${part}`)).slice(0, 6)).toEqual([]);

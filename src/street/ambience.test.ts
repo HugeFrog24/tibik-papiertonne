@@ -7,14 +7,14 @@ import {
 } from "../scenes/treppenhaus/choreography";
 import { hushAt } from "../scenes/nachtruhe/soundCues";
 import { SCENES } from "../timeline";
-import { FILM_FRAMES, FPS, KLINGELSTURM_FROM, RUNDSCHREIBEN_FROM, TREPPENHAUS_FRAMES, filmHush, filmIndoors, NACHTRUHE_FROM } from "../timeline";
+import { FILM_FRAMES, TIMELINE_FPS, KLINGELSTURM_FROM, RUNDSCHREIBEN_FROM, TREPPENHAUS_FRAMES, filmHush, filmIndoors, NACHTRUHE_FROM } from "../timeline";
 import { NACHTRUHE_FILM_JOINS } from "../scenes/nachtruhe/timeline";
 import { breeze } from "../physics/wind";
 import { STREET_LOOPS, hushedVolume, loopVolume } from "./ambienceLoops";
 
 const storyFrames = Array.from(
-  { length: Math.floor(STORY_END * FPS) + 1 },
-  (_, f) => f / FPS,
+  { length: Math.floor(STORY_END * TIMELINE_FPS) + 1 },
+  (_, f) => f / TIMELINE_FPS,
 );
 
 test("indoors is fully muffled until the Haustür opens", () => {
@@ -25,16 +25,16 @@ test("indoors is fully muffled until the Haustür opens", () => {
 });
 
 test("the street is fully open from the Haustür until the Klingelsturm cut, heard from indoors on the landing, from the bedroom in Nachtruhe's bedroom shots and openly in its street and drone shots, open again in the rain, and muffled once the Haustür shuts behind him", () => {
-  const indoorsFrom = Math.round(KLINGELSTURM_FROM * FPS);
-  const nightFrom = Math.round(NACHTRUHE_FROM * FPS);
-  const rainFrom = Math.round(RUNDSCHREIBEN_FROM * FPS);
+  const indoorsFrom = Math.round(KLINGELSTURM_FROM * TIMELINE_FPS);
+  const nightFrom = Math.round(NACHTRUHE_FROM * TIMELINE_FPS);
+  const rainFrom = Math.round(RUNDSCHREIBEN_FROM * TIMELINE_FPS);
   expect(filmIndoors(TREPPENHAUS_FRAMES - 1)).toBe(0);
   for (let f = TREPPENHAUS_FRAMES; f < indoorsFrom; f++)
     expect(filmIndoors(f)).toBe(0);
   for (let f = indoorsFrom; f < nightFrom; f++)
     expect(filmIndoors(f)).toBe(1);
   for (let f = nightFrom; f < rainFrom; f++)
-    expect(filmIndoors(f), `frame ${f}`).toBe(inTheBedroom((f - nightFrom) / FPS + NACHTRUHE_FILM_JOINS) ? 1 : 0);
+    expect(filmIndoors(f), `frame ${f}`).toBe(inTheBedroom((f - nightFrom) / TIMELINE_FPS + NACHTRUHE_FILM_JOINS) ? 1 : 0);
   expect(filmIndoors(rainFrom)).toBe(0);
   expect(filmIndoors(FILM_FRAMES - 1)).toBe(1);
   for (let f = rainFrom + 1; f < FILM_FRAMES; f++)
@@ -51,7 +51,7 @@ test("indoors never jumps", () => {
   expect(filmIndoors(0)).toBe(1);
 });
 
-const filmSeconds = Array.from({ length: FILM_FRAMES }, (_, f) => f / FPS);
+const filmSeconds = Array.from({ length: FILM_FRAMES }, (_, f) => f / TIMELINE_FPS);
 
 test("the leaves rustle with the breeze: louder in the gusts, faint in the lulls", () => {
   const leaves = STREET_LOOPS.find((loop) => loop.breezy)!;
@@ -72,11 +72,11 @@ test("the street bed and the traffic keep their own steady volume", () => {
 });
 
 test("the film's street hushes through Nachtruhe as the scene does, and nowhere else", () => {
-  const night = Math.round(NACHTRUHE_FROM * FPS);
-  const rain = Math.round(RUNDSCHREIBEN_FROM * FPS);
+  const night = Math.round(NACHTRUHE_FROM * TIMELINE_FPS);
+  const rain = Math.round(RUNDSCHREIBEN_FROM * TIMELINE_FPS);
   for (let f = 0; f < FILM_FRAMES; f += 7)
-    expect(filmHush(f), `frame ${f}`).toBe(f >= night && f < rain ? hushAt((f - night) / FPS + NACHTRUHE_FILM_JOINS) : 1);
-  expect(filmHush(night + Math.round((22 - NACHTRUHE_FILM_JOINS) * FPS))).toBeLessThan(0.2);
+    expect(filmHush(f), `frame ${f}`).toBe(f >= night && f < rain ? hushAt((f - night) / TIMELINE_FPS + NACHTRUHE_FILM_JOINS) : 1);
+  expect(filmHush(night + Math.round((22 - NACHTRUHE_FILM_JOINS) * TIMELINE_FPS))).toBeLessThan(0.2);
 });
 
 test("the town hushes for the night, the wind in the leaves does not", () => {
@@ -88,8 +88,8 @@ test("the film hears each scene's street as that scene hears it on its own, fram
   let start = 0;
   for (const scene of SCENES) {
     for (let f = 0; f < scene.frames; f += 5) {
-      expect(filmIndoors(start + f), `${scene.name} frame ${f}`).toBeCloseTo(scene.ambience.indoors(f / FPS + (scene.skip ?? 0)), 12);
-      expect(filmHush(start + f), `${scene.name} frame ${f}`).toBeCloseTo(scene.ambience.hush(f / FPS + (scene.skip ?? 0)), 12);
+      expect(filmIndoors(start + f), `${scene.name} frame ${f}`).toBeCloseTo(scene.ambience.indoors(f / TIMELINE_FPS + (scene.skip ?? 0)), 12);
+      expect(filmHush(start + f), `${scene.name} frame ${f}`).toBeCloseTo(scene.ambience.hush(f / TIMELINE_FPS + (scene.skip ?? 0)), 12);
     }
     start += scene.frames;
   }

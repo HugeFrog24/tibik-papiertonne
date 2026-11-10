@@ -439,8 +439,8 @@ export const karenAt = (t: number): KarenFrame => {
   };
 };
 
-export const karenFootsteps = (fps: number): number[] =>
-  touchdownTimes(karenGait(), HAUSMUELL_DURATION, fps);
+export const karenFootsteps = (): number[] =>
+  touchdownTimes(karenGait(), HAUSMUELL_DURATION);
 
-export const tibikFootsteps = (fps: number): number[] =>
-  touchdownTimes(tibikGait(), HAUSMUELL_DURATION, fps);
+export const tibikFootsteps = (): number[] =>
+  touchdownTimes(tibikGait(), HAUSMUELL_DURATION);

@@ -2,7 +2,7 @@ import { Euler, Vector3 } from "three";
 import { ARM_KEYS, armDistance, descendArm, pushClear, trackArm } from "./armDescent";
 import { FINAL_ARM, lastArm, type ArmClock } from "./armHistory";
 import { relaxed, type Relaxing } from "./spring";
-import { FPS } from "../frameRate";
+import { TIMELINE_FPS } from "../frameRate";
 import type { Vec3 } from "../toon/primitives";
 import {
   armColliders,
@@ -223,7 +223,7 @@ export const holdCarried = <C extends Character, T extends Carried>(
 ): { readonly character: C; readonly item: T } => {
   const lastFrame = Object.fromEntries(HOLDING_ARMS.map((which) => [which, lastArm(clock, which)]));
   const before = clock?.history?.before(clock.at, CARRIED_ON, CARRIED_OFFSET, -Infinity) as Relaxing | undefined;
-  const eased = before ? relaxed(before, 1 / FPS, CARRY_HALF_LIFE) : STILL;
+  const eased = before ? relaxed(before, 1 / TIMELINE_FPS, CARRY_HALF_LIFE) : STILL;
   let current = movable ? shifted(item, eased.offset) : item;
   let character = c;
   let settled = false;

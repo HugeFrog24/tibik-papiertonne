@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { CALL_LINES, CLICK, KEYS } from "./calls";
 import { EXIT } from "./exit";
 import { LIGHT } from "./light";
@@ -25,25 +25,25 @@ import { klingelsturmViolations, solveKlingelsturm } from "./solve";
 import { BANGING, BLOW, LATER, SHIVER, blowPoint, doorShiverAt, later } from "./banging";
 
 test("everything after the hang-up keeps its spacing and starts LATER s later, on whole frames", () => {
-  expect(LATER * FPS).toBeCloseTo(207, 9);
+  expect(LATER * TIMELINE_FPS).toBeCloseTo(207, 9);
   expect(KEYS[2].at - KEYS[1].at).toBeCloseTo(0.35 + LATER, 9);
   expect(KEYS[5].at - KEYS[2].at).toBeCloseTo(1.2, 9);
   expect(CLICK - KEYS[5].at).toBeCloseTo(11.4, 9);
   expect(LIGHT.out - CLICK).toBeCloseTo(2.0, 9);
   expect(EXIT.end - LIGHT.out).toBeCloseTo(10.1, 9);
-  expect(EXIT.offset * FPS).toBeCloseTo(1576, 6);
+  expect(EXIT.offset * TIMELINE_FPS).toBeCloseTo(1576, 6);
   expect(CALL_LINES.find((l) => l.text.startsWith("MEIN NACHBAR"))!.from).toBeCloseTo(later(34.9), 9);
   const herFirst = CALL_LINES.find((l) => l.text.startsWith("MEIN NACHBAR"))!.from;
   expect(herFirst - later(31.45)).toBeGreaterThan(0);
   expect(herFirst - later(31.45)).toBeLessThan(0.3);
 });
 
-const onFrame = (t: number) => Math.abs(t * FPS - Math.round(t * FPS)) < 1e-6;
-const frameOf = (t: number) => Math.round(t * FPS) / FPS;
+const onFrame = (t: number) => Math.abs(t * TIMELINE_FPS - Math.round(t * TIMELINE_FPS)) < 1e-6;
+const frameOf = (t: number) => Math.round(t * TIMELINE_FPS) / TIMELINE_FPS;
 const leftHand = (t: number) => handSphere(KAREN_SKELETON, asKaren(solveKlingelsturm(t).karen), "leftArm");
 const leafAt = (t: number) => doorLeaf(TIBIK_DOOR, tibikDoorAt(t));
 const framesOf = ([from, to]: readonly [number, number]) =>
-  Array.from({ length: Math.round((to - from) * FPS) + 1 }, (_, i) => from + i / FPS);
+  Array.from({ length: Math.round((to - from) * TIMELINE_FPS) + 1 }, (_, i) => from + i / TIMELINE_FPS);
 
 test("four blows 0.4 s apart, a beat of 1.0 s, two more, all on whole frames", () => {
   const b = BANGING.blows;
@@ -97,7 +97,7 @@ const latchEdge = (t: number) => new Vector3(TIBIK_DOOR.width, 1, 0).applyMatrix
 test("the leaf gives at most 2 mm at its latch edge on each blow and is still again 0.1 s later", () => {
   const shut = latchEdge(0);
   for (const at of BANGING.blows) {
-    expect(latchEdge(at + 1 / FPS).distanceTo(shut), `just after @${at}`).toBeGreaterThan(0);
+    expect(latchEdge(at + 1 / TIMELINE_FPS).distanceTo(shut), `just after @${at}`).toBeGreaterThan(0);
     for (const t of framesOf([at, at + SHIVER.settle]))
       expect(latchEdge(t).distanceTo(shut), seconds(t)).toBeLessThanOrEqual(SHIVER.edge + 1e-9);
     expect(latchEdge(at + SHIVER.settle + 1e-6).distanceTo(shut)).toBe(0);
@@ -109,7 +109,7 @@ test("the Wide shows the first four blows, the Flur the last two, and she dials 
   BANGING.blows.slice(0, 4).forEach((at) => { expect(shotAt(at).name).toBe("Wide: the banging"); });
   BANGING.blows.slice(4).forEach((at) => { expect(shotAt(at).name).toBe("Flur: the banging"); });
   expect(shotAt(BANGING.dial).name).toBe("Medium: back to the phone");
-  expect(shotAt(BANGING.wideCut - 1 / FPS).name).toBe("Medium: the answering machine");
+  expect(shotAt(BANGING.wideCut - 1 / TIMELINE_FPS).name).toBe("Medium: the answering machine");
 });
 
 test("the fist on the door in the Wide, and the parcel and his face in the Flur, are in the 9:16 frame", () => {
@@ -140,10 +140,10 @@ test("each blow is a strike: the fist swings at least 20 cm and meets the leaf a
   for (const at of BANGING.blows) {
     const contact = frameOf(at);
     const start = leftHand(frameOf(at - BLOW.lead)).center;
-    const before = leftHand(contact - 1 / FPS).center;
+    const before = leftHand(contact - 1 / TIMELINE_FPS).center;
     const hit = leftHand(contact).center;
     expect(start.distanceTo(hit), `swing @${at}`).toBeGreaterThanOrEqual(0.2);
-    expect(before.distanceTo(hit) * FPS, `speed @${at}`).toBeGreaterThanOrEqual(1.5);
+    expect(before.distanceTo(hit) * TIMELINE_FPS, `speed @${at}`).toBeGreaterThanOrEqual(1.5);
   }
 });
 

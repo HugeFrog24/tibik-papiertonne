@@ -1,61 +1,21 @@
 import { expect, test } from "vitest";
 import type { Character } from "../physics/guards";
 import type { Hold } from "../physics/holds";
-import { asKaren } from "../Karen/character";
-import { asCharacter } from "../Tibik/character";
-import { FPS } from "../timeline";
-import { storyJumpsIn } from "../toon/shots";
-import { HAUSMUELL_DURATION, STOP_AT as KAREN_STOPS_RUNNING } from "./hausmuell/choreography";
-import { solveHausmuell } from "./hausmuell/solve";
-import { SHOTS as KLINGELSTURM_SHOTS } from "./klingelsturm/cameras";
-import { KLINGELSTURM_DURATION } from "./klingelsturm/choreography";
-import { TIBIK_LEFT_HOLDS, TIBIK_RIGHT_HOLDS, solveKlingelsturm } from "./klingelsturm/solve";
+import { TIMELINE_FPS } from "../timeline";
+import { CAST_SCENES, klingelsturmCast, type CastScene } from "./castScenes";
+import { STOP_AT as KAREN_STOPS_RUNNING } from "./hausmuell/choreography";
+import { TIBIK_LEFT_HOLDS, TIBIK_RIGHT_HOLDS } from "./klingelsturm/solve";
 import { NACHTRUHE_HOLDS, solveNachtruhe } from "./nachtruhe/solve";
-import { DUSK, NACHTRUHE_DURATION } from "./nachtruhe/timeline";
-import { PAPIERTONNEN_DURATION, PAPIERTONNEN_HOLDS } from "./papiertonnen/choreography";
+import { PAPIERTONNEN_HOLDS } from "./papiertonnen/choreography";
 import { solvePapiertonnen } from "./papiertonnen/solve";
-import { RUNDSCHREIBEN_DURATION, TO_DOOR } from "./rundschreiben/choreography";
-import { solveRundschreiben } from "./rundschreiben/solve";
+import { TO_DOOR } from "./rundschreiben/choreography";
 import { armJumps, handsOffHolds, legSnaps, tibikIn, tooFastToWalk } from "./sceneChecks";
-import { HOLDS as TREPPENHAUS_HOLDS, STORY_END } from "./treppenhaus/choreography";
+import { HOLDS as TREPPENHAUS_HOLDS } from "./treppenhaus/choreography";
 import { solveTreppenhaus } from "./treppenhaus/solve";
 
-type Scene = {
-  readonly name: string;
-  readonly duration: number;
-  readonly characters: (t: number) => Record<string, Character>;
-  readonly cuts?: readonly number[];
-};
-
-const klingelsturmCast = (t: number): Record<string, Character> => {
-  const s = solveKlingelsturm(t);
-  return { Karen: asKaren(s.karen), ...(s.tibikHere ? { Tibik: asCharacter(s.tibik) } : {}) };
-};
-
-const SCENES: readonly Scene[] = [
-  { name: "Treppenhaus", duration: STORY_END, characters: tibikIn(solveTreppenhaus) },
-  { name: "Papiertonnen", duration: PAPIERTONNEN_DURATION, characters: tibikIn(solvePapiertonnen) },
-  {
-    name: "Hausmuell",
-    duration: HAUSMUELL_DURATION,
-    characters: (t) => {
-      const s = solveHausmuell(t);
-      return { Tibik: asCharacter(s.tibik), Karen: asKaren(s.karen) };
-    },
-  },
-  {
-    name: "Klingelsturm",
-    duration: KLINGELSTURM_DURATION,
-    characters: klingelsturmCast,
-    cuts: storyJumpsIn(KLINGELSTURM_SHOTS),
-  },
-  { name: "Nachtruhe", duration: NACHTRUHE_DURATION, characters: tibikIn(solveNachtruhe), cuts: [DUSK[1]] },
-  { name: "Rundschreiben", duration: RUNDSCHREIBEN_DURATION, characters: tibikIn(solveRundschreiben) },
-];
-
-const everyFrame = (duration: number, characters: Scene["characters"]) =>
-  Array.from({ length: Math.floor(duration * FPS) + 1 }, (_, f) => {
-    const t = Math.min(f / FPS, duration);
+const everyFrame = (duration: number, characters: CastScene["characters"]) =>
+  Array.from({ length: Math.floor(duration * TIMELINE_FPS) + 1 }, (_, f) => {
+    const t = Math.min(f / TIMELINE_FPS, duration);
     return { t, characters: characters(t) };
   });
 
@@ -68,7 +28,7 @@ const STILL_FLIPPING: Readonly<Record<string, number>> = {
   Rundschreiben: 0,
 };
 
-test.each(SCENES)(
+test.each(CAST_SCENES)(
   "$name: every arm moves like an arm: from one frame to the next a joint swerving more than 0.65 rad off its course or a hand more than 30 cm, which a swinging arm never does and a solver flipping between poses always does, happens in no more frames than the few still waiting for a staging fix (274 film-wide before the arms remembered their last frame)",
   { timeout: 600_000 },
   ({ name, duration, characters, cuts }) => {
@@ -80,7 +40,7 @@ test.each(SCENES)(
 
 const STILL_SNAPPING: Readonly<Record<string, number>> = { Treppenhaus: 3, Papiertonnen: 0, Hausmuell: 5, Klingelsturm: 4, Nachtruhe: 1, Rundschreiben: 1 };
 
-test.each(SCENES)(
+test.each(CAST_SCENES)(
   "$name: every leg moves like a leg: a hip, knee or ankle bending more than 0.3 rad for a single frame and straight back the next — a knee locking straight at a footfall and snapping bent as the body passes over the foot — happens in no more frames than the few still waiting for a gait fix",
   { timeout: 600_000 },
   ({ name, duration, characters, cuts }) => {
@@ -95,7 +55,7 @@ const EXCUSED: Readonly<Record<string, Readonly<Record<string, readonly [number,
   Rundschreiben: { Tibik: TO_DOOR },
 };
 
-test.each(SCENES)(
+test.each(CAST_SCENES)(
   "$name: nobody walks faster than a walk can go: over any 0.2 s, speed squared over g times leg length stays at most 0.6, since people of every leg length break into a run near 0.5 (excused: Karen's staged run, and his walk from the bins to the door in the rain, waiting on the owner)",
   { timeout: 600_000 },
   ({ name, duration, characters, cuts = [] }) => {

@@ -1,4 +1,3 @@
-import { useVideoConfig } from "remotion";
 import { FootstepSounds } from "../../sound/FootstepSounds";
 import { IndoorLoop } from "../../sound/IndoorLoop";
 import { RAIN } from "../../sound/rain";
@@ -8,8 +7,7 @@ import { NACHTRUHE_STORY_ZERO } from "../../timeline";
 import { BLACKBIRD, NACHTRUHE_AMBIENCE, NACHTRUHE_CUES, RAIN_FROM, STEP_VOLUME, footstepsByPlace, rainLevelAt } from "./soundCues";
 
 export const NachtruheSound: React.FC<{ readonly ambience: boolean }> = ({ ambience }) => {
-  const { fps } = useVideoConfig();
-  const steps = footstepsByPlace(fps);
+  const steps = footstepsByPlace();
   return (
     <>
       {ambience ? <StreetAmbience ambience={NACHTRUHE_AMBIENCE} windFrom={NACHTRUHE_STORY_ZERO} /> : null}

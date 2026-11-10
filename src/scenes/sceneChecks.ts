@@ -6,7 +6,7 @@ import { faceInWorld, faceTurnedTo, headInWorld, inFront, onScreen, seenBy, type
 import type { Line, Speaker } from "../dialogue/line";
 import { KAREN_SKELETON } from "../Karen/rig";
 import { barRect, type Chunk } from "../dialogue/subtitles";
-import { FORMATS, FPS, type Format } from "../frameRate";
+import { FORMATS, TIMELINE_FPS, type Format } from "../frameRate";
 import { GRAVITY } from "../physics/fall";
 import { boxInTheWay, raySphere, sightLine } from "../physics/rays";
 import { asCharacter, type TibikFrame } from "../Tibik/character";
@@ -48,19 +48,19 @@ export const framesOf = (duration: number, fps: number, step = 1) =>
     (_, i) => i * step,
   );
 
-export const framesIn = (from: number, to: number, fps = FPS) => {
+export const framesIn = (from: number, to: number, fps = TIMELINE_FPS) => {
   const frames: number[] = [];
   for (let f = Math.ceil(from * fps - 1e-6); f < to * fps - 1e-6; f++) frames.push(f / fps);
   return frames;
 };
 
-export const framesThrough = (from: number, to: number, fps = FPS) => {
+export const framesThrough = (from: number, to: number, fps = TIMELINE_FPS) => {
   const frames: number[] = [];
   for (let f = Math.ceil(from * fps - 1e-6); f <= Math.floor(to * fps + 1e-6); f++) frames.push(f / fps);
   return frames;
 };
 
-export const framesFrom = (from: number, seconds: number, fps = FPS) =>
+export const framesFrom = (from: number, seconds: number, fps = TIMELINE_FPS) =>
   Array.from({ length: Math.round(seconds * fps) + 1 }, (_, f) => from + f / fps);
 
 const SIGHT_SLACK = 0.01;
@@ -207,7 +207,7 @@ export const legSnaps = (frames: Frames, cuts: readonly number[] = [], bar = LEG
 export const WALK_LIMIT = { froude: 0.6, window: 0.2 };
 
 export const tooFastToWalk = (frames: Frames, cuts: readonly number[], excused: Readonly<Partial<Record<string, readonly [number, number]>>> = {}) => {
-  const span = Math.round(WALK_LIMIT.window * FPS);
+  const span = Math.round(WALK_LIMIT.window * TIMELINE_FPS);
   const over = new Map<string, { readonly t: number; readonly froude: number }[]>();
   frames.slice(span).forEach((now, i) => {
     const was = frames[i];

@@ -2,11 +2,11 @@ import { AFTER_THE_OPENING, HAUSTUER_LATCHED, KARTON_OPENS, LINES, OPENING } fro
 import { ambienceOf } from "../../street/sceneAmbience";
 import { duckUnderLines } from "../../sound/duck";
 
-import { FPS, firstFrameAfter } from "../../frameRate";
+import { TIMELINE_FPS, firstFrameAfter } from "../../frameRate";
 import type { FileCue } from "../../sound/SoundCues";
 import { haustuerShutCues } from "../entrySounds";
 
-const INTO_THE_MOVE = 1 / FPS;
+const INTO_THE_MOVE = 1 / TIMELINE_FPS;
 
 export const LID_SLAP = AFTER_THE_OPENING.lidRises[2] + OPENING;
 

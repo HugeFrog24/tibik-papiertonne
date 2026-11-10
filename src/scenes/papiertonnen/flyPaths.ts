@@ -5,7 +5,7 @@ import { FLY } from "../../street/flyShape";
 import { binByName, SEARCHED_BIN } from "../../street/layout";
 import { TONNE } from "../../street/tonneShape";
 import type { Vec3 } from "../../toon/primitives";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import {
   PAPIERTONNEN_DURATION,
   SHOT_FOUND_BOX,
@@ -67,8 +67,8 @@ export type FlyState = {
 type Waypoint = { readonly t: number; readonly at: Vector3 };
 
 const released = lazy(() => {
-  for (let f = 0; f < PAPIERTONNEN_DURATION * FPS; f++)
-    if (lidAt(f / FPS) > FLIGHT.flung) return f / FPS;
+  for (let f = 0; f < PAPIERTONNEN_DURATION * TIMELINE_FPS; f++)
+    if (lidAt(f / TIMELINE_FPS) > FLIGHT.flung) return f / TIMELINE_FPS;
   return Infinity;
 });
 

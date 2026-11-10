@@ -214,8 +214,8 @@ const tibikSteps = (): Step[] => {
 
 export const tibikGait = tibikGaitOf(rootAt, tibikSteps, PAPIERTONNEN_DURATION, stairwellGround);
 
-export const footstepTimes = (fps: number): number[] =>
-  touchdownTimes(tibikGait(), PAPIERTONNEN_DURATION, fps);
+export const footstepTimes = (): number[] =>
+  touchdownTimes(tibikGait(), PAPIERTONNEN_DURATION);
 
 export const tibikAt = (t: number): TibikFrame => {
   const { x, z, yaw: rotationY, y = 0 } = rootAt(t);

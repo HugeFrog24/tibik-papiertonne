@@ -1,5 +1,4 @@
 import { RUNDSCHREIBEN_FROM } from "../../timeline";
-import { useVideoConfig } from "remotion";
 import { IndoorLoop } from "../../sound/IndoorLoop";
 import { FootstepSounds } from "../../sound/FootstepSounds";
 import { SoundCues, withSources } from "../../sound/SoundCues";
@@ -11,7 +10,6 @@ import { RUNDSCHREIBEN_AMBIENCE, RUNDSCHREIBEN_CUES, footstepsByRoom, heardIndoo
 export const RundschreibenSound: React.FC<{ readonly ambience: boolean }> = ({
   ambience,
 }) => {
-  const { fps } = useVideoConfig();
   return (
     <>
       {ambience ? (
@@ -24,8 +22,8 @@ export const RundschreibenSound: React.FC<{ readonly ambience: boolean }> = ({
         indoors={heardIndoorsAt}
         startAt={EPILOGUE_RAIN_START}
       />
-      <FootstepSounds times={footstepsByRoom(fps).outside.times} who="Tibik" volume={0.35} surface={footstepsByRoom(fps).outside.surface} />
-      <FootstepSounds times={footstepsByRoom(fps).inside.times} who="Tibik in the hall" volume={0.3} room="stairwell" />
+      <FootstepSounds times={footstepsByRoom().outside.times} who="Tibik" volume={0.35} surface={footstepsByRoom().outside.surface} />
+      <FootstepSounds times={footstepsByRoom().inside.times} who="Tibik in the hall" volume={0.3} room="stairwell" />
       <SoundCues
         cues={withSources(RUNDSCHREIBEN_CUES, (cue) => cue.file)}
       />

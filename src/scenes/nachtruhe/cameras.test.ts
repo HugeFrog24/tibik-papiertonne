@@ -2,7 +2,7 @@ import { Vector3 } from "three";
 import { expect, test } from "vitest";
 import { bedroomSolids, BEDROOM_DOOR } from "../../building/bedroomShape";
 import { onScreen, inFront, seenBy } from "../../dialogue/screen";
-import { FORMATS, FPS, atFrame } from "../../frameRate";
+import { FORMATS, TIMELINE_FPS, atFrame } from "../../frameRate";
 import { NACHTRUHE_FILM_FRAMES } from "../../timeline";
 import { DUSK as DUSK_SPAN, ENTRY as DUSK_ENTRY, NACHTRUHE_DURATION as STORY_LENGTH, NACHTRUHE_FILM_JOINS, STAIRWELL_ON } from "./timeline";
 import { partObb, sphere, type Solid } from "../../physics/collision";
@@ -45,7 +45,7 @@ const door = Array.from({ length: 31 }, (_, k) => (BEDROOM_DOOR.open * k) / 30);
 const outdoor = [...worldSolids(BINS.map(() => 0)), ...balconySolids, ...dishSolids, ...roofSolids, ...acrossSolids];
 const indoor = door.flatMap((angle) => bedroomSolids({ door: angle, curtain: [0, 0] }));
 
-const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) }, (_, f) => f / FPS);
+const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * TIMELINE_FPS) }, (_, f) => f / TIMELINE_FPS);
 
 test("the shots run back to back with the plan's names; the drone keeps the plan's length with the night passing in it, the others are as long as their beats need", () => {
   expect(NACHTRUHE_SHOTS.map((s) => s.name)).toEqual(["Dusk wide", "Bedroom: evening", "Drone rise", "Bedroom: morning"]);
@@ -85,7 +85,7 @@ test("the drone opens on both first-floor windows and rises clear of the roof", 
 test("the key action stays in the 9:16 frame", () => {
   expect(KEY_MOMENTS.length).toBeGreaterThanOrEqual(5);
   for (const moment of KEY_MOMENTS)
-    for (let t = moment.from; t <= moment.to + 1e-9; t += 1 / FPS) {
+    for (let t = moment.from; t <= moment.to + 1e-9; t += 1 / TIMELINE_FPS) {
       const setup = cameraAt(t);
       const point = new Vector3(...moment.at);
       expect(inFront(point, setup), `${moment.name} at ${t.toFixed(2)}`).toBe(true);
@@ -158,5 +158,5 @@ test("in the film the dusk wide lasts a few seconds: the film joins Nachtruhe as
   expect(shown).toBeLessThanOrEqual(5);
   expect(NACHTRUHE_FILM_JOINS).toBeGreaterThan(DUSK_ENTRY.unlock[1]);
   expect(NACHTRUHE_FILM_JOINS).toBeLessThan(STAIRWELL_ON);
-  expect(NACHTRUHE_FILM_FRAMES).toBe(Math.round((STORY_LENGTH - NACHTRUHE_FILM_JOINS) * FPS));
+  expect(NACHTRUHE_FILM_FRAMES).toBe(Math.round((STORY_LENGTH - NACHTRUHE_FILM_JOINS) * TIMELINE_FPS));
 });

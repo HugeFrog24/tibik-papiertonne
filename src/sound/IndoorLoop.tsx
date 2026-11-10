@@ -1,5 +1,6 @@
 import { MixAudio } from "./MixAudio";
 import { Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { renderFrame } from "../frameRate";
 
 export const throughTheWalls = (level: number, indoors: number) => ({
   outside: level * (1 - indoors),
@@ -24,8 +25,8 @@ export const IndoorLoop: React.FC<{
   const t = useCurrentFrame() / fps;
   const heard = throughTheWalls(level(t), indoors(t));
   return (
-    <Sequence from={Math.round(from * fps)} layout="none" name={name}>
-      <Sequence from={-Math.round(startAt * fps)} layout="none">
+    <Sequence from={renderFrame(from, fps)} layout="none" name={name}>
+      <Sequence from={-renderFrame(startAt, fps)} layout="none">
         <MixAudio name={name} src={staticFile(`sfx/${loopFiles(file).open}`)} loop={!once} volume={heard.outside} />
         <MixAudio name={`${name} (through the walls)`} src={staticFile(`sfx/${loopFiles(file).muffled}`)} loop={!once} volume={heard.inside} />
       </Sequence>

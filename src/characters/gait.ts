@@ -1,3 +1,4 @@
+import { atFrame } from "../frameRate";
 import { smallestClearing } from "../physics/collision";
 import { clamp, easeUnit, smoothstep, wrapAngle } from "./scalar";
 import { Quaternion, Vector3 } from "three";
@@ -114,11 +115,10 @@ export const walkCadence = (root: RootAt) => {
 export const touchdownTimes = (
   plan: GaitPlan,
   duration: number,
-  fps: number,
 ): number[] =>
   plan.touchdowns
     .filter((s) => s.time >= 0 && s.time < duration)
-    .map((s) => Math.round(s.time * fps) / fps);
+    .map((s) => atFrame(s.time));
 
 export const ankleOnTread = (
   skeleton: Skeleton,

@@ -1,8 +1,12 @@
-export const FPS = 30;
+export const TIMELINE_FPS = 30;
 
-export const atFrame = (t: number) => Math.round(t * FPS) / FPS;
+export const RENDER_RATES = [30, 60, 90, 120] as const;
 
-export const firstFrameAfter = (t: number) => (Math.floor(t * FPS + 1e-6) + 1) / FPS;
+export const atFrame = (t: number) => Math.round(t * TIMELINE_FPS) / TIMELINE_FPS;
+
+export const renderFrame = (t: number, fps: number) => Math.round(Math.round(t * TIMELINE_FPS) * (fps / TIMELINE_FPS));
+
+export const firstFrameAfter = (t: number) => (Math.floor(t * TIMELINE_FPS + 1e-6) + 1) / TIMELINE_FPS;
 
 export const FORMATS = {
   wide: { width: 1920, height: 1080 },

@@ -1,9 +1,9 @@
-import { FPS } from "../frameRate";
+import { TIMELINE_FPS } from "../frameRate";
 import type { Line, SpanOf } from "./line";
 import { takeId } from "./takeIds";
 import TAKES from "./takes.json";
 
-export const MOUTH_LEAD = 2 / FPS;
+export const MOUTH_LEAD = 2 / TIMELINE_FPS;
 
 type Measured = { readonly speech: readonly (readonly number[])[] };
 

@@ -1,7 +1,7 @@
 import { Matrix4, Vector3 } from "three";
 import { expect, test } from "vitest";
 import type { Line } from "../dialogue/line";
-import { FPS } from "../frameRate";
+import { TIMELINE_FPS } from "../frameRate";
 import { halfSpace, obb, sphere } from "../physics/collision";
 import { KAREN_REST } from "./rig";
 import { sceneSpray } from "./sceneSpray";
@@ -46,7 +46,7 @@ test("Karen's pose for each droplet is taken at a film frame, so rendering frame
   build(asked).flights();
   expect(asked.length).toBeGreaterThan(5);
   for (const t of asked)
-    expect(Math.abs(t * FPS - Math.round(t * FPS))).toBeLessThan(1e-9);
+    expect(Math.abs(t * TIMELINE_FPS - Math.round(t * TIMELINE_FPS))).toBeLessThan(1e-9);
 });
 
 test("each flight knows what it landed on, decided when it landed: cardboard keeps the spot, a person gets none, the ground dries", () => {

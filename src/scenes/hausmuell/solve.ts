@@ -33,7 +33,7 @@ import { GROUND } from "../../street/layout";
 import { memoWithArms, openingOn } from "../../physics/memoSolve";
 import type { ArmClock, ArmHistory } from "../../physics/armHistory";
 import { workArm } from "../../physics/holds";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { RIG } from "../../Tibik/rig";
 import {
   HAUSMUELL_DURATION,
@@ -109,7 +109,7 @@ const solve = (t: number, history: ArmHistory): HausmuellState => {
   return { lids, tibik: tibikSolved.tibik, karton: tibikSolved.karton, karen };
 };
 
-export const solveHausmuell = memoWithArms(FPS, solve, [], openingOn(() => ({ Tibik: papiertonnenEnd().tibik })));
+export const solveHausmuell = memoWithArms(TIMELINE_FPS, solve, [], openingOn(() => ({ Tibik: papiertonnenEnd().tibik })));
 export const hausmuellEnd = () => solveHausmuell(HAUSMUELL_DURATION);
 
 export const hausmuellViolations = (state: HausmuellState): Contact[] => {

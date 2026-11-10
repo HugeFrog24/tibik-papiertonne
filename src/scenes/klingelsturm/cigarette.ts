@@ -10,14 +10,14 @@ import { cigaretteTip } from "../../props/cigaretteShape";
 import { FLAME, LIGHTER } from "../../props/lighterShape";
 import { EXIT } from "./exit";
 import { PHONE_AT_POCKET } from "../../Karen/phoneShape";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 
 const GONE = EXIT.end;
 const at = (base: number, after: number) => round6(base + after);
 const span = (base: number, from: number, to: number) => [at(base, from), at(base, to)] as const;
 
 const mediumCut = at(GONE, 0.8);
-export const COLD_START = { again: 0.4, letGo: 0.2, flame: 0.35, flaring: 1 / FPS, dying: 4 / FPS };
+export const COLD_START = { again: 0.4, letGo: 0.2, flame: 0.35, flaring: 1 / TIMELINE_FPS, dying: 4 / TIMELINE_FPS };
 
 const lighterGrip = at(mediumCut, 0.3);
 const firstStrike = at(lighterGrip, 0.3);

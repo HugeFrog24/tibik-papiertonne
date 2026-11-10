@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { Vector3 } from "three";
-import { FPS } from "../../timeline";
+import { TIMELINE_FPS } from "../../timeline";
 import { BANGING } from "./banging";
 import { SHOTS, cameraAt } from "./cameras";
 import { onScreen } from "../../dialogue/screen";
@@ -15,14 +15,14 @@ const moved = (t: number) => new Vector3(...cameraAt(t).position).distanceTo(res
 test("each of her blows jolts the camera of the shot it falls in: it moves within two frames of the blow and is back at rest before her next blow", () => {
   for (const at of BANGING.blows) {
     expect(moved(at - 0.05), `before the blow at ${at}`).toBeLessThan(1e-9);
-    const jolt = Math.max(...[1, 2].map((f) => moved(at + f / FPS)));
+    const jolt = Math.max(...[1, 2].map((f) => moved(at + f / TIMELINE_FPS)));
     expect(jolt, `blow at ${at}`).toBeGreaterThan(0.002);
     expect(moved(at + 0.35), `after the blow at ${at}`).toBeLessThan(1e-9);
   }
 });
 
 test("on the landing, closer to her fist, the jolt is larger than in his Flur behind the door", () => {
-  const peak = (at: number) => Math.max(...[1, 2].map((f) => moved(at + f / FPS)));
+  const peak = (at: number) => Math.max(...[1, 2].map((f) => moved(at + f / TIMELINE_FPS)));
   const landing = BANGING.blows.filter((at) => at < BANGING.flurCut[0]);
   const flur = BANGING.blows.filter((at) => at >= BANGING.flurCut[0]);
   expect(landing.length).toBe(4);
@@ -39,7 +39,7 @@ test("the jolt is plain to see even on a phone: within two frames of each blow t
     const aim = new Vector3(...cameraAt(at - 0.05).target);
     const rest = onScreen(aim, cameraAt(at - 0.05));
     return Math.max(...[1, 2].map((f) => {
-      const shaken = onScreen(aim, cameraAt(at + f / FPS));
+      const shaken = onScreen(aim, cameraAt(at + f / TIMELINE_FPS));
       return Math.hypot(shaken[0] - rest[0], shaken[1] - rest[1]);
     }));
   };

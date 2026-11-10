@@ -10,6 +10,7 @@ import { Tibik } from "../../Tibik/Tibik";
 import { CameraRig } from "../../toon/primitives";
 import { cameraAt, shotAt } from "./cameras";
 import { solveRundschreiben } from "./solve";
+import { betweenTicks } from "../../physics/betweenTicks";
 import { rundschreibenRain } from "./rain";
 import { LINES, UNFOLD } from "./choreography";
 import { paperSpotsAt } from "../../props/letterShape";
@@ -26,7 +27,7 @@ import { LETTER_READ } from "./narration";
 const Scene: React.FC = () => {
   const t = useSeconds();
   const format = useFormat();
-  const state = solveRundschreiben(t);
+  const state = betweenTicks(solveRundschreiben)(t);
   return (
     <>
       <Street

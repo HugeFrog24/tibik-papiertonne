@@ -14,7 +14,7 @@ import { FLY } from "../../street/flyShape";
 import { TONNE } from "../../street/tonneShape";
 import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
-import { FPS } from "../../timeline";
+import { TIMELINE_FPS } from "../../timeline";
 import { cameraAt, insideBinCamera } from "./cameras";
 import { buzzVolume, flyBuzzSound } from "./flyBuzz";
 import {
@@ -32,7 +32,7 @@ const CLOSE = 0.07;
 const LINGER = 0.3;
 const CLEAR = FLY.reach + 0.005;
 
-const times = (from: number, to: number, step = 1 / FPS) =>
+const times = (from: number, to: number, step = 1 / TIMELINE_FPS) =>
   Array.from(
     { length: Math.round((to - from) / step) },
     (_, k) => from + k * step,
@@ -209,7 +209,7 @@ test("in the bin's-eye shot every fly hovers right in front of the lens, on scre
         p.distanceTo(new Vector3(...setup.position)) < CLOSE
       );
     });
-    expect(close.length / FPS, `fly ${i}`).toBeGreaterThanOrEqual(LINGER);
+    expect(close.length / TIMELINE_FPS, `fly ${i}`).toBeGreaterThanOrEqual(LINGER);
   }
 });
 

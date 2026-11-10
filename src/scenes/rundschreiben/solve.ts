@@ -1,7 +1,7 @@
 import type { Matrix4 } from "three";
 import type { Solid } from "../../physics/collision";
 import type { Hold } from "../../physics/holds";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { memoWithArms } from "../../physics/memoSolve";
 import type { ArmHistory } from "../../physics/armHistory";
 import { BINS } from "../../street/layout";
@@ -109,4 +109,4 @@ const solve = (t: number, history: ArmHistory): RundschreibenState => {
   };
 };
 
-export const solveRundschreiben = memoWithArms(FPS, solve);
+export const solveRundschreiben = memoWithArms(TIMELINE_FPS, solve);

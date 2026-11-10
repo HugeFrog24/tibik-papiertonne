@@ -5,7 +5,7 @@ import { expectFilesCredited } from "../../sound/creditChecks";
 import { ENTRANCE_X, FACADE_Z } from "../../street/building";
 import { RAIN } from "../../sound/rain";
 import { soundSeconds } from "../../sound/soundLength";
-import { FPS, NACHTRUHE_FRAMES } from "../../timeline";
+import { TIMELINE_FPS, NACHTRUHE_FRAMES } from "../../timeline";
 import { cameraAt as epilogueCameraAt } from "../rundschreiben/cameras";
 import { ENTRY as EPILOGUE_ENTRY } from "../rundschreiben/choreography";
 import { HAUSTUER_SOUNDS } from "../rundschreiben/home";
@@ -17,10 +17,10 @@ import { nachtruheWorldAt } from "./choreography";
 import { BLACKBIRD, EPILOGUE_RAIN_START, HAUSTUER_FAR_OFF, NACHTRUHE_CUES, RAIN_FROM, footstepsByPlace, hushAt, rainLevelAt } from "./soundCues";
 import { CURTAIN_PULLS, DAWN, DRONE, DUSK, ENTRY, LAMP_OFF, NACHTRUHE_DURATION , RAIN_BUILDS } from "./timeline";
 
-const frameOf = (t: number) => Math.round(t * FPS);
+const frameOf = (t: number) => Math.round(t * TIMELINE_FPS);
 
 test("every cue has its file and every file is credited", () => {
-  const { street, bedroom } = footstepsByPlace(FPS);
+  const { street, bedroom } = footstepsByPlace();
   const steps = [...street.files, ...bedroom.files];
   const files = [
     ...NACHTRUHE_CUES.map((c) => c.file),
@@ -40,12 +40,12 @@ test("the click lands on the frame his hand presses the switch, the gliders run 
   expect(clicks.map((c) => frameOf(c.at))).toEqual([frameOf(LAMP_OFF)]);
   for (const click of clicks) {
     const f = frameOf(click.at);
-    expect(nachtruheWorldAt(f / FPS).lamps[1], click.name).not.toBe(nachtruheWorldAt((f - 1) / FPS).lamps[1]);
+    expect(nachtruheWorldAt(f / TIMELINE_FPS).lamps[1], click.name).not.toBe(nachtruheWorldAt((f - 1) / TIMELINE_FPS).lamps[1]);
   }
   const runs = NACHTRUHE_CUES.filter((c) => c.file === "curtain-gliders.wav");
   expect(runs.map((c) => frameOf(c.at))).toEqual(CURTAIN_PULLS.map(([from]) => frameOf(from)));
   for (const [from, to] of CURTAIN_PULLS) {
-    expect(Math.abs(soundSeconds("curtain-gliders.wav") - (to - from))).toBeLessThan(1 / FPS);
+    expect(Math.abs(soundSeconds("curtain-gliders.wav") - (to - from))).toBeLessThan(1 / TIMELINE_FPS);
     expect(curtainOpenAt(from + 0.1)).toBeGreaterThan(curtainOpenAt(from));
     expect(curtainOpenAt(to - 0.1)).toBeLessThan(curtainOpenAt(to));
   }
@@ -55,26 +55,26 @@ test("the rain does not jump at the cut into the epilogue", () => {
   expect(RAIN_FROM).toBe(RAIN_BUILDS[0]);
   expect(soundSeconds(loopFiles(RAIN.file).open)).toBe(RAIN.seconds);
   expect(soundSeconds(loopFiles(RAIN.file).muffled)).toBe(RAIN.seconds);
-  const elapsed = (NACHTRUHE_FRAMES - frameOf(RAIN_FROM)) / FPS;
+  const elapsed = (NACHTRUHE_FRAMES - frameOf(RAIN_FROM)) / TIMELINE_FPS;
   expect(EPILOGUE_RAIN_START).toBeCloseTo(elapsed % soundSeconds(loopFiles(RAIN.file).open), 9);
   expect(rainLevelAt(NACHTRUHE_DURATION)).toBe(RAIN.volume);
 });
 
 test("the rain sets in during the night, a drizzle building to the morning's shower, and never falls before it", () => {
-  expect(rainLevelAt(RAIN_FROM - 1 / FPS)).toBe(0);
+  expect(rainLevelAt(RAIN_FROM - 1 / TIMELINE_FPS)).toBe(0);
   for (let f = frameOf(RAIN_BUILDS[0]) + 1; f <= frameOf(RAIN_BUILDS[1]); f++) {
-    expect(rainLevelAt(f / FPS)).toBeGreaterThanOrEqual(rainLevelAt((f - 1) / FPS));
-    expect(rainLevelAt(f / FPS) - rainLevelAt((f - 1) / FPS)).toBeLessThan(0.05 * RAIN.volume);
+    expect(rainLevelAt(f / TIMELINE_FPS)).toBeGreaterThanOrEqual(rainLevelAt((f - 1) / TIMELINE_FPS));
+    expect(rainLevelAt(f / TIMELINE_FPS) - rainLevelAt((f - 1) / TIMELINE_FPS)).toBeLessThan(0.05 * RAIN.volume);
   }
   expect(rainLevelAt(DAWN[1])).toBe(RAIN.volume);
 });
 
 test("the street hushes for the night and wakes with the dawn", () => {
-  for (let f = 1; f <= frameOf(DAWN[0]); f++) expect(hushAt(f / FPS), `frame ${f}`).toBeLessThanOrEqual(hushAt((f - 1) / FPS));
+  for (let f = 1; f <= frameOf(DAWN[0]); f++) expect(hushAt(f / TIMELINE_FPS), `frame ${f}`).toBeLessThanOrEqual(hushAt((f - 1) / TIMELINE_FPS));
   expect(hushAt(0)).toBeLessThan(1);
   expect(hushAt((DRONE[0] + DRONE[1]) / 2)).toBeLessThan(0.2);
   expect(hushAt((DRONE[0] + DRONE[1]) / 2)).toBeGreaterThan(0);
-  for (let f = frameOf(DAWN[0]) + 1; f <= frameOf(DAWN[1]); f++) expect(hushAt(f / FPS)).toBeGreaterThanOrEqual(hushAt((f - 1) / FPS));
+  for (let f = frameOf(DAWN[0]) + 1; f <= frameOf(DAWN[1]); f++) expect(hushAt(f / TIMELINE_FPS)).toBeGreaterThanOrEqual(hushAt((f - 1) / TIMELINE_FPS));
   expect(hushAt(DAWN[1])).toBe(1);
   expect(hushAt(NACHTRUHE_DURATION)).toBe(1);
 });
@@ -103,7 +103,7 @@ test("the blackbird sings through the dusk and has fallen silent by the time his
 });
 
 test("his steps patter on the pavement in the street and on the laminate in his bedroom, never one in a shot that does not show him", () => {
-  const { street, bedroom } = footstepsByPlace(FPS);
+  const { street, bedroom } = footstepsByPlace();
   expect(street.times.length).toBeGreaterThanOrEqual(4);
   expect(bedroom.times.length).toBeGreaterThanOrEqual(6);
   for (const t of street.times) {

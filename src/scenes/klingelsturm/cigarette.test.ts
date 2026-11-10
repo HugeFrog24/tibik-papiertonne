@@ -9,7 +9,7 @@ import { sphereObbGap } from "../../physics/collision";
 import { CIGARETTE, cigaretteObb, cigaretteTip } from "../../props/cigaretteShape";
 import { frameHeightAt } from "../../toon/frameHeight";
 import { FLAME, SPARKS, flameTip, lighterObb, sparksAt } from "../../props/lighterShape";
-import { FPS, FORMATS, aspectOf } from "../../frameRate";
+import { TIMELINE_FPS, FORMATS, aspectOf } from "../../frameRate";
 import { armJumpsOver, framesFrom, GENTLE_ARM, karenIn, seconds } from "../sceneChecks";
 import { seenBy } from "../../dialogue/screen";
 import { PHONE_AT_POCKET } from "../../Karen/phoneShape";
@@ -28,13 +28,13 @@ import { solveKlingelsturm } from "./solve";
 
 const HELD = 0.003;
 
-const onFrame = (t: number) => Math.abs(t * FPS - Math.round(t * FPS)) < 1e-6;
+const onFrame = (t: number) => Math.abs(t * TIMELINE_FPS - Math.round(t * TIMELINE_FPS)) < 1e-6;
 const framesOf = ([from, to]: readonly [number, number], step = 1) =>
-  Array.from({ length: Math.floor(((to - from) * FPS) / step) + 1 }, (_, i) => from + (i * step) / FPS);
+  Array.from({ length: Math.floor(((to - from) * TIMELINE_FPS) / step) + 1 }, (_, i) => from + (i * step) / TIMELINE_FPS);
 const codaTimes = Object.values(CODA).flat(2);
 
 test("story time equals film time up to the jump cut and runs STORY_SKIP ahead after it", () => {
-  expect(storyTime(CODA.jumpCut - 1 / FPS)).toBeCloseTo(CODA.jumpCut - 1 / FPS, 9);
+  expect(storyTime(CODA.jumpCut - 1 / TIMELINE_FPS)).toBeCloseTo(CODA.jumpCut - 1 / TIMELINE_FPS, 9);
   expect(storyTime(CODA.jumpCut + 1)).toBeCloseTo(CODA.jumpCut + 1 + STORY_SKIP, 9);
   expect(STORY_SKIP).toBeGreaterThan(160);
   expect(STORY_SKIP).toBeLessThan(180);
@@ -48,15 +48,15 @@ test("every coda time is on a whole frame and the scene ends about 72 s in: abou
 });
 
 test("no cigarette or lighter before the cut into the Medium; the phone rests at her hip until that cut and leaves her hand on it", { timeout: 120_000 }, () => {
-  const before = solveKlingelsturm(CODA.mediumCut - 1 / FPS);
+  const before = solveKlingelsturm(CODA.mediumCut - 1 / TIMELINE_FPS);
   expect(before.cigarette).toBeNull();
   expect(before.lighter).toBeNull();
   const at = solveKlingelsturm(CODA.mediumCut);
   expect(at.cigarette).not.toBeNull();
   expect(at.lighter).not.toBeNull();
   expect(shotAt(CODA.mediumCut).name).toBe("Close-up: the cigarette");
-  expect(phonePlaceAt(CODA.mediumCut - 1 / FPS)).toEqual(PHONE_AT_POCKET);
-  expect(solveKlingelsturm(CODA.mediumCut - 1 / FPS).phone).not.toBeNull();
+  expect(phonePlaceAt(CODA.mediumCut - 1 / TIMELINE_FPS)).toEqual(PHONE_AT_POCKET);
+  expect(solveKlingelsturm(CODA.mediumCut - 1 / TIMELINE_FPS).phone).not.toBeNull();
   expect(solveKlingelsturm(CODA.mediumCut).phone).toBeNull();
 });
 
@@ -85,7 +85,7 @@ const clearOfHead = (t: number, arm: "leftArm" | "rightArm") => {
 };
 
 test("the lighter is gripped clear of her body until it goes into her pocket, and the flame's tip reaches the cigarette's end while it burns", () => {
-  expect(solveKlingelsturm(CODA.lighterDown[1] + 1 / FPS).lighter).toBeNull();
+  expect(solveKlingelsturm(CODA.lighterDown[1] + 1 / TIMELINE_FPS).lighter).toBeNull();
   for (const t of framesOf([CODA.mediumCut, CODA.lighterDown[1]], 1)) {
     const { lighter, karen } = solveKlingelsturm(t);
     const box = lighterObb(lighter!.frame);
@@ -130,14 +130,14 @@ test("the cigarette burns at the measured 4-5 mm a minute (free-burning to puffe
 });
 
 test("the ember catches on the first draw and is brighter during each later draw than at rest", () => {
-  expect(emberGlowAt(CODA.lit - 1 / FPS)).toBe(0);
+  expect(emberGlowAt(CODA.lit - 1 / TIMELINE_FPS)).toBe(0);
   expect(emberGlowAt(CODA.draws[0][1])).toBeGreaterThan(GLOW.rest);
   for (const [, end] of [CODA.draws[1], CODA.laterDraw]) expect(emberGlowAt(end), String(end)).toBeGreaterThan(GLOW.rest + 0.3);
   expect(emberGlowAt(CODA.jumpCut + 0.3)).toBeCloseTo(GLOW.rest, 6);
 });
 
 test("Tibik is down the stairs and out of every shot from the cut into the close-up, and gone after the jump", () => {
-  expect(solveKlingelsturm(CODA.mediumCut - 1 / FPS).tibikHere).toBe(true);
+  expect(solveKlingelsturm(CODA.mediumCut - 1 / TIMELINE_FPS).tibikHere).toBe(true);
   expect(solveKlingelsturm(CODA.mediumCut).tibikHere).toBe(false);
   expect(solveKlingelsturm(CODA.jumpCut + 1).tibikHere).toBe(false);
 });
@@ -154,7 +154,7 @@ const tibikInShot = (t: number) => {
 
 test("where he really is on his way down, Tibik is out of every shot from the cut into the close-up to the jump", () => {
   expect(tibikInShot(EXIT_SOUNDS.lightSwitch).length).toBeGreaterThan(0);
-  for (const t of framesOf([CODA.mediumCut, CODA.jumpCut - 1 / FPS], 3)) expect(tibikInShot(t), seconds(t)).toEqual([]);
+  for (const t of framesOf([CODA.mediumCut, CODA.jumpCut - 1 / TIMELINE_FPS], 3)) expect(tibikInShot(t), seconds(t)).toEqual([]);
 });
 
 test("while she lights it the lighter turns with her: whichever way she faces it sits the same in her hand", () => {
@@ -179,8 +179,8 @@ test("the flame in the Medium and the ember in the Wide: later sit within the 9:
 });
 
 test("the tip catches over a few frames rather than popping alight", () => {
-  for (let f = Math.round(CODA.lit * FPS) - 2; f <= Math.round(CODA.lit * FPS) + 8; f++)
-    expect(Math.abs(emberGlowAt(f / FPS) - emberGlowAt((f - 1) / FPS)), `frame ${f}`).toBeLessThanOrEqual(0.15);
+  for (let f = Math.round(CODA.lit * TIMELINE_FPS) - 2; f <= Math.round(CODA.lit * TIMELINE_FPS) + 8; f++)
+    expect(Math.abs(emberGlowAt(f / TIMELINE_FPS) - emberGlowAt((f - 1) / TIMELINE_FPS)), `frame ${f}`).toBeLessThanOrEqual(0.15);
 });
 
 test("the lighter doesn't catch first time: the first strike, with the lighter already under the cigarette, throws its sparks and only a micro flame that dies within a few frames well short of the cigarette, and the second strike lights it", () => {
@@ -190,7 +190,7 @@ test("the lighter doesn't catch first time: the first strike, with the lighter a
   expect(second - first).toBeLessThanOrEqual(0.6);
   const raised = solveKlingelsturm(first);
   expect(flameTip(raised.lighter!.frame, first, 1).distanceTo(cigaretteTip(raised.cigarette!.frame, raised.cigarette!.burned))).toBeLessThan(0.004);
-  const burning = framesOf([first, second - 1 / FPS], 1)
+  const burning = framesOf([first, second - 1 / TIMELINE_FPS], 1)
     .map((t) => ({ t, ...solveKlingelsturm(t) }))
     .filter((s) => s.lighter!.flame > 0);
   expect(burning.length).toBeGreaterThan(0);
@@ -199,9 +199,9 @@ test("the lighter doesn't catch first time: the first strike, with the lighter a
     expect(s.lighter!.flame, seconds(s.t)).toBeLessThanOrEqual(0.4);
     expect(flameTip(s.lighter!.frame, s.t, s.lighter!.flame).distanceTo(cigaretteTip(s.cigarette!.frame, s.cigarette!.burned)), seconds(s.t)).toBeGreaterThan(0.01);
   }
-  expect(sinceStruckAt(first - 1 / FPS)).toBeUndefined();
-  expect(sinceStruckAt(first + 1 / FPS)).toBeCloseTo(1 / FPS, 9);
-  expect(sinceStruckAt(second + 1 / FPS)).toBeCloseTo(1 / FPS, 9);
+  expect(sinceStruckAt(first - 1 / TIMELINE_FPS)).toBeUndefined();
+  expect(sinceStruckAt(first + 1 / TIMELINE_FPS)).toBeCloseTo(1 / TIMELINE_FPS, 9);
+  expect(sinceStruckAt(second + 1 / TIMELINE_FPS)).toBeCloseTo(1 / TIMELINE_FPS, 9);
   expect(emberGlowAt(second)).toBe(0);
   expect(solveKlingelsturm(second + 0.2).lighter!.flame).toBe(1);
 });
@@ -226,7 +226,7 @@ test("smoking, she is no longer winded: from the cut into the Medium her panting
 });
 
 test("the sparks of both strikes stay clear of her head, her hands and the cigarette", () => {
-  for (const t of CODA.strikes.flatMap((strike) => [strike, strike + 1 / FPS])) {
+  for (const t of CODA.strikes.flatMap((strike) => [strike, strike + 1 / TIMELINE_FPS])) {
     const state = solveKlingelsturm(t);
     const sparks = sparksAt(sinceStruckAt(t)!).map((p) => p.clone().applyMatrix4(state.lighter!.frame));
     expect(sparks.length, seconds(t)).toBeGreaterThan(0);

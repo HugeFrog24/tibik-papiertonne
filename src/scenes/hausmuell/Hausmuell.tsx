@@ -15,11 +15,13 @@ import { SHOTS } from "./cameras";
 import { LINES } from "./choreography";
 import { HausmuellSound } from "./HausmuellSound";
 import { solveHausmuell } from "./solve";
+import { betweenTicks } from "../../physics/betweenTicks";
+import { storyJumpsIn } from "../../toon/shots";
 import { hausmuellSprayAt } from "./spray";
 
 const Characters: React.FC = () => {
   const t = useSeconds();
-  const { lids, tibik, karton, karen } = solveHausmuell(t);
+  const { lids, tibik, karton, karen } = betweenTicks(solveHausmuell, storyJumpsIn(SHOTS))(t);
   return (
     <>
       <BinRow lids={lids} boxTaken />

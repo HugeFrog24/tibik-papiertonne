@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { storyJumpsIn } from "../../toon/shots";
-import { FPS } from "../../timeline";
+import { TIMELINE_FPS } from "../../timeline";
 import { expect, test } from "vitest";
 import { castOutOfTallFrame, framesThrough, rootMotion, tibikHead, GENTLE_ARM, KEEP_OFF_THE_CAST, TOLERANCE, armJumpsOver, framesFrom, lensProblems, mm, penetrations, seconds, tibikHeadOutOfFrame, tibikIn, headCroppedPartway } from "../sceneChecks";
 import { FLIGHTS, TIBIK_LIGHT_BUTTON, buttonSolid, stairwellGround } from "../../building/stairwell";
@@ -42,12 +42,12 @@ import {
 } from "./solve";
 
 const storyFrames = Array.from(
-  { length: Math.floor(STORY_END * FPS) + 1 },
-  (_, f) => f / FPS,
+  { length: Math.floor(STORY_END * TIMELINE_FPS) + 1 },
+  (_, f) => f / TIMELINE_FPS,
 );
 const filmFrames = Array.from(
-  { length: Math.round(TREPPENHAUS_DURATION * FPS) },
-  (_, f) => f / FPS,
+  { length: Math.round(TREPPENHAUS_DURATION * TIMELINE_FPS) },
+  (_, f) => f / TIMELINE_FPS,
 );
 
 test(
@@ -69,7 +69,7 @@ test(
   { timeout: 300_000 },
   () => {
     const problems: string[] = [];
-    for (let t = RAIL_SPAN[0]; t <= RAIL_SPAN[1]; t += 1 / FPS) {
+    for (let t = RAIL_SPAN[0]; t <= RAIL_SPAN[1]; t += 1 / TIMELINE_FPS) {
       const gap = railGap(solveTreppenhaus(t));
       if (Math.abs(gap) > TOLERANCE)
         problems.push(`${t.toFixed(2)} s: hand ${mm(gap, 0)} from the rail`);
@@ -84,7 +84,7 @@ test(
   () => {
     const problems: string[] = [];
     for (const hold of HOLDS) {
-      for (let t = hold.grip; t <= hold.release + 1e-9; t += 1 / FPS) {
+      for (let t = hold.grip; t <= hold.release + 1e-9; t += 1 / TIMELINE_FPS) {
         const gap = holdGap(solveTreppenhaus(t), hold, t);
         if (Math.abs(gap) > TOLERANCE)
           problems.push(
@@ -170,7 +170,7 @@ test("the film never shows a story moment twice, and plays each shot at normal s
       6,
     );
   }
-  expect(storyTime(TREPPENHAUS_DURATION - 1 / FPS)).toBeLessThanOrEqual(
+  expect(storyTime(TREPPENHAUS_DURATION - 1 / TIMELINE_FPS)).toBeLessThanOrEqual(
     STORY_END,
   );
 });
@@ -201,8 +201,8 @@ test("once his pull has run out, the closer lets the Haustür open only while he
       (h) => h.name.startsWith("the Haustür") && t >= h.grip && t <= h.release,
     );
   const problems: string[] = [];
-  for (let t = HAUSTUER_SWUNG_AT; t < STORY_END; t += 1 / FPS) {
-    const opening = haustuerAt(t + 1 / FPS) - haustuerAt(t);
+  for (let t = HAUSTUER_SWUNG_AT; t < STORY_END; t += 1 / TIMELINE_FPS) {
+    const opening = haustuerAt(t + 1 / TIMELINE_FPS) - haustuerAt(t);
     if (opening > 1e-9 && !holding(t))
       problems.push(`${t.toFixed(2)} s: opens by itself`);
   }
@@ -254,7 +254,7 @@ test.each([
 test("he presses the light button with a nearly straight arm, twisted no further than a shoulder allows", () => {
   const { grip, release } = HOLDS.find((h) => h.name === "the light button")!;
   const problems: string[] = [];
-  for (let t = grip; t <= release; t += 1 / FPS) {
+  for (let t = grip; t <= release; t += 1 / TIMELINE_FPS) {
     const arm = solveTreppenhaus(t).tibik.pose.leftArm;
     if (arm.elbow > 1.2 || arm.inward > 1.4 || arm.inward < -0.5)
       problems.push(
@@ -299,7 +299,7 @@ test("on the handrail his hand leads, ahead of his elbow and shoulder, with the 
 
 test("in 'His door' once he is out on the landing, and in 'The light switch', the top of his head and his eyes are in frame", () => {
   const cut = (t: number) => tibikHeadOutOfFrame(solveTreppenhaus(t).tibik, cameraAt(t)).map((part) => `${seconds(t)}: ${part}`);
-  const frames = Array.from({ length: Math.round((5.6 - 2.0) * FPS) }, (_, i) => 2.0 + i / FPS);
+  const frames = Array.from({ length: Math.round((5.6 - 2.0) * TIMELINE_FPS) }, (_, i) => 2.0 + i / TIMELINE_FPS);
   expect(frames.flatMap(cut).slice(0, 6)).toEqual([]);
 });
 
@@ -308,7 +308,7 @@ test("walking from the stair foot along the facade to the Haustür, his wall-sid
   const into: string[] = [];
   const jumps: string[] = [];
   let before = tibikAt(15.2).pose.rightArm;
-  for (let t = 15.2; t <= 17.45; t += 1 / FPS) {
+  for (let t = 15.2; t <= 17.45; t += 1 / TIMELINE_FPS) {
     const authored = asCharacter(tibikAt(t));
     const deepest = Math.max(0, ...contacts(armColliders(RIG, authored, "rightArm"), solids).map((c) => c.depth));
     if (deepest > TOLERANCE) into.push(`${seconds(t)}: ${mm(deepest)} into the facade`);
@@ -323,7 +323,7 @@ test("walking from the stair foot along the facade to the Haustür, his wall-sid
 
 test("turning from the light switch to the stairs beside his shut door, he already has his arms in: as he plays it, neither arm brushes his door's knob", () => {
   const knob: string[] = [];
-  for (let t = LEAVING.leaveTheSwitch - 0.1; t <= LEAVING.descentRoot[0] + 0.05; t += 1 / FPS) {
+  for (let t = LEAVING.leaveTheSwitch - 0.1; t <= LEAVING.descentRoot[0] + 0.05; t += 1 / TIMELINE_FPS) {
     const solids = treppenhausSolids(solveTreppenhaus(t)).filter((s) => s.name.includes("knob"));
     const authored = asCharacter(tibikAt(t));
     for (const which of ["leftArm", "rightArm"] as const) {
@@ -376,7 +376,7 @@ test("in the tall format, in this silent scene, whenever the wide frame shows hi
 });
 
 test("leaving his flat his moves run into each other: from letting go of his lever until he starts down the stairs he never stands frozen, neither moving nor turning, for more than 0.3 s, and he goes into the descent without a jump in speed", () => {
-  const frame = 1 / FPS;
+  const frame = 1 / TIMELINE_FPS;
   const motion = rootMotion(treppenhausRoot);
   const frozen: string[] = [];
   let still = 0;

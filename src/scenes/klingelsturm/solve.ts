@@ -40,7 +40,7 @@ import type { ArmHistory } from "../../physics/armHistory";
 import type { KarenFrame } from "../hausmuell/choreography";
 import { FISHEYE, undistortUv } from "../../toon/fisheye";
 import { ashOnTheCigarette, fallenAshAt, type AshPiece } from "./ashTap";
-import { FORMATS, FPS, type Format } from "../../frameRate";
+import { FORMATS, TIMELINE_FPS, type Format } from "../../frameRate";
 import { CODA, emberGlowAt, flameAmountAt, inHerFingersAt, inHerHands, lighterOut, lightingAt } from "./cigarette";
 import { CIGARETTE_HOLD, LIGHTER_HOLD, UP_TO_THE_CIGARETTE_HOLD, cigaretteAt, lighterAt, smokedAt } from "./smoking";
 import { BLOW_HOLDS } from "./banging";
@@ -142,12 +142,12 @@ const heldCigarette = (karen: KarenFrame, t: number) =>
 const heldLighter = (karen: KarenFrame, t: number) =>
   followTheHand(lighterAt(t), rightHandOf(karen), LIGHTER_HOLD.near!(t), 1 - lightingAt(t));
 
-const solveCore = memoWithArms(FPS, solve, [CODA.jumpCut]);
+const solveCore = memoWithArms(TIMELINE_FPS, solve, [CODA.jumpCut]);
 
 const releaseAt = memoByFrame((off: number) => {
   const { frame, burned } = solveCore(off).cigarette!;
   const flicked = (t: number) => ashOnTheCigarette(cigaretteAt(t), smokedAt(t).burned).center;
-  return { ...ashOnTheCigarette(frame, burned), velocity: flicked(off).sub(flicked(off - 1 / FPS)).multiplyScalar(FPS) };
+  return { ...ashOnTheCigarette(frame, burned), velocity: flicked(off).sub(flicked(off - 1 / TIMELINE_FPS)).multiplyScalar(TIMELINE_FPS) };
 });
 
 const solveWithAsh = memoByFrame((t: number): KlingelsturmState => ({

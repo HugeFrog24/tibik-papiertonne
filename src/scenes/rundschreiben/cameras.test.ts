@@ -11,7 +11,7 @@ import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
 import { onScreen, seenBy } from "../../dialogue/screen";
 import { LETTER_LAYOUT, PT, letterLineWidth, pointOnLetter } from "../../props/letterShape";
-import { FPS } from "../../timeline";
+import { TIMELINE_FPS } from "../../timeline";
 import * as cameras from "./cameras";
 import { FOLDING_SHOT, READABLE, SHOTS, cameraAt } from "./cameras";
 import { barRect, chunkAt } from "../../dialogue/subtitles";
@@ -59,7 +59,7 @@ test("wide: the one letter insert opens on the letter from its salutation to its
       if (tall < READABLE) problems.push(`"${line.text}" ${tall.toFixed(1)} px`);
     }
   expect(problems).toEqual([]);
-  const end = to - 1 / FPS;
+  const end = to - 1 / TIMELINE_FPS;
   const corners = PAGE_CORNERS.map(([x, y]) => onScreen(onTheSheet(end, x, y), cameraAt(end)));
   for (const [x, y] of PAGE_CORNERS) expect(seenBy(onTheSheet(end, x, y), cameraAt(end))).toBe(true);
   const ys = corners.map(([, y]) => y);
@@ -69,7 +69,7 @@ test("wide: the one letter insert opens on the letter from its salutation to its
 const insertSamples = () => {
   const { from, to } = shot("Insert: the letter");
   const times: number[] = [];
-  for (let f = Math.round(from * FPS); f < Math.round(to * FPS); f += 5) times.push(f / FPS);
+  for (let f = Math.round(from * TIMELINE_FPS); f < Math.round(to * TIMELINE_FPS); f += 5) times.push(f / TIMELINE_FPS);
   return times;
 };
 
@@ -83,7 +83,7 @@ test("tall: the one letter insert shows the whole page, centred, from start to e
     if (Math.abs(cx - FORMATS.tall.width / 2) > 0.05 * FORMATS.tall.width || Math.abs(cy - FORMATS.tall.height / 2) > 0.05 * FORMATS.tall.height) problems.push(`${t.toFixed(2)} s: page off centre at ${cx.toFixed(0)}, ${cy.toFixed(0)}`);
   }
   expect(problems.slice(0, 8)).toEqual([]);
-  const end = to - 1 / FPS;
+  const end = to - 1 / TIMELINE_FPS;
   const xs = PAGE_CORNERS.map(([x, y]) => onScreen(onTheSheet(end, x, y), cameraAt(end, "tall"), "tall")[0]);
   expect(Math.max(...xs) - Math.min(...xs)).toBeLessThanOrEqual(SURROUNDINGS * FORMATS.tall.width);
 });
@@ -102,8 +102,8 @@ type Working = { readonly envelope?: readonly [number, number]; readonly letter?
 
 const paperOutOfView = (from: number, to: number, working: Working) => {
   const hidden: string[] = [];
-  for (let f = Math.ceil(from * FPS); f < Math.round(to * FPS); f += 3) {
-    const t = f / FPS;
+  for (let f = Math.ceil(from * TIMELINE_FPS); f < Math.round(to * TIMELINE_FPS); f += 3) {
+    const t = f / TIMELINE_FPS;
     const state = solveRundschreiben(t);
     const setup = cameraAt(t);
     const lens = new Vector3(...setup.position);
@@ -134,16 +134,16 @@ test("the opening shot shows his hands at work: the envelope and the unfolding l
 test("after the deadpan close-up he is seen finishing the fold and sliding the letter into the envelope", { timeout: 300_000 }, () => {
   expect(paperOutOfView(FOLDING_SHOT, FOLD[1] - 0.2, { letter: [FOLDING_SHOT, FOLD[1]] }).slice(0, 6)).toEqual([]);
   const { from, to } = shot("Tibik");
-  for (let f = Math.ceil(from * FPS); f < Math.round(to * FPS); f += 3) {
-    const t = f / FPS;
+  for (let f = Math.ceil(from * TIMELINE_FPS); f < Math.round(to * TIMELINE_FPS); f += 3) {
+    const t = f / TIMELINE_FPS;
     const [x, y] = onScreen(mouthInWorld(RIG, solveRundschreiben(t).tibik), cameraAt(t));
     expect(x > 0 && x < FORMATS.wide.width && y > 0 && y < FORMATS.wide.height, `${t.toFixed(2)} s: his face`).toBe(true);
   }
 });
 
 test("while the letter slides back into the envelope, the lens sees the envelope's front, so the letter behind it reads as inside", () => {
-  for (let f = Math.ceil(FOLD[0] * FPS); f < FOLD[1] * FPS; f++) {
-    const t = f / FPS;
+  for (let f = Math.ceil(FOLD[0] * TIMELINE_FPS); f < FOLD[1] * TIMELINE_FPS; f++) {
+    const t = f / TIMELINE_FPS;
     const envelope = envelopeAt(t)!;
     const centre = new Vector3(DL[0] / 2, DL[1] / 2, 0).applyMatrix4(envelope);
     const front = new Vector3(0, 0, 1).transformDirection(envelope);
@@ -164,9 +164,9 @@ test("over the Nachlaufzeit the camera eases back from the shut door, so the las
   const end = RUNDSCHREIBEN_DURATION - 1e-6;
   expect(where(DOOR_SHUT - 0.5).distanceTo(where(DOOR_SHUT - 0.3))).toBeLessThan(1e-9);
   expect(where(DOOR_SHUT - 0.3).distanceTo(where(end))).toBeGreaterThanOrEqual(0.5);
-  expect(where(end).distanceTo(where(end - 1 / FPS))).toBeLessThan(0.002);
+  expect(where(end).distanceTo(where(end - 1 / TIMELINE_FPS))).toBeLessThan(0.002);
   const middle = (DOOR_SHUT + RUNDSCHREIBEN_DURATION) / 2;
-  expect(where(middle).distanceTo(where(middle - 1 / FPS))).toBeGreaterThan(0.005);
+  expect(where(middle).distanceTo(where(middle - 1 / TIMELINE_FPS))).toBeGreaterThan(0.005);
   expect(where(end).distanceTo(new Vector3(...cameraAt(end).target))).toBeGreaterThan(where(DOOR_SHUT - 0.3).distanceTo(new Vector3(...cameraAt(DOOR_SHUT - 0.3).target)));
 });
 
@@ -185,7 +185,7 @@ test.each(["wide", "tall"] as const)("%s: while the narration shows, every line 
 });
 
 test.each(["wide", "tall"] as const)("%s: once the letter insert has zoomed out, both his hands are in frame holding it, so the letter never floats", (format) => {
-  const end = shot("Insert: the letter").to - 1 / FPS;
+  const end = shot("Insert: the letter").to - 1 / TIMELINE_FPS;
   const tibik = asCharacter(solveRundschreiben(end).tibik);
   for (const arm of ["leftArm", "rightArm"] as const) expect(seenBy(handPosition(RIG, tibik, arm), cameraAt(end, format), 0, format), arm).toBe(true);
 });
@@ -197,8 +197,8 @@ test("in the point-of-view letter insert he is drawn arms only: the camera sits 
 
 test.each(["wide", "tall"] as const)("%s: once the letter insert has zoomed out the world holds still and level: over its last half second the camera moves less than 2 mm and its up stays within a degree of the world's", (format) => {
   const { to } = shot("Insert: the letter");
-  const end = cameraAt(to - 1 / FPS, format);
-  for (let t = to - 0.5; t < to; t += 1 / FPS) {
+  const end = cameraAt(to - 1 / TIMELINE_FPS, format);
+  for (let t = to - 0.5; t < to; t += 1 / TIMELINE_FPS) {
     const setup = cameraAt(t, format);
     expect(new Vector3(...setup.position).distanceTo(new Vector3(...end.position)), t.toFixed(2)).toBeLessThan(0.002);
     expect(new Vector3(...(setup.up ?? [0, 1, 0])).angleTo(new Vector3(0, 1, 0)), t.toFixed(2)).toBeLessThan(Math.PI / 180);

@@ -37,10 +37,10 @@ export const heardIndoorsAt = (t: number) =>
 
 export const rainLevel = (t: number) => throughTheWalls(RAIN.volume, heardIndoorsAt(t));
 
-export const footstepsByRoom = (fps: number) => {
+export const footstepsByRoom = () => {
   const inside = (t: number) => rundschreibenTibikAt(t).position[2] < FACADE_Z;
-  const times = footstepTimes(fps);
-  return { outside: stepsOn(times.filter((t) => !inside(t)), "wet", fps), inside: stepsOn(times.filter(inside), "concrete", fps) };
+  const times = footstepTimes();
+  return { outside: stepsOn(times.filter((t) => !inside(t)), "wet"), inside: stepsOn(times.filter(inside), "concrete") };
 };
 
 export const RUNDSCHREIBEN_CUES: readonly FileCue[] = [

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { Vector3 } from "three";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { doorFrame } from "../../building/doors";
 import { HAUSTUER } from "../../street/facade";
 import { cameraAt, shotAt } from "./cameras";
@@ -18,6 +18,6 @@ const offCentre = (t: number, format: "wide" | "tall") => {
 
 test("the coda's last moments look at the Haustür, centred in both formats, once he has gone in and the closer pulls it shut behind him", () => {
   expect(shotAt(RUNDSCHREIBEN_DURATION - 0.1).name).toBe("Coda");
-  for (let t = ENTRY.inWalk[1]; t <= RUNDSCHREIBEN_DURATION - 1 / FPS; t += 0.25)
+  for (let t = ENTRY.inWalk[1]; t <= RUNDSCHREIBEN_DURATION - 1 / TIMELINE_FPS; t += 0.25)
     for (const format of ["wide", "tall"] as const) expect(offCentre(t, format), `${format} ${t.toFixed(2)} s`).toBeLessThan(0.05);
 });

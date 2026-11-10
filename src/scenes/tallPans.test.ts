@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { expect, test } from "vitest";
-import { aspectOf, FPS, type Format } from "../frameRate";
+import { aspectOf, TIMELINE_FPS, type Format } from "../frameRate";
 import type { CameraSetup, Shot } from "../toon/shots";
 import { SHOTS as HAUSMUELL, cameraAt as hausmuell } from "./hausmuell/cameras";
 import { HAUSMUELL_DURATION } from "./hausmuell/choreography";
@@ -46,7 +46,7 @@ test.each(SCENES)("%s: following someone adds at most a steady 3% of the 9:16 fr
   const problems: string[] = [];
   for (const shot of shots.filter((s) => s.tall)) {
     const frames: number[] = [];
-    for (let f = Math.ceil(shot.from * FPS); f < Math.min(shot.to, duration) * FPS - 1e-6; f++) frames.push(f / FPS);
+    for (let f = Math.ceil(shot.from * TIMELINE_FPS); f < Math.min(shot.to, duration) * TIMELINE_FPS - 1e-6; f++) frames.push(f / TIMELINE_FPS);
     const talls = frames.map((t) => cameraAt(t, "tall"));
     const wides = frames.map((t) => cameraAt(t, "wide"));
     for (let i = 1; i < frames.length; i++) {

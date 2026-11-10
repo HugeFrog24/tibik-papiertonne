@@ -4,7 +4,7 @@ import { allColliders } from "../../characters/skeleton";
 import { DL, ENVELOPE, envelopeFlap, envelopeSag, flapPieces, letterSolids } from "../../props/letterShape";
 import { asCharacter } from "../../Tibik/character";
 import { RIG } from "../../Tibik/rig";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { ENVELOPE_OUT, KLOPPEN, READ, THANKS, UNFOLD } from "./choreography";
 import { rundschreibenRain } from "./rain";
 import { RAIN_DIR } from "../../weather/rainDrops";
@@ -17,7 +17,7 @@ const inside = (p: Vector3, box: ReturnType<typeof letterSolids>[number]) =>
   box.axes.every((axis, i) => Math.abs(p.clone().sub(box.center).dot(axis)) < box.half[i]);
 
 const frames = (from: number, to: number, every = 10) =>
-  Array.from({ length: Math.floor(((to - from) * FPS) / every) }, (_, i) => from + (i * every) / FPS);
+  Array.from({ length: Math.floor(((to - from) * TIMELINE_FPS) / every) }, (_, i) => from + (i * every) / TIMELINE_FPS);
 
 test("no raindrop passes through the letter he holds, while he unfolds and reads it", { timeout: 300_000 }, () => {
   const through: string[] = [];

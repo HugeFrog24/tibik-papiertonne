@@ -1,9 +1,9 @@
 import { expect, test } from "vitest";
 import { FILM_FADE, filmFadeAt } from "./filmFade";
 import { MIX, throughTheBus } from "./MixAudio";
-import { FILM_FRAMES, FPS } from "../timeline";
+import { FILM_FRAMES, TIMELINE_FPS } from "../timeline";
 
-const LENGTH = FILM_FRAMES / FPS;
+const LENGTH = FILM_FRAMES / TIMELINE_FPS;
 
 test("the film's sound fades in from silence over its first half second and out to silence over its last seconds, full in between", () => {
   expect(filmFadeAt(0, LENGTH)).toBe(0);

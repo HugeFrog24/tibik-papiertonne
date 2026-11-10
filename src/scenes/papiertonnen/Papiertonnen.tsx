@@ -7,6 +7,8 @@ import { Karton } from "../../street/Karton";
 import { BinRow, Sky, StreetLighting } from "../../street/StreetSet";
 import { PapiertonnenSound } from "./PapiertonnenSound";
 import { solvePapiertonnen } from "./solve";
+import { betweenTicks } from "../../physics/betweenTicks";
+import { storyJumpsIn } from "../../toon/shots";
 import { FOUND_KARTON_SIZE } from "../../street/kartonShape";
 import { Street } from "../../street/Street";
 import { StairwellSet } from "../../building/StairwellSet";
@@ -18,7 +20,7 @@ import { LINES } from "./choreography";
 
 const Characters: React.FC = () => {
   const t = useSeconds();
-  const { lids, haustuer, tibik, karton } = solvePapiertonnen(t);
+  const { lids, haustuer, tibik, karton } = betweenTicks(solvePapiertonnen, storyJumpsIn(SHOTS))(t);
 
   return (
     <>

@@ -30,7 +30,7 @@ import { entranceGround } from "../../street/layout";
 import { characterViolations } from "../../physics/guards";
 import { RIG } from "../../Tibik/rig";
 import { asCharacter } from "../../Tibik/character";
-import { FPS } from "../../timeline";
+import { TIMELINE_FPS } from "../../timeline";
 import { TIBIK_FOOT, sunkSoles } from "../drawnSoles";
 import { expectGoesIn, expectKeyTurnsByHand, keysAwayFromFist } from "../entryChecks";
 import { ARM_JERK, GENTLE_ARM, KEEP_OFF_THE_CAST, armJumpsOver, castOutOfTallFrame, dialogueFrames, facesUnderBar, framesThrough, lensProblems, penetrations, seconds, speakerOutOfTallFrame, tibikHead, tibikIn, headCroppedPartway } from "../sceneChecks";
@@ -73,7 +73,7 @@ import {
 } from "./choreography";
 import { rundschreibenSolids, solveRundschreiben } from "./solve";
 
-const frames = Array.from({ length: Math.round(RUNDSCHREIBEN_DURATION * FPS) }, (_, f) => f / FPS);
+const frames = Array.from({ length: Math.round(RUNDSCHREIBEN_DURATION * TIMELINE_FPS) }, (_, f) => f / TIMELINE_FPS);
 
 test("the time jump's start: he has just come out onto the pavement, the Haustür swinging shut behind him, every lid shut, the bins emptied", () => {
   const state = solveRundschreiben(0);
@@ -459,7 +459,7 @@ test("he folds the letter back, lifts it over the envelope's mouth and slides it
     );
   };
   expect(window(FOLD[0] + 0.8, FOLD[1] - 0.2).some((t) => !inside(t))).toBe(true);
-  expect(inside(FOLD[1] - 1 / FPS)).toBe(true);
+  expect(inside(FOLD[1] - 1 / TIMELINE_FPS)).toBe(true);
   expect(solveRundschreiben(FOLD[1]).letter).toBeNull();
   expect(solveRundschreiben(KLOPPEN[0]).envelope).not.toBeNull();
 });
@@ -536,7 +536,7 @@ test("he kloppt the envelope through the lid opening into the empty bin, where i
     const state = solveRundschreiben(t);
     expect(contacts(envelopeSheets(state), bin(state.lids[paperBinIndex])), t.toFixed(2)).toEqual([]);
   }
-  for (const t of [LID_THUD, RUNDSCHREIBEN_DURATION - 1 / FPS]) {
+  for (const t of [LID_THUD, RUNDSCHREIBEN_DURATION - 1 / TIMELINE_FPS]) {
     const state = solveRundschreiben(t);
     const corners = envelopeCorners(state.envelope!.matrix);
     const lowest = Math.min(...corners.map((c) => c.y));
@@ -614,7 +614,7 @@ test("the epilogue opens on the Haustuer swinging shut behind him on its closer:
   expect(haustuerAt(0)).toBeGreaterThan(0.8);
   expect(haustuerAt(OUT_OF_THE_HOUSE.shut)).toBe(0);
   expect(OUT_OF_THE_HOUSE.shut).toBeLessThan(AT_MAILBOX);
-  for (let t = 0; t <= AT_MAILBOX; t += 1 / FPS) {
+  for (let t = 0; t <= AT_MAILBOX; t += 1 / TIMELINE_FPS) {
     const [x] = rundschreibenTibikAt(t).position;
     if (x > THE_DOORWAY.from - THE_DOORWAY.body && x < THE_DOORWAY.to) expect(haustuerAt(t), seconds(t)).toBeLessThan(THE_DOORWAY.clear);
   }
@@ -632,13 +632,13 @@ test("the Haustuer's latch catches on the frame it shuts as the epilogue opens",
 });
 
 test("turning in to his box he takes the short way round, never swinging round to face the street", () => {
-  for (let t = OUT_OF_THE_HOUSE.walkOff; t <= AT_MAILBOX; t += 1 / FPS)
+  for (let t = OUT_OF_THE_HOUSE.walkOff; t <= AT_MAILBOX; t += 1 / TIMELINE_FPS)
     expect(Math.cos(rundschreibenTibikAt(t).rotationY), seconds(t)).toBeLessThan(0.5);
 });
 
 test("walking to the Papiertonne past the Restmüll and back to the door, his bin-side arm stays in: as he plays it, neither arm ever reaches into a bin, its lid or what sticks out of it", { timeout: 300_000 }, () => {
   const into: string[] = [];
-  for (let t = 0; t <= RUNDSCHREIBEN_DURATION; t += 1 / FPS) {
+  for (let t = 0; t <= RUNDSCHREIBEN_DURATION; t += 1 / TIMELINE_FPS) {
     const bins = rundschreibenSolids(solveRundschreiben(t)).filter((s) => /Papier|Restmüll|Bio/.test(s.name));
     const authored = asCharacter(rundschreibenTibikAt(t));
     for (const which of ["leftArm", "rightArm"] as const) {

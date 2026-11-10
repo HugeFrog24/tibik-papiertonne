@@ -3,20 +3,20 @@ import { doorFrame, doorLeaf } from "../../building/doors";
 import { TIBIK_DOOR, doorLanding, landingNormal } from "../../building/stairwell";
 import { round6 } from "../../characters/scalar";
 import type { ArmPose } from "../../characters/skeleton";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { KAREN_SKELETON } from "../../Karen/rig";
 import type { Hold } from "../../physics/holds";
 import { floorLevel } from "../../street/building";
 
 export const LATER_FRAMES = 207;
 
-export const LATER = LATER_FRAMES / FPS;
+export const LATER = LATER_FRAMES / TIMELINE_FPS;
 
 export const GREETING_CUT_FRAMES = 99;
 
 const GREETING_ENDS = 34.8;
 
-export const later = (t: number) => round6(t + LATER - (t >= GREETING_ENDS ? GREETING_CUT_FRAMES / FPS : 0));
+export const later = (t: number) => round6(t + LATER - (t >= GREETING_ENDS ? GREETING_CUT_FRAMES / TIMELINE_FPS : 0));
 
 export const BANGING = {
   tuck: [29.4, 29.8] as const,
@@ -68,7 +68,7 @@ export const BLOW_HOLDS: readonly Hold[] = BANGING.blows.map((at, i) => ({
   arm: "leftArm",
   reach: round6(at - BLOW.lead),
   grip: at,
-  release: round6(at + 1 / FPS),
+  release: round6(at + 1 / TIMELINE_FPS),
   done: round6(at + BLOW.tail),
   target: (t: number) => doorLeaf(TIBIK_DOOR, doorShiverAt(t)),
   near: (t: number) => blowPoint(t).addScaledVector(landingNormal(TIBIK_DOOR, doorShiverAt(t)), HAND_RADIUS + ON_THE_LEAF),

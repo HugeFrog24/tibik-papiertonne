@@ -2,7 +2,7 @@ import type { Matrix4 } from "three";
 import { bedroomSolids, type CurtainOpen } from "../../building/bedroomShape";
 import type { Solid } from "../../physics/collision";
 import type { Hold } from "../../physics/holds";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { memoWithArms } from "../../physics/memoSolve";
 import type { ArmHistory } from "../../physics/armHistory";
 import { BINS } from "../../street/layout";
@@ -51,4 +51,4 @@ const solve = (t: number, history: ArmHistory): NachtruheState => {
   return { ...world, ...street, tibik, keys: null };
 };
 
-export const solveNachtruhe = memoWithArms(FPS, solve);
+export const solveNachtruhe = memoWithArms(TIMELINE_FPS, solve);

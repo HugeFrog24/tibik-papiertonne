@@ -1,6 +1,5 @@
 import { ambienceOf } from "../../street/sceneAmbience";
 import { touchdownTimes } from "../../characters/gait";
-import { FPS } from "../../frameRate";
 import { SHOTS, cameraAt, shotAt } from "./cameras";
 import { KEYS, phoneCues } from "./calls";
 import { KLINGELSTURM_DURATION, LINES, bellStorm } from "./choreography";
@@ -154,7 +153,7 @@ const hisDoorCues = (): BellCue[] => [
 ];
 
 const hisSteps = (): BellCue[] => {
-  const steps = touchdownTimes(tibikGait(), KLINGELSTURM_DURATION, FPS);
+  const steps = touchdownTimes(tibikGait(), KLINGELSTURM_DURATION);
   const behind = steps.filter(
     (t) => !inTheFlur(t) && t < EXIT_SOUNDS.doorOpens,
   );

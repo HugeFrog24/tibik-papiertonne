@@ -1,4 +1,4 @@
-import { FPS } from "../frameRate";
+import { TIMELINE_FPS } from "../frameRate";
 import type { Vec3 } from "../toon/primitives";
 import { ENTRANCE_LAMP } from "./layout";
 
@@ -16,10 +16,10 @@ export const sensorSwitchesOn = (rootAt: RootAt, range: number, until = SENSOR.h
   if (cached !== undefined) return cached;
   const [lx, , lz] = ENTRANCE_LAMP.center;
   let at = Infinity;
-  for (let f = 0; f <= until * FPS; f++) {
-    const [x, , z] = rootAt(f / FPS);
+  for (let f = 0; f <= until * TIMELINE_FPS; f++) {
+    const [x, , z] = rootAt(f / TIMELINE_FPS);
     if (Math.hypot(x - lx, z - lz) <= range) {
-      at = f / FPS;
+      at = f / TIMELINE_FPS;
       break;
     }
   }

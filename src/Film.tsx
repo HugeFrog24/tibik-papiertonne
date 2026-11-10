@@ -1,14 +1,18 @@
-import { AbsoluteFill, Sequence, Series, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Sequence, Series, useVideoConfig } from "remotion";
 import { StreetAmbience } from "./street/StreetAmbience";
 import { Score } from "./sound/Score";
 import { MAIN_STREET } from "./sound/music";
 import { SCENE_COMPONENTS } from "./sceneComponents";
-import { FPS, SCENES, FILM_AMBIENCE, FILM_FRAMES } from "./timeline";
+import { TIMELINE_FPS, SCENES, FILM_AMBIENCE, FILM_FRAMES } from "./timeline";
+import { renderFrame } from "./frameRate";
+import type { RenderRate } from "./renderRate";
+import { useSeconds } from "./useSeconds";
 import { MixGain } from "./sound/MixAudio";
 import { filmFadeAt } from "./sound/filmFade";
 
-export const Film: React.FC = () => {
-  const fade = filmFadeAt(useCurrentFrame() / FPS, FILM_FRAMES / FPS);
+export const Film: React.FC<RenderRate> = () => {
+  const { fps } = useVideoConfig();
+  const fade = filmFadeAt(useSeconds(), FILM_FRAMES / TIMELINE_FPS);
   return (
     <MixGain.Provider value={fade}>
       <AbsoluteFill>
@@ -16,11 +20,11 @@ export const Film: React.FC = () => {
           {SCENES.map(({ name, frames, skip }) => {
             const Scene = SCENE_COMPONENTS[name];
             return (
-              <Series.Sequence key={name} name={name} durationInFrames={frames}>
+              <Series.Sequence key={name} name={name} durationInFrames={renderFrame(frames / TIMELINE_FPS, fps)}>
                 {skip ? (
                   <Sequence
                     name={`${name} from where the film joins it`}
-                    from={-Math.round(skip * FPS)}
+                    from={-renderFrame(skip, fps)}
                     layout="none"
                   >
                     <Scene ambience={false} />

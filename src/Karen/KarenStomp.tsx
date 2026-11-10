@@ -2,6 +2,7 @@ import { MixAudio } from "../sound/MixAudio";
 import { nuancedTake } from "../sound/takes";
 import { FOOTSTEP_TAKES, footstepName } from "../sound/footsteps";
 import { useVideoConfig } from "remotion";
+import { renderFrame } from "../frameRate";
 import { sfxSource } from "../sound/SoundCues";
 
 export type StompRoom = "street" | "stairwell" | "door";
@@ -65,7 +66,7 @@ export const KarenStomps: React.FC<{
       {times.map((t, i) => (
         <KarenStomp
           key={t}
-          frame={Math.round(t * fps)}
+          frame={renderFrame(t, fps)}
           index={i}
           room={roomAt ? roomAt(t) : room}
         />

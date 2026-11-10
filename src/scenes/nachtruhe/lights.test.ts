@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { RAIN } from "../../sound/rain";
 import { rainLevelAt } from "./soundCues";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { OPENINGS, flatWindow, openingsOf, type Opening } from "../../street/building";
 import { WEATHER } from "../../weather/overcast";
 import { PANE, curtainPanels } from "../../building/bedroomShape";
@@ -9,7 +9,7 @@ import { NACHTRUHE_DURATION, NACHTRUHE_SHOTS } from "./cameras";
 import { FAR, HIS, LIGHTS, nachtruheWorldAt } from "./choreography";
 import { DAWN, DRONE, KAREN_OUT } from "./timeline";
 
-const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * FPS) + 1 }, (_, f) => f / FPS);
+const frames = Array.from({ length: Math.round(NACHTRUHE_DURATION * TIMELINE_FPS) + 1 }, (_, f) => f / TIMELINE_FPS);
 const shot = (name: string) => NACHTRUHE_SHOTS.find((s) => s.name === name)!;
 const firstOn = (lit: (t: number) => boolean) => frames.find(lit) ?? Infinity;
 const lastOn = (lit: (t: number) => boolean) => [...frames].reverse().find(lit) ?? -Infinity;

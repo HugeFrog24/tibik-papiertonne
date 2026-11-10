@@ -9,12 +9,15 @@ import { Tibik } from "../../Tibik/Tibik";
 import { ShotCameras } from "../../toon/ShotCameras";
 import { SHOTS, storyTime } from "./cameras";
 import { solveTreppenhaus } from "./solve";
+import { betweenTicks } from "../../physics/betweenTicks";
+import { storyJumpsIn } from "../../toon/shots";
 import { TreppenhausSound } from "./TreppenhausSound";
+
+const shownAt = betweenTicks((filmTime: number) => solveTreppenhaus(storyTime(filmTime)), storyJumpsIn(SHOTS));
 
 const Stairwell: React.FC = () => {
   const filmTime = useSeconds();
-  const { tibik, tibikDoor, haustuer, tibikLever, haustuerLever, lights } =
-    solveTreppenhaus(storyTime(filmTime));
+  const { tibik, tibikDoor, haustuer, tibikLever, haustuerLever, lights } = shownAt(filmTime);
   return (
     <>
       <StairwellLighting lights={lights} spill={flurSpill(tibikDoor)} />

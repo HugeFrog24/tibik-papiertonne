@@ -362,4 +362,4 @@ export const MORNING_HOLDS: readonly Hold[] = [
   }),
 ];
 
-export const bedroomStepTimes = (fps: number) => [...touchdownTimes(toBedGait(), SIT_BACK[0], fps), ...touchdownTimes(toWindowGait(), MORNING[1], fps)];
+export const bedroomStepTimes = () => [...touchdownTimes(toBedGait(), SIT_BACK[0]), ...touchdownTimes(toWindowGait(), MORNING[1])];

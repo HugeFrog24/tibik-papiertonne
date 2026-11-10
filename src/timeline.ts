@@ -11,15 +11,15 @@ import type { SceneAmbience } from "./street/sceneAmbience";
 import { PAPIERTONNEN_AMBIENCE } from "./scenes/papiertonnen/soundCues";
 import { HAUSMUELL_AMBIENCE } from "./scenes/hausmuell/soundCues";
 
-export { FPS } from "./frameRate";
-import { FPS } from "./frameRate";
-export const TREPPENHAUS_FRAMES = Math.round(TREPPENHAUS_DURATION * FPS);
-export const PAPIERTONNEN_FRAMES = Math.round(PAPIERTONNEN_DURATION * FPS);
-export const HAUSMUELL_FRAMES = Math.round(HAUSMUELL_DURATION * FPS);
-export const KLINGELSTURM_FRAMES = Math.round(KLINGELSTURM_DURATION * FPS);
-export const NACHTRUHE_FRAMES = Math.round(NACHTRUHE_DURATION * FPS);
-export const NACHTRUHE_FILM_FRAMES = Math.round((NACHTRUHE_DURATION - NACHTRUHE_FILM_JOINS) * FPS);
-export const RUNDSCHREIBEN_FRAMES = Math.round(RUNDSCHREIBEN_DURATION * FPS);
+export { TIMELINE_FPS } from "./frameRate";
+import { TIMELINE_FPS } from "./frameRate";
+export const TREPPENHAUS_FRAMES = Math.round(TREPPENHAUS_DURATION * TIMELINE_FPS);
+export const PAPIERTONNEN_FRAMES = Math.round(PAPIERTONNEN_DURATION * TIMELINE_FPS);
+export const HAUSMUELL_FRAMES = Math.round(HAUSMUELL_DURATION * TIMELINE_FPS);
+export const KLINGELSTURM_FRAMES = Math.round(KLINGELSTURM_DURATION * TIMELINE_FPS);
+export const NACHTRUHE_FRAMES = Math.round(NACHTRUHE_DURATION * TIMELINE_FPS);
+export const NACHTRUHE_FILM_FRAMES = Math.round((NACHTRUHE_DURATION - NACHTRUHE_FILM_JOINS) * TIMELINE_FPS);
+export const RUNDSCHREIBEN_FRAMES = Math.round(RUNDSCHREIBEN_DURATION * TIMELINE_FPS);
 export type SceneName = "Treppenhaus" | "Papiertonnen" | "Hausmuell" | "Klingelsturm" | "Nachtruhe" | "Rundschreiben";
 export type FilmScene = { readonly name: SceneName; readonly frames: number; readonly ambience: SceneAmbience; readonly skip?: number | undefined };
 export const SCENES: readonly FilmScene[] = [
@@ -30,16 +30,16 @@ export const SCENES: readonly FilmScene[] = [
   { name: "Nachtruhe", frames: NACHTRUHE_FILM_FRAMES, ambience: NACHTRUHE_AMBIENCE, skip: NACHTRUHE_FILM_JOINS },
   { name: "Rundschreiben", frames: RUNDSCHREIBEN_FRAMES, ambience: RUNDSCHREIBEN_AMBIENCE },
 ];
-export const wholeFrames = (scene: FilmScene) => scene.frames + Math.round((scene.skip ?? 0) * FPS);
+export const wholeFrames = (scene: FilmScene) => scene.frames + Math.round((scene.skip ?? 0) * TIMELINE_FPS);
 const SCENE_FRAMES = SCENES.map((scene) => scene.frames);
 const startFrame = (scene: number) => SCENE_FRAMES.slice(0, scene).reduce((sum, frames) => sum + frames, 0);
 export const FILM_FRAMES = startFrame(SCENE_FRAMES.length);
-export const PAPIERTONNEN_FROM = startFrame(1) / FPS;
-export const HAUSMUELL_FROM = startFrame(2) / FPS;
-export const KLINGELSTURM_FROM = startFrame(3) / FPS;
-export const NACHTRUHE_FROM = startFrame(4) / FPS;
+export const PAPIERTONNEN_FROM = startFrame(1) / TIMELINE_FPS;
+export const HAUSMUELL_FROM = startFrame(2) / TIMELINE_FPS;
+export const KLINGELSTURM_FROM = startFrame(3) / TIMELINE_FPS;
+export const NACHTRUHE_FROM = startFrame(4) / TIMELINE_FPS;
 export const NACHTRUHE_STORY_ZERO = NACHTRUHE_FROM - NACHTRUHE_FILM_JOINS;
-export const RUNDSCHREIBEN_FROM = startFrame(5) / FPS;
+export const RUNDSCHREIBEN_FROM = startFrame(5) / TIMELINE_FPS;
 
 export const TIME_JUMPS: readonly {
   readonly from: string;
@@ -61,7 +61,7 @@ const sceneAtFrame = (frame: number) => {
 
 const heardInTheFilm = (pick: (ambience: SceneAmbience) => (t: number) => number) => (frame: number) => {
   const { scene, start } = sceneAtFrame(frame);
-  return pick(scene.ambience)((frame - start) / FPS + (scene.skip ?? 0));
+  return pick(scene.ambience)((frame - start) / TIMELINE_FPS + (scene.skip ?? 0));
 };
 
 export const filmIndoors = heardInTheFilm((a) => a.indoors);
@@ -71,7 +71,7 @@ export const filmHush = heardInTheFilm((a) => a.hush);
 export const filmDuck = heardInTheFilm((a) => a.duck);
 
 export const FILM_AMBIENCE: SceneAmbience = {
-  indoors: (t) => filmIndoors(Math.round(t * FPS)),
-  hush: (t) => filmHush(Math.round(t * FPS)),
-  duck: (t) => filmDuck(Math.round(t * FPS)),
+  indoors: (t) => filmIndoors(Math.round(t * TIMELINE_FPS)),
+  hush: (t) => filmHush(Math.round(t * TIMELINE_FPS)),
+  duck: (t) => filmDuck(Math.round(t * TIMELINE_FPS)),
 };

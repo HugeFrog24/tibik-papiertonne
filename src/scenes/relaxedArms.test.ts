@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import type { ArmPose } from "../characters/skeleton";
 import { ARM_REST, ARM_TUCK } from "../Tibik/rig";
-import { FPS } from "../frameRate";
+import { TIMELINE_FPS } from "../frameRate";
 import type { TibikFrame } from "../Tibik/character";
 import { ENTRY as HOME_AT_DUSK, WALK_ROUND } from "./nachtruhe/timeline";
 import { solveNachtruhe } from "./nachtruhe/solve";
@@ -19,9 +19,9 @@ const SPARE = 0.05;
 const TUCKED_UP = (ARM_REST.raise + ARM_TUCK.raise) / 2;
 
 const strideOf = ([from, to]: readonly [number, number]) => {
-  const first = Math.ceil((from + STEADY.in) * FPS);
-  const last = Math.floor((to - STEADY.out) * FPS);
-  return Array.from({ length: last - first + 1 }, (_, i) => (first + i) / FPS);
+  const first = Math.ceil((from + STEADY.in) * TIMELINE_FPS);
+  const last = Math.floor((to - STEADY.out) * TIMELINE_FPS);
+  return Array.from({ length: last - first + 1 }, (_, i) => (first + i) / TIMELINE_FPS);
 };
 
 const hanging = (arm: ArmPose) => arm.raise <= HANGING.raise && arm.elbow <= HANGING.elbow;

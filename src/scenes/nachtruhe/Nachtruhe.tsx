@@ -21,7 +21,8 @@ import { blanketLie, underTheFleece } from "./bedroom";
 import { cameraAt, inTheBedroom, lightingAt } from "./cameras";
 import { NachtruheSound } from "./NachtruheSound";
 import { solveNachtruhe, type NachtruheState } from "./solve";
-import { DRONE, DUSK } from "./timeline";
+import { betweenTicks } from "../../physics/betweenTicks";
+import { DRONE, DUSK, STORY_JUMPS } from "./timeline";
 
 const roomLight = (state: NachtruheState) => ({ lamps: state.lamps, daylight: daylightOf(state.look), streetGlow: state.lampsOn ? 1 : 0 });
 
@@ -54,7 +55,7 @@ const Outside: React.FC<{ readonly t: number; readonly state: NachtruheState }> 
 
 const Scene: React.FC = () => {
   const t = useSeconds();
-  const state = solveNachtruhe(t);
+  const state = betweenTicks(solveNachtruhe, STORY_JUMPS)(t);
   const tibik = <Tibik position={state.tibik.position} rotationY={state.tibik.rotationY} pose={state.tibik.pose} tilt={state.tibik.tilt} />;
   if (inTheBedroom(t))
     return (
@@ -78,7 +79,7 @@ const Scene: React.FC = () => {
 };
 
 const Lighting: React.FC<{ readonly t: number }> = ({ t }) => {
-  const state = solveNachtruhe(t);
+  const state = betweenTicks(solveNachtruhe, STORY_JUMPS)(t);
   const lit = lightingAt(t);
   return (
     <>
@@ -90,7 +91,7 @@ const Lighting: React.FC<{ readonly t: number }> = ({ t }) => {
 
 export const Nachtruhe: React.FC<{ readonly ambience?: boolean }> = ({ ambience = true }) => {
   const t = useSeconds();
-  const { look } = solveNachtruhe(t);
+  const { look } = betweenTicks(solveNachtruhe, STORY_JUMPS)(t);
   return (
     <Sky look={look}>
       <ToonCanvas name="Nachtruhe – 3D">

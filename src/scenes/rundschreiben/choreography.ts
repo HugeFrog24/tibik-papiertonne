@@ -176,8 +176,8 @@ export const tibikGait = tibikGaitOf(
   entranceGround,
 );
 
-export const footstepTimes = (fps: number): number[] =>
-  touchdownTimes(tibikGait(), RUNDSCHREIBEN_DURATION, fps);
+export const footstepTimes = (): number[] =>
+  touchdownTimes(tibikGait(), RUNDSCHREIBEN_DURATION);
 
 export const rundschreibenTibikAt = (t: number): TibikFrame => {
   const { x, z, yaw: rotationY, y = 0 } = rootAt(t);

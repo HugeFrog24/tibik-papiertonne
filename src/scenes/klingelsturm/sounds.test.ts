@@ -9,7 +9,7 @@ import { soundSeconds } from "../../sound/soundLength";
 import { SHOTS, cameraAt } from "./cameras";
 import { CODA } from "./cigarette";
 import { tibikAt } from "./door";
-import { FPS } from "../../timeline";
+import { TIMELINE_FPS } from "../../timeline";
 import { HOLD_MUSIC, KEYS, phoneCues } from "./calls";
 import { LINES } from "./choreography";
 import { KLINGELSTURM_DURATION, karenStandGait } from "./choreography";
@@ -24,7 +24,7 @@ import { bandShare, brightness, lowShare, peakOf, rmsDb, tail } from "../../soun
 import { expectFilesCredited, expectSfx } from "../../sound/creditChecks";
 import { BLOW_TAKES } from "./offenceCues";
 
-const FRAME = 1 / FPS;
+const FRAME = 1 / TIMELINE_FPS;
 
 const cueNear = (sound: RegExp, at: number) =>
   doorCues().find((c) => sound.test(c.sound) && Math.abs(c.at - at) < FRAME);
@@ -42,7 +42,7 @@ test("his door is heard on the landing: latch and door when he opens it to the s
   heard(/metalLatch/, SHUT[1] + 0.03, "the latch catching");
 });
 
-const hisSteps = () => touchdownTimes(tibikGait(), KLINGELSTURM_DURATION, FPS);
+const hisSteps = () => touchdownTimes(tibikGait(), KLINGELSTURM_DURATION);
 
 test("his steps behind the shut door are heard muffled on the landing, one per footfall", () => {
   const behind = hisSteps().filter(
@@ -85,7 +85,7 @@ test("her red key clicks when she hangs up on the answering machine", () => {
 });
 
 test("her stomps heard while the camera is in his Flur come through his door, muffled", () => {
-  const steps = touchdownTimes(karenStandGait(), KLINGELSTURM_DURATION, FPS);
+  const steps = touchdownTimes(karenStandGait(), KLINGELSTURM_DURATION);
   const inside = steps.filter(inTheFlur);
   expect(inside.length).toBeGreaterThan(0);
   for (const t of inside) expect(stompRoomAt(t), t.toFixed(2)).toBe("door");

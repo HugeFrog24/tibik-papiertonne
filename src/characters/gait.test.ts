@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { FPS } from "../timeline";
+import { TIMELINE_FPS } from "../timeline";
 import { Euler, Matrix4, Quaternion, Vector3 } from "three";
 import { KAREN_REST, KAREN_SKELETON } from "../Karen/rig";
 import { collide, obb, origin } from "../physics/collision";
@@ -73,7 +73,7 @@ import { bedroomFloor, toBedGait, toWindowGait } from "../scenes/nachtruhe/bedro
 import { DUSK, MORNING, SIT_BACK, WALK_ROUND } from "../scenes/nachtruhe/timeline";
 import { solveNachtruhe } from "../scenes/nachtruhe/solve";
 
-const framesBetween = (from: number, to: number) => framesThrough(from, to).map((t) => Math.round(t * FPS));
+const framesBetween = (from: number, to: number) => framesThrough(from, to).map((t) => Math.round(t * TIMELINE_FPS));
 
 const SIDES = [1, -1] as const;
 const TWIST_SAMPLING = (1 * Math.PI) / 180;
@@ -181,7 +181,7 @@ const STAIRS = (() => {
 })();
 
 const PAPIERTONNEN_FRAMES = Array.from(
-  { length: PAPIERTONNEN_DURATION * FPS },
+  { length: PAPIERTONNEN_DURATION * TIMELINE_FPS },
   (_, f) => f,
 );
 const HAUSMUELL_STEP_WINDOWS: readonly (readonly [number, number])[] = [
@@ -191,27 +191,27 @@ const HAUSMUELL_STEP_WINDOWS: readonly (readonly [number, number])[] = [
 const inStepWindow = (t: number) =>
   HAUSMUELL_STEP_WINDOWS.some(([a, b]) => t >= a && t <= b);
 const HAUSMUELL_FRAMES = Array.from(
-  { length: Math.round(HAUSMUELL_DURATION * FPS) },
+  { length: Math.round(HAUSMUELL_DURATION * TIMELINE_FPS) },
   (_, f) => f,
-).filter((f) => inStepWindow(f / FPS) || f % 4 === 0);
+).filter((f) => inStepWindow(f / TIMELINE_FPS) || f % 4 === 0);
 
 const TREPPENHAUS_FRAMES = Array.from(
-  { length: Math.floor(TREPPENHAUS_STORY_END * FPS) + 1 },
+  { length: Math.floor(TREPPENHAUS_STORY_END * TIMELINE_FPS) + 1 },
   (_, f) => f,
 );
 const KLINGELSTURM_KAREN_FRAMES = Array.from(
-  { length: Math.round(KLINGELSTURM_DURATION * FPS) },
+  { length: Math.round(KLINGELSTURM_DURATION * TIMELINE_FPS) },
   (_, f) => f,
 );
-const KLINGELSTURM_TIBIK_FRAMES = Array.from({ length: Math.round(EXIT.end * FPS) }, (_, f) => f);
+const KLINGELSTURM_TIBIK_FRAMES = Array.from({ length: Math.round(EXIT.end * TIMELINE_FPS) }, (_, f) => f);
 
 const WALKERS: Walker[] = [
   {
     name: "Tibik (Nachtruhe, home at dusk)",
     skeleton: RIG,
     plan: duskGait,
-    frames: framesBetween(0, DUSK[1] - 1 / FPS),
-    at: (f) => solveNachtruhe(f / FPS).tibik,
+    frames: framesBetween(0, DUSK[1] - 1 / TIMELINE_FPS),
+    at: (f) => solveNachtruhe(f / TIMELINE_FPS).tibik,
     ground: entranceGround,
   },
   {
@@ -219,7 +219,7 @@ const WALKERS: Walker[] = [
     skeleton: RIG,
     plan: toBedGait,
     frames: framesBetween(DUSK[1], SIT_BACK[0]),
-    at: (f) => solveNachtruhe(f / FPS).tibik,
+    at: (f) => solveNachtruhe(f / TIMELINE_FPS).tibik,
     ground: bedroomFloor,
   },
   {
@@ -227,15 +227,15 @@ const WALKERS: Walker[] = [
     skeleton: RIG,
     plan: toWindowGait,
     frames: framesBetween(WALK_ROUND[0], MORNING[1]),
-    at: (f) => solveNachtruhe(f / FPS).tibik,
+    at: (f) => solveNachtruhe(f / TIMELINE_FPS).tibik,
     ground: bedroomFloor,
   },
   {
     name: "Tibik (Rundschreiben)",
     skeleton: RIG,
     plan: rundschreibenTibikGait,
-    frames: Array.from({ length: Math.round(RUNDSCHREIBEN_DURATION * FPS) }, (_, f) => f),
-    at: (f) => solveRundschreiben(f / FPS).tibik,
+    frames: Array.from({ length: Math.round(RUNDSCHREIBEN_DURATION * TIMELINE_FPS) }, (_, f) => f),
+    at: (f) => solveRundschreiben(f / TIMELINE_FPS).tibik,
     ground: entranceGround,
   },
   {
@@ -243,7 +243,7 @@ const WALKERS: Walker[] = [
     skeleton: RIG,
     plan: treppenhausTibikGait,
     frames: TREPPENHAUS_FRAMES,
-    at: (f) => solveTreppenhaus(f / FPS).tibik,
+    at: (f) => solveTreppenhaus(f / TIMELINE_FPS).tibik,
     ground: groundWithMats,
   },
   {
@@ -251,7 +251,7 @@ const WALKERS: Walker[] = [
     skeleton: RIG,
     plan: klingelsturmTibikGait,
     frames: KLINGELSTURM_TIBIK_FRAMES,
-    at: (f) => solveKlingelsturm(f / FPS).tibik,
+    at: (f) => solveKlingelsturm(f / TIMELINE_FPS).tibik,
     ground: groundWithMats,
   },
   {
@@ -260,7 +260,7 @@ const WALKERS: Walker[] = [
     plan: karenStandGait,
     frames: KLINGELSTURM_KAREN_FRAMES,
     at: (f) => ({
-      ...solveKlingelsturm(f / FPS).karen,
+      ...solveKlingelsturm(f / TIMELINE_FPS).karen,
       skeleton: KAREN_SKELETON,
     }),
     ground: groundWithMats,
@@ -270,7 +270,7 @@ const WALKERS: Walker[] = [
     skeleton: RIG,
     plan: tibikGait,
     frames: PAPIERTONNEN_FRAMES,
-    at: (f) => solvePapiertonnen(f / FPS).tibik,
+    at: (f) => solvePapiertonnen(f / TIMELINE_FPS).tibik,
     ground: stairwellGround,
   },
   {
@@ -278,24 +278,24 @@ const WALKERS: Walker[] = [
     skeleton: RIG,
     plan: hausmuellTibikGait,
     frames: HAUSMUELL_FRAMES,
-    at: (f) => solveHausmuell(f / FPS).tibik,
+    at: (f) => solveHausmuell(f / TIMELINE_FPS).tibik,
   },
   {
     name: "Karen",
     skeleton: KAREN_SKELETON,
     plan: karenGait,
     frames: HAUSMUELL_FRAMES,
-    at: (f) => solveHausmuell(f / FPS).karen,
+    at: (f) => solveHausmuell(f / TIMELINE_FPS).karen,
   },
   {
     name: "Tibik (stairs)",
     skeleton: RIG,
     plan: () => STAIRS.plan,
     frames: Array.from(
-      { length: Math.round((STAIRS.END + 1) * FPS) },
-      (_, f) => f - Math.round(0.5 * FPS),
+      { length: Math.round((STAIRS.END + 1) * TIMELINE_FPS) },
+      (_, f) => f - Math.round(0.5 * TIMELINE_FPS),
     ),
-    at: (f) => STAIRS.placementAt(f / FPS),
+    at: (f) => STAIRS.placementAt(f / TIMELINE_FPS),
     ground: STAIRS.stairs,
   },
 ];
@@ -330,11 +330,11 @@ describe.each(WALKERS)(
         const problems = frames.flatMap((frame) => {
           const placement = at(frame);
           return SIDES.flatMap((side) => {
-            const foot = footAt(gait, side, frame / FPS);
+            const foot = footAt(gait, side, frame / TIMELINE_FPS);
             if (!foot.plant) return [];
             const ahead = new Vector3(0, 0, 1).applyQuaternion(foot.rotation);
             const twist = Math.abs(wrapAngle(Math.atan2(ahead.x, ahead.z) - placement.rotationY));
-            return twist > PLANTED_TURN + TWIST_SAMPLING ? [`${(frame / FPS).toFixed(2)} s ${sideName(side)}: ${((twist * 180) / Math.PI).toFixed(0)} degrees`] : [];
+            return twist > PLANTED_TURN + TWIST_SAMPLING ? [`${(frame / TIMELINE_FPS).toFixed(2)} s ${sideName(side)}: ${((twist * 180) / Math.PI).toFixed(0)} degrees`] : [];
           });
         });
         expect(problems.slice(0, 8)).toEqual([]);
@@ -346,7 +346,7 @@ describe.each(WALKERS)(
       { timeout: 300_000 },
       () => {
         const gait = plan();
-        const [first, last] = [frames[0] / FPS, frames[frames.length - 1] / FPS];
+        const [first, last] = [frames[0] / TIMELINE_FPS, frames[frames.length - 1] / TIMELINE_FPS];
         const swings = SIDES.flatMap((side) =>
           gait.plants[legOf(side)].slice(1).map((to, i) => ({ side, from: gait.plants[legOf(side)][i], to })),
         ).filter(({ from, to }) => Number.isFinite(from.off) && Number.isFinite(to.on) && from.off >= first && to.on <= last && Math.hypot(to.ankle.x - from.ankle.x, to.ankle.z - from.ankle.z) >= 0.1);
@@ -366,8 +366,8 @@ describe.each(WALKERS)(
       { timeout: 300_000 },
       () => {
         const fast = frames.slice(1).flatMap((frame, i) => {
-          const rate = Math.abs(wrapAngle(at(frame).rotationY - at(frames[i]).rotationY)) * FPS;
-          return frame === frames[i] + 1 && rate > FASTEST_TURN + 1e-6 ? [`${(frame / FPS).toFixed(2)} s: ${rate.toFixed(1)} rad/s`] : [];
+          const rate = Math.abs(wrapAngle(at(frame).rotationY - at(frames[i]).rotationY)) * TIMELINE_FPS;
+          return frame === frames[i] + 1 && rate > FASTEST_TURN + 1e-6 ? [`${(frame / TIMELINE_FPS).toFixed(2)} s: ${rate.toFixed(1)} rad/s`] : [];
         });
         expect(fast.length, fast.join("; ")).toBeLessThanOrEqual(STILL_SPINNING[name] ?? 0);
       },
@@ -380,11 +380,11 @@ describe.each(WALKERS)(
         const gait = plan();
         const straight = SIDES.flatMap((side) =>
           gait.plants[legOf(side)]
-            .filter((p) => Number.isFinite(p.on) && p.on * FPS >= frames[0] && p.on * FPS <= frames[frames.length - 1] - 1)
+            .filter((p) => Number.isFinite(p.on) && p.on * TIMELINE_FPS >= frames[0] && p.on * TIMELINE_FPS <= frames[frames.length - 1] - 1)
             .flatMap((p) => {
-              const frame = Math.ceil(p.on * FPS - 1e-6);
+              const frame = Math.ceil(p.on * TIMELINE_FPS - 1e-6);
               const knee = at(frame).pose[legOf(side)].knee;
-              return knee < LANDING.knee - 0.02 ? [`${(frame / FPS).toFixed(2)} s ${sideName(side)}: knee ${knee.toFixed(2)}`] : [];
+              return knee < LANDING.knee - 0.02 ? [`${(frame / TIMELINE_FPS).toFixed(2)} s ${sideName(side)}: knee ${knee.toFixed(2)}`] : [];
             }),
         );
         expect(straight.slice(0, 8)).toEqual([]);
@@ -400,8 +400,8 @@ describe.each(WALKERS)(
           const placement = at(frame);
           return SIDES.flatMap((side) => {
             const hip = origin(legFramesOf(skeleton, placement, side).hip);
-            const beyond = hip.distanceTo(footAt(gait, side, frame / FPS).ankle) - legLength(skeleton);
-            return beyond > 0.001 ? [`${(frame / FPS).toFixed(2)} s ${sideName(side)}: ${mm(beyond)} beyond reach`] : [];
+            const beyond = hip.distanceTo(footAt(gait, side, frame / TIMELINE_FPS).ankle) - legLength(skeleton);
+            return beyond > 0.001 ? [`${(frame / TIMELINE_FPS).toFixed(2)} s ${sideName(side)}: ${mm(beyond)} beyond reach`] : [];
           });
         });
         expect(problems.slice(0, 8)).toEqual([]);
@@ -422,8 +422,8 @@ describe.each(WALKERS)(
             footColliders(skeleton, at(frame), side),
           );
           SIDES.forEach((side, i) => {
-            const was = footAt(plan(), side, frames[k - 1] / FPS).plant;
-            const is = footAt(plan(), side, frame / FPS).plant;
+            const was = footAt(plan(), side, frames[k - 1] / TIMELINE_FPS).plant;
+            const is = footAt(plan(), side, frame / TIMELINE_FPS).plant;
             if (!is) {
               return;
             }
@@ -528,7 +528,7 @@ describe.each(WALKERS)(
           }
           for (const side of SIDES) {
             const foot = footColliders(skeleton, placement, side);
-            const planted = footAt(plan(), side, frame / FPS).plant;
+            const planted = footAt(plan(), side, frame / TIMELINE_FPS).plant;
             if (planted) {
               const lowest = Math.min(...foot.map(bottom));
               if (lowest < standing(planted) - 0.001) {
@@ -539,8 +539,8 @@ describe.each(WALKERS)(
               continue;
             }
             const plants = plan().plants[legOf(side)];
-            const landing = plants.findIndex((p) => frame / FPS < p.on);
-            if (landing > 0 && frame / FPS > plants[landing - 1].off) {
+            const landing = plants.findIndex((p) => frame / TIMELINE_FPS < p.on);
+            if (landing > 0 && frame / TIMELINE_FPS > plants[landing - 1].off) {
               const key = side * plants[landing].on;
               const clearance =
                 Math.min(...foot.map(aboveGround)) - soleRest(skeleton);
@@ -586,7 +586,7 @@ describe.each(WALKERS)(
       for (const frame of frames) {
         expect(
           SIDES.some(
-            (side) => footAt(plan(), side, frame / FPS).plant !== null,
+            (side) => footAt(plan(), side, frame / TIMELINE_FPS).plant !== null,
           ),
         ).toBe(true);
       }
@@ -594,21 +594,21 @@ describe.each(WALKERS)(
   },
 );
 
-describe("footstep sounds land on the actual foot plants", () => {
+describe("footstep sounds land on the actual foot plants, on the timeline's 30 fps grid whatever rate the film renders at", () => {
   const sounds: [string, () => number[], () => GaitPlan, number][] = [
     [
       "Tibik, Papiertonnen",
-      () => footstepTimes(FPS),
+      () => footstepTimes(),
       tibikGait,
       PAPIERTONNEN_DURATION,
     ],
     [
       "Tibik, Hausmuell",
-      () => tibikFootsteps(FPS),
+      () => tibikFootsteps(),
       hausmuellTibikGait,
       HAUSMUELL_DURATION,
     ],
-    ["Karen", () => karenFootsteps(FPS), karenGait, HAUSMUELL_DURATION],
+    ["Karen", () => karenFootsteps(), karenGait, HAUSMUELL_DURATION],
   ];
   test.each(sounds)("%s", (_, times, plan, duration) => {
     const plants = plan()
@@ -616,8 +616,9 @@ describe("footstep sounds land on the actual foot plants", () => {
       .filter((t) => t >= 0 && t < duration);
     expect(plants.length).toBeGreaterThan(0);
     expect(times()).toHaveLength(plants.length);
-    times().forEach((t, i) => { expect(Math.abs(t - plants[i])).toBeLessThanOrEqual(1 / FPS); },
+    times().forEach((t, i) => { expect(Math.abs(t - plants[i])).toBeLessThanOrEqual(1 / TIMELINE_FPS); },
     );
+    for (const t of times()) expect(Math.abs(t * TIMELINE_FPS - Math.round(t * TIMELINE_FPS)), `${t} s`).toBeLessThan(1e-9);
   });
 });
 
@@ -776,8 +777,8 @@ describe("on stairs", () => {
   test("a foot lands without jumping", () => {
     const problems: string[] = [];
     for (const side of SIDES) {
-      for (let t = -0.5; t <= END + 0.5; t += 1 / FPS) {
-        const moved = footAt(plan, side, t + 1 / FPS).ankle.distanceTo(
+      for (let t = -0.5; t <= END + 0.5; t += 1 / TIMELINE_FPS) {
+        const moved = footAt(plan, side, t + 1 / TIMELINE_FPS).ankle.distanceTo(
           footAt(plan, side, t).ankle,
         );
         if (moved > 0.1)

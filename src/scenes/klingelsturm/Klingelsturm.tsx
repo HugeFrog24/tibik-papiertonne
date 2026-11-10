@@ -24,6 +24,8 @@ import { CarriedParcel, FlurProps } from "./FlurProps";
 import { swapAt } from "./exit";
 import { KlingelsturmSound } from "./KlingelsturmSound";
 import { solveKlingelsturm } from "./solve";
+import { betweenTicks } from "../../physics/betweenTicks";
+import { storyJumpsIn } from "../../toon/shots";
 import { klingelsturmSprayAt } from "./spray";
 
 export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
@@ -44,7 +46,7 @@ export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
     lighter,
     tibikHere,
     ash,
-  } = solveKlingelsturm(t);
+  } = betweenTicks(solveKlingelsturm, storyJumpsIn(SHOTS))(t);
   return (
     <Sky>
       <ToonCanvas name="Klingelsturm – 3D" fisheye={shotAt(t).name === "Spyhole"}>

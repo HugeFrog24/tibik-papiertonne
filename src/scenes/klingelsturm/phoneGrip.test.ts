@@ -5,7 +5,7 @@ import { armColliders } from "../../characters/skeleton";
 import { asKaren } from "../../Karen/character";
 import { PHONE } from "../../Karen/phoneShape";
 import { KAREN_SKELETON } from "../../Karen/rig";
-import { FPS } from "../../timeline";
+import { TIMELINE_FPS } from "../../timeline";
 import { OUTLINE } from "../../toon/primitives";
 import { phoneAt } from "./calls";
 import { SHOTS } from "./cameras";
@@ -17,8 +17,8 @@ const FIST = Math.max(...KAREN_SKELETON.hand.size);
 
 const heldTimes = (step = 1) => {
   const times: number[] = [];
-  for (let f = 0; f < KLINGELSTURM_DURATION * FPS; f += step)
-    if (phoneAt(f / FPS).inHand) times.push(f / FPS);
+  for (let f = 0; f < KLINGELSTURM_DURATION * TIMELINE_FPS; f += step)
+    if (phoneAt(f / TIMELINE_FPS).inHand) times.push(f / TIMELINE_FPS);
   return times;
 };
 

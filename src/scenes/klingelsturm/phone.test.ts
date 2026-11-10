@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { doorLeaf } from "../../building/doors";
 import { seenBy } from "../../dialogue/screen";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { obbCorners } from "../../physics/collision";
 import { phoneAt } from "./calls";
 import { cameraAt, shotAt, storyTime } from "./cameras";
@@ -39,17 +39,17 @@ test("her phone is checked against the landing as it is at that moment, his open
 const OUTLINE_MARGIN = -0.01;
 
 test("her phone comes into and leaves her hand only where no camera sees it happen: on a cut, or out of frame, outline included", () => {
-  const frames = Math.round(KLINGELSTURM_DURATION * FPS);
-  const inHand = (f: number) => phoneAt(storyTime(f / FPS)).inHand;
+  const frames = Math.round(KLINGELSTURM_DURATION * TIMELINE_FPS);
+  const inHand = (f: number) => phoneAt(storyTime(f / TIMELINE_FPS)).inHand;
   const seenHappening: string[] = [];
   for (let f = 1; f <= frames; f++) {
     if (inHand(f) === inHand(f - 1)) continue;
-    const cut = shotAt(f / FPS).name !== shotAt((f - 1) / FPS).name;
+    const cut = shotAt(f / TIMELINE_FPS).name !== shotAt((f - 1) / TIMELINE_FPS).name;
     if (cut) continue;
     const held = inHand(f) ? f : f - 1;
-    const state = solveKlingelsturm(storyTime(held / FPS));
-    const seen = obbCorners(phoneObb(state.karen, state.phone!)).filter((c) => seenBy(c, cameraAt(held / FPS), OUTLINE_MARGIN));
-    if (seen.length > 0) seenHappening.push(`${inHand(f) ? "appears" : "vanishes"} at ${(f / FPS).toFixed(3)} s in "${shotAt(f / FPS).name}"`);
+    const state = solveKlingelsturm(storyTime(held / TIMELINE_FPS));
+    const seen = obbCorners(phoneObb(state.karen, state.phone!)).filter((c) => seenBy(c, cameraAt(held / TIMELINE_FPS), OUTLINE_MARGIN));
+    if (seen.length > 0) seenHappening.push(`${inHand(f) ? "appears" : "vanishes"} at ${(f / TIMELINE_FPS).toFixed(3)} s in "${shotAt(f / TIMELINE_FPS).name}"`);
   }
   expect(seenHappening).toEqual([]);
 });

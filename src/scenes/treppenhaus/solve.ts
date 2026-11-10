@@ -10,7 +10,7 @@ import {
 } from "../../physics/collision";
 import { reachArm } from "../../physics/grip";
 import { characterViolations, guardLean, type Character } from "../../physics/guards";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { memoWithArms } from "../../physics/memoSolve";
 import { AUTHORED_ARM, FINAL_ARM, lastArm, type ArmClock, type ArmHistory } from "../../physics/armHistory";
 import { worldSolids } from "../../street/layout";
@@ -127,7 +127,7 @@ const solve = (t: number, history: ArmHistory): TreppenhausState => {
   };
 };
 
-export const solveTreppenhaus = memoWithArms(FPS, solve);
+export const solveTreppenhaus = memoWithArms(TIMELINE_FPS, solve);
 
 export const treppenhausEnd = () => solveTreppenhaus(STORY_END);
 

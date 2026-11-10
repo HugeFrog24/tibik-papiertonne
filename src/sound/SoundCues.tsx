@@ -1,6 +1,7 @@
 import { MixAudio } from "./MixAudio";
 import { staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { present } from "../toon/present";
+import { renderFrame } from "../frameRate";
 
 export type FileCue = {
   readonly name: string;
@@ -44,18 +45,18 @@ export const trimsOf = (
   cue: { readonly skip?: number | undefined; readonly length?: number | undefined; readonly rate?: number | undefined },
   fps: number,
 ) => ({
-  trimBefore: cue.skip === undefined ? undefined : Math.round(cue.skip * fps),
+  trimBefore: cue.skip === undefined ? undefined : renderFrame(cue.skip, fps),
   trimAfter:
     cue.length === undefined
       ? undefined
-      : Math.round(((cue.skip ?? 0) + cue.length * (cue.rate ?? 1)) * fps),
+      : renderFrame((cue.skip ?? 0) + cue.length * (cue.rate ?? 1), fps),
 });
 
 export const cueFrames = (
   cue: { readonly at: number; readonly skip?: number | undefined; readonly length?: number | undefined; readonly rate?: number | undefined },
   fps: number,
 ) => {
-  const from = Math.round(cue.at * fps);
+  const from = renderFrame(cue.at, fps);
   const { trimBefore = 0, trimAfter } = trimsOf(cue, fps);
   return { from, end: trimAfter === undefined ? Infinity : from + (trimAfter - trimBefore) / (cue.rate ?? 1) };
 };
@@ -92,7 +93,7 @@ export const SoundCues: React.FC<{
       {cues.filter((cue) => playable(cue, fps)).map((cue) => {
         const t = timeOf(cue.at);
         if (t === null) return null;
-        const from = Math.round(t * fps);
+        const from = renderFrame(t, fps);
         const volume = cueVolume(cue, fps);
         return (
           <MixAudio

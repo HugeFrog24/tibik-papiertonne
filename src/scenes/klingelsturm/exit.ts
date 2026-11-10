@@ -14,16 +14,16 @@ import {
   treppenhausRoot,
   treppenhausSteps,
 } from "../treppenhaus/choreography";
-import { FPS } from "../../frameRate";
+import { TIMELINE_FPS } from "../../frameRate";
 import { CRADLE } from "./carry";
 import { AT_THE_CHEST } from "./parcel";
 
 export const EXIT = {
-  offset: (1468 + LATER_FRAMES - GREETING_CUT_FRAMES) / FPS,
+  offset: (1468 + LATER_FRAMES - GREETING_CUT_FRAMES) / TIMELINE_FPS,
   pickup: later(47.3),
   walk: later(47.45),
   nod: 0.9,
-  wait: 20 / FPS,
+  wait: 20 / TIMELINE_FPS,
   end: later(57.7),
 };
 

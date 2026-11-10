@@ -661,6 +661,16 @@ composition under "Scenes" in the Studio:
   close, is painted at the render's pixel density (10,000 px a metre at 1080p,
   up to twice that), so its type stays crisp in 4K and 1080p is unchanged.
   **(test)**
+- **Frame rate**: the film is timed, cut, solved and checked on a 30 fps
+  timeline and renders at 30, 60, 90 or 120 fps: the `fps` prop of the Film
+  and every scene (Studio's Props panel steps through them; on the command
+  line `--props='{"fps":60}'`), 30 unless set (owner, 2026-11-10). Every
+  cut, line, sound and footstep starts on the same instant at every rate. A
+  frame between two of the timeline's ticks is drawn from the ticks around it
+  (poses part way, a turn the short way round, a switch or a colour as on the
+  tick before; where the story jumps at a cut, the tick before), never solved
+  anew, so the 30 fps checks cover what 60 to 120 fps shows. Motion blur keeps
+  its 180° shutter, so a 60 fps frame is half as blurred. **(test)**
 - A shot may name its own **9:16 camera**; it keeps the 16:9 camera's place
   and only turns it (or changes its lens): it follows whoever acts, aims
   between two people, or holds a moment. Without one, the 9:16 frame is the

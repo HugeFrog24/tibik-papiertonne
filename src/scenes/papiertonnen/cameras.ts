@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { lazy } from "../../physics/lazy";
-import { FPS, aspectOf } from "../../frameRate";
+import { TIMELINE_FPS, aspectOf } from "../../frameRate";
 import { ENTRANCE_X, FACADE_Z } from "../../street/building";
 import { onFrames, camerasOf, following, type CameraSetup, type Shot } from "../../toon/shots";
 import { mouthInWorld } from "../../dialogue/screen";
@@ -86,12 +86,12 @@ const yawPitchOf = (setup: CameraSetup) => {
 const STEADY_TURN = 0.03;
 
 const RATE_LIMITED = lazy(() => {
-  const first = Math.ceil(PULL_BACK * FPS);
-  const last = Math.ceil(PAPIERTONNEN_DURATION * FPS);
-  let [yaw, pitch] = yawPitchOf(followingHim(first / FPS));
+  const first = Math.ceil(PULL_BACK * TIMELINE_FPS);
+  const last = Math.ceil(PAPIERTONNEN_DURATION * TIMELINE_FPS);
+  let [yaw, pitch] = yawPitchOf(followingHim(first / TIMELINE_FPS));
   const turns: [number, number][] = [[yaw, pitch]];
   for (let f = first + 1; f <= last; f++) {
-    const [t, before] = [f / FPS, (f - 1) / FPS];
+    const [t, before] = [f / TIMELINE_FPS, (f - 1) / TIMELINE_FPS];
     const [wantYaw, wantPitch] = yawPitchOf(followingHim(t));
     const [shotYaw0, shotPitch0] = yawPitchOf(foundBoxCamera(before));
     const [shotYaw1, shotPitch1] = yawPitchOf(foundBoxCamera(t));
@@ -108,7 +108,7 @@ const RATE_LIMITED = lazy(() => {
 const foundBoxTall = (t: number): CameraSetup => {
   if (t <= PULL_BACK) return followingHim(t);
   const { first, turns } = RATE_LIMITED();
-  const at = Math.min(turns.length - 1, Math.max(0, t * FPS - first));
+  const at = Math.min(turns.length - 1, Math.max(0, t * TIMELINE_FPS - first));
   const [i, k] = [Math.floor(at), at - Math.floor(at)];
   const [a, b] = [turns[i], turns[Math.min(i + 1, turns.length - 1)]];
   const [yaw, pitch] = [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];

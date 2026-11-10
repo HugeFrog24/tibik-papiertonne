@@ -1,7 +1,7 @@
-import { Color, Group, Mesh, PerspectiveCamera, Plane, PlaneGeometry, Scene, Vector3, type WebGLRenderer } from "three";
+import { Color, Group, LinearMipmapLinearFilter, Mesh, PerspectiveCamera, Plane, PlaneGeometry, Scene, Vector3, type WebGLRenderer } from "three";
 import { expect, test } from "vitest";
 import { ROAD_Y } from "../street/building";
-import { REFLECTS, aimMirrorLens, filmsInView, filmsShowing, newMirror, reflecting, renderMirror, withoutReflections } from "./mirror";
+import { REFLECTS, aimMirrorLens, filmsInView, filmsShowing, mirrorBlur, newMirror, reflecting, renderMirror, withoutReflections } from "./mirror";
 
 const lookingFrom = (position: Vector3, target: Vector3, up = new Vector3(0, 1, 0)) => {
   const camera = new PerspectiveCamera(50, 16 / 9, 0.03, 500);
@@ -73,13 +73,13 @@ test("while a mirror is drawn, every surface that shows a mirror is hidden, so n
   expect([...films.map((f) => f.visible), wall.visible]).toEqual([true, true, false, true]);
 });
 
-const recordingRenderer = (seen: boolean[]) => {
+const recordingRenderer = (seen: boolean[], [width, height]: readonly [number, number] = [1920, 1080]) => {
   let target: unknown = null;
   let clear = new Color(0.2, 0.4, 0.6);
   let alpha = 1;
   return {
     clippingPlanes: [] as Plane[],
-    getDrawingBufferSize: (v: { set: (x: number, y: number) => unknown }) => v.set(1920, 1080),
+    getDrawingBufferSize: (v: { set: (x: number, y: number) => unknown }) => v.set(width, height),
     getRenderTarget: () => target,
     setRenderTarget: (t: unknown) => { target = t; },
     getClearColor: (c: Color) => c.copy(clear),
@@ -164,4 +164,25 @@ test("a mirror finds the glass that shows it in the scene as it stands when it i
   expect(filmsShowing(side, door)).toEqual([doorGlass]);
   expect(filmsShowing(scene, facade)).toEqual([pane, elsewhere]);
   expect(reflecting(facade)).toMatchObject(REFLECTS);
+});
+
+test("a mirror keeps pre-shrunk copies of its picture, so a blurred lookup can read it as finely as at 1080p and no finer", () => {
+  const { texture } = newMirror().target;
+  expect(texture.generateMipmaps).toBe(true);
+  expect(texture.minFilter).toBe(LinearMipmapLinearFilter);
+});
+
+test("a mirror's blur is measured in 1080p pixels: drawn for a 1080p frame (either format) one blur step is one of its own pixels and it reads its own picture; for 4K two of them and the copy half the size; for 8K four and the copy a quarter the size; so a reflection is blurred alike at every resolution", () => {
+  const camera = lookingFrom(new Vector3(3, 1.7, 6), new Vector3(0, 2, -2.2));
+  const blurAt = (size: readonly [number, number]) => {
+    const mirror = newMirror();
+    renderMirror(recordingRenderer([], size) as unknown as WebGLRenderer, new Scene(), camera, mirror, planes["the facade"], { resolution: 0.5, clearance: 0.002 });
+    const { lod, texel } = mirrorBlur(mirror, 0.5);
+    return { lod, texel: texel.map((t) => +(1 / t).toFixed(6)) };
+  };
+  expect(blurAt([1920, 1080])).toEqual({ lod: 0, texel: [960, 540] });
+  expect(blurAt([1080, 1920])).toEqual({ lod: 0, texel: [540, 960] });
+  expect(blurAt([3840, 2160])).toEqual({ lod: 1, texel: [960, 540] });
+  expect(blurAt([7680, 4320])).toEqual({ lod: 2, texel: [960, 540] });
+  expect(blurAt([4320, 7680])).toEqual({ lod: 2, texel: [540, 960] });
 });

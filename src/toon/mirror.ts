@@ -1,4 +1,5 @@
-import { Color, Frustum, Matrix4, Mesh, PerspectiveCamera, Vector2, Vector3, WebGLRenderTarget, type Object3D, type Plane, type Scene, type WebGLRenderer } from "three";
+import { Color, Frustum, LinearMipmapLinearFilter, Matrix4, Mesh, PerspectiveCamera, Vector2, Vector3, WebGLRenderTarget, type Object3D, type Plane, type Scene, type WebGLRenderer } from "three";
+import { FORMATS } from "../frameRate";
 import { withClearColor } from "./renderState";
 
 export const REFLECTS = { reflects: true } as const;
@@ -45,7 +46,19 @@ const NOTHING = new Color(0, 0, 0);
 
 export type Mirror = { readonly target: WebGLRenderTarget; readonly matrix: Matrix4; readonly lens: PerspectiveCamera };
 
-export const newMirror = (): Mirror => ({ target: new WebGLRenderTarget(1, 1), matrix: new Matrix4(), lens: new PerspectiveCamera() });
+export const newMirror = (): Mirror => ({
+  target: new WebGLRenderTarget(1, 1, { generateMipmaps: true, minFilter: LinearMipmapLinearFilter }),
+  matrix: new Matrix4(),
+  lens: new PerspectiveCamera(),
+});
+
+const SHORTER_SIDE_AT_1080P = Math.min(FORMATS.wide.width, FORMATS.wide.height);
+
+export const mirrorBlur = (mirror: Mirror, resolution: number) => {
+  const { width, height } = mirror.target;
+  const density = Math.max(1, Math.min(width, height) / (SHORTER_SIDE_AT_1080P * resolution));
+  return { lod: Math.log2(density), texel: [density / width, density / height] as const };
+};
 
 export const renderMirror = (
   gl: WebGLRenderer,

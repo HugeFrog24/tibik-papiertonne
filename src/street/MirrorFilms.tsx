@@ -22,7 +22,7 @@ import {
 } from "three";
 import type { Glazing } from "../building/glazedLeaf";
 import { NO_INK } from "../toon/inkWidth";
-import { filmsInView, filmsShowing, newMirror, reflecting, renderMirror, type Mirror } from "../toon/mirror";
+import { filmsInView, filmsShowing, mirrorBlur, newMirror, reflecting, renderMirror, type Mirror } from "../toon/mirror";
 import type { Vec3 } from "../toon/primitives";
 import { useDisposable } from "../toon/useDisposable";
 import type { WeatherLook } from "../weather/overcast";
@@ -58,6 +58,7 @@ uniform sampler2D mirror;
 uniform float f0;
 uniform float fresh;
 uniform vec2 texel;
+uniform float lod;
 uniform float spread;
 uniform vec3 skyTop;
 uniform vec3 skyBottom;
@@ -78,10 +79,10 @@ void main() {
   float c = clamp(dot(toEye, vFacing), 0.0, 1.0);
   float f = f0 + (1.0 - f0) * pow(1.0 - c, 5.0);
   vec2 uv = vMirror.xy / vMirror.w;
-  vec4 seen = 2.0 * texture2D(mirror, uv);
+  vec4 seen = 2.0 * textureLod(mirror, uv, lod);
   for (int k = 0; k < ${RING}; k++) {
     float a = 6.2831853 * (float(k) + 0.5) / ${RING}.0;
-    seen += texture2D(mirror, uv + vec2(cos(a), sin(a)) * spread * texel);
+    seen += textureLod(mirror, uv + vec2(cos(a), sin(a)) * spread * texel, lod);
   }
   seen /= ${RING + 2}.0;
   vec3 bounce = reflect(-toEye, vFacing);
@@ -103,6 +104,7 @@ type MirrorUniforms = {
   readonly mirrorMatrix: { value: Mirror["matrix"] };
   readonly fresh: { value: number };
   readonly texel: { value: Vector2 };
+  readonly lod: { value: number };
 };
 
 type SkyUniforms = { readonly skyTop: { value: Color }; readonly skyBottom: { value: Color } };
@@ -145,7 +147,7 @@ const cornersOf = (film: Mesh): Vec3[] => {
 const useMirrorPass = (anchor: RefObject<Object3D | null>, z: number, views: readonly Rect[]): Pass => {
   const pass = useMemo(() => {
     const mirror = newMirror();
-    return { mirror, uniforms: { mirror: { value: mirror.target.texture }, mirrorMatrix: { value: mirror.matrix }, fresh: { value: 0 }, texel: { value: new Vector2(1, 1) } } };
+    return { mirror, uniforms: { mirror: { value: mirror.target.texture }, mirrorMatrix: { value: mirror.matrix }, fresh: { value: 0 }, texel: { value: new Vector2(1, 1) }, lod: { value: 0 } } };
   }, []);
   useEffect(() => () => { pass.mirror.target.dispose(); }, [pass]);
   useFrame(({ gl, scene, camera }) => {
@@ -157,7 +159,9 @@ const useMirrorPass = (anchor: RefObject<Object3D | null>, z: number, views: rea
     const eye = new Vector3().setFromMatrixPosition(camera.matrixWorld).toArray();
     if (!filmsInView(camera, plane, filmsShowing(at, pass.mirror)).some((film) => seenFromInside(eye, cornersOf(film), views))) return;
     renderMirror(gl, scene, camera, pass.mirror, plane, GLASS_REFLECTION);
-    pass.uniforms.texel.value.set(1 / pass.mirror.target.width, 1 / pass.mirror.target.height);
+    const blur = mirrorBlur(pass.mirror, GLASS_REFLECTION.resolution);
+    pass.uniforms.texel.value.set(...blur.texel);
+    pass.uniforms.lod.value = blur.lod;
     pass.uniforms.fresh.value = 1;
   }, 0);
   return pass;

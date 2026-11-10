@@ -2,7 +2,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import { AddEquation, Color, CustomBlending, DataTexture, LinearFilter, OneFactor, PerspectiveCamera, Plane, RedFormat, ShaderMaterial, SrcColorFactor, UnsignedByteType, Vector3, Vector4, ZeroFactor } from "three";
 import { NO_INK } from "../toon/inkWidth";
-import { REFLECTS, newMirror, renderMirror, type Mirror } from "../toon/mirror";
+import { REFLECTS, mirrorBlur, newMirror, renderMirror, type Mirror } from "../toon/mirror";
 import { PUDDLES } from "../weather/overcast";
 import type { WeatherLook } from "../weather/overcast";
 import { RAIN_SHADOW, rainShadowMask, wetShade } from "../weather/rainShadow";
@@ -43,6 +43,7 @@ uniform vec4 puddles[${PUDDLES.length}];
 uniform vec4 pits[${DRY_PITS.length}];
 uniform float time;
 uniform float smear;
+uniform float lod;
 ${OPEN_SKY}
 varying vec4 vMirror;
 varying vec3 vWorld;
@@ -67,7 +68,7 @@ void main() {
   uv += puddle * 0.002 * vec2(sin(vWorld.x * 31.0 + time * 11.0), cos(vWorld.z * 27.0 + time * 9.0));
   float spread = smear * (1.0 - puddle);
   vec4 sum = vec4(0.0);
-  for (int k = -3; k <= 3; k++) sum += texture2D(mirror, uv + vec2(0.0, float(k) * spread));
+  for (int k = -3; k <= 3; k++) sum += textureLod(mirror, uv + vec2(0.0, float(k) * spread), lod * (1.0 - puddle));
   vec4 seen = sum / 7.0;
   vec3 colour = seen.rgb + mix(skyBottom, skyTop, c) * (1.0 - seen.a);
   gl_FragColor = vec4(colour, r);
@@ -152,6 +153,7 @@ const filmMaterial = (mirror: Mirror) =>
       pits: { value: DRY_PITS.map((p) => new Vector4(p.x[0], p.z[0], p.x[1], p.z[1])) },
       time: { value: 0 },
       smear: { value: SMEAR },
+      lod: { value: 0 },
       shadow: { value: rainShadowTexture() },
       shadowBox: { value: SHADOW_BOX },
     },
@@ -180,7 +182,11 @@ export const WetGround: React.FC<{ readonly look: WeatherLook; readonly time: nu
   });
   useFrame(({ gl, scene, camera }) => {
     if (wet <= 0 || !(camera instanceof PerspectiveCamera)) return;
-    for (const mirror of mirrors) renderMirror(gl, scene, camera, mirror, new Plane(UP, -mirror.y), WET_FILM);
+    for (const mirror of mirrors) {
+      renderMirror(gl, scene, camera, mirror, new Plane(UP, -mirror.y), WET_FILM);
+      const film = materials.get(mirror.y);
+      if (film) film.uniforms["lod"].value = mirrorBlur(mirror, WET_FILM.resolution).lod;
+    }
   }, 0);
   if (wet <= 0) return null;
   return (

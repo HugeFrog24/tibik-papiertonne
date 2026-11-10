@@ -20,3 +20,13 @@ test("the wet ground and the glass draw their mirrors the same way, hiding every
     expect(code).not.toMatch(/gl\.render\(/);
   }
 });
+
+test("the glass and the wet ground read their mirror only through the copy their blur calls for, set from mirrorBlur each frame: at 1080p their own picture as before, at 4K and 8K the copy as fine as 1080p, except a puddle, which is not blurred and reads the full picture", () => {
+  for (const file of ["MirrorFilms.tsx", "WetGround.tsx"]) {
+    const code = source(file);
+    expect(code, file).not.toContain("texture2D(mirror");
+    expect(code, file).toContain("textureLod(mirror, ");
+    expect(code, file).toContain("mirrorBlur(");
+  }
+  expect(source("WetGround.tsx")).toContain("lod * (1.0 - puddle)");
+});

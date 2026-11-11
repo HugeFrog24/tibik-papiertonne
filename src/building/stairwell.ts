@@ -582,13 +582,6 @@ export const doorbellButtonCenter = (door: Door): Vec3 => [
   doorLanding(door) *
     (DOORBELL.proud + DOORBELL.size[2] / 2 + DOORBELL_BUTTON.size[2] / 2),
 ];
-export const doorbellButtonSolid = (door: Door): Obb =>
-  obb(
-    `${door.name} doorbell button`,
-    doorFrame(door, 0),
-    DOORBELL_BUTTON.size,
-    doorbellButtonCenter(door),
-  );
 export const doorbellSolid = (door: Door): Obb =>
   obb(
     `${door.name} doorbell`,

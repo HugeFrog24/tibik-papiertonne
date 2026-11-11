@@ -33,7 +33,7 @@ import { RIG, type TibikPose } from "./rig";
 
 const IRIS_INK = 0.006;
 
-export { ARM_REST, TIBIK_REST, type ArmPose, type TibikPose } from "./rig";
+export { TIBIK_REST, type TibikPose } from "./rig";
 
 export const TIBIK_GREEN = "#2f6a2c";
 export const TIBIK_CREAM = "#efdf8c";

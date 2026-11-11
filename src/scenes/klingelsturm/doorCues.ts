@@ -247,5 +247,3 @@ export const doorCues = (): BellCue[] => [
 ];
 
 export const KLINGELSTURM_AMBIENCES = byLanguage((language) => ambienceOf({ indoors: () => 1, duck: duckUnderLines("klingelsturm", () => LINES, undefined, language, KLINGELSTURM_CLOCKS[language]) }));
-
-export const KLINGELSTURM_AMBIENCE = KLINGELSTURM_AMBIENCES.de;

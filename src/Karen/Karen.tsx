@@ -59,19 +59,7 @@ import { HairClump, rootSignOf } from "./HairClump";
 import { scalpGeometry } from "./scalpShape";
 import { KAREN_SKELETON as K, type HairPiece } from "./rig";
 
-export {
-  KAREN_ARM_HIPS,
-  KAREN_ARM_POINT,
-  KAREN_ARM_REST,
-  KAREN_ARM_RUN,
-  KAREN_HEAD_LIMITS,
-  KAREN_POINTING,
-  KAREN_REST,
-  KAREN_RUN_SWING,
-  KAREN_SKELETON,
-  karenRunArm,
-  limitKarenHead,
-} from "./rig";
+export { KAREN_POINTING, KAREN_REST } from "./rig";
 
 export const KAREN_LILAC = "#e3a8fd";
 export const KAREN_TROUSERS = "#715279";

@@ -1,4 +1,4 @@
-import { doorFrame, doorLeaf, roomDoor, type Door } from "./doors";
+import { doorLeaf, roomDoor, type Door } from "./doors";
 import { floorLevel, toPart, type Part } from "../street/building";
 import { DOOR_FRAME, doorwayFrameParts } from "./doorwayFrame";
 import { FLUR, LIVING_DOORWAY } from "./stairwell";
@@ -37,9 +37,6 @@ export const LIVING_GLASS = {
   h: livingGlassHeight,
   opacity: 0.5,
 };
-
-export const livingDoorFrame = (angle: number) =>
-  doorFrame(LIVING_DOOR, angle);
 
 export const livingDoorLeaf = (angle: number) => doorLeaf(LIVING_DOOR, angle);
 

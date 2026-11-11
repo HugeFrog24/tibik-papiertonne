@@ -50,7 +50,6 @@ import type { Line } from "../../dialogue/line";
 import { WALK_SWAY, WALK_SWING, swungArm, walkArmKeys, walkingOn } from "../../Tibik/walkingArms";
 import type { Vec3 } from "../../toon/primitives";
 
-export const ARRIVE = 0;
 export const OUT_OF_THE_HOUSE = { release: -3, held: 1.5, shut: closerEnd(-3), walkOff: 1.2 };
 export const AT_MAILBOX = 4;
 export const KEY_IN = 4.6;
@@ -79,11 +78,8 @@ export const KLOPPEN = after(LID_UP[1], 0.4);
 export const LID_THUD = KLOPPEN[1] + 0.3;
 export const TO_DOOR = after(LID_THUD + 0.2, 2);
 export const ENTRY = enterHouse(TO_DOOR[1]);
-export const UNLOCK = ENTRY.unlock;
-export const IN = ENTRY.in;
 const NACHLAUF = 2.5;
 export const RUNDSCHREIBEN_DURATION = ENTRY.doorShut + NACHLAUF;
-export const BACK_STEP = ENTRY.backStep;
 const WALKING_IN = ENTRY.walkingIn;
 
 const LID_OPEN = 0.26;

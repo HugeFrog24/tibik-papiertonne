@@ -1,7 +1,7 @@
 import { closerSwing } from "../../street/facade";
 import { ENTRY, OUT_OF_THE_HOUSE } from "./choreography";
 
-export { HAUSTUER_WIDE, HOUSE_KEY_INSERT, outerCylinderAt } from "../enterHouse";
+export { HAUSTUER_WIDE } from "../enterHouse";
 
 export const DOOR_SHUT = ENTRY.doorShut;
 export const HOUSE_KEYS_IN_LOCK = ENTRY.keysInLock;

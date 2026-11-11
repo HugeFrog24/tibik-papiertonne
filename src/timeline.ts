@@ -84,6 +84,5 @@ export const filmIndoors = heardInTheFilm(SCENES, (a) => a.indoors);
 
 export const filmHush = heardInTheFilm(SCENES, (a) => a.hush);
 
-export const filmDuck = heardInTheFilm(SCENES, (a) => a.duck);
 
 export const FILM_AMBIENCE: SceneAmbience = FILM_AMBIENCES.de;

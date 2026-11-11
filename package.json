@@ -10,11 +10,12 @@
   "private": true,
   "dependencies": {
     "@react-three/fiber": "9.8.2",
+    "@remotion/bundler": "4.0.541",
     "@remotion/cli": "4.0.541",
     "@remotion/google-fonts": "4.0.541",
     "@remotion/media": "4.0.541",
+    "@remotion/renderer": "4.0.541",
     "@remotion/three": "4.0.541",
-    "@remotion/zod-types": "4.0.541",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "remotion": "4.0.541",
@@ -30,6 +31,7 @@
     "jscpd": "^5.4.2",
     "prettier": "3.8.1",
     "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2",
     "vitest": "5.1.0"
   },
   "scripts": {

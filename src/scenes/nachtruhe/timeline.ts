@@ -19,7 +19,6 @@ export const ONTO_THE_EDGE = SIT_BACK[0] + 0.35;
 export const SWING_IN = after(SIT_BACK[1] - 0.3, 1);
 export const LIE_DOWN = after(SWING_IN[1] - 0.4, 1.3);
 export const PULL_OVER = after(LIE_DOWN[1] + 0.2, 1.4);
-export const BLANKET_UP = PULL_OVER;
 export const LAMP_OFF = atFrame(PULL_OVER[1] + 0.8);
 export const EVENING = [DUSK[1], LAMP_OFF + 1.6] as const;
 

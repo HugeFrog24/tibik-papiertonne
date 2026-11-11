@@ -11,8 +11,6 @@ export const RECORD_SCRATCH = SHOUT - 0.1;
 
 export const HAUSMUELL_AMBIENCES = byLanguage((language) => ambienceOf({ duck: duckUnderLines("hausmuell", () => LINES, undefined, language) }));
 
-export const HAUSMUELL_AMBIENCE = HAUSMUELL_AMBIENCES.de;
-
 export const HAUSMUELL_CUES: readonly SoundCue[] = [
   {
     name: "Found it! (rings over the cut)",

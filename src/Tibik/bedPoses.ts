@@ -158,9 +158,3 @@ export const sittingUpInBed = (side: 1 | -1) => {
   return { skeleton: RIG, position, rotationY, pose: SITTING_UP, tilt: 0 };
 };
 
-const RESTING_GAP = 0.002;
-
-export const restingBob = (pose: Pose) => {
-  const body = bodyColliders(RIG, { position: [0, 0, 0], rotationY: 0, pose: { ...pose, bob: 0 } });
-  return BED.top + RESTING_GAP - lowestPoint([...body.torso, ...body.lowerTorso]);
-};

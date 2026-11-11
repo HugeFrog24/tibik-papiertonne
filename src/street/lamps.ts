@@ -68,7 +68,6 @@ export const lampParts = (lamp: StreetLamp): Part[] => [
 ];
 
 export const POLE_SEGMENTS = 12;
-export const POLE_FACE = (2 * Math.PI) / POLE_SEGMENTS;
 
 export type StickerDesign = "band" | "dot" | "stripe" | "club" | "note";
 

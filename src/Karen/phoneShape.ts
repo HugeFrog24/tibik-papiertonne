@@ -63,8 +63,6 @@ export const faceLocal = ([px, py]: readonly [number, number]): Vec3 => [
   PHONE.size[2] / 2,
 ];
 
-export const keyLocal = (key: Key): Vec3 => faceLocal(keyPixel(key));
-
 const SCREEN_RIGHT = SCREEN.left + SCREEN.width;
 const SCREEN_BOTTOM = SCREEN.top + SCREEN.height;
 

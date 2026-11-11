@@ -20,8 +20,6 @@ export const FOUND_IT = {
 
 export const PAPIERTONNEN_AMBIENCES = byLanguage((language) => ambienceOf({ duck: duckUnderLines("papiertonnen", () => LINES, undefined, language) }));
 
-export const PAPIERTONNEN_AMBIENCE = PAPIERTONNEN_AMBIENCES.de;
-
 export const PAPIERTONNEN_CUES: readonly FileCue[] = [
   ...haustuerShutCues(HAUSTUER_LATCHED),
   {

@@ -9,7 +9,7 @@ import { HEAD_SIZE } from "./headShape";
 import { NOSE } from "./noseShape";
 import { eyeCentre } from "./eyeShape";
 
-export type { ArmPose, Pose, Side } from "../characters/skeleton";
+export type { ArmPose, Pose } from "../characters/skeleton";
 
 const HEAD_CENTER: Vec3 = [0, 0.14, 0.235];
 

@@ -3,7 +3,7 @@ import { restPose } from "../characters/legs";
 import type { ArmPose, Pose, Skeleton } from "../characters/skeleton";
 import type { Vec3 } from "../toon/primitives";
 
-export type { ArmPose, Side } from "../characters/skeleton";
+export type { ArmPose } from "../characters/skeleton";
 export type TibikPose = Pose;
 
 const HEAD_CENTER_Y = 0.234;

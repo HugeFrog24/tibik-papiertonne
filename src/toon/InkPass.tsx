@@ -132,24 +132,22 @@ const COMPOSITE = [
   "}",
 ].join("\n");
 
-const idMaterialFor = (
-  cache: Map<Mesh, ShaderMaterial>,
-  mesh: Mesh,
-  from: Material,
-) => {
-  const { id, join } = inkIdsOf(mesh);
-  const material = new ShaderMaterial({
-    uniforms: {
-      uId: { value: id },
-      uJoinId: { value: join?.id ?? id },
-      uJoinReach: { value: join?.reach ?? 0 },
-      uInk: { value: inkOf(mesh) },
-    },
+const newIdMaterial = () =>
+  new ShaderMaterial({
+    uniforms: { uId: { value: 0 }, uJoinId: { value: 0 }, uJoinReach: { value: 0 }, uInk: { value: 0 } },
     vertexShader: ID_VERTEX,
     fragmentShader: ID_FRAGMENT,
-    side: from.side,
   });
+
+export const idMaterialOf = (cache: Map<Mesh, ShaderMaterial>, mesh: Mesh, from: Material) => {
+  const material = cache.get(mesh) ?? newIdMaterial();
   cache.set(mesh, material);
+  const { id, join } = inkIdsOf(mesh);
+  material.uniforms["uId"].value = id;
+  material.uniforms["uJoinId"].value = join?.id ?? id;
+  material.uniforms["uJoinReach"].value = join?.reach ?? 0;
+  material.uniforms["uInk"].value = inkOf(mesh);
+  material.side = from.side;
   return material;
 };
 
@@ -274,9 +272,7 @@ export const InkPass: React.FC<{ readonly fisheye?: boolean }> = ({
       const mesh = object as Mesh;
       if (Array.isArray(mesh.material)) return;
       const from = mesh.material;
-      const idMaterial =
-        idMaterials.get(mesh) ?? idMaterialFor(idMaterials, mesh, from);
-      idMaterial.side = from.side;
+      const idMaterial = idMaterialOf(idMaterials, mesh, from);
       swapped.push({ mesh, material: from });
       mesh.material = idMaterial;
     });

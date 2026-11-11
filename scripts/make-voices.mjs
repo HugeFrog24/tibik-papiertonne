@@ -14,10 +14,13 @@ const TAKES = read("takes.json");
 const EFFECTS = Object.entries(read("voiceEffects.json"));
 const LOUDNESS = read("voiceLoudness.json");
 const TONE = read("voiceTone.json");
+const ENGLISH_FIT = read("englishFit.json");
 const LEVEL = { folder: "level", limit: 0.891, within: 0.4, rounds: 4, headroom: 0.9 };
 const EFFECT_BY_NAME = Object.fromEntries(EFFECTS);
 
 const voiceOfId = (id) => id.split("_").slice(2).join("_");
+
+const tempoOf = (lang, id) => (lang === "en" ? (ENGLISH_FIT[id]?.tempo ?? 1) : 1);
 
 const effectOf = (id) => EFFECTS.find(([, effect]) => effect.voices.includes(voiceOfId(id)) || effect.takes.includes(id));
 
@@ -74,6 +77,13 @@ const filtered = (source, effect, scratch) => {
   return out;
 };
 
+const quickened = (source, tempo, scratch) => {
+  if (tempo === 1) return source;
+  const out = path.join(scratch, "quickened.wav");
+  ffmpeg(["-v", "error", "-y", "-i", source, "-ac", "1", "-ar", "48000", "-af", `atempo=${tempo}`, "-c:a", "pcm_f32le", out], source);
+  return out;
+};
+
 const toned = (source, voice, scratch) => {
   const tone = TONE[voice];
   if (!tone) return source;
@@ -90,9 +100,9 @@ const shaped = (source, effect, scratch) => {
   return speaker;
 };
 
-const leveled = (source, out, voice, effect, target, scratch) => {
+const leveled = (source, out, voice, effect, target, tempo, scratch) => {
   let current = path.join(scratch, "0.wav");
-  const input = shaped(toned(source, voice, scratch), effect, scratch);
+  const input = shaped(toned(quickened(source, tempo, scratch), voice, scratch), effect, scratch);
   ffmpeg(["-v", "error", "-y", "-i", input, "-ac", "1", "-ar", "48000", "-c:a", "pcm_f32le", current], source);
   for (let round = 1; round <= LEVEL.rounds; round++) {
     const gain = target - loudnessOf(current);
@@ -117,7 +127,7 @@ for (const [lang, takes] of Object.entries(TAKES)) {
       const target = voice + (effect?.level ?? 0);
       const out = path.join(DIALOGUE, lang, name, take.file.replace(/\.[^.]+$/, ".wav"));
       mkdirSync(path.dirname(out), { recursive: true });
-      const reached = withScratch("voice-", (scratch) => leveled(path.join(DIALOGUE, lang, take.file), out, voiceOfId(id), effect, target, scratch));
+      const reached = withScratch("voice-", (scratch) => leveled(path.join(DIALOGUE, lang, take.file), out, voiceOfId(id), effect, target, tempoOf(lang, id), scratch));
       produced.add(out);
       process.stdout.write(`${lang} ${path.relative(ROOT, out)} ${reached.toFixed(1)} LUFS (wants ${target})\n`);
     }

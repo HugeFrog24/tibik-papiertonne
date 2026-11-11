@@ -34,6 +34,14 @@ test("Karen's voice is raised two semitones with her formants moving up with it,
   expect(VOICE_TONE.karen.chain).not.toMatch(/tempo|atempo|asetrate/);
 });
 
+test("an English take the fit quickens is quickened first, by stretching it in time (atempo), never by playing it faster, which would raise its pitch, and only then toned", () => {
+  const script = readFileSync("scripts/make-voices.mjs", "utf8");
+  expect(script).toMatch(/englishFit\.json/);
+  expect(script).toMatch(/atempo=/);
+  expect(script).toMatch(/shaped\(toned\(quickened\(/);
+  expect(script).not.toMatch(/asetrate|aresample=\d/);
+});
+
 test("the voices are toned before their room: make-voices gives a voice its tone first, so his lines in the doorway ring in the stairwell with the same voice", () => {
   const script = readFileSync("scripts/make-voices.mjs", "utf8");
   expect(script).toMatch(/voiceTone\.json/);

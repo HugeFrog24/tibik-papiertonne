@@ -9,7 +9,8 @@ import { takeIdOf, voiceOf } from "./recordingScript";
 import { ALL_SPOKEN_LINES, SPOKEN } from "./spokenLines";
 import { LINES as KLINGELSTURM_LINES } from "./klingelsturm/choreography";
 import { inTheFlur } from "./klingelsturm/doorCues";
-import { LANGUAGES, VOICE, effectOf, processedFile, takeOf, voiceCues } from "./voices";
+import { LANGUAGES, VOICE, effectOf, playedTakeOf, processedFile, takeOf, tempoOf, voiceCues } from "./voices";
+import { medianPitch } from "../tooling/pitch";
 
 const AWAITING_THE_OWNER: readonly string[] = [];
 
@@ -83,10 +84,10 @@ test("every line plays a copy of its take brought to its voice's loudness, in Ge
   expect(off).toEqual([]);
 });
 
-test.skipIf(!LOCAL)("every processed take exists and runs as long as its take plus its effect's tail (make them with node scripts/make-voices.mjs)", () => {
+test.skipIf(!LOCAL)("every processed take exists and runs as long as its take as played, quickened where the English fit asks, plus its effect's tail (make them with node scripts/make-voices.mjs)", () => {
   for (const [lang, line] of inEveryLanguage(ALL_SPOKEN_LINES)) {
     const effect = effectOf(line);
-    const take = takeOf(lang, takeIdOf(line)!);
+    const take = playedTakeOf(lang, takeIdOf(line)!);
     if (!take) continue;
     const file = `public/dialogue/${lang}/${processedFile(effect, take)}`;
     expect(existsSync(file), file).toBe(true);
@@ -129,7 +130,7 @@ test("his inner voice rings like a great hall: a tail of four seconds and more a
   expect(hall.predelay).toBeGreaterThanOrEqual(0.05);
   expect(hall.wet).toBeLessThanOrEqual(-3);
   for (const [lang, line] of inEveryLanguage(ALL_SPOKEN_LINES.filter((l) => effectOf(l) === "inner"))) {
-    const take = takeOf(lang, takeIdOf(line)!)!;
+    const take = playedTakeOf(lang, takeIdOf(line)!)!;
     const file = `public/dialogue/${lang}/${processedFile("inner", take)}`;
     const ends = take.speech[0][1];
     expect(rmsAt(file, ends + 0.3), `${file} after his words`).toBeGreaterThan(-45);
@@ -139,7 +140,7 @@ test("his inner voice rings like a great hall: a tail of four seconds and more a
 
 test("his inner voice's hall stays well under his words (owner: a bit less reverb): 0.3 s after he stops it rings at least 12 dB under his speech, a second later at least 22 dB under", () => {
   for (const [lang, line] of inEveryLanguage(ALL_SPOKEN_LINES.filter((l) => effectOf(l) === "inner"))) {
-    const take = takeOf(lang, takeIdOf(line)!)!;
+    const take = playedTakeOf(lang, takeIdOf(line)!)!;
     const file = `public/dialogue/${lang}/${processedFile("inner", take)}`;
     const [from, ends] = take.speech[0];
     const speech = rmsAt(file, from, ends - from);
@@ -195,7 +196,7 @@ test("the phone voices come from her speakerphone into the stairwell: the teleph
   expect(VOICE_EFFECTS["phone-door"].room).toBe("door");
   if (!LOCAL) return;
   for (const [lang, line] of inEveryLanguage(ALL_SPOKEN_LINES.filter((l) => effectOf(l) === "phone"))) {
-    const take = takeOf(lang, takeIdOf(line)!)!;
+    const take = playedTakeOf(lang, takeIdOf(line)!)!;
     const file = `public/dialogue/${lang}/${processedFile("phone", take)}`;
     const [start, end] = take.speech[0];
     const after = rmsAt(file, end + 0.15);
@@ -240,7 +241,7 @@ const lagOf = (a: Float32Array, b: Float32Array, rate = 8000, most = 0.02) => {
 };
 
 test.skipIf(!LOCAL)("a levelled take is not shifted against the recording: its speech starts where the take's does, within a millisecond", () => {
-  for (const [lang, id] of inEveryLanguage(["hausmuell_02_tibik", "klingelsturm_04_tibik"])) {
+  for (const [lang, id] of inEveryLanguage(["hausmuell_02_tibik", "klingelsturm_04_tibik"]).filter(([lang, id]) => tempoOf(lang, id) === 1)) {
     const take = takeOf(lang, id)!;
     const lag = lagOf(samplesOf(`public/dialogue/${lang}/${take.file}`), samplesOf(`public/dialogue/${lang}/${processedFile(id.endsWith("04_tibik") ? "doorway" : undefined, take)}`));
     expect(Math.abs(lag), id).toBeLessThanOrEqual(0.001);
@@ -254,7 +255,7 @@ const envelopeOf = (samples: Float32Array, window = 40) => Float32Array.from({ l
 });
 
 test.skipIf(!LOCAL)("Karen's raised voice is not shifted against her recordings either: by its loudness, since a new pitch makes a new waveform, her speech starts where each take's does, within a millisecond over her takes and a few for any one, the raise smearing its onsets that much", { timeout: 120_000 }, () => {
-  const lags = inEveryLanguage(ALL_SPOKEN_LINES.filter((line) => voiceOf(line) === "karen" && effectOf(line) === undefined)).map(([lang, line]) => {
+  const lags = inEveryLanguage(ALL_SPOKEN_LINES.filter((line) => voiceOf(line) === "karen" && effectOf(line) === undefined)).filter(([lang, line]) => tempoOf(lang, takeIdOf(line)!) === 1).map(([lang, line]) => {
     const take = takeOf(lang, takeIdOf(line)!)!;
     return lagOf(envelopeOf(samplesOf(`public/dialogue/${lang}/${take.file}`)), envelopeOf(samplesOf(`public/dialogue/${lang}/${processedFile(undefined, take)}`)));
   });
@@ -262,4 +263,26 @@ test.skipIf(!LOCAL)("Karen's raised voice is not shifted against her recordings 
   const median = [...lags].sort((a, b) => a - b)[Math.floor(lags.length / 2)];
   expect(Math.abs(median)).toBeLessThanOrEqual(0.001);
   for (const lag of lags) expect(Math.abs(lag)).toBeLessThanOrEqual(0.005);
+});
+
+test("an English take is quickened only where the English fit asks, and only in time: as played it is shorter by its tempo, and a quickened one sounds at its own pitch", () => {
+  const quick = Object.keys(TAKES.en).filter((id) => tempoOf("en", id) > 1);
+  expect(quick.length).toBeGreaterThan(5);
+  for (const id of Object.keys(TAKES.de)) expect(tempoOf("de", id), id).toBe(1);
+  for (const id of quick) {
+    const [take, played] = [takeOf("en", id)!, playedTakeOf("en", id)!];
+    expect(played.seconds * tempoOf("en", id), id).toBeCloseTo(take.seconds, 9);
+    expect(played.speech.at(-1)![1] * tempoOf("en", id), id).toBeCloseTo(take.speech.at(-1)![1], 9);
+  }
+});
+
+test.skipIf(!LOCAL)("Tibik's quickened English takes keep his pitch: as processed each sounds nearer his take as recorded than half the rise playing it faster would give", { timeout: 120_000 }, () => {
+  const his = Object.keys(TAKES.en).filter((id) => id.endsWith("_tibik") && tempoOf("en", id) > 1);
+  expect(his.length).toBeGreaterThanOrEqual(3);
+  for (const id of his) {
+    const take = takeOf("en", id)!;
+    const cents = 1200 * Math.log2(medianPitch(`public/dialogue/en/${processedFile(undefined, take)}`) / medianPitch(`public/dialogue/en/${take.file}`));
+    const faster = 1200 * Math.log2(tempoOf("en", id));
+    expect(Math.abs(cents), id).toBeLessThan(faster / 2);
+  }
 });

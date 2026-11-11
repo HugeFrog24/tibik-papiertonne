@@ -1,0 +1,146 @@
+{
+ "hausmuell_01_karen": {
+  "from": 0.4,
+  "tempo": 1
+ },
+ "hausmuell_02_tibik": {
+  "from": 2.5,
+  "tempo": 1
+ },
+ "hausmuell_03_karen": {
+  "from": 4,
+  "tempo": 1
+ },
+ "hausmuell_04_tibik": {
+  "from": 6.2,
+  "tempo": 1
+ },
+ "hausmuell_05_tibik": {
+  "from": 8.4,
+  "tempo": 1.1067
+ },
+ "hausmuell_06_karen": {
+  "from": 11.4,
+  "tempo": 1
+ },
+ "hausmuell_07_tibik": {
+  "from": 14.3,
+  "tempo": 1
+ },
+ "hausmuell_08_karen": {
+  "from": 15.85,
+  "tempo": 1
+ },
+ "hausmuell_09_karen": {
+  "from": 16.7,
+  "tempo": 1.2105
+ },
+ "hausmuell_10_tibik": {
+  "from": 18.4,
+  "tempo": 1.1986
+ },
+ "hausmuell_11_karen": {
+  "from": 20.6,
+  "tempo": 1
+ },
+ "hausmuell_12_tibik": {
+  "from": 22,
+  "tempo": 1.0527
+ },
+ "hausmuell_13_karen": {
+  "from": 25,
+  "tempo": 1.1112
+ },
+ "klingelsturm_01_tibik": {
+  "from": 6.3,
+  "tempo": 1.0667
+ },
+ "klingelsturm_02_karen": {
+  "from": 7.2,
+  "tempo": 1
+ },
+ "klingelsturm_03_karen": {
+  "from": 8.1,
+  "tempo": 1.2352
+ },
+ "klingelsturm_04_tibik": {
+  "from": 9.45,
+  "tempo": 1
+ },
+ "klingelsturm_05_karen": {
+  "from": 10.7,
+  "tempo": 1
+ },
+ "klingelsturm_06_karen": {
+  "from": 11.95,
+  "tempo": 1.3069
+ },
+ "klingelsturm_07_tibik": {
+  "from": 14.15,
+  "tempo": 1
+ },
+ "klingelsturm_08_anrufbeantworter": {
+  "from": 20,
+  "tempo": 1
+ },
+ "klingelsturm_09_anrufbeantworter": {
+  "from": 22.128,
+  "tempo": 1
+ },
+ "klingelsturm_10_anrufbeantworter": {
+  "from": 24.622,
+  "tempo": 1
+ },
+ "klingelsturm_11_karen": {
+  "from": 27.7,
+  "tempo": 1
+ },
+ "klingelsturm_12_karen": {
+  "from": 38.5,
+  "tempo": 1
+ },
+ "klingelsturm_13_leitstelle": {
+  "from": 41.7,
+  "tempo": 1
+ },
+ "klingelsturm_14_karen": {
+  "from": 44,
+  "tempo": 1
+ },
+ "klingelsturm_15_karen": {
+  "from": 45.2,
+  "tempo": 1.0941
+ },
+ "klingelsturm_16_leitstelle": {
+  "from": 47.4,
+  "tempo": 1.2346
+ },
+ "papiertonnen_01_karen": {
+  "from": 10.55,
+  "tempo": 1
+ },
+ "rundschreiben_01_tibik-inner": {
+  "from": 12,
+  "tempo": 1
+ },
+ "rundschreiben_02_tibik-inner": {
+  "from": 16.1102,
+  "tempo": 1.0022
+ },
+ "rundschreiben_03_tibik-inner": {
+  "from": 20.3574,
+  "tempo": 1.0575
+ },
+ "rundschreiben_04_tibik-inner": {
+  "from": 26.1816,
+  "tempo": 1.1013
+ },
+ "rundschreiben_05_tibik-inner": {
+  "from": 30.9828,
+  "tempo": 1
+ },
+ "rundschreiben_06_tibik": {
+  "from": 38.300000000000004,
+  "tempo": 1
+ }
+}

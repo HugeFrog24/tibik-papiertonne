@@ -180,6 +180,8 @@ const ringback = (call: KeyPress, answered: string): PhoneCue => {
 
 const BEEP_AFTER_THE_TAPE = 0.1;
 
+export const ANSWERING_MACHINE_BEEP = CALL_LINES.find((l) => l.name === "Phone: Signalton")!.to + BEEP_AFTER_THE_TAPE;
+
 export const HOLD_MUSIC = { sound: "warteschleife", volume: 0.25, fadeOut: 0.3 };
 
 const holdMusic = (): PhoneCue => {
@@ -200,7 +202,7 @@ export const phoneCues = (): PhoneCue[] => [
   },
   ringback(KEYS[0], "Hausverwaltung"),
   holdMusic(),
-  { name: "Answering machine beep", at: CALL_LINES.find((l) => l.name === "Phone: Signalton")!.to + BEEP_AFTER_THE_TAPE, sound: "beep", volume: 0.5 },
+  { name: "Answering machine beep", at: ANSWERING_MACHINE_BEEP, sound: "beep", volume: 0.5 },
   ...DIALLED.map((d) => ({
     name: `Key ${d.digit} @${d.at}`,
     at: d.at,

@@ -2,6 +2,7 @@ import { staticFile } from "remotion";
 import type { Line } from "../dialogue/line";
 import TAKES from "../dialogue/takes.json";
 import VOICE_EFFECTS from "../dialogue/voiceEffects.json";
+import ENGLISH_FIT from "../dialogue/englishFit.json";
 import type { SoundCue } from "../sound/SoundCues";
 import { TIMELINE_FPS } from "../frameRate";
 import { takeIdOf, voiceOf } from "./recordingScript";
@@ -41,6 +42,15 @@ export const effectOf = (line: Line): Effect | undefined =>
   EFFECTS.find(([, effect]) => effect.voices.includes(voiceOf(line)) || effect.takes.includes(takeIdOf(line) ?? ""))?.[0];
 
 export const takeOf = (lang: Language, id: string): Take | undefined => (TAKES[lang] as Readonly<Record<string, Take>>)[id];
+
+export const tempoOf = (lang: Language, id: string) => (lang === "en" ? ((ENGLISH_FIT as Readonly<Partial<Record<string, { readonly tempo: number }>>>)[id]?.tempo ?? 1) : 1);
+
+export const playedTakeOf = (lang: Language, id: string): Take | undefined => {
+  const take = takeOf(lang, id);
+  const tempo = tempoOf(lang, id);
+  if (!take || tempo === 1) return take;
+  return { file: take.file, seconds: take.seconds / tempo, speech: take.speech.map((span) => span.map((at) => at / tempo)) };
+};
 
 export const LEVELED = "level";
 

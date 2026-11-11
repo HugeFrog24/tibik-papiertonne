@@ -15,7 +15,7 @@ export const ENGLISH_DRAFT: Readonly<Record<string, string>> = {
   "DAS HAT EIN NACHSPIEL!": "YOU HAVEN'T HEARD THE LAST OF THIS!",
   "Ja bitte?": "Yeah, what's up?",
   "SOFORT AUFMACHEN!": "OPEN THIS DOOR RIGHT NOW!",
-  "Worum geht es denn?": "What's this about?",
+  "Worum geht es denn?": "What's the matter?",
   "UM DEN KARTON!": "THE BOX!",
   "KAUFEN SIE SICH GEFÄLLIGST EINEN NEUEN!": "GO BUY YOURSELF A NEW ONE LIKE EVERYBODY ELSE!",
   "Der Umwelt zuliebe nicht.": "Nooo. Not for the environment's sake.",

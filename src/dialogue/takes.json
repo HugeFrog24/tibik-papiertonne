@@ -498,11 +498,11 @@
   },
   "klingelsturm_01_tibik": {
    "file": "klingelsturm_01_tibik.wav",
-   "seconds": 0.745,
+   "seconds": 1.062,
    "speech": [
     [
      0,
-     0.745
+     1.062
     ]
    ]
   },

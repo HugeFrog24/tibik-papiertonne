@@ -13,7 +13,7 @@ export const ENGLISH_DRAFT: Readonly<Record<string, string>> = {
   "…WIE BITTE?!": "…EXCUSE ME?!",
   "Schönen Tag noch, Frau Schulz.": "Have a nice day, Mrs. Schulz.",
   "DAS HAT EIN NACHSPIEL!": "YOU HAVEN'T HEARD THE LAST OF THIS!",
-  "Ja bitte?": "Yes?",
+  "Ja bitte?": "Yeah, what's up?",
   "SOFORT AUFMACHEN!": "OPEN THIS DOOR RIGHT NOW!",
   "Worum geht es denn?": "What's this about?",
   "UM DEN KARTON!": "THE BOX!",

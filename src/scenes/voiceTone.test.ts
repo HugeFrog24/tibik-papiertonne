@@ -4,7 +4,7 @@ import { expect, test } from "vitest";
 import VOICE_TONE from "../dialogue/voiceTone.json";
 import { takeIdOf, voiceOf } from "./recordingScript";
 import { ALL_SPOKEN_LINES } from "./spokenLines";
-import { effectOf, processedFile, takeOf } from "./voices";
+import { LANGUAGES, effectOf, processedFile, takeOf } from "./voices";
 
 const LOCAL = existsSync("public/dialogue/de/level");
 
@@ -49,30 +49,34 @@ const BODY = [80, 250] as const;
 const MID = [500, 1000] as const;
 const PRESENCE = [2000, 5000] as const;
 
-test.skipIf(!LOCAL)("Karen's processed takes carry her raised voice: against the mids, everything below 250 Hz sits at least 1.5 dB lower than in her takes as recorded", { timeout: 120_000 }, () => {
+test.skipIf(!LOCAL)("Karen's processed takes carry her raised voice in German and English alike: against the mids, everything below 250 Hz sits at least 1.5 dB lower than in her takes as recorded", { timeout: 240_000 }, () => {
   const lines = ALL_SPOKEN_LINES.filter((line) => voiceOf(line) === "karen" && effectOf(line) === undefined);
   expect(lines.length).toBeGreaterThanOrEqual(6);
-  let drop = 0;
-  for (const line of lines) {
-    const take = takeOf("de", takeIdOf(line)!)!;
-    const lowOf = (file: string) => bandOf(file, BODY) - bandOf(file, MID);
-    drop += (lowOf(`public/dialogue/de/${take.file}`) - lowOf(`public/dialogue/de/${processedFile(undefined, take)}`)) / lines.length;
+  for (const lang of LANGUAGES) {
+    let drop = 0;
+    for (const line of lines) {
+      const take = takeOf(lang, takeIdOf(line)!)!;
+      const lowOf = (file: string) => bandOf(file, BODY) - bandOf(file, MID);
+      drop += (lowOf(`public/dialogue/${lang}/${take.file}`) - lowOf(`public/dialogue/${lang}/${processedFile(undefined, take)}`)) / lines.length;
+    }
+    expect(drop, lang).toBeGreaterThanOrEqual(1.5);
   }
-  expect(drop).toBeGreaterThanOrEqual(1.5);
 });
 
-test.skipIf(!LOCAL)("his processed takes carry the tone: against the mids, presence stands at least 3 dB and body at least 0.5 dB higher than in his takes as recorded", { timeout: 120_000 }, () => {
+test.skipIf(!LOCAL)("his processed takes carry the tone in German and English alike: against the mids, presence stands at least 3 dB and body at least 0.5 dB higher than in his takes as recorded", { timeout: 240_000 }, () => {
   const lines = ALL_SPOKEN_LINES.filter((line) => voiceOf(line) === "tibik" && effectOf(line) === undefined);
   expect(lines.length).toBeGreaterThanOrEqual(6);
-  const lift = { presence: 0, body: 0 };
-  for (const line of lines) {
-    const take = takeOf("de", takeIdOf(line)!)!;
-    const [recorded, processed] = [`public/dialogue/de/${take.file}`, `public/dialogue/de/${processedFile(undefined, take)}`];
-    const shape = (file: string) => ({ presence: bandOf(file, PRESENCE) - bandOf(file, MID), body: bandOf(file, BODY) - bandOf(file, MID) });
-    const [before, after] = [shape(recorded), shape(processed)];
-    lift.presence += (after.presence - before.presence) / lines.length;
-    lift.body += (after.body - before.body) / lines.length;
+  for (const lang of LANGUAGES) {
+    const lift = { presence: 0, body: 0 };
+    for (const line of lines) {
+      const take = takeOf(lang, takeIdOf(line)!)!;
+      const [recorded, processed] = [`public/dialogue/${lang}/${take.file}`, `public/dialogue/${lang}/${processedFile(undefined, take)}`];
+      const shape = (file: string) => ({ presence: bandOf(file, PRESENCE) - bandOf(file, MID), body: bandOf(file, BODY) - bandOf(file, MID) });
+      const [before, after] = [shape(recorded), shape(processed)];
+      lift.presence += (after.presence - before.presence) / lines.length;
+      lift.body += (after.body - before.body) / lines.length;
+    }
+    expect(lift.presence, lang).toBeGreaterThanOrEqual(3);
+    expect(lift.body, lang).toBeGreaterThanOrEqual(0.5);
   }
-  expect(lift.presence).toBeGreaterThanOrEqual(3);
-  expect(lift.body).toBeGreaterThanOrEqual(0.5);
 });

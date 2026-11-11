@@ -8,6 +8,8 @@ import { takeIdOf, voiceOf } from "./recordingScript";
 
 export type Language = keyof typeof TAKES;
 
+export const LANGUAGES = Object.keys(TAKES) as Language[];
+
 export type Effect = keyof typeof VOICE_EFFECTS;
 
 export type Take = { readonly file: string; readonly seconds: number; readonly speech: readonly (readonly number[])[] };

@@ -5,10 +5,9 @@ import VOICE_EFFECTS from "../dialogue/voiceEffects.json";
 import type { SoundCue } from "../sound/SoundCues";
 import { TIMELINE_FPS } from "../frameRate";
 import { takeIdOf, voiceOf } from "./recordingScript";
+import type { Language } from "../language";
 
-export type Language = keyof typeof TAKES;
-
-export const LANGUAGES = Object.keys(TAKES) as Language[];
+export { LANGUAGES, type Language } from "../language";
 
 export type Effect = keyof typeof VOICE_EFFECTS;
 

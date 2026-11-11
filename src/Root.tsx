@@ -10,7 +10,8 @@ import { CarSheet } from "./street/CarSheet";
 import { CAR_VIEWS } from "./street/carViews";
 import { PropsSheet } from "./props/PropsSheet";
 import { TALL_SUFFIX, compositionId } from "./compositionIds";
-import { AT_THE_TIMELINE_RATE, RENDER_RATE, atRenderRate } from "./renderRate";
+import { BY_DEFAULT, RENDER_PROPS, atRenderRate } from "./renderRate";
+import { inLanguage } from "./inLanguage";
 
 const FilmAndScenes: React.FC<{ readonly format: Format }> = ({ format }) => {
   const { width, height } = FORMATS[format];
@@ -19,9 +20,9 @@ const FilmAndScenes: React.FC<{ readonly format: Format }> = ({ format }) => {
       <Composition
         id={compositionId("Film", format)}
         component={Film}
-        schema={RENDER_RATE}
-        defaultProps={AT_THE_TIMELINE_RATE}
-        calculateMetadata={atRenderRate(FILM_FRAMES)}
+        schema={RENDER_PROPS}
+        defaultProps={BY_DEFAULT}
+        calculateMetadata={atRenderRate(() => FILM_FRAMES)}
         durationInFrames={FILM_FRAMES}
         fps={TIMELINE_FPS}
         width={width}
@@ -32,10 +33,10 @@ const FilmAndScenes: React.FC<{ readonly format: Format }> = ({ format }) => {
           <Composition
             key={scene.name}
             id={compositionId(scene.name, format)}
-            component={SCENE_COMPONENTS[scene.name]}
-            schema={RENDER_RATE}
-            defaultProps={AT_THE_TIMELINE_RATE}
-            calculateMetadata={atRenderRate(wholeFrames(scene))}
+            component={inLanguage(SCENE_COMPONENTS[scene.name])}
+            schema={RENDER_PROPS}
+            defaultProps={BY_DEFAULT}
+            calculateMetadata={atRenderRate(() => wholeFrames(scene))}
             durationInFrames={wholeFrames(scene)}
             fps={TIMELINE_FPS}
             width={width}

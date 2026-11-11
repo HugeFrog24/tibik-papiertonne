@@ -1,14 +1,16 @@
 import { z } from "zod";
 import { RENDER_RATES, TIMELINE_FPS, renderFrame } from "./frameRate";
+import { LANGUAGES, type Language } from "./language";
 
-export const RENDER_RATE = z.object({
+export const RENDER_PROPS = z.object({
   fps: z.number().int().min(TIMELINE_FPS).max(Math.max(...RENDER_RATES)).multipleOf(TIMELINE_FPS),
+  language: z.enum(LANGUAGES),
 });
 
-export type RenderRate = z.infer<typeof RENDER_RATE>;
+export type RenderProps = z.infer<typeof RENDER_PROPS>;
 
-export const AT_THE_TIMELINE_RATE: RenderRate = { fps: TIMELINE_FPS };
+export const BY_DEFAULT: RenderProps = { fps: TIMELINE_FPS, language: "de" };
 
 export const atRenderRate =
-  (ticks: number) =>
-  ({ props }: { readonly props: RenderRate }) => ({ fps: props.fps, durationInFrames: renderFrame(ticks / TIMELINE_FPS, props.fps) });
+  (ticks: (language: Language) => number) =>
+  ({ props }: { readonly props: RenderProps }) => ({ fps: props.fps, durationInFrames: renderFrame(ticks(props.language) / TIMELINE_FPS, props.fps) });

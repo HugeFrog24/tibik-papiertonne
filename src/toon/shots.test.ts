@@ -158,8 +158,9 @@ test("a shot's camera runs from the cut on the scene's clock: film time unless t
 });
 
 test("no scene hands ShotCameras a camera function of its own, only its clock when it reads its cameras in story time", () => {
-  for (const scene of ["hausmuell/Hausmuell", "klingelsturm/Klingelsturm", "papiertonnen/Papiertonnen"])
+  for (const scene of ["hausmuell/Hausmuell", "papiertonnen/Papiertonnen"])
     expect(readFileSync(`src/scenes/${scene}.tsx`, "utf8"), scene).toContain("<ShotCameras shots={SHOTS} />");
+  expect(readFileSync("src/scenes/klingelsturm/Klingelsturm.tsx", "utf8")).toContain("<ShotCameras shots={SHOTS} clock={clock} />");
   expect(readFileSync("src/scenes/treppenhaus/Treppenhaus.tsx", "utf8")).toContain("<ShotCameras shots={SHOTS} storyOf={storyTime} />");
 });
 

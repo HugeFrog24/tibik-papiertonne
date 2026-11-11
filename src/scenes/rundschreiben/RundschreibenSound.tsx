@@ -5,20 +5,22 @@ import { SoundCues, withSources } from "../../sound/SoundCues";
 import { StreetAmbience } from "../../street/StreetAmbience";
 import { RAIN } from "../../sound/rain";
 import { EPILOGUE_RAIN_START } from "../nachtruhe/soundCues";
-import { RUNDSCHREIBEN_AMBIENCE, RUNDSCHREIBEN_CUES, footstepsByRoom, heardIndoorsAt } from "./soundCues";
+import { RUNDSCHREIBEN_AMBIENCES, RUNDSCHREIBEN_CUES, footstepsByRoom, heardIndoorsAt } from "./soundCues";
+import { useLanguage } from "../../language";
 
 export const RundschreibenSound: React.FC<{ readonly ambience: boolean }> = ({
   ambience,
 }) => {
+  const heard = RUNDSCHREIBEN_AMBIENCES[useLanguage()];
   return (
     <>
       {ambience ? (
-        <StreetAmbience ambience={RUNDSCHREIBEN_AMBIENCE} windFrom={RUNDSCHREIBEN_FROM} />
+        <StreetAmbience ambience={heard} windFrom={RUNDSCHREIBEN_FROM} />
       ) : null}
       <IndoorLoop
         name={RAIN.name}
         file={RAIN.file}
-        level={(t) => RAIN.volume * RUNDSCHREIBEN_AMBIENCE.duck(t)}
+        level={(t) => RAIN.volume * heard.duck(t)}
         indoors={heardIndoorsAt}
         startAt={EPILOGUE_RAIN_START}
       />

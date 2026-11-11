@@ -7,6 +7,7 @@ import type { SoundCue } from "../sound/SoundCues";
 import { TIMELINE_FPS } from "../frameRate";
 import { takeIdOf, voiceOf } from "./recordingScript";
 import type { Language } from "../language";
+import { spokenSpan } from "../dialogue/speechSpan";
 
 export { LANGUAGES, type Language } from "../language";
 
@@ -58,11 +59,11 @@ export const processedFile = (effect: Effect | undefined, take: Take) => `${effe
 
 export const voiceCues = (lines: readonly Line[], lang: Language = "de", inside?: (t: number) => boolean): SoundCue[] =>
   lines.flatMap((line) => {
-    const take = takeOf(lang, takeIdOf(line) ?? "");
-    if (take?.speech.length !== 1) return [];
+    const take = playedTakeOf(lang, takeIdOf(line) ?? "");
+    if (!take || take.speech.length === 0) return [];
     const effect = effectOf(line);
     const tail = effect ? VOICE_EFFECTS[effect].tail : 0;
-    const [start, end] = take.speech[0];
+    const [start, end] = spokenSpan(take);
     const skip = Math.max(0, start - VOICE.attack);
     const at = line.from - (start - skip);
     const length = Math.min(take.seconds + tail, end + VOICE.release + tail) - skip;

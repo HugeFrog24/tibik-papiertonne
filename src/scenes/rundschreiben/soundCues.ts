@@ -1,5 +1,6 @@
 import { ambienceOf } from "../../street/sceneAmbience";
 import { duckUnderLines } from "../../sound/duck";
+import { byLanguage } from "../../language";
 import { LETTER_READ } from "./narration";
 import { stepsOn } from "../../sound/footsteps";
 import { throughTheWalls } from "../../sound/IndoorLoop";
@@ -65,4 +66,6 @@ export const RUNDSCHREIBEN_CUES: readonly FileCue[] = [
 
 const TAKING_IT_IN_BEAT = (): readonly (readonly [number, number])[] => [[TAKING_IT_IN[0], TAKING_IT_IN[1] + BLINK.open]];
 
-export const RUNDSCHREIBEN_AMBIENCE = ambienceOf({ indoors: heardIndoorsAt, duck: duckUnderLines("rundschreiben", () => [...LETTER_READ, ...LINES], TAKING_IT_IN_BEAT) });
+export const RUNDSCHREIBEN_AMBIENCES = byLanguage((language) => ambienceOf({ indoors: heardIndoorsAt, duck: duckUnderLines("rundschreiben", () => [...LETTER_READ, ...LINES], TAKING_IT_IN_BEAT, language) }));
+
+export const RUNDSCHREIBEN_AMBIENCE = RUNDSCHREIBEN_AMBIENCES.de;

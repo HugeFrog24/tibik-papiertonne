@@ -2,6 +2,8 @@ import { decibelGain, easeUnit } from "../characters/scalar";
 import type { Line } from "../dialogue/line";
 import { spokenSpans } from "../dialogue/voiced";
 import { lazy } from "../physics/lazy";
+import type { Language } from "../language";
+import { STEADY, type SceneClock } from "../sceneClock";
 
 export const DUCK = { floor: decibelGain(-8), attack: 0.15, release: 0.5, bridge: 1 };
 
@@ -23,10 +25,10 @@ export const duckUnder = (spans: readonly Span[]) => {
   };
 };
 
-export const duckUnderLines = (scene: string, lines: () => readonly Line[], beats: () => readonly Span[] = () => []) => {
+export const duckUnderLines = (scene: string, lines: () => readonly Line[], beats: () => readonly Span[] = () => [], language: Language = "de", clock: SceneClock = STEADY) => {
   const duck = lazy(() => {
     const all = lines();
-    return duckUnder([...all.map(spokenSpans(scene, all)), ...beats()]);
+    return duckUnder([...all.map(spokenSpans(scene, all, language, clock)), ...beats().map(([from, to]): Span => [clock.editAt(from), clock.editAt(to)])]);
   });
   return (t: number) => duck()(t);
 };

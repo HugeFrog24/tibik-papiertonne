@@ -1,7 +1,7 @@
 import type { Line } from "../../dialogue/line";
 import { takeId } from "../../dialogue/takeIds";
 import TAKES from "../../dialogue/takes.json";
-import { READ } from "./choreography";
+import { LINES, READ } from "./choreography";
 import { LETTER_LINES, READ_OUT } from "./letter";
 
 const SENTENCE_END = /[.:!?]$/;
@@ -48,3 +48,5 @@ const timed = (sentences: readonly Sentence[], [from, to]: readonly [number, num
 };
 
 export const LETTER_READ: readonly Line[] = timed(sentencesOf(LETTER_LINES.slice(...READ_OUT)), READ);
+
+export const RUNDSCHREIBEN_SPOKEN: readonly Line[] = [...LETTER_READ, ...LINES];

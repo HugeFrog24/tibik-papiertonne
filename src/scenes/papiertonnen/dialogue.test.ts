@@ -17,5 +17,5 @@ test("as he opens the box, Karen's 'EY!' carries over from far down the street, 
 
 test("the scene shows her shout in the subtitle bar", () => {
   const scene = readFileSync(path.join("src", "scenes", "papiertonnen", "Papiertonnen.tsx"), "utf8");
-  expect(scene.includes("<DialogueTrack lines={LINES} />")).toBe(true);
+  expect(scene.includes('<DialogueTrack scene="papiertonnen" lines={LINES} />')).toBe(true);
 });

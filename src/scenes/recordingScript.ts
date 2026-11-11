@@ -61,7 +61,7 @@ const IDS: ReadonlyMap<Line, string> = new Map(
   ),
 );
 
-export const takeIdOf = (line: Line) => IDS.get(line);
+export const takeIdOf = (line: Line) => line.take ?? IDS.get(line);
 
 export type Take = {
   readonly id: string;

@@ -1,6 +1,7 @@
 import { AFTER_THE_OPENING, HAUSTUER_LATCHED, KARTON_OPENS, LINES, OPENING } from "./choreography";
 import { ambienceOf } from "../../street/sceneAmbience";
 import { duckUnderLines } from "../../sound/duck";
+import { byLanguage } from "../../language";
 
 import { TIMELINE_FPS, firstFrameAfter } from "../../frameRate";
 import type { FileCue } from "../../sound/SoundCues";
@@ -17,7 +18,9 @@ export const FOUND_IT = {
   volume: 0.45,
 } as const;
 
-export const PAPIERTONNEN_AMBIENCE = ambienceOf({ duck: duckUnderLines("papiertonnen", () => LINES) });
+export const PAPIERTONNEN_AMBIENCES = byLanguage((language) => ambienceOf({ duck: duckUnderLines("papiertonnen", () => LINES, undefined, language) }));
+
+export const PAPIERTONNEN_AMBIENCE = PAPIERTONNEN_AMBIENCES.de;
 
 export const PAPIERTONNEN_CUES: readonly FileCue[] = [
   ...haustuerShutCues(HAUSTUER_LATCHED),

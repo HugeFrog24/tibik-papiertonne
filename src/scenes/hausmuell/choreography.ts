@@ -36,6 +36,7 @@ import { bendAround } from "../../characters/gesture";
 import type { Vec3 } from "../../toon/primitives";
 import { speakingAmountIn, speakingIn, type Line } from "../../dialogue/line";
 import { mouthLeads, spokenSpans } from "../../dialogue/voiced";
+import { byLanguage, type Language } from "../../language";
 import type { KarenFrame } from "../../Karen/character";
 
 export const HAUSMUELL_DURATION = 26.8;
@@ -159,9 +160,10 @@ export const LINES: readonly Line[] = [
   },
 ];
 
-const voiced = mouthLeads(spokenSpans("hausmuell", LINES));
-const speaking = speakingIn(LINES, voiced);
-const yellingAmount = speakingAmountIn(LINES, voiced);
+const ACTING = byLanguage((language) => {
+  const voiced = mouthLeads(spokenSpans("hausmuell", LINES, language));
+  return { speaking: speakingIn(LINES, voiced), yellingAmount: speakingAmountIn(LINES, voiced) };
+});
 
 export const TIBIK_SPOT: Vec3 = [1.4, 0, -0.7];
 export const KAREN_SPOT: Vec3 = [3.05, 0, -0.35];
@@ -227,7 +229,8 @@ export const tibikGait = lazy(() => {
   );
 });
 
-export const tibikAt = (t: number): TibikFrame => {
+export const tibikAt = (t: number, language: Language = "de"): TibikFrame => {
+  const { speaking } = ACTING[language];
   const start = papiertonnenTibikAt(PAPIERTONNEN_LAST_T);
   const pose: Pose = start.pose;
   const turn = kf(t, BACK_TO_HER, [0, 1]);
@@ -358,7 +361,8 @@ const POINT_AT_TIBIK: ArmPose = KAREN_ARM_POINT;
 const POINT_AT_BOX: ArmPose = { ...KAREN_ARM_POINT, raise: 1.05 };
 const POINT_AT_BUILDING: ArmPose = { ...KAREN_ARM_POINT, raise: 2.0, out: 0.4 };
 
-export const karenAt = (t: number): KarenFrame => {
+export const karenAt = (t: number, language: Language = "de"): KarenFrame => {
+  const { speaking, yellingAmount } = ACTING[language];
   const root = karenRoot(t);
   const position: Vec3 = [root.x, 0, root.z];
   const running = kf(t, [STOP_AT - 0.4, STOP_AT], [1, 0]);

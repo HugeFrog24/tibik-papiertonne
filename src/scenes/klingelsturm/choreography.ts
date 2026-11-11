@@ -58,6 +58,9 @@ import {
   facing,
 } from "../hausmuell/choreography";
 import { round6 } from "../../characters/scalar";
+import type { Language } from "../../language";
+import { TIMELINE_FPS } from "../../frameRate";
+import { KLINGELSTURM_CLOCKS } from "./hold";
 
 export const KLINGELSTURM_DURATION = CODA.end;
 
@@ -190,9 +193,20 @@ const DOOR_LINES: readonly Line[] = [
 export const LINES: readonly Line[] = [...DOOR_LINES, ...CALL_LINES];
 
 const SHOUTED = LINES.filter((line) => line.tone === "shout");
-const voiced = mouthLeads(spokenSpans("klingelsturm", LINES));
-const speaking = speakingIn(SHOUTED, voiced);
-const yellingAmount = speakingAmountIn(SHOUTED, voiced);
+
+const KAREN_BLINKS = [3.1, 7.2, 9.9, 13.8, 18.6, 22.3, 26.0, later(38.5), later(44.6), later(47.4)];
+
+const actingIn = (language: Language) => {
+  const clock = KLINGELSTURM_CLOCKS[language];
+  const voiced = mouthLeads(spokenSpans("klingelsturm", LINES, language, clock));
+  return {
+    speaking: speakingIn(SHOUTED, voiced),
+    yellingAmount: speakingAmountIn(SHOUTED, voiced),
+    blinks: [...KAREN_BLINKS.map(clock.editAt), ...clock.holds.map((hold) => clock.editAt(hold.at) + hold.frames / TIMELINE_FPS / 2)].sort((a, b) => a - b),
+  };
+};
+
+const ACTING: Readonly<Record<Language, ReturnType<typeof actingIn>>> = { de: actingIn("de"), en: actingIn("en") };
 
 export const KAREN_AT_DOOR: Vec3 = [-2.76, 0, -9.2];
 const DOOR_FACE: Vec3 = [-3.2, 0, -9.2];
@@ -298,15 +312,16 @@ const fistReady = (t: number) =>
 
 const hisHeadAt = (t: number) => mouthInWorld(RIG, tibikAt(t));
 
-export const karenAt = (t: number): KarenFrame => {
+export const karenAt = (t: number, u: number = t, language: Language = "de"): KarenFrame => {
+  const { speaking, yellingAmount, blinks } = ACTING[language];
   const root = karenRoot(t);
   const glaring = Math.max(
     kf(t, [STEP_BACK[0], STEP_BACK[1], 9.0, 9.4], [0, 1, 1, 0]),
     kf(t, [BANGING.blows[0] - 0.3, BANGING.blows[0], BANGING.blows[5], BANGING.back[0] + 0.3], [0, 1, 1, 0]),
   );
   const position: Vec3 = [root.x, floorLevel(1), root.z];
-  const pant = Math.sin(2 * Math.PI * PANT * t) * (1 - CALMED_DOWN * kf(t, [CODA.phoneAway[0], CODA.mediumCut], [0, 1]));
-  const yelling = speaking(t, "karen");
+  const pant = Math.sin(2 * Math.PI * PANT * u) * (1 - CALMED_DOWN * kf(t, [CODA.phoneAway[0], CODA.mediumCut], [0, 1]));
+  const yelling = speaking(u, "karen");
   const lookingBack = 1 - kf(t, CODA.phoneAway, [0, 1]);
   const watching = kf(t, [EXIT.offset - 0.1, EXIT.offset + 0.7], [0, 1]) * lookingBack;
   const turning = kf(t, [AT_THE_SWITCH_AT, AT_THE_SWITCH_AT + 0.6], [0, 1]) * lookingBack;
@@ -319,14 +334,11 @@ export const karenAt = (t: number): KarenFrame => {
     gazeYaw: -WATCHING.gaze * watching,
     bob: -0.006 + 0.006 * pant,
     lean:
-      0.05 + 0.02 * pant + 0.04 * yellingAmount(t, "karen") - 0.06 * glaring,
+      0.05 + 0.02 * pant + 0.04 * yellingAmount(u, "karen") - 0.06 * glaring,
     headPitch: -0.1 - 0.15 * glaring + 0.1 * readingAt(t) - EXHALE.pitch * exhaling + TO_HER_HAND.nod * turnedToHerHand(t),
     gazePitch: 0.5 * glaring - 0.6 * readingAt(t),
-    headRoll: 0.08 * yellingAmount(t, "karen") * Math.sin(t * Math.PI * 3),
-    blink: blinkAt(
-      t,
-      [3.1, 7.2, 9.9, 13.8, 18.6, 22.3, 26.0, later(38.5), later(44.6), later(47.4)],
-    ),
+    headRoll: 0.08 * yellingAmount(u, "karen") * Math.sin(u * Math.PI * 3),
+    blink: blinkAt(u, blinks),
     leftArm: throughArm(KAREN_ARM_REST, PAST_HIS_KNOB, BANG_READY, fistReady(t)),
     rightArm: blendArm(KAREN_ARM_REST, RIGHT_HAND_ON_HER_BELLY, handsFree(t)),
   });
@@ -335,7 +347,7 @@ export const karenAt = (t: number): KarenFrame => {
     ...placed,
     pose: plantFeet(karenStandGait(), t, placed),
     mouthOpen: yelling
-      ? 0.55 + 0.45 * Math.abs(Math.sin(t * Math.PI * 4.5))
+      ? 0.55 + 0.45 * Math.abs(Math.sin(u * Math.PI * 4.5))
       : smokingMouth(t, 0.2 + 0.1 * pant),
     pointing: false,
   };

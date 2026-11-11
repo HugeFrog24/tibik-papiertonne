@@ -31,6 +31,7 @@ import {
 } from "../papiertonnen/solve";
 import { GROUND } from "../../street/layout";
 import { memoWithArms, openingOn } from "../../physics/memoSolve";
+import { byLanguage, type Language } from "../../language";
 import type { ArmClock, ArmHistory } from "../../physics/armHistory";
 import { workArm } from "../../physics/holds";
 import { TIMELINE_FPS } from "../../frameRate";
@@ -88,14 +89,14 @@ const solveKaren = (
 
 const LIDS = () => papiertonnenEnd().lids;
 
-const solve = (t: number, history: ArmHistory): HausmuellState => {
+const solveIn = (language: Language) => (t: number, history: ArmHistory): HausmuellState => {
   const tibikClock = { history: history.of("Tibik"), at: t };
   const lids = LIDS();
   const world = sceneSolids(lids, true);
-  const karenAuthored = karenAt(t);
+  const karenAuthored = karenAt(t, language);
   const forTibik = [...world, ...allSpheres(asKaren(karenAuthored))];
   const tibikSolved = holdKarton(
-    solveTibik(tibikAt(t), forTibik, t, [], GROUND, tibikClock),
+    solveTibik(tibikAt(t, language), forTibik, t, [], GROUND, tibikClock),
     kartonAt(t),
     forTibik,
     tibikClock,
@@ -109,7 +110,11 @@ const solve = (t: number, history: ArmHistory): HausmuellState => {
   return { lids, tibik: tibikSolved.tibik, karton: tibikSolved.karton, karen };
 };
 
-export const solveHausmuell = memoWithArms(TIMELINE_FPS, solve, [], openingOn(() => ({ Tibik: papiertonnenEnd().tibik })));
+const SOLVERS = byLanguage((language) => memoWithArms(TIMELINE_FPS, solveIn(language), [], openingOn(() => ({ Tibik: papiertonnenEnd().tibik }))));
+
+export const solveHausmuellIn = (language: Language) => SOLVERS[language];
+
+export const solveHausmuell = SOLVERS.de;
 export const hausmuellEnd = () => solveHausmuell(HAUSMUELL_DURATION);
 
 export const hausmuellViolations = (state: HausmuellState): Contact[] => {

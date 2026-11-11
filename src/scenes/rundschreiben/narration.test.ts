@@ -37,7 +37,7 @@ test("sentences the letter breaks over two lines are one subtitle line", () => {
 
 test("the scene shows the narration in the subtitle bar", () => {
   const scene = readFileSync(path.join("src", "scenes", "rundschreiben", "Rundschreiben.tsx"), "utf8");
-  expect(scene.includes("<DialogueTrack lines={LETTER_READ} name=\"Narration\" />")).toBe(true);
+  expect(scene.includes('<DialogueTrack scene="rundschreiben" lines={LETTER_READ} all={RUNDSCHREIBEN_SPOKEN} name="Narration" />')).toBe(true);
 });
 
 test("the letter is read a sentence at a time: no subtitle line runs on past the end of a sentence, wherever the letter wraps it", () => {

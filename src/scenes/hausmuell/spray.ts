@@ -3,25 +3,33 @@ import { lazy } from "../../physics/lazy";
 import { kartonFlapsOf, sceneSolids } from "../papiertonnen/solve";
 import { LINES } from "./choreography";
 import { spokenSpans } from "../../dialogue/voiced";
-import { solveHausmuell, tibikBox } from "./solve";
+import { solveHausmuell, solveHausmuellIn, tibikBox } from "./solve";
+import { byLanguage, type Language } from "../../language";
 
 const STREET = lazy(() => sceneSolids(solveHausmuell(0).lids, true));
 
-const SPRAY = sceneSpray({
-  lines: LINES,
-  spanOf: spokenSpans("hausmuell", LINES),
-  karenAt: (t) => solveHausmuell(t).karen,
-  still: STREET,
-  moving: () => [],
-  people: (t) => {
-    const s = solveHausmuell(t);
-    return bothOf(s.tibik, s.karen);
-  },
-  cardboard: (t) => {
-    const s = solveHausmuell(t);
-    return [tibikBox(s.tibik, s.karton), ...kartonFlapsOf(s.tibik, s.karton)];
-  },
+const SPRAYS = byLanguage((language) => {
+  const solve = solveHausmuellIn(language);
+  return sceneSpray({
+    lines: LINES,
+    spanOf: spokenSpans("hausmuell", LINES, language),
+    karenAt: (t) => solve(t).karen,
+    still: STREET,
+    moving: () => [],
+    people: (t) => {
+      const s = solve(t);
+      return bothOf(s.tibik, s.karen);
+    },
+    cardboard: (t) => {
+      const s = solve(t);
+      return [tibikBox(s.tibik, s.karton), ...kartonFlapsOf(s.tibik, s.karton)];
+    },
+  });
 });
+
+export const hausmuellSprayIn = (language: Language) => SPRAYS[language];
+
+const SPRAY = SPRAYS.de;
 
 export const hausmuellFlights = SPRAY.flights;
 export const sprayTargets = SPRAY.targets;

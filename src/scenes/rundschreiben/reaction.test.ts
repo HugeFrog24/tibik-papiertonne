@@ -32,7 +32,7 @@ test("just after the cut from the letter to his face, Tibik says 'Hä?' with a p
 
 test("the scene shows his line in the subtitle bar", () => {
   const scene = readFileSync(path.join("src", "scenes", "rundschreiben", "Rundschreiben.tsx"), "utf8");
-  expect(scene.includes("<DialogueTrack lines={LINES} />")).toBe(true);
+  expect(scene.includes('<DialogueTrack scene="rundschreiben" lines={LINES} all={RUNDSCHREIBEN_SPOKEN} />')).toBe(true);
 });
 
 test("on the cut to his face he takes it in with two slow blinks before 'Hä?', a finger snap marking each as his lids shut, and the shot holds a beat after the line", () => {

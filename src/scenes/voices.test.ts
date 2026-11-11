@@ -11,6 +11,9 @@ import { LINES as KLINGELSTURM_LINES } from "./klingelsturm/choreography";
 import { inTheFlur } from "./klingelsturm/doorCues";
 import { LANGUAGES, VOICE, effectOf, playedTakeOf, processedFile, takeOf, tempoOf, voiceCues } from "./voices";
 import { medianPitch } from "../tooling/pitch";
+import { englishEdition, linesIn } from "../dialogue/edition";
+import { spokenSpan } from "../dialogue/speechSpan";
+import { clockOf } from "./clocks";
 
 const AWAITING_THE_OWNER: readonly string[] = [];
 
@@ -54,7 +57,8 @@ test("each take is placed so its speech starts exactly at its line's start, keep
 
 test("the scene's dialogue track plays each line's take alongside its subtitles", () => {
   expect(readFileSync("src/dialogue/DialogueTrack.tsx", "utf8")).toContain("voiceCues(lines");
-  expect(readFileSync("src/scenes/klingelsturm/Klingelsturm.tsx", "utf8")).toContain("<DialogueTrack lines={LINES} inside={inTheFlur} />");
+  expect(readFileSync("src/scenes/klingelsturm/Klingelsturm.tsx", "utf8")).toContain('<DialogueTrack scene="klingelsturm" lines={LINES} inside={inTheFlur} clock={clock} />');
+  expect(readFileSync("src/dialogue/DialogueTrack.tsx", "utf8")).toContain("linesIn(language, scene, all, clock)(lines)");
 });
 
 const LOCAL = existsSync("public/dialogue");
@@ -285,4 +289,39 @@ test.skipIf(!LOCAL)("Tibik's quickened English takes keep his pitch: as processe
     const faster = 1200 * Math.log2(tempoOf("en", id));
     expect(Math.abs(cents), id).toBeLessThan(faster / 2);
   }
+});
+
+test("in English every line plays its English take, quickened as the fit asks, its speech starting exactly where the English line starts in the film", () => {
+  for (const { key, lines } of SPOKEN) {
+    const clock = clockOf(key, "en");
+    const english = linesIn("en", key, lines, clock)(lines);
+    const cues = voiceCues(english, "en");
+    expect(cues.map((cue) => cue.name).sort(), key).toEqual(english.map((line) => line.name).sort());
+    for (const cue of cues) {
+      const line = english.find((l) => l.name === cue.name)!;
+      const take = playedTakeOf("en", line.take!)!;
+      expect(cue.at + spokenSpan(take)[0] - (cue.skip ?? 0), line.name).toBeCloseTo(line.from, 9);
+      expect(cue.src, line.name).toContain(`dialogue/en/${processedFile(effectOf(line), take)}`);
+    }
+  }
+});
+
+test("a take with a pause inside it plays whole, placed by its first word and timed to its last, like 'Nooo. Not for the environment's sake.'", () => {
+  const [line] = linesIn("en", "klingelsturm", KLINGELSTURM_LINES, clockOf("klingelsturm", "en"))(KLINGELSTURM_LINES.filter((l) => takeIdOf(l) === "klingelsturm_07_tibik"));
+  const take = playedTakeOf("en", "klingelsturm_07_tibik")!;
+  expect(take.speech.length).toBeGreaterThan(1);
+  const [cue] = voiceCues([line], "en");
+  expect((cue.skip ?? 0) + cue.length!).toBeCloseTo(Math.min(take.seconds + VOICE_EFFECTS.doorway.tail, take.speech.at(-1)![1] + VOICE.release + VOICE_EFFECTS.doorway.tail), 9);
+});
+
+test("the English letter and dialogue never talk over each other: each English take's speech is over before the next English line in its scene starts, only the breath after 'Yeah, what's up?' running on under Karen's 'HEY!'", () => {
+  const into: string[] = [];
+  for (const { key, lines } of SPOKEN) {
+    const edition = englishEdition(key, lines, clockOf(key, "en"));
+    const ordered = [...lines].sort((a, b) => a.from - b.from).map((line) => edition.get(line)!);
+    ordered.slice(0, -1).forEach(({ line, speech }, i) => {
+      if (speech[1] > ordered[i + 1].line.from + 1e-9 && line.take !== "klingelsturm_01_tibik") into.push(`${line.take} by ${(speech[1] - ordered[i + 1].line.from).toFixed(2)} s`);
+    });
+  }
+  expect(into).toEqual([]);
 });

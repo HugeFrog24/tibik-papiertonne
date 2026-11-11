@@ -4,11 +4,14 @@ import type { SoundCue } from "../../sound/SoundCues";
 import { LINES } from "./choreography";
 import { ambienceOf } from "../../street/sceneAmbience";
 import { duckUnderLines } from "../../sound/duck";
+import { byLanguage } from "../../language";
 
 const SHOUT = LINES.find((l) => l.speaker === "karen")!.from;
 export const RECORD_SCRATCH = SHOUT - 0.1;
 
-export const HAUSMUELL_AMBIENCE = ambienceOf({ duck: duckUnderLines("hausmuell", () => LINES) });
+export const HAUSMUELL_AMBIENCES = byLanguage((language) => ambienceOf({ duck: duckUnderLines("hausmuell", () => LINES, undefined, language) }));
+
+export const HAUSMUELL_AMBIENCE = HAUSMUELL_AMBIENCES.de;
 
 export const HAUSMUELL_CUES: readonly SoundCue[] = [
   {

@@ -8,7 +8,8 @@ import { SoundCues, withSources } from "../../sound/SoundCues";
 import { staticFile, useVideoConfig } from "remotion";
 import { StreetAmbience } from "../../street/StreetAmbience";
 import { footstepTimes } from "./choreography";
-import { LID_SLAP, PAPIERTONNEN_AMBIENCE, PAPIERTONNEN_CUES } from "./soundCues";
+import { LID_SLAP, PAPIERTONNEN_AMBIENCES, PAPIERTONNEN_CUES } from "./soundCues";
+import { useLanguage } from "../../language";
 import { buzzVolume, flyBuzzSound } from "./flyBuzz";
 import { FLY_COUNT } from "./flyPaths";
 
@@ -16,11 +17,12 @@ export const PapiertonnenSound: React.FC<{ readonly ambience: boolean }> = ({
   ambience,
 }) => {
   const { fps } = useVideoConfig();
+  const language = useLanguage();
 
   return (
     <>
-      {ambience ? <StreetAmbience ambience={PAPIERTONNEN_AMBIENCE} windFrom={PAPIERTONNEN_FROM} /> : null}
-      {ambience ? <Score music={MAIN_STREET} offset={PAPIERTONNEN_FROM} ambience={PAPIERTONNEN_AMBIENCE} /> : null}
+      {ambience ? <StreetAmbience ambience={PAPIERTONNEN_AMBIENCES[language]} windFrom={PAPIERTONNEN_FROM} /> : null}
+      {ambience ? <Score music={MAIN_STREET} offset={PAPIERTONNEN_FROM} ambience={PAPIERTONNEN_AMBIENCES[language]} /> : null}
 
       {Array.from({ length: FLY_COUNT }, (_, i) => (
         <MixAudio

@@ -1,7 +1,7 @@
 import { FORMATS, type Format } from "./frameRate";
 import { Composition, Folder, Still } from "remotion";
 import { Film } from "./Film";
-import { FILM_FRAMES, TIMELINE_FPS, SCENES, wholeFrames } from "./timeline";
+import { FILM_FRAMES, FILM_SCENES, TIMELINE_FPS, SCENES, filmFramesIn, wholeFrames } from "./timeline";
 import { SCENE_COMPONENTS } from "./sceneComponents";
 import { KarenModelSheet } from "./Karen/KarenModelSheet";
 import { StairwellSheet } from "./building/StairwellSheet";
@@ -22,21 +22,21 @@ const FilmAndScenes: React.FC<{ readonly format: Format }> = ({ format }) => {
         component={Film}
         schema={RENDER_PROPS}
         defaultProps={BY_DEFAULT}
-        calculateMetadata={atRenderRate(() => FILM_FRAMES)}
+        calculateMetadata={atRenderRate(filmFramesIn)}
         durationInFrames={FILM_FRAMES}
         fps={TIMELINE_FPS}
         width={width}
         height={height}
       />
       <Folder name={format === "tall" ? `Scenes${TALL_SUFFIX}` : "Scenes"}>
-        {SCENES.map((scene) => (
+        {SCENES.map((scene, i) => (
           <Composition
             key={scene.name}
             id={compositionId(scene.name, format)}
             component={inLanguage(SCENE_COMPONENTS[scene.name])}
             schema={RENDER_PROPS}
             defaultProps={BY_DEFAULT}
-            calculateMetadata={atRenderRate(() => wholeFrames(scene))}
+            calculateMetadata={atRenderRate((language) => wholeFrames(FILM_SCENES[language][i]))}
             durationInFrames={wholeFrames(scene)}
             fps={TIMELINE_FPS}
             width={width}

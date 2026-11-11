@@ -121,7 +121,7 @@ test("on-screen German quotes with „…“ only: no straight, English or Frenc
 test("every scene with lines places one DialogueTrack, which names its own timeline track, instead of wrapping it by hand", () => {
   for (const scene of ["papiertonnen/Papiertonnen", "hausmuell/Hausmuell", "klingelsturm/Klingelsturm", "rundschreiben/Rundschreiben"]) {
     const source = readFileSync(`src/scenes/${scene}.tsx`, "utf8");
-    expect(source, scene).toMatch(/<DialogueTrack lines=\{\w+\}( name="Narration")?( inside=\{\w+\})? \/>/);
+    expect(source, scene).toMatch(/<DialogueTrack scene="\w+" lines=\{\w+\}( all=\{\w+\})?( name="Narration")?( inside=\{\w+\})?( clock=\{\w+\})? \/>/);
     expect(source, scene).not.toMatch(/<Track name="(Dialogue|Narration)">/);
   }
 });

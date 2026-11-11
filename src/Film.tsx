@@ -3,7 +3,7 @@ import { StreetAmbience } from "./street/StreetAmbience";
 import { Score } from "./sound/Score";
 import { MAIN_STREET } from "./sound/music";
 import { SCENE_COMPONENTS } from "./sceneComponents";
-import { TIMELINE_FPS, SCENES, FILM_AMBIENCE, FILM_FRAMES } from "./timeline";
+import { TIMELINE_FPS, FILM_SCENES, filmAmbienceIn, filmFramesIn } from "./timeline";
 import { renderFrame } from "./frameRate";
 import type { RenderProps } from "./renderRate";
 import { LanguageContext } from "./language";
@@ -13,13 +13,14 @@ import { filmFadeAt } from "./sound/filmFade";
 
 export const Film: React.FC<RenderProps> = ({ language }) => {
   const { fps } = useVideoConfig();
-  const fade = filmFadeAt(useSeconds(), FILM_FRAMES / TIMELINE_FPS);
+  const fade = filmFadeAt(useSeconds(), filmFramesIn(language) / TIMELINE_FPS);
+  const ambience = filmAmbienceIn(language);
   return (
     <LanguageContext.Provider value={language}>
       <MixGain.Provider value={fade}>
         <AbsoluteFill>
           <Series>
-            {SCENES.map(({ name, frames, skip }) => {
+            {FILM_SCENES[language].map(({ name, frames, skip }) => {
               const Scene = SCENE_COMPONENTS[name];
               return (
                 <Series.Sequence
@@ -42,8 +43,8 @@ export const Film: React.FC<RenderProps> = ({ language }) => {
               );
             })}
           </Series>
-          <StreetAmbience ambience={FILM_AMBIENCE} />
-          <Score music={MAIN_STREET} offset={0} ambience={FILM_AMBIENCE} />
+          <StreetAmbience ambience={ambience} />
+          <Score music={MAIN_STREET} offset={0} ambience={ambience} />
         </AbsoluteFill>
       </MixGain.Provider>
     </LanguageContext.Provider>

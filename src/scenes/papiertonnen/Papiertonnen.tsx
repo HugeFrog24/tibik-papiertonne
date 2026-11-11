@@ -60,7 +60,7 @@ export const Papiertonnen: React.FC<{
         <StreetLighting />
         <Characters />
       </ToonCanvas>
-      <DialogueTrack lines={LINES} />
+      <DialogueTrack scene="papiertonnen" lines={LINES} />
       <PapiertonnenSound ambience={ambience} />
     </Sky>
   );

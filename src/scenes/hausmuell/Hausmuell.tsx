@@ -14,14 +14,16 @@ import { ShotCameras } from "../../toon/ShotCameras";
 import { SHOTS } from "./cameras";
 import { LINES } from "./choreography";
 import { HausmuellSound } from "./HausmuellSound";
-import { solveHausmuell } from "./solve";
+import { solveHausmuellIn } from "./solve";
+import { useLanguage } from "../../language";
 import { betweenTicks } from "../../physics/betweenTicks";
 import { storyJumpsIn } from "../../toon/shots";
-import { hausmuellSprayAt } from "./spray";
+import { hausmuellSprayIn } from "./spray";
 
 const Characters: React.FC = () => {
   const t = useSeconds();
-  const { lids, tibik, karton, karen } = betweenTicks(solveHausmuell, storyJumpsIn(SHOTS))(t);
+  const language = useLanguage();
+  const { lids, tibik, karton, karen } = betweenTicks(solveHausmuellIn(language), storyJumpsIn(SHOTS))(t);
   return (
     <>
       <BinRow lids={lids} boxTaken />
@@ -46,7 +48,7 @@ const Characters: React.FC = () => {
         pointing={karen.pointing}
         windAt={HAUSMUELL_FROM + t}
       />
-      <SprayView frame={hausmuellSprayAt(t)} />
+      <SprayView frame={hausmuellSprayIn(language).frameAt(t)} />
     </>
   );
 };
@@ -66,7 +68,7 @@ export const Hausmuell: React.FC<{
         <Characters />
       </ToonCanvas>
 
-      <DialogueTrack lines={LINES} />
+      <DialogueTrack scene="hausmuell" lines={LINES} />
       <HausmuellSound ambience={ambience} />
     </Sky>
   );

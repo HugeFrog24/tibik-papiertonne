@@ -1,4 +1,5 @@
 import { easeUnit } from "../characters/scalar";
+import type { Language } from "../language";
 export type Speaker = "karen" | "tibik" | "phone" | "narrator";
 export type Tone = "shout" | "calm" | "phone";
 export type SpanOf = (line: Line) => readonly [number, number];
@@ -34,4 +35,6 @@ export type Line = {
   readonly name: string;
   readonly tone: Tone;
   readonly far?: true;
+  readonly take?: string;
+  readonly language?: Language;
 };

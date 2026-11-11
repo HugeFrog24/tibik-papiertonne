@@ -23,15 +23,20 @@ import { LINES } from "./choreography";
 import { CarriedParcel, FlurProps } from "./FlurProps";
 import { swapAt } from "./exit";
 import { KlingelsturmSound } from "./KlingelsturmSound";
-import { solveKlingelsturm } from "./solve";
+import { solveKlingelsturmIn } from "./solve";
+import { useLanguage } from "../../language";
+import { KLINGELSTURM_CLOCKS } from "./hold";
 import { betweenTicks } from "../../physics/betweenTicks";
 import { storyJumpsIn } from "../../toon/shots";
-import { klingelsturmSprayAt } from "./spray";
+import { klingelsturmSprayIn } from "./spray";
 
 export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
   ambience = true,
 }) => {
-  const t = useSeconds();
+  const language = useLanguage();
+  const clock = KLINGELSTURM_CLOCKS[language];
+  const u = useSeconds();
+  const t = clock.storyAt(u);
   const {
     karen,
     tibik,
@@ -46,13 +51,13 @@ export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
     lighter,
     tibikHere,
     ash,
-  } = betweenTicks(solveKlingelsturm, storyJumpsIn(SHOTS))(t);
+  } = betweenTicks(solveKlingelsturmIn(language), storyJumpsIn(SHOTS).map(clock.editAt))(u);
   return (
     <Sky>
       <ToonCanvas name="Klingelsturm – 3D" fisheye={shotAt(t).name === "Spyhole"}>
-        <ShotCameras shots={SHOTS} />
+        <ShotCameras shots={SHOTS} clock={clock} />
         <StairwellLighting lights={lights} spill={flurSpill(tibikDoor)} />
-        <Street windAt={KLINGELSTURM_FROM + t} />
+        <Street windAt={KLINGELSTURM_FROM + u} />
         <StairwellSet
           tibikDoor={tibikDoor}
           tibikLever={tibikLever}
@@ -85,9 +90,9 @@ export const Klingelsturm: React.FC<{ readonly ambience?: boolean }> = ({
         {ash ? <AshPieces pieces={ash} /> : null}
         {lighter ? <Lighter frame={lighter.frame} flame={lighter.flame} t={t} sinceStruck={sinceStruckAt(t)} /> : null}
         <SmokeCurls curls={codaSmokeAt(t)} />
-        <SprayView frame={klingelsturmSprayAt(t)} />
+        <SprayView frame={klingelsturmSprayIn(language).frameAt(u)} />
       </ToonCanvas>
-      <DialogueTrack lines={LINES} inside={inTheFlur} />
+      <DialogueTrack scene="klingelsturm" lines={LINES} inside={inTheFlur} clock={clock} />
       <KlingelsturmSound ambience={ambience} />
     </Sky>
   );

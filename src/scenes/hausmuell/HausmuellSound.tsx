@@ -6,16 +6,17 @@ import { FootstepSounds } from "../../sound/FootstepSounds";
 import { SoundCues } from "../../sound/SoundCues";
 import { StreetAmbience } from "../../street/StreetAmbience";
 import { karenFootsteps, tibikFootsteps } from "./choreography";
-import { HAUSMUELL_AMBIENCE, HAUSMUELL_CUES } from "./soundCues";
+import { HAUSMUELL_AMBIENCES, HAUSMUELL_CUES } from "./soundCues";
+import { useLanguage } from "../../language";
 
 export const HausmuellSound: React.FC<{ readonly ambience: boolean }> = ({
   ambience,
 }) => {
-
+  const language = useLanguage();
   return (
     <>
-      {ambience ? <StreetAmbience ambience={HAUSMUELL_AMBIENCE} windFrom={HAUSMUELL_FROM} /> : null}
-      {ambience ? <Score music={MAIN_STREET} offset={HAUSMUELL_FROM} ambience={HAUSMUELL_AMBIENCE} /> : null}
+      {ambience ? <StreetAmbience ambience={HAUSMUELL_AMBIENCES[language]} windFrom={HAUSMUELL_FROM} /> : null}
+      {ambience ? <Score music={MAIN_STREET} offset={HAUSMUELL_FROM} ambience={HAUSMUELL_AMBIENCES[language]} /> : null}
 
       <KarenStomps times={karenFootsteps()} />
 

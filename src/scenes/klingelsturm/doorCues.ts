@@ -4,6 +4,8 @@ import { SHOTS, cameraAt, shotAt } from "./cameras";
 import { KEYS, phoneCues } from "./calls";
 import { KLINGELSTURM_DURATION, LINES, bellStorm } from "./choreography";
 import { duckUnderLines } from "../../sound/duck";
+import { byLanguage } from "../../language";
+import { KLINGELSTURM_CLOCKS } from "./hold";
 import { OPEN, SHUT, UNLATCH, tibikAt, tibikGait } from "./door";
 import { EXIT_SOUNDS } from "./exit";
 import { LIGHT, LIGHT_BACK } from "./light";
@@ -244,4 +246,6 @@ export const doorCues = (): BellCue[] => [
   ...codaCues(),
 ];
 
-export const KLINGELSTURM_AMBIENCE = ambienceOf({ indoors: () => 1, duck: duckUnderLines("klingelsturm", () => LINES) });
+export const KLINGELSTURM_AMBIENCES = byLanguage((language) => ambienceOf({ indoors: () => 1, duck: duckUnderLines("klingelsturm", () => LINES, undefined, language, KLINGELSTURM_CLOCKS[language]) }));
+
+export const KLINGELSTURM_AMBIENCE = KLINGELSTURM_AMBIENCES.de;

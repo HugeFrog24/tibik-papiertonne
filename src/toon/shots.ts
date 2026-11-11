@@ -2,6 +2,7 @@ import type { PerspectiveCamera } from "three";
 import { easeUnit, lerpVec3 } from "../characters/scalar";
 import type { Vec3 } from "./primitives";
 import { atFrame, type Format } from "../frameRate";
+import type { SceneClock } from "../sceneClock";
 
 export const WORLD_UP: Vec3 = [0, 1, 0];
 
@@ -22,6 +23,11 @@ export type Shot = {
 };
 
 export const sinceTheCut = (shot: Shot, sinceCut: number, storyOf: (filmT: number) => number = (t) => t) => shot.at(storyOf(shot.from) + sinceCut);
+
+export const heldShots = <S extends { readonly from: number; readonly to: number }>(shots: readonly S[], clock: SceneClock): S[] =>
+  shots.map((shot) => ({ ...shot, from: clock.editAt(shot.from), to: clock.editAt(shot.to) }));
+
+export const sinceTheHeldCut = (shot: Shot, sinceCut: number, clock: SceneClock) => shot.at(clock.storyAt(clock.editAt(shot.from) + sinceCut));
 
 export const onFrames = <S extends { readonly from: number; readonly to: number }>(shots: readonly S[]): readonly S[] =>
   shots.map((shot) => ({ ...shot, from: atFrame(shot.from), to: atFrame(shot.to) }));

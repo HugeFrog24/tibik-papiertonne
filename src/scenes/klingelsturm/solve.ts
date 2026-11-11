@@ -45,6 +45,9 @@ import { CODA, emberGlowAt, flameAmountAt, inHerFingersAt, inHerHands, lighterOu
 import { CIGARETTE_HOLD, LIGHTER_HOLD, UP_TO_THE_CIGARETTE_HOLD, cigaretteAt, lighterAt, smokedAt } from "./smoking";
 import { BLOW_HOLDS } from "./banging";
 import { phoneAt, type PhoneState } from "./calls";
+import type { Language } from "../../language";
+import type { SceneClock } from "../../sceneClock";
+import { KLINGELSTURM_CLOCKS } from "./hold";
 import {
   BELL_HOLDS,
   PHONE_HOLDS,
@@ -86,7 +89,8 @@ const solidsAt = (
   ...(carried ? [tapeRollSolid(taping)] : parcelSolids(parcel, taping)),
 ];
 
-const solve = (t: number, history: ArmHistory): Omit<KlingelsturmState, "ash"> => {
+const solveOn = (clock: SceneClock, language: Language) => (u: number, history: ArmHistory): Omit<KlingelsturmState, "ash"> => {
+  const t = clock.storyAt(u);
   const [tibikArms, karenArms] = [history.of("Tibik"), history.of("Karen")];
   const tibikT = Math.min(t, CODA.mediumCut);
   const door = tibikDoorAt(t);
@@ -95,14 +99,14 @@ const solve = (t: number, history: ArmHistory): Omit<KlingelsturmState, "ash"> =
   const carried = carriedAt(t);
   const solids = solidsAt(door, lever, parcel, t, carried);
   let tibik = asCharacter(tibikAt(tibikT));
-  tibik = workArm(tibik, "leftArm", tibikT, solids, TIBIK_LEFT_HOLDS, { history: tibikArms, at: t });
-  tibik = workArm(tibik, "rightArm", tibikT, solids, TIBIK_RIGHT_HOLDS, { history: tibikArms, at: t });
-  const authored = karenAt(t);
+  tibik = workArm(tibik, "leftArm", tibikT, solids, TIBIK_LEFT_HOLDS, { history: tibikArms, at: u });
+  tibik = workArm(tibik, "rightArm", tibikT, solids, TIBIK_RIGHT_HOLDS, { history: tibikArms, at: u });
+  const authored = karenAt(t, u, language);
   let karen = asKaren(authored);
   karen = guardLean(karen, solids);
   const authoredPhone = phoneAt(t).inHand ? phoneAt(t) : null;
-  karen = workArm(karen, "leftArm", t, solids, KAREN_LEFT_HOLDS, { history: karenArms, at: t });
-  karen = workArm(karen, "rightArm", t, solids, KAREN_RIGHT_HOLDS, { history: karenArms, at: t });
+  karen = workArm(karen, "leftArm", t, solids, KAREN_LEFT_HOLDS, { history: karenArms, at: u });
+  karen = workArm(karen, "rightArm", t, solids, KAREN_RIGHT_HOLDS, { history: karenArms, at: u });
   const smoking = inHerHands(t);
   const { burned, ash } = smokedAt(t);
   const solved = {
@@ -142,27 +146,33 @@ const heldCigarette = (karen: KarenFrame, t: number) =>
 const heldLighter = (karen: KarenFrame, t: number) =>
   followTheHand(lighterAt(t), rightHandOf(karen), LIGHTER_HOLD.near!(t), 1 - lightingAt(t));
 
-const solveCore = memoWithArms(TIMELINE_FPS, solve, [CODA.jumpCut]);
-
-const releaseAt = memoByFrame((off: number) => {
-  const { frame, burned } = solveCore(off).cigarette!;
-  const flicked = (t: number) => ashOnTheCigarette(cigaretteAt(t), smokedAt(t).burned).center;
-  return { ...ashOnTheCigarette(frame, burned), velocity: flicked(off).sub(flicked(off - 1 / TIMELINE_FPS)).multiplyScalar(TIMELINE_FPS) };
-});
-
-const solveWithAsh = memoByFrame((t: number): KlingelsturmState => ({
-  ...solveCore(t),
-  ash: t < CODA.ashOff ? null : fallenAshAt(t, releaseAt(CODA.ashOff)),
-}));
+const solverIn = (language: Language) => {
+  const clock = KLINGELSTURM_CLOCKS[language];
+  const solveCore = memoWithArms(TIMELINE_FPS, solveOn(clock, language), [clock.editAt(CODA.jumpCut)]);
+  const releaseAt = memoByFrame((off: number) => {
+    const { frame, burned } = solveCore(clock.editAt(off)).cigarette!;
+    const flicked = (t: number) => ashOnTheCigarette(cigaretteAt(t), smokedAt(t).burned).center;
+    return { ...ashOnTheCigarette(frame, burned), velocity: flicked(off).sub(flicked(off - 1 / TIMELINE_FPS)).multiplyScalar(TIMELINE_FPS) };
+  });
+  const solveWithAsh = memoByFrame((u: number): KlingelsturmState => {
+    const t = clock.storyAt(u);
+    return { ...solveCore(u), ash: t < CODA.ashOff ? null : fallenAshAt(t, releaseAt(CODA.ashOff)) };
+  });
+  return Object.assign((u: number) => solveWithAsh(u), {
+    clear: () => { [solveWithAsh, solveCore, releaseAt].forEach((memo) => { memo.clear(); }); },
+  });
+};
 
 export const TIBIK_LEFT_HOLDS: readonly Hold[] = [...PACKING_HOLDS, LEVER_HOLD, ...TAPING_HOLDS, ...EXIT_HOLDS];
 export const TIBIK_RIGHT_HOLDS: readonly Hold[] = [...PACKING_HOLDS, ...TAPING_HOLDS, ...EXIT_HOLDS];
 export const KAREN_LEFT_HOLDS: readonly Hold[] = [...BELL_HOLDS, ...BLOW_HOLDS];
 export const KAREN_RIGHT_HOLDS: readonly Hold[] = [...PHONE_HOLDS, LIGHTER_HOLD, UP_TO_THE_CIGARETTE_HOLD, CIGARETTE_HOLD];
 
-export const solveKlingelsturm = Object.assign((t: number) => solveWithAsh(t), {
-  clear: () => { [solveWithAsh, solveCore, releaseAt].forEach((memo) => { memo.clear(); }); },
-});
+const SOLVERS: Readonly<Record<Language, ReturnType<typeof solverIn>>> = { de: solverIn("de"), en: solverIn("en") };
+
+export const solveKlingelsturmIn = (language: Language) => SOLVERS[language];
+
+export const solveKlingelsturm = SOLVERS.de;
 
 export const klingelsturmSolids = (state: KlingelsturmState): Solid[] =>
   solidsAt(

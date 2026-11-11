@@ -1,8 +1,11 @@
 import { FORMATS, type Format } from "../frameRate";
 import { textWidth, typeOf, wordsOf } from "./text";
 import type { Line, Speaker, Tone } from "./line";
+import type { Language } from "../language";
 
 export const SUBTITLE = { words: [3, 5], minSeconds: 1, maxCps: 20, targetCps: 17, maxLines: 2, clauseBreakSlack: 1.15, typeSlack: 0.95 } as const;
+
+export const SUBTITLE_WORDS: Readonly<Record<Language, readonly [number, number]>> = { de: SUBTITLE.words, en: [3, 7] };
 
 type Bar = {
   readonly centerX: number;
@@ -66,11 +69,20 @@ const compositions = (total: number, parts: number, low: number, high: number): 
   return out;
 };
 
-export const bindsToTheNext = (word: string) => BINDS_TO_THE_NEXT.has(word.toLowerCase());
+export const ENGLISH_BINDS_TO_THE_NEXT: ReadonlySet<string> = new Set([
+  ...["a", "an", "the", "this", "these", "those", "my", "your", "his", "her", "our", "their", "its", "every", "each", "no"],
+  ...["to", "of", "for", "in", "on", "at", "by", "with", "from", "into", "onto", "about", "as", "than", "out"],
+  ...["and", "or", "but", "if", "that", "because", "when", "while", "very", "not", "dear", "mrs.", "mr.", "ms."],
+  ...["will", "would", "can", "could", "shall", "must", "may", "might", "be"],
+]);
 
-export const endsBound = (text: string) => {
+const BINDS: Readonly<Record<Language, ReadonlySet<string>>> = { de: BINDS_TO_THE_NEXT, en: ENGLISH_BINDS_TO_THE_NEXT };
+
+export const bindsToTheNext = (word: string, language: Language = "de") => BINDS[language].has(word.toLowerCase());
+
+export const endsBound = (text: string, language: Language = "de") => {
   const words = wordsOf(text);
-  return words.length > 0 && bindsToTheNext(words[words.length - 1]);
+  return words.length > 0 && bindsToTheNext(words[words.length - 1], language);
 };
 
 const SHORTEST_CLEAN_PHRASE = 2;
@@ -83,6 +95,7 @@ const groupSizes = (
   accept: (sizes: readonly number[]) => boolean,
   [fewest, most]: Band = SUBTITLE.words,
   fallBack = true,
+  language: Language = "de",
 ): number[] | undefined => {
   const bounded = compositions(words.length, parts, fewest, most);
   const all = bounded.length > 0 || !fallBack ? bounded : compositions(words.length, parts, 1, words.length);
@@ -96,7 +109,7 @@ const groupSizes = (
     for (const size of sizes.slice(0, -1)) {
       at += size;
       if (CLAUSE_END.test(words[at - 1])) atClauses++;
-      if (bindsToTheNext(words[at - 1])) dangling++;
+      if (bindsToTheNext(words[at - 1], language)) dangling++;
     }
     return { atClauses, dangling, spread: Math.max(...sizes) - Math.min(...sizes) };
   };
@@ -135,6 +148,8 @@ const wrap = (text: string, tone: Tone, format: Format): string[] => {
 };
 
 const cut = (line: Line, format: Format): Chunk[] => {
+  const language = line.language ?? "de";
+  const band = SUBTITLE_WORDS[language];
   const words = wordsOf(line.text);
   const duration = line.to - line.from;
   const total = words.join(" ").length;
@@ -145,10 +160,10 @@ const cut = (line: Line, format: Format): Chunk[] => {
       ({ at, texts }, size) => ({ at: at + size, texts: [...texts, words.slice(at, at + size).join(" ")] }),
       { at: 0, texts: [] },
     ).texts;
-  const sizesIn = (parts: number, accept: (texts: readonly string[]) => boolean, band?: Band, fallBack?: boolean) =>
-    groupSizes(words, parts, (sizes) => accept(textsOf(sizes)), band, fallBack);
+  const sizesIn = (parts: number, accept: (texts: readonly string[]) => boolean, bandOf?: Band, fallBack?: boolean) =>
+    groupSizes(words, parts, (sizes) => accept(textsOf(sizes)), bandOf ?? band, fallBack, language);
   const textsIn = (parts: number, accept: (texts: readonly string[]) => boolean = () => true) => textsOf(sizesIn(parts, accept) ?? [words.length]);
-  const most = Math.min(words.length, Math.ceil(words.length / SUBTITLE.words[1]));
+  const most = Math.min(words.length, Math.ceil(words.length / band[1]));
   const counts = [...Array.from({ length: most }, (_, i) => most - i), ...Array.from({ length: words.length - most }, (_, i) => most + 1 + i)];
   const clauses = words
     .reduce<string[][]>((out, word) => {
@@ -156,12 +171,12 @@ const cut = (line: Line, format: Format): Chunk[] => {
       return last === undefined || CLAUSE_END.test(last[last.length - 1]) ? [...out, [word]] : [...out.slice(0, -1), [...last, word]];
     }, [])
     .map((clause) => clause.join(" "));
-  const phrases = (texts: readonly string[]) => texts.every((t) => wordsOf(t).length >= SUBTITLE.words[0] && wordsOf(t).length <= SUBTITLE.words[1]);
+  const phrases = (texts: readonly string[]) => texts.every((t) => wordsOf(t).length >= band[0] && wordsOf(t).length <= band[1]);
   const acceptable = (texts: readonly string[]) => longEnough(texts) && fits(texts);
-  const dangles = (texts: readonly string[]) => texts.slice(0, -1).some(endsBound);
+  const dangles = (texts: readonly string[]) => texts.slice(0, -1).some((t) => endsBound(t, language));
   const clean = (texts: readonly string[]) => acceptable(texts) && !dangles(texts);
   const cleanSplit = (count: number) =>
-    [sizesIn(count + 1, clean, SUBTITLE.words, false), sizesIn(count, clean, [SHORTEST_CLEAN_PHRASE, SUBTITLE.words[1]], false)]
+    [sizesIn(count + 1, clean, band, false), sizesIn(count, clean, [SHORTEST_CLEAN_PHRASE, band[1]], false)]
       .map((sizes) => (sizes ? textsOf(sizes) : undefined))
       .find((texts) => texts !== undefined && clean(texts));
   let firstLongEnough: string[] | undefined;

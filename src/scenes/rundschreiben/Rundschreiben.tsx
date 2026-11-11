@@ -21,7 +21,7 @@ import { RundschreibenSound } from "./RundschreibenSound";
 import { RUNDSCHREIBEN_FROM } from "../../timeline";
 import { useFormat } from "../../useFormat";
 import { DialogueTrack } from "../../dialogue/DialogueTrack";
-import { LETTER_READ } from "./narration";
+import { LETTER_READ, RUNDSCHREIBEN_SPOKEN } from "./narration";
 
 
 const Scene: React.FC = () => {
@@ -79,8 +79,8 @@ export const Rundschreiben: React.FC<{
           <Scene />
         </DayLight>
       </ToonCanvas>
-      <DialogueTrack lines={LETTER_READ} name="Narration" />
-      <DialogueTrack lines={LINES} />
+      <DialogueTrack scene="rundschreiben" lines={LETTER_READ} all={RUNDSCHREIBEN_SPOKEN} name="Narration" />
+      <DialogueTrack scene="rundschreiben" lines={LINES} all={RUNDSCHREIBEN_SPOKEN} />
       <RundschreibenSound ambience={ambience} />
     </Sky>
   );

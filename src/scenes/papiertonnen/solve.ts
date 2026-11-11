@@ -14,6 +14,7 @@ import {
   guardBody,
   guardGround,
   guardLean,
+  guardLeanNoDeeper,
   settleArm,
   withArm,
 } from "../../physics/guards";
@@ -93,7 +94,7 @@ export const kartonFlapsOf = (
   return kartonFlapSolids(FOUND_KARTON_SIZE, k.open, 0, box, margin);
 };
 
-const CHIN_CLEARANCE = OUTLINE + 0.014;
+export const CHIN_CLEARANCE = OUTLINE + 0.014;
 
 const RIM_TOP = TONNE.height + 0.02;
 const TIP_END = 0.15;
@@ -200,7 +201,7 @@ export const holdKarton = (
     movable: karton.pickup > 0,
     carrying: karton.pickup > 0 && karton.pickup < 1,
   });
-  const clear = guardLean(
+  const clear = guardLeanNoDeeper(
     held.character,
     kartonFlapsOf(held.character, held.item, CHIN_CLEARANCE),
   );

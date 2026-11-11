@@ -87,21 +87,27 @@ export const guardBody = <C extends Character>(
   return current;
 };
 
-export const guardLean = <C extends Character>(
+const leanGuard = <C extends Character>(
   c: C,
   solids: readonly Solid[],
+  fromUpright: boolean,
 ): C => {
   const scaled = (amount: number): Pose => ({
     ...c.pose,
     lean: c.pose.lean * (1 - amount),
     headPitch: c.pose.headPitch * (1 - amount),
   });
-  const hits = (amount: number) => {
+  const depth = (amount: number) => {
     const body = bodyColliders(c.skeleton, withPose(c, scaled(amount)));
     return deepest(contacts([...body.upperTorso, ...body.head], solids));
   };
-  return withPose(c, scaled(smallestClearing(hits, 1)));
+  const upright = fromUpright ? depth(1) : 0;
+  return withPose(c, scaled(Math.min(1, smallestClearing((amount) => depth(amount) - upright, 1))));
 };
+
+export const guardLean = <C extends Character>(c: C, solids: readonly Solid[]): C => leanGuard(c, solids, false);
+
+export const guardLeanNoDeeper = <C extends Character>(c: C, solids: readonly Solid[]): C => leanGuard(c, solids, true);
 
 const ARM_ESCAPES: ((arm: ArmPose, amount: number) => ArmPose)[] = [
   (arm, amount) => ({ ...arm, raise: arm.raise + amount }),

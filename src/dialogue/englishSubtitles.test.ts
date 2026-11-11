@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { SPOKEN } from "../scenes/spokenLines";
 import { clockOf } from "../scenes/clocks";
 import { englishEdition } from "./edition";
-import { SUBTITLE, SUBTITLE_BAR, SUBTITLE_WORDS, chunksOf, endsBound } from "./subtitles";
+import { SUBTITLE, SUBTITLE_BAR, SUBTITLE_SPLIT_SECONDS, SUBTITLE_WORDS, chunksOf, endsBound, wrapsInto } from "./subtitles";
 import { textWidth, typeOf, wordsOf } from "./text";
 
 const ENGLISH = SPOKEN.flatMap(({ key, lines }) => {
@@ -20,7 +20,7 @@ test("English lines are marked English, so they are cut into chunks by English r
   expect(SUBTITLE_WORDS.en).toEqual([3, 7]);
 });
 
-test.each(FORMATS)("%s: an English chunk has 3-7 words where the time allows, lasts at least 1 s or its whole line, and fits the bar in at most two lines", (format) => {
+test.each(FORMATS)("%s: a split English line has 3-7 words a chunk where the time allows; every chunk lasts at least 1 s or its whole line, and fits the bar in at most two lines", (format) => {
   const bar = SUBTITLE_BAR[format];
   const problems = ENGLISH.flatMap(({ line }) => {
     const chunks = chunksOf(line, format);
@@ -30,7 +30,7 @@ test.each(FORMATS)("%s: an English chunk has 3-7 words where the time allows, la
       const n = wordsOf(c.text).length;
       const { font, spacing } = typeOf(c.tone);
       return [
-        n > SUBTITLE_WORDS.en[1] && !timeBound ? `${line.name}: "${c.text}" has ${n} words` : null,
+        n > SUBTITLE_WORDS.en[1] && chunks.length > 1 && !timeBound ? `${line.name}: "${c.text}" has ${n} words` : null,
         !short && c.to - c.from < SUBTITLE.minSeconds - 1e-9 ? `${line.name}: "${c.text}" shows ${(c.to - c.from).toFixed(2)} s` : null,
         c.lines.length > SUBTITLE.maxLines ? `${line.name}: "${c.text}" needs ${c.lines.length} lines` : null,
         ...c.lines.map((l) => (textWidth(l, font, bar.fontSize, spacing) > bar.maxWidth - 2 * bar.padding ? `${line.name}: "${l}" is wider than the bar` : null)),
@@ -65,7 +65,18 @@ test("short English lines stay whole: 'Have a nice day, Mrs. Schulz.' is one chu
   for (const format of FORMATS) expect(chunksOf(line, format).map((c) => c.text), format).toEqual(["Have a nice day, Mrs. Schulz."]);
 });
 
-test("an English chunk does not end on a helping verb: 'Your local hardware store' | 'will be happy to advise you'", () => {
+test("an English chunk does not end on a helping verb: 'Your local hardware store' | 'will be happy to advise you' in 9:16, where the sentence is too long to stay whole", () => {
   const line = ENGLISH.find(({ line }) => line.text.startsWith("Your local hardware store"))!.line;
-  expect(chunksOf(line, "wide").map((c) => c.text)).toEqual(["Your local hardware store", "will be happy to advise you", "on the available sizes and designs."]);
+  expect(chunksOf(line, "tall").map((c) => c.text)).toEqual(["Your local hardware store", "will be happy to advise you", "on the available sizes and designs."]);
+});
+
+test.each(FORMATS)("%s: a quickly spoken English line that fits two lines of the bar stays one subtitle, split only where every chunk stays up at least 1.5 s (owner, 2026-11-11)", (format) => {
+  const flicking = ENGLISH.flatMap(({ line }) => {
+    const chunks = chunksOf(line, format);
+    const fitsWhole = wrapsInto(line.text, line.tone, format) <= SUBTITLE.maxLines;
+    return chunks.length > 1 && fitsWhole && chunks.some((c) => c.to - c.from < SUBTITLE_SPLIT_SECONDS.en - 1e-9) ? [`${line.name}: ${chunks.map((c) => `"${c.text}"`).join(" | ")}`] : [];
+  });
+  expect(flicking).toEqual([]);
+  const neighbor = ENGLISH.find(({ line }) => line.text === "MY NEIGHBOR TOOK A BOX OUT OF THE TRASH!")!.line;
+  expect(chunksOf(neighbor, format).map((c) => c.text)).toEqual(["MY NEIGHBOR TOOK A BOX OUT OF THE TRASH!"]);
 });

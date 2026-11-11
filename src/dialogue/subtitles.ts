@@ -7,6 +7,8 @@ export const SUBTITLE = { words: [3, 5], minSeconds: 1, maxCps: 20, targetCps: 1
 
 export const SUBTITLE_WORDS: Readonly<Record<Language, readonly [number, number]>> = { de: SUBTITLE.words, en: [3, 7] };
 
+export const SUBTITLE_SPLIT_SECONDS: Readonly<Record<Language, number>> = { de: SUBTITLE.minSeconds, en: 1.5 };
+
 type Bar = {
   readonly centerX: number;
   readonly bottom: number;
@@ -147,6 +149,8 @@ const wrap = (text: string, tone: Tone, format: Format): string[] => {
   );
 };
 
+export const wrapsInto = (text: string, tone: Tone, format: Format) => wrap(text, tone, format).length;
+
 const cut = (line: Line, format: Format): Chunk[] => {
   const language = line.language ?? "de";
   const band = SUBTITLE_WORDS[language];
@@ -192,7 +196,9 @@ const cut = (line: Line, format: Format): Chunk[] => {
     }
   }
   texts ??= firstLongEnough ?? textsIn(1);
-  const durations = texts.map((t) => (duration * t.length) / texts.join(" ").length);
+  const shareOf = (chunks: readonly string[]) => chunks.map((t) => (duration * t.length) / chunks.join(" ").length);
+  if (texts.length > 1 && fits([line.text]) && Math.min(...shareOf(texts)) < SUBTITLE_SPLIT_SECONDS[language] - 1e-9) texts = [line.text];
+  const durations = shareOf(texts);
   let from = line.from;
   return texts.map((text, i) => {
     const to = i === texts.length - 1 ? line.to : from + durations[i];

@@ -34,7 +34,7 @@ the test fails while this file and the film disagree.
 | --- | --- | --- | --- | --- | --- |
 | `klingelsturm_01_tibik` | Ja bitte? | Yeah, what's up? | calm, polite, unbothered | — | 0.8 s |
 | `klingelsturm_04_tibik` | Worum geht es denn? | What's this about? | calm, polite, unbothered | SOFORT AUFMACHEN! | 1.2 s |
-| `klingelsturm_07_tibik` | Der Umwelt zuliebe nicht. | Not for the environment's sake. | calm, polite, unbothered | KAUFEN SIE SICH GEFÄLLIGST EINEN NEUEN! | 1.3 s |
+| `klingelsturm_07_tibik` | Der Umwelt zuliebe nicht. | Nooo. Not for the environment's sake. | calm, polite, unbothered | KAUFEN SIE SICH GEFÄLLIGST EINEN NEUEN! | 1.3 s |
 
 ### Rundschreiben
 

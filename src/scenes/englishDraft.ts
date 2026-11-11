@@ -18,7 +18,7 @@ export const ENGLISH_DRAFT: Readonly<Record<string, string>> = {
   "Worum geht es denn?": "What's this about?",
   "UM DEN KARTON!": "THE BOX!",
   "KAUFEN SIE SICH GEFÄLLIGST EINEN NEUEN!": "GO BUY YOURSELF A NEW ONE LIKE EVERYBODY ELSE!",
-  "Der Umwelt zuliebe nicht.": "Not for the environment's sake.",
+  "Der Umwelt zuliebe nicht.": "Nooo. Not for the environment's sake.",
   "HWS Hausverwaltung.": "HWS Property Management.",
   "Sie rufen außerhalb unserer Sprechzeiten an.": "You have reached us outside our office hours.",
   "Bitte hinterlassen Sie eine Nachricht nach dem Signalton.": "Please leave a message after the tone.",

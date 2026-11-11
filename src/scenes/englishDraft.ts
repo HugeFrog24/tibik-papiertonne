@@ -22,7 +22,7 @@ export const ENGLISH_DRAFT: Readonly<Record<string, string>> = {
   "HWS Hausverwaltung.": "HWS Property Management.",
   "Sie rufen außerhalb unserer Sprechzeiten an.": "You have reached us outside our office hours.",
   "Bitte hinterlassen Sie eine Nachricht nach dem Signalton.": "Please leave a message after the tone.",
-  "DAS IST EIN NOTFALL!": "THIS IS AN EMERGENCY!",
+  "DAS IST EIN NOTFALL!": "THAT'S AN EMERGENCY!",
   "MEIN NACHBAR HAT EINEN KARTON AUS DEM HAUSMÜLL GENOMMEN!": "MY NEIGHBOR TOOK A BOX OUT OF THE TRASH!",
   "Ist jemand verletzt oder in Gefahr?": "Is anyone hurt or in danger?",
   "…NÖ!": "…NO.",

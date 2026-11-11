@@ -37,6 +37,7 @@ test("every line and alternative take has an English draft beside it for the Eng
   expect(takes.find((t) => t.id === "klingelsturm_01_tibik")?.english, "the owner's English retake behind his door (2026-11-11)").toBe("Yeah, what's up?");
   expect(takes.find((t) => t.id === "klingelsturm_07_tibik")?.english, "his English take opens with a long no (owner, 2026-11-11)").toBe("Nooo. Not for the environment's sake.");
   expect(takes.find((t) => t.id === "klingelsturm_04_tibik")?.english, "as he says it in his English take (owner, 2026-11-11)").toBe("What's the matter?");
+  expect(takes.find((t) => t.id === "klingelsturm_11_karen")?.english, "as she shouts it in her English take (owner, 2026-11-11)").toBe("THAT'S AN EMERGENCY!");
   const spoken = new Set([...takes.map((t) => t.text), "Äääh…"]);
   expect(Object.keys(ENGLISH_DRAFT).filter((german) => !spoken.has(german))).toEqual([]);
   expect(recordingScript()).toContain("| File | Line | English (draft) | Direction | Cue (the line before) | Slot |");

@@ -82,7 +82,7 @@ the test fails while this file and the film disagree.
 | `klingelsturm_03_karen` | SOFORT AUFMACHEN! | OPEN THIS DOOR RIGHT NOW! | shouted, furious; indignant | EY! | 1.3 s |
 | `klingelsturm_05_karen` | UM DEN KARTON! | THE BOX! | shouted, furious; indignant | Worum geht es denn? | 1.2 s |
 | `klingelsturm_06_karen` | KAUFEN SIE SICH GEFÄLLIGST EINEN NEUEN! | GO BUY YOURSELF A NEW ONE LIKE EVERYBODY ELSE! | shouted, furious; indignant | UM DEN KARTON! | 2.1 s |
-| `klingelsturm_11_karen` | DAS IST EIN NOTFALL! | THIS IS AN EMERGENCY! | shouted, furious; indignant | Bitte hinterlassen Sie eine Nachricht nach dem Signalton. | 1.3 s |
+| `klingelsturm_11_karen` | DAS IST EIN NOTFALL! | THAT'S AN EMERGENCY! | shouted, furious; indignant | Bitte hinterlassen Sie eine Nachricht nach dem Signalton. | 1.3 s |
 | `klingelsturm_12_karen` | MEIN NACHBAR HAT EINEN KARTON AUS DEM HAUSMÜLL GENOMMEN! | MY NEIGHBOR TOOK A BOX OUT OF THE TRASH! | shouted, furious; indignant | DAS IST EIN NOTFALL! | 3.0 s |
 | `klingelsturm_14_karen` | …NÖ! | …NO. | after a beat; shouted, furious; indignant | Ist jemand verletzt oder in Gefahr? | 1.0 s |
 | `klingelsturm_15_karen` | ABER ER SAGT: DER UMWELT ZULIEBE! | BUT HE SAYS: FOR THE ENVIRONMENT'S SAKE! | shouted, furious; indignant | …NÖ! | 2.2 s |

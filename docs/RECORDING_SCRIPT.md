@@ -13,7 +13,7 @@ the test fails while this file and the film disagree.
 - **Pace:** your natural pace. The slot column is the line's current subtitle time, for orientation only; the scenes are retimed to your takes.
 - **ElevenLabs:** export clean at the best quality on offer; the telephone sound is added in the mix so both phone voices match.
 - **Where:** raw takes go in `assets/recordings/private/`, which is never committed. Finished takes (cut, cleaned, limited, no effects) go in `public/dialogue/de/` and `public/dialogue/en/`, one file per ID; after adding or replacing one, run `node scripts/measure-takes.mjs` so the film places it by its speech.
-- **English (draft):** a US-English version of each line for an English edition (the 110 call would become 911); an alternative take follows a slash.
+- **English (draft):** a US-English version of each line for the English edition (the police number stays 110, as the film is set in Germany); an alternative take follows a slash.
 
 ## Tibik (you): 10 lines
 

@@ -750,6 +750,16 @@ composition under "Scenes" in the Studio:
 - German quotation marks („…“) in on-screen text. **(test)**
 - Floors: Erdgeschoss = ground floor, "1. Stock" = the first floor above it.
 
+### The English edition (owner, 2026-11-11)
+
+- German timing kept: each English take starts where its German line does and is quickened in time, never in pitch, only as much as it needs to be over before what follows, at most x1.31 ("GO BUY YOURSELF A NEW ONE…" ranting faster suits Karen). **(test)**
+- The answering machine plays at its own pace, re-spaced with the German pauses between its sentences, and is done before the beep. **(test)**
+- The gap shot holds 37 frames in English, so "Nooo. Not for the environment's sake." plays at his own pace: the story waits, Karen breathes on and blinks once, and every later moment and scene comes 37 frames later (the English film runs 3:36.5). **(test)**
+- Karen's mouth, gestures, spit and the ambience ducking follow her English takes. **(test)**
+- English subtitles are cut by English rules: 3-7 words a chunk, never ending on a word that leans on the next (a, the, to, dear, will…). Lines spoken faster than 20 characters a second keep their subtitle up for the whole line. **(test)**
+- The police number stays **110**: the film is set in Germany, half of Europe dials 110 as well, and an American 911 would lose the German neighbourly grumpiness the comedy rests on.
+- German on screen stays German: the letter, her phone ("Hausverwaltung", "Anruf beendet"), signs and number plates. The letter only reads as a shape on a phone screen, and films don't remake props for each market.
+
 ## Physical realism
 
 - Nothing passes through anything: bodies, arms (including into the

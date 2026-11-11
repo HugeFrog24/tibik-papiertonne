@@ -39,6 +39,8 @@ test("every line and alternative take has an English draft beside it for the Eng
   const spoken = new Set([...takes.map((t) => t.text), "Äääh…"]);
   expect(Object.keys(ENGLISH_DRAFT).filter((german) => !spoken.has(german))).toEqual([]);
   expect(recordingScript()).toContain("| File | Line | English (draft) | Direction | Cue (the line before) | Slot |");
+  expect(recordingScript(), "the English edition keeps the German police number (owner, 2026-11-11)").toContain("the police number stays 110");
+  expect(recordingScript()).not.toContain("911");
 });
 
 test("every line and every alternative take the script asks for has its own English draft, so none reads 'undefined'", () => {
